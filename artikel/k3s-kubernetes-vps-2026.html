@@ -36,6 +36,7 @@
     "inLanguage": "de"
   }
   </script>
+  <script src="/data/script.js" defer></script>
 </head>
 <body>
 
@@ -44,9 +45,24 @@
     <a href="/" class="logo">hosta<span>zar</span></a>
     <ul class="nav-links">
       <li><a href="/">Startseite</a></li>
-      <li><a href="/#gaming">Gaming</a></li>
-      <li><a href="/#webhosting">Webhosting</a></li>
-      <li><a href="/#devops" class="active">DevOps</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">Gaming</a>
+        <div class="nav-dropdown-menu">
+          <a href="/gaming/">🎮 Alle Gaming-Artikel</a>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">Webhosting</a>
+        <div class="nav-dropdown-menu">
+          <a href="/webhosting/">🌐 Alle Webhosting-Artikel</a>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/">DevOps</a>
+        <div class="nav-dropdown-menu">
+          <a href="/devops/">⚙️ Alle DevOps-Artikel</a>
+        </div>
+      </li>
       <li><a href="/about.html">Über uns</a></li>
       <li><a href="/impressum.html">Impressum</a></li>
     </ul>
@@ -65,6 +81,7 @@
       <p style="color:var(--text-secondary);font-size:1.1rem">Kubernetes ist der De-facto-Standard für Container-Orchestrierung – aber die Einrichtung von einem vollwertigen Cluster ist aufwändig. K3s von Rancher (jetzt SUSE) schafft Abhilfe: Eine Lightweight-Kubernetes-Distribution, die speziell für ressourcenbeschränkte Umgebungen wie einen VPS optimiert ist.</p>
     </div>
     <div class="adsense-placeholder"><p><strong>— Anzeige —</strong></p><p>Google AdSense Platzhalter</p></div>
+    <div id="breadcrumbs"></div>
     <div class="article-content">
 
       <h2>Was ist K3s?</h2>
@@ -210,4 +227,23 @@ kubectl create ingress nginx --rule="nginx.deinedomain.de/*=nginx:80"
   </div>
 </footer>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'devops',
+        excludeSlug: 'k3s-kubernetes-vps-2026',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/devops/', label: 'DevOps' },
+        { label: 'K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026' }
+      ]
+    });
+  }
+});
+</script>
 </body></html>

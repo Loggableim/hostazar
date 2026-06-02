@@ -36,6 +36,7 @@
     "inLanguage": "de"
   }
   </script>
+  <script src="/data/script.js" defer></script>
 </head>
 <body>
 
@@ -45,9 +46,24 @@
     <a href="/" class="logo">hosta<span>zar</span></a>
     <ul class="nav-links">
       <li><a href="/">Startseite</a></li>
-      <li><a href="/#gaming">Gaming</a></li>
-      <li><a href="/#webhosting" class="active">Webhosting</a></li>
-      <li><a href="/#devops">DevOps</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">Gaming</a>
+        <div class="nav-dropdown-menu">
+          <a href="/gaming/">🎮 Alle Gaming-Artikel</a>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">Webhosting</a>
+        <div class="nav-dropdown-menu">
+          <a href="/webhosting/">🌐 Alle Webhosting-Artikel</a>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/">DevOps</a>
+        <div class="nav-dropdown-menu">
+          <a href="/devops/">⚙️ Alle DevOps-Artikel</a>
+        </div>
+      </li>
       <li><a href="/about.html">Über uns</a></li>
       <li><a href="/impressum.html">Impressum</a></li>
     </ul>
@@ -75,6 +91,7 @@
       <p>Google AdSense Platzhalter</p>
     </div>
 
+    <div id="breadcrumbs"></div>
     <div class="article-content">
       <p>Du willst eine Website online bringen oder ein Projekt hosten – und stehst vor der Qual der Wahl: <strong>Webhosting</strong> (Shared Hosting), ein <strong>VServer (VPS)</strong> oder gleich ein <strong>Rootserver</strong>? Die Antwort hängt stark von deinen Anforderungen ab. In diesem Guide erklären wir die Unterschiede, Vor- und Nachteile und geben dir eine klare Entscheidungshilfe.</p>
 
@@ -185,5 +202,24 @@
   </div>
 </footer>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'webhosting',
+        excludeSlug: 'webhosting-vserver-vergleich',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/webhosting/', label: 'Webhosting' },
+        { label: 'Webhosting vs. VServer – Was passt zu dir?' }
+      ]
+    });
+  }
+});
+</script>
 </body>
 </html>

@@ -39,6 +39,7 @@
     "inLanguage": "de"
   }
   </script>
+  <script src="/data/script.js" defer></script>
 </head>
 <body>
 
@@ -48,9 +49,24 @@
     <a href="/" class="logo">hosta<span>zar</span></a>
     <ul class="nav-links">
       <li><a href="/">Startseite</a></li>
-      <li><a href="/#gaming" class="active">Gaming</a></li>
-      <li><a href="/#webhosting">Webhosting</a></li>
-      <li><a href="/#devops">DevOps</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">Gaming</a>
+        <div class="nav-dropdown-menu">
+          <a href="/gaming/">🎮 Alle Gaming-Artikel</a>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">Webhosting</a>
+        <div class="nav-dropdown-menu">
+          <a href="/webhosting/">🌐 Alle Webhosting-Artikel</a>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/">DevOps</a>
+        <div class="nav-dropdown-menu">
+          <a href="/devops/">⚙️ Alle DevOps-Artikel</a>
+        </div>
+      </li>
       <li><a href="/about.html">Über uns</a></li>
       <li><a href="/impressum.html">Impressum</a></li>
     </ul>
@@ -80,6 +96,7 @@
       <p>Google AdSense Platzhalter</p>
     </div>
 
+    <div id="breadcrumbs"></div>
     <div class="article-content">
       <p><strong>Valheim</strong> ist auch 2026 eines der beliebtesten Survival-Spiele für Koop-Gruppen. Der Reiz liegt in der gemeinsamen Welt: einer baut die Basis, ein anderer farmt Erz, später segelt die Gruppe zu Bossen, Sümpfen und Nebellanden. Genau deshalb ist ein stabiler Server wichtiger als bei vielen anderen Spielen. Wenn der Host-PC aus ist, steht die Welt still. Wenn die Verbindung ruckelt, werden Kämpfe unfair. Und wenn Mods nicht sauber installiert sind, verlieren Spieler schnell die Lust.</p>
 
@@ -196,7 +213,8 @@
       <p>Ein VPS ist die bessere Lösung für technisch versierte Nutzer. Du bekommst Root-Rechte, kannst mehrere Dienste kombinieren und die Umgebung exakt anpassen. Dafür trägst du Verantwortung für Sicherheit, Updates und Fehlerbehebung. Die Entscheidung ist deshalb weniger eine Frage von „billiger“, sondern von „bequemer oder kontrollierbarer“. Wenn du nur Valheim spielen willst: mieten. Wenn du Server gern selbst baust: VPS.</p>
     </div>
 
-    <!-- AdSense Platzhalter unten -->
+        <div id="related-articles"></div>
+<!-- AdSense Platzhalter unten -->
     <div class="adsense-placeholder">
       <p><strong>— Anzeige —</strong></p>
       <p>Google AdSense Platzhalter (Ende des Artikels)</p>
@@ -237,5 +255,24 @@
   </div>
 </footer>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'gaming',
+        excludeSlug: 'valheim-server-vps-mieten-2026',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/gaming/', label: 'Gaming' },
+        { label: 'Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026' }
+      ]
+    });
+  }
+});
+</script>
 </body>
 </html>

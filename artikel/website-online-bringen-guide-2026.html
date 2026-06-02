@@ -36,6 +36,7 @@
     "inLanguage": "de"
   }
   </script>
+  <script src="/data/script.js" defer></script>
 </head>
 <body>
 
@@ -44,9 +45,24 @@
     <a href="/" class="logo">hosta<span>zar</span></a>
     <ul class="nav-links">
       <li><a href="/">Startseite</a></li>
-      <li><a href="/#gaming">Gaming</a></li>
-      <li><a href="/#webhosting" class="active">Webhosting</a></li>
-      <li><a href="/#devops">DevOps</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">Gaming</a>
+        <div class="nav-dropdown-menu">
+          <a href="/gaming/">🎮 Alle Gaming-Artikel</a>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">Webhosting</a>
+        <div class="nav-dropdown-menu">
+          <a href="/webhosting/">🌐 Alle Webhosting-Artikel</a>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/">DevOps</a>
+        <div class="nav-dropdown-menu">
+          <a href="/devops/">⚙️ Alle DevOps-Artikel</a>
+        </div>
+      </li>
       <li><a href="/about.html">Über uns</a></li>
       <li><a href="/impressum.html">Impressum</a></li>
     </ul>
@@ -65,6 +81,7 @@
       <p style="color:var(--text-secondary);font-size:1.1rem">Du möchtest eine eigene Webseite erstellen und ins Internet bringen? In diesem Guide erfährst du Schritt für Schritt, wie du von der Idee zur live geschalteten Website kommst – inklusive Domain, Hosting, CMS und erster SEO-Optimierung.</p>
     </div>
     <div class="adsense-placeholder"><p><strong>— Anzeige —</strong></p><p>Google AdSense Platzhalter</p></div>
+    <div id="breadcrumbs"></div>
     <div class="article-content">
 
       <h2>1. Die richtige Domain wählen</h2>
@@ -203,4 +220,23 @@
   </div>
 </footer>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'webhosting',
+        excludeSlug: 'website-online-bringen-guide-2026',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/webhosting/', label: 'Webhosting' },
+        { label: 'Webseite online bringen – Der Komplettguide von A bis Z 2026' }
+      ]
+    });
+  }
+});
+</script>
 </body></html>

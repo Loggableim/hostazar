@@ -42,6 +42,7 @@
     "inLanguage": "de"
   }
   </script>
+  <script src="/data/script.js" defer></script>
 </head>
 <body>
 
@@ -50,9 +51,24 @@
     <a href="/" class="logo">hosta<span>zar</span></a>
     <ul class="nav-links">
       <li><a href="/">Startseite</a></li>
-      <li><a href="/#gaming">Gaming</a></li>
-      <li><a href="/#webhosting">Webhosting</a></li>
-      <li><a href="/#devops" class="active">DevOps</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">Gaming</a>
+        <div class="nav-dropdown-menu">
+          <a href="/gaming/">🎮 Alle Gaming-Artikel</a>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">Webhosting</a>
+        <div class="nav-dropdown-menu">
+          <a href="/webhosting/">🌐 Alle Webhosting-Artikel</a>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/">DevOps</a>
+        <div class="nav-dropdown-menu">
+          <a href="/devops/">⚙️ Alle DevOps-Artikel</a>
+        </div>
+      </li>
       <li><a href="/about.html">Über uns</a></li>
       <li><a href="/impressum.html">Impressum</a></li>
     </ul>
@@ -80,6 +96,7 @@
       <p>Google AdSense Platzhalter</p>
     </div>
 
+    <div id="breadcrumbs"></div>
     <div class="article-content">
       <p><strong>Docker Compose auf einem VPS</strong> ist für viele Webprojekte der pragmatische Mittelweg zwischen klassischem LAMP-Server und großem Kubernetes-Cluster. Du kannst einen Webserver, eine Datenbank, einen Cache, einen Reverse Proxy und Hilfsdienste in einer einzigen YAML-Struktur beschreiben, versionieren und mit wenigen Befehlen starten. Gerade für Blogs, SaaS-Prototypen, interne Tools, kleine Shops oder Kundenprojekte ist das schnell, günstig und gut wartbar.</p>
 
@@ -243,5 +260,24 @@ networks:
   </div>
 </footer>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'devops',
+        excludeSlug: 'docker-compose-vps-guide',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/devops/', label: 'DevOps' },
+        { label: 'Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben' }
+      ]
+    });
+  }
+});
+</script>
 </body>
 </html>
