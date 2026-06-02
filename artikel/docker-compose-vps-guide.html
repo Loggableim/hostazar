@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben | hostazar.com</title>
+  <meta name="description" content="Praxisnaher Guide für Docker Compose auf dem VPS: Webserver, Datenbank, Reverse Proxy, TLS, Backups, Updates und Sicherheit richtig planen und betreiben.">
+  <meta name="keywords" content="Docker Compose VPS, Docker Webserver Datenbank Reverse Proxy, Traefik Nginx Proxy Manager, Docker Compose Anleitung, VPS DevOps, Linux Server Docker">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hostazar.com/artikel/docker-compose-vps-guide.html">
+  <link rel="stylesheet" href="/css/style.css">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hostazar.com/artikel/docker-compose-vps-guide.html">
+  <meta property="og:title" content="Docker Compose auf dem VPS: Webserver, Datenbank und Reverse Proxy richtig betreiben">
+  <meta property="og:description" content="So betreibst du Docker Compose produktionsnah auf einem VPS: saubere Architektur, Reverse Proxy, Datenbank, TLS, Backups und Security.">
+  <meta property="og:image" content="https://hostazar.com/images/docker-compose-vps-guide.png">
+  <meta property="og:locale" content="de_DE">
+  <meta property="article:published_time" content="2026-06-02">
+  <meta property="article:modified_time" content="2026-06-02">
+  <meta property="article:section" content="DevOps">
+  <meta property="article:tag" content="Docker Compose">
+  <meta property="article:tag" content="VPS">
+  <meta property="article:tag" content="Reverse Proxy">
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Docker Compose auf dem VPS: Webserver, Datenbank und Reverse Proxy richtig betreiben",
+    "url": "https://hostazar.com/artikel/docker-compose-vps-guide.html",
+    "datePublished": "2026-06-02",
+    "dateModified": "2026-06-02",
+    "author": { "@type": "Organization", "name": "hostazar.com" },
+    "publisher": { "@type": "Organization", "name": "hostazar.com" },
+    "description": "Praxisnaher Guide für Docker Compose auf dem VPS: Webserver, Datenbank, Reverse Proxy, TLS, Backups, Updates und Sicherheit richtig planen und betreiben.",
+    "image": "https://hostazar.com/images/docker-compose-vps-guide.png",
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://hostazar.com/artikel/docker-compose-vps-guide.html" },
+    "wordCount": 1574,
+    "inLanguage": "de"
+  }
+  </script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">hosta<span>zar</span></a>
+    <ul class="nav-links">
+      <li><a href="/">Startseite</a></li>
+      <li><a href="/#gaming">Gaming</a></li>
+      <li><a href="/#webhosting">Webhosting</a></li>
+      <li><a href="/#devops" class="active">DevOps</a></li>
+      <li><a href="/about.html">Über uns</a></li>
+      <li><a href="/impressum.html">Impressum</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="container article-page">
+  <article>
+    <div class="article-header">
+      <div class="card-meta">
+        <span class="card-tag devops">DevOps</span>
+        <span>2. Juni 2026</span>
+        <span>· 10 Min Lesezeit</span>
+      </div>
+      <h1>Docker Compose auf dem VPS: Webserver, Datenbank und Reverse Proxy richtig betreiben</h1>
+      <p style="color:var(--text-secondary);font-size:1.1rem">Ein produktionsnaher Leitfaden für kleine und mittlere Projekte: von der Server-Basis über Compose-Dateien bis zu HTTPS, Backups, Updates und Monitoring.</p>
+    </div>
+
+    <div class="hero-image-wrap" style="margin:1.5rem 0;border-radius:12px;overflow:hidden;">
+      <img src="../images/docker-compose-vps-guide.png" alt="Docker Compose Architektur auf einem VPS mit Webserver Datenbank und Reverse Proxy" class="hero-image" style="width:100%;height:auto;display:block;">
+    </div>
+
+    <div class="adsense-placeholder">
+      <p><strong>— Anzeige —</strong></p>
+      <p>Google AdSense Platzhalter</p>
+    </div>
+
+    <div class="article-content">
+      <p><strong>Docker Compose auf einem VPS</strong> ist für viele Webprojekte der pragmatische Mittelweg zwischen klassischem LAMP-Server und großem Kubernetes-Cluster. Du kannst einen Webserver, eine Datenbank, einen Cache, einen Reverse Proxy und Hilfsdienste in einer einzigen YAML-Struktur beschreiben, versionieren und mit wenigen Befehlen starten. Gerade für Blogs, SaaS-Prototypen, interne Tools, kleine Shops oder Kundenprojekte ist das schnell, günstig und gut wartbar.</p>
+
+      <p>Damit ein Compose-Setup nicht nur lokal funktioniert, sondern auch dauerhaft im Internet zuverlässig läuft, braucht es jedoch mehr als <code>docker compose up -d</code>. Entscheidend sind eine klare Netzwerkstruktur, persistente Volumes, ein sinnvoll konfigurierter Reverse Proxy, automatische TLS-Zertifikate, Backups, Ressourcenlimits und ein sauberer Update-Prozess. Dieser Guide zeigt dir, wie du Webserver, Datenbank und Reverse Proxy auf einem VPS richtig betreibst.</p>
+
+      <h2>Wann Docker Compose auf dem VPS sinnvoll ist</h2>
+      <p>Docker Compose eignet sich ideal, wenn du wenige bis einige Dutzend Container auf einem einzelnen Server betreiben möchtest. Typische Szenarien sind WordPress mit MariaDB, ein Node.js-Backend mit PostgreSQL, ein Laravel-Projekt mit Redis oder mehrere kleine Apps hinter einem gemeinsamen Reverse Proxy. Der große Vorteil: Alle Abhängigkeiten sind gekapselt, Deployments sind reproduzierbar und du kannst die Konfiguration im Git-Repository pflegen.</p>
+
+      <p>Nicht jede Umgebung sollte mit Compose gelöst werden. Wenn du automatische horizontale Skalierung, mehrere Worker-Nodes, Self-Healing über Cluster-Grenzen oder komplexe Service Meshes brauchst, ist Kubernetes oft passender. Für die meisten kleinen Produktionssysteme ist ein gut gehärteter VPS mit Docker Compose aber einfacher, günstiger und schneller zu verstehen.</p>
+
+      <h2>Die richtige VPS-Basis wählen</h2>
+      <p>Für produktive Docker-Setups solltest du bei der Servergröße nicht zu knapp planen. Ein einzelnes kleines Webprojekt läuft oft bereits mit 2 vCPU, 4 GB RAM und 40 bis 80 GB SSD. Sobald Datenbank, Backups, Monitoring oder mehrere Apps dazukommen, sind 4 vCPU, 8 GB RAM und 100 GB NVMe die deutlich entspanntere Basis. Wichtig sind außerdem ein aktuelles Linux wie Debian oder Ubuntu LTS, IPv4-Erreichbarkeit, zuverlässige Snapshots und ein Anbieter mit transparenter Netzwerkanbindung.</p>
+
+      <p>Plane Speicher nicht nur für die App, sondern auch für Datenbankwachstum, Logdateien, Docker-Images und temporäre Backup-Archive. Docker kann alte Images und Build-Caches ansammeln; regelmäßiges Aufräumen gehört deshalb zum Betrieb. Für Lern- und Administrationsmaterial lohnt sich ein Blick auf <a href="https://www.amazon.de/s?k=Docker+Linux+Server&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">Docker- und Linux-Server-Bücher bei Amazon*</a>.</p>
+
+      <h2>Grundstruktur: Reverse Proxy, App-Netz und Datenbank-Netz</h2>
+      <p>Ein häufiges Anti-Pattern ist, alle Container direkt mit Ports ins Internet zu hängen. Besser ist eine klare Trennung: Nur der Reverse Proxy veröffentlicht Port 80 und 443. Die eigentlichen Anwendungen kommunizieren intern über Docker-Netzwerke. Datenbanken bleiben grundsätzlich ohne öffentlichen Port und sind nur für die jeweilige App erreichbar.</p>
+
+      <p>Bewährt hat sich eine Struktur mit einem externen Proxy-Netzwerk, zum Beispiel <code>proxy</code>, und separaten internen Netzen pro Projekt. Der Reverse Proxy hängt im Proxy-Netz. Jede App, die öffentlich erreichbar sein soll, wird ebenfalls mit diesem Netzwerk verbunden. Datenbank und Cache liegen zusätzlich in einem internen Backend-Netz, das der Proxy nicht benötigt. So reduzierst du die Angriffsfläche erheblich.</p>
+
+      <h2>Reverse Proxy: Traefik, Caddy oder Nginx Proxy Manager?</h2>
+      <p>Der Reverse Proxy nimmt eingehende HTTP- und HTTPS-Anfragen entgegen und leitet sie an den passenden Container weiter. Für Docker Compose sind drei Optionen besonders beliebt: <strong>Traefik</strong>, <strong>Caddy</strong> und <strong>Nginx Proxy Manager</strong>. Traefik erkennt Container über Labels und ist sehr flexibel. Caddy ist minimalistisch und bringt automatisches HTTPS elegant mit. Nginx Proxy Manager bietet eine Weboberfläche und ist für Einsteiger angenehm.</p>
+
+      <p>Für produktive DevOps-Setups ist Traefik oft die beste Wahl, weil Routing-Regeln, Middlewares und Zertifikate direkt in der Compose-Datei dokumentiert werden können. Beispielhaft setzt du Labels wie Host-Regel, TLS-Aktivierung und Zielport am App-Container. Dadurch bleibt das Setup nachvollziehbar und du musst keine separaten Nginx-Konfigurationsdateien pflegen.</p>
+
+      <h2>Beispiel: Compose-Aufbau für Webapp und Datenbank</h2>
+      <p>Eine typische Compose-Datei besteht aus drei Bereichen: Services, Volumes und Networks. Der Webservice nutzt ein Image oder wird aus deinem Code gebaut. Die Datenbank erhält ein festes Volume für persistente Daten. Sensible Werte wie Passwörter gehören nicht hart in die YAML-Datei, sondern in eine <code>.env</code>-Datei oder in Docker Secrets, wenn dein Setup dafür vorbereitet ist.</p>
+
+      <pre><code>services:
+  app:
+    image: example/webapp:latest
+    restart: unless-stopped
+    env_file: .env
+    networks:
+      - proxy
+      - backend
+    depends_on:
+      - db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`example.com`)"
+      - "traefik.http.routers.app.tls.certresolver=letsencrypt"
+      - "traefik.http.services.app.loadbalancer.server.port=3000"
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+volumes:
+  db_data:
+
+networks:
+  proxy:
+    external: true
+  backend:
+    internal: true</code></pre>
+
+      <p>Dieses Beispiel zeigt das Grundprinzip: Der App-Container ist über den Proxy erreichbar, die Datenbank jedoch nur intern. <code>restart: unless-stopped</code> sorgt dafür, dass Container nach einem Reboot wieder starten. <code>depends_on</code> ersetzt allerdings keinen echten Healthcheck; für kritische Dienste solltest du zusätzlich prüfen, ob die Datenbank wirklich bereit ist.</p>
+
+      <h2>Volumes und Backups: Daten sind wichtiger als Container</h2>
+      <p>Container sind austauschbar, Daten nicht. Deshalb verdienen Volumes besondere Aufmerksamkeit. Für Datenbanken solltest du nicht nur das Volume sichern, sondern regelmäßige logische Dumps erstellen, etwa mit <code>pg_dump</code> oder <code>mysqldump</code>. Diese Dumps lassen sich leichter prüfen, versionieren und auf einem anderen Server wiederherstellen als rohe Dateisystemkopien einer laufenden Datenbank.</p>
+
+      <p>Ein solides Backup-Konzept enthält mindestens tägliche Datenbank-Dumps, wöchentliche Vollsicherungen, externe Speicherung und Wiederherstellungstests. Backups, die nie zurückgespielt wurden, sind nur eine Hoffnung. Bewahre Kopien nicht ausschließlich auf demselben VPS auf. Ein defektes Volume, eine kompromittierte Maschine oder ein versehentliches Löschen kann sonst alle Sicherungen gleichzeitig treffen.</p>
+
+      <h2>Updates ohne unnötige Downtime</h2>
+      <p>Docker Compose macht Updates einfach, aber nicht automatisch risikofrei. Der übliche Ablauf lautet: Images aktualisieren, Datenbank sichern, neue Version starten und Logs prüfen. Verwende konkrete Image-Tags statt blindem <code>latest</code>, wenn Stabilität wichtiger ist als maximale Aktualität. Bei Webapps kannst du vor dem Update einen Snapshot des VPS erstellen und zusätzlich ein Datenbank-Backup anlegen.</p>
+
+      <p>Kommandos wie <code>docker compose pull</code>, <code>docker compose up -d</code> und <code>docker image prune</code> reichen oft aus. Für größere Projekte lohnt sich ein Staging-Server, auf dem du Updates zuerst testest. Wenn Datenbankmigrationen beteiligt sind, solltest du Rollback-Szenarien vorab klären. Nicht jede Migration lässt sich einfach rückgängig machen.</p>
+
+      <h2>Sicherheit: SSH, Firewall, Secrets und Rechte</h2>
+      <p>Ein Docker-VPS ist nur so sicher wie sein Basissystem. Deaktiviere Passwort-Logins per SSH, nutze Schlüssel, halte das System aktuell und öffne in der Firewall nur die notwendigen Ports. In der Regel sind das 22 für SSH sowie 80 und 443 für den Reverse Proxy. Datenbankports wie 5432 oder 3306 gehören nicht ins öffentliche Internet.</p>
+
+      <p>Secrets sollten nicht im Git-Repository landen. Nutze <code>.env</code>-Dateien mit restriktiven Dateirechten und füge sie in <code>.gitignore</code> ein. Prüfe außerdem, ob deine Container wirklich als Root laufen müssen. Viele Images unterstützen eigene User. Setze Ressourcenlimits, damit ein einzelner Dienst nicht den ganzen VPS lahmlegt. Für passendes Zubehör und Fachliteratur findest du <a href="https://www.amazon.de/s?k=Linux+Server+Administration&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">Linux-Server-Administration bei Amazon*</a>.</p>
+
+      <h2>Monitoring und Logs nicht vergessen</h2>
+      <p>Ohne Monitoring bemerkst du Probleme oft erst, wenn Nutzer sie melden. Mindestens solltest du CPU, RAM, Disk, Netzwerk, Containerstatus und Zertifikatslaufzeiten überwachen. Für kleine Setups reichen Uptime Kuma, Netdata oder ein externer Uptime-Monitor. Wer mehr Transparenz möchte, kombiniert Prometheus, cAdvisor und Grafana.</p>
+
+      <p>Logs sollten begrenzt werden, damit sie die Festplatte nicht füllen. Docker unterstützt Logging-Optionen wie <code>max-size</code> und <code>max-file</code>. Zusätzlich lohnt sich ein regelmäßiger Blick auf <code>docker compose logs</code>, besonders nach Updates. Kritische Fehler gehören in ein Alerting-System, nicht nur in eine Datei, die niemand liest.</p>
+
+      <h2>DNS, TLS und Domains sauber planen</h2>
+      <p>Bevor du Container startest, sollte DNS vorbereitet sein. A- und AAAA-Records zeigen auf deinen VPS, Subdomains trennen Dienste logisch: etwa <code>app.example.com</code>, <code>admin.example.com</code> oder <code>monitoring.example.com</code>. Der Reverse Proxy kann dann pro Hostname die passende App auswählen. Let's Encrypt-Zertifikate funktionieren zuverlässig, wenn Port 80 oder ein DNS-Challenge-Verfahren korrekt konfiguriert ist.</p>
+
+      <p>Achte darauf, interne Dashboards nicht versehentlich öffentlich zu machen. Adminbereiche sollten mindestens durch starke Passwörter, besser zusätzlich durch IP-Filter, Basic Auth, VPN oder Single Sign-on geschützt sein. Ein Reverse Proxy ist bequem, aber er macht auch schnell Dinge erreichbar, die eigentlich privat bleiben sollten.</p>
+
+      <h2>Häufige Fehler bei Docker Compose auf dem VPS</h2>
+      <ul>
+        <li><strong>Zu viele öffentliche Ports:</strong> Nur der Reverse Proxy sollte 80 und 443 veröffentlichen.</li>
+        <li><strong>Keine Backups:</strong> Volumes ohne Wiederherstellungsstrategie sind ein großes Risiko.</li>
+        <li><strong>Unklare Image-Tags:</strong> <code>latest</code> kann ungewollte Major-Updates auslösen.</li>
+        <li><strong>Keine Ressourcenlimits:</strong> Ein fehlerhafter Container kann RAM und CPU blockieren.</li>
+        <li><strong>Secrets im Repository:</strong> Zugangsdaten gehören nicht in Git.</li>
+        <li><strong>Fehlende Log-Rotation:</strong> Logs können unbemerkt die SSD füllen.</li>
+      </ul>
+
+      <div class="highlight-box">
+        <p><strong>🚀 Praxis-Tipp:</strong> Starte mit einem zentralen Reverse Proxy und lege für jedes Projekt ein eigenes Verzeichnis mit <code>compose.yml</code>, <code>.env</code>, Backup-Skript und kurzer README an. So bleibt dein VPS auch nach mehreren Monaten nachvollziehbar.</p>
+      </div>
+
+      <h2>Checkliste für den produktiven Betrieb</h2>
+      <p>Vor dem Go-live solltest du folgende Punkte abhaken: Domain zeigt auf den VPS, TLS-Zertifikat wird automatisch erneuert, Datenbank ist nicht öffentlich erreichbar, Backups laufen extern, Firewall ist aktiv, SSH ist gehärtet, Logs sind begrenzt, Monitoring ist eingerichtet und Updates wurden mindestens einmal getestet. Zusätzlich solltest du dokumentieren, wie ein Restore funktioniert und welche Befehle im Notfall nötig sind.</p>
+
+      <p>Wenn du Docker Compose intensiver nutzen möchtest, können Bücher und Referenzen helfen, typische Fehler schneller zu vermeiden. Eine passende Suche ist <a href="https://www.amazon.de/s?k=Docker+Compose+VPS+Server&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">Docker Compose VPS Server bei Amazon*</a>. Mehr Grundlagen zu DevOps-Werkzeugen findest du außerdem in unserem Artikel <a href="devops-tools-2024.html">DevOps-Tools im Überblick</a>.</p>
+
+      <div class="affiliate-box">
+        <p>🔗 Partner-Angebot</p>
+        <p><strong>Docker, Linux und Serverwissen vertiefen</strong> – Bücher, Hardware-Zubehör und Praxisressourcen für dein VPS-Setup.</p>
+        <a href="https://www.amazon.de/s?k=Docker+Linux+Server&amp;tag=nova079-20" class="btn" target="_blank" rel="nofollow sponsored">Bei Amazon ansehen →</a>
+        <p style="margin-top:8px;font-size:0.75rem">* Affiliate-Link. Wir erhalten eine Provision bei qualifizierten Käufen.</p>
+      </div>
+
+      <h2>Fazit</h2>
+      <p>Docker Compose auf dem VPS ist eine starke Lösung, wenn du Kontrolle, niedrige Kosten und einfache Deployments kombinieren möchtest. Der Schlüssel liegt in sauberer Trennung: Reverse Proxy nach außen, Anwendungen in definierten Netzen, Datenbanken intern und Daten in gesicherten Volumes. Mit Backups, Monitoring, Firewall, festen Update-Prozessen und dokumentierten Restore-Schritten wird aus einem schnellen Container-Experiment eine belastbare Produktionsumgebung.</p>
+
+      <p>Für viele Teams ist genau dieser Ansatz der beste Einstieg in moderne DevOps-Praxis: klein genug, um überschaubar zu bleiben, aber professionell genug, um echte Webprojekte sicher zu betreiben.</p>
+    </div>
+
+    <div class="adsense-placeholder">
+      <p><strong>— Anzeige —</strong></p>
+      <p>Google AdSense Platzhalter (Ende des Artikels)</p>
+    </div>
+
+  </article>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>hosta<span style="color:var(--accent)">zar</span></h4>
+        <p style="color:var(--text-muted);font-size:0.9rem">Dein Hosting- &amp; Server-Portal mit Guides, Vergleichen und Tutorials.</p>
+      </div>
+      <div>
+        <h4>Kategorien</h4>
+        <ul>
+          <li><a href="/#gaming">🎮 Gaming</a></li>
+          <li><a href="/#webhosting">🌐 Webhosting</a></li>
+          <li><a href="/#devops">⚙️ DevOps</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Rechtliches</h4>
+        <ul>
+          <li><a href="/about.html">Über uns</a></li>
+          <li><a href="/impressum.html">Impressum</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 hostazar.com – Alle Rechte vorbehalten.</span>
+      <span>Made with ❤️ für die Hosting-Community</span>
+    </div>
+    <p class="affiliate-note">* Bei den mit Sternchen gekennzeichneten Links handelt es sich um Affiliate-Links. Wenn du über diese Links einkaufst, erhalten wir eine kleine Provision – für dich entstehen keine Mehrkosten. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.</p>
+  </div>
+</footer>
+
+</body>
+</html>
