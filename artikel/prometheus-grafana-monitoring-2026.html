@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server Monitoring mit Prometheus & Grafana – Setup 2026 | hostazar.com</title>
+  <meta name="description" content="Server Monitoring mit Prometheus und Grafana – Komplettes Setup-Tutorial. Metriken sammeln, visualisieren und Alarme einrichten für 2026.">
+  <meta name="keywords" content="Prometheus Grafana, Server Monitoring, Prometheus Setup, Grafana Dashboard, Metriken überwachen, Alertmanager, Node Exporter">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hostazar.com/artikel/prometheus-grafana-monitoring-2026.html">
+  <link rel="stylesheet" href="/css/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hostazar.com/artikel/prometheus-grafana-monitoring-2026.html">
+  <meta property="og:title" content="Server Monitoring mit Prometheus & Grafana – Setup 2026">
+  <meta property="og:description" content="Server Monitoring mit Prometheus und Grafana – Komplettes Setup-Tutorial 2026.">
+  <meta property="og:image" content="https://hostazar.com/images/prometheus-grafana-monitoring-2026.png">
+  <meta property="og:locale" content="de_DE">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Server Monitoring mit Prometheus & Grafana – Setup 2026">
+  <meta name="twitter:description" content="Server Monitoring mit Prometheus und Grafana – Komplettes Setup-Tutorial.">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Server Monitoring mit Prometheus & Grafana – Setup 2026",
+    "url": "https://hostazar.com/artikel/prometheus-grafana-monitoring-2026.html",
+    "datePublished": "2026-06-15",
+    "dateModified": "2026-06-15",
+    "author": { "@type": "Organization", "name": "hostazar.com" },
+    "publisher": { "@type": "Organization", "name": "hostazar.com" },
+    "description": "Server Monitoring mit Prometheus und Grafana – Komplettes Setup-Tutorial 2026.",
+    "image": "https://hostazar.com/images/prometheus-grafana-monitoring-2026.png",
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://hostazar.com/artikel/prometheus-grafana-monitoring-2026.html" },
+    "wordCount": 900,
+    "articleSection": "DevOps / Tools",
+    "inLanguage": "de"
+  }
+  </script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">hosta<span>zar</span></a>
+    <ul class="nav-links">
+      <li><a href="/">Startseite</a></li>
+      <li><a href="/#gaming">Gaming</a></li>
+      <li><a href="/#webhosting">Webhosting</a></li>
+      <li><a href="/#devops" class="active">DevOps</a></li>
+      <li><a href="/about.html">Über uns</a></li>
+      <li><a href="/impressum.html">Impressum</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="container article-page">
+  <article>
+    <div class="article-header">
+      <div class="card-meta">
+        <span class="card-tag devops">⚙️ DevOps</span>
+        <span>15. Juni 2026</span>
+        <span>· 10 Min Lesezeit</span>
+      </div>
+      <h1>Server Monitoring mit Prometheus &amp; Grafana – Setup 2026</h1>
+      <p style="color:var(--text-secondary);font-size:1.1rem">Ohne Monitoring fliegst du blind – egal ob kleiner VPS oder Produktionscluster. Prometheus sammelt Metriken, Grafana visualisiert sie und der Alertmanager alarmiert dich bei Problemen. In diesem Guide setzt du von Null auf ein vollständiges Monitoring-System auf.</p>
+    </div>
+    <div class="adsense-placeholder"><p><strong>— Anzeige —</strong></p><p>Google AdSense Platzhalter</p></div>
+    <div class="article-content">
+
+      <h2>Warum Prometheus &amp; Grafana?</h2>
+      <p>Prometheus hat sich in den letzten Jahren zum Standard für Open-Source-Monitoring entwickelt. Das Pull-basierte Modell sammelt Metriken von Zielen (Targets), speichert sie in einer leistungsstarken Zeitreihendatenbank (TSDB) und stellt sie über eine flexible Abfragesprache (PromQL) zur Verfügung. Grafana wiederum ist die Visualisierungsschicht: Es verbindet sich mit Prometheus (und vielen anderen Quellen) und erstellt aussagekräftige Dashboards. Die Kombination ist schlank, extrem leistungsfähig und für Server jeder Größe geeignet.</p>
+
+      <h2>Die Komponenten im Überblick</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Komponente</th>
+            <th>Aufgabe</th>
+            <th>Port (Standard)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Prometheus Server</td><td>Metriken sammeln, speichern, auswerten</td><td>9090</td></tr>
+          <tr><td>Node Exporter</td><td>Systemmetriken (CPU, RAM, Disk, Netzwerk)</td><td>9100</td></tr>
+          <tr><td>Grafana</td><td>Visualisierung &amp; Dashboarding</td><td>3000</td></tr>
+          <tr><td>Alertmanager</td><td>Alarme auslösen &amp; verwalten</td><td>9093</td></tr>
+          <tr><td>cAdvisor (optional)</td><td>Container-Metriken (Docker)</td><td>8080</td></tr>
+          <tr><td>Blackbox Exporter (optional)</td><td>Externes Monitoring (HTTP, HTTPS, ICMP)</td><td>9115</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Installation: Prometheus &amp; Node Exporter</h2>
+      <p>Für die Installation verwenden wir Docker Compose – das ist die sauberste Methode für ein Monitoring-Setup auf einem VPS. Erstelle eine <code>docker-compose.yml</code> mit folgendem Inhalt:</p>
+
+      <pre><code>version: '3.8'
+services:
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  node_exporter:
+    image: prom/node-exporter:v1.8.0
+    network_mode: host
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  prometheus_data:
+  grafana_data:
+</code></pre>
+
+      <p>Die <code>prometheus.yml</code>-Konfiguration:</p>
+
+      <pre><code>global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: 'node'
+    static_configs:
+      - targets: ['localhost:9100']
+</code></pre>
+
+      <p>Starte das Setup mit <code>docker compose up -d</code> – nach wenigen Sekunden sammelt Prometheus die ersten Metriken.</p>
+
+      <h2>Grafana-Dashboard einrichten</h2>
+      <p>Rufe Grafana unter <code>http://DEINE_SERVER_IP:3000</code> auf (Benutzer: admin, Passwort: admin). Danach:</p>
+      <ol>
+        <li><strong>Datenquelle hinzufügen:</strong> Configuration → Data Sources → Prometheus. URL: <code>http://prometheus:9090</code> → Save &amp; Test.</li>
+        <li><strong>Dashboard importieren:</strong> Das Node Exporter Full Dashboard (ID: 1860) ist der perfekte Start. Gehe zu Dashboards → Import, gib die ID 1860 ein und wähle deine Prometheus-Datenquelle aus.</li>
+        <li><strong>Fertige Übersicht:</strong> Du siehst jetzt CPU-Auslastung, RAM-Nutzung, Festplatten-I/O, Netzwerk-Traffic und vieles mehr auf einen Blick.</li>
+      </ol>
+
+      <h2>Wichtige PromQL-Abfragen</h2>
+      <p>Mit PromQL kannst du eigene Metriken und Alarme definieren. Hier die wichtigsten Abfragen für das Server-Monitoring:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Metrik</th>
+            <th>PromQL-Abfrage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>CPU-Auslastung (%)</td><td><code>100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)</code></td></tr>
+          <tr><td>RAM-Nutzung (%)</td><td><code>(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100</code></td></tr>
+          <tr><td>Festplattenauslastung (%)</td><td><code>(node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100</code></td></tr>
+          <tr><td>Netzwerk-Traffic</td><td><code>rate(node_network_receive_bytes_total[5m])</code></td></tr>
+          <tr><td>Uptime (Tage)</td><td><code>time() - node_boot_time_seconds / 86400</code></td></tr>
+        </tbody>
+      </table>
+
+      <h2>Alertmanager &amp; Benachrichtigungen</h2>
+      <p>Der Alertmanager wertet Prometheus-Alerting-Regeln aus und sendet Benachrichtigungen – per E-Mail, Slack, Telegram oder PagerDuty. Beispiel für eine CPU-Alert-Regel in <code>rules.yml</code>:</p>
+
+      <pre><code>groups:
+  - name: server_alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU-Auslastung über 80 %"
+</code></pre>
+
+      <p>Die Alertmanager-Konfiguration leitet Alarme dann an deinen E-Mail-Server oder einen Telegram-Bot weiter.</p>
+
+      <h2>Monitoring erweitern: Exporter &amp; Integrationen</h2>
+      <p>Das Monitoring lässt sich mit weiteren Exportern ausbauen:</p>
+      <ul>
+        <li><strong>cAdvisor:</strong> Container-Metriken (CPU, RAM, Netzwerk pro Container)</li>
+        <li><strong>Blackbox Exporter:</strong> Überwacht externe Services (HTTP-Status, SSL-Verfall, Latenz)</li>
+        <li><strong>MySQL/PostgreSQL Exporter:</strong> Datenbank-Metriken</li>
+        <li><strong>Nginx Exporter:</strong> Nginx-Statusmetriken</li>
+        <li><strong>Cert-Manager:</strong> SSL-Zertifikatsüberwachung</li>
+      </ul>
+
+      <h2>Best Practices für Monitoring 2026</h2>
+      <ul>
+        <li>Setze <code>scrape_interval</code> nicht zu niedrig (15–30 s ist ausreichend)</li>
+        <li>Definiere Alert-Regeln mit <code>for</code>-Klausel, um Fehlalarme zu vermeiden</li>
+        <li>Sichere Grafana hinter einem Reverse Proxy mit HTTPS</li>
+        <li>Lege ein langlebiges Admin-Passwort fest (nicht "admin")</li>
+        <li>Konfiguriere die Datenaufbewahrung in Prometheus (<code>--storage.tsdb.retention.time</code>)</li>
+        <li>Nutze Dashboards aus dem Grafana-Community-Hub – aber passe sie an deine Bedürfnisse an</li>
+      </ul>
+
+      <h2>Fazit</h2>
+      <p>Prometheus und Grafana sind das Traumgespann für Server-Monitoring. Die Installation ist mit Docker Compose in wenigen Minuten erledigt, und die Möglichkeiten sind nahezu unbegrenzt. Egal, ob du einen einzelnen VPS oder ein ganzes Rechenzentrum überwachst – mit Prometheus &amp; Grafana hast du immer den vollen Durchblick. Starte noch heute mit deinem Monitoring-Setup und behalte deine Server rund um die Uhr im Auge.</p>
+
+    </div>
+    <div class="amazon-affiliate" style="margin:30px 0;padding:15px;background:#f3e5f5;border:1px solid #9C27B0;border-radius:8px;text-align:center">
+      <p><strong>⚙️ Monitoring &amp; Server Tools</strong></p>
+      <p><a href="https://www.amazon.de/s?k=Prometheus+Grafana+Monitoring&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">👉 Bei Amazon entdecken</a></p>
+    </div>
+    <div class="adsense-placeholder"><p><strong>— Anzeige —</strong></p><p>Google AdSense Platzhalter (Ende)</p></div>
+  </article>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>hosta<span style="color:var(--accent)">zar</span></h4>
+        <p style="color:var(--text-muted);font-size:0.9rem">Dein Hosting- &amp; Server-Portal mit Guides, Vergleichen und Tutorials.</p>
+      </div>
+      <div>
+        <h4>Kategorien</h4>
+        <ul>
+          <li><a href="/#gaming">🎮 Gaming</a></li>
+          <li><a href="/#webhosting">🌐 Webhosting</a></li>
+          <li><a href="/#devops">⚙️ DevOps</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Rechtliches</h4>
+        <ul>
+          <li><a href="/about.html">Über uns</a></li>
+          <li><a href="/impressum.html">Impressum</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 hostazar.com – Alle Rechte vorbehalten.</span>
+      <span>Made with ❤️ für die Hosting-Community</span>
+    </div>
+    <p class="affiliate-note">* Bei den mit Sternchen gekennzeichneten Links handelt es sich um Affiliate-Links. Wenn du über diese Links einkaufst, erhalten wir eine kleine Provision – für dich entstehen keine Mehrkosten. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.</p>
+  </div>
+</footer>
+
+</body></html>

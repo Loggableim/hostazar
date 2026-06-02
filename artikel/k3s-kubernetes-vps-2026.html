@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026 | hostazar.com</title>
+  <meta name="description" content="K3s Lightweight Kubernetes auf dem VPS installieren – Komplettes Setup inkl. Installation, Konfiguration, Ingress, Storage &amp; Monitoring 2026.">
+  <meta name="keywords" content="K3s Kubernetes, Lightweight Kubernetes, VPS Kubernetes, K3s Setup, Kubernetes Cluster, K3s Installation, K3s Tutorial">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hostazar.com/artikel/k3s-kubernetes-vps-2026.html">
+  <link rel="stylesheet" href="/css/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hostazar.com/artikel/k3s-kubernetes-vps-2026.html">
+  <meta property="og:title" content="K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026">
+  <meta property="og:description" content="K3s Lightweight Kubernetes auf dem VPS installieren – Komplettes Setup 2026.">
+  <meta property="og:image" content="https://hostazar.com/images/k3s-kubernetes-vps-2026.png">
+  <meta property="og:locale" content="de_DE">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026">
+  <meta name="twitter:description" content="K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026.">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026",
+    "url": "https://hostazar.com/artikel/k3s-kubernetes-vps-2026.html",
+    "datePublished": "2026-06-15",
+    "dateModified": "2026-06-15",
+    "author": { "@type": "Organization", "name": "hostazar.com" },
+    "publisher": { "@type": "Organization", "name": "hostazar.com" },
+    "description": "K3s Lightweight Kubernetes auf dem VPS installieren – Komplettes Setup inkl. Installation, Konfiguration, Ingress &amp; Storage.",
+    "image": "https://hostazar.com/images/k3s-kubernetes-vps-2026.png",
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://hostazar.com/artikel/k3s-kubernetes-vps-2026.html" },
+    "wordCount": 950,
+    "articleSection": "DevOps / Tools",
+    "inLanguage": "de"
+  }
+  </script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">hosta<span>zar</span></a>
+    <ul class="nav-links">
+      <li><a href="/">Startseite</a></li>
+      <li><a href="/#gaming">Gaming</a></li>
+      <li><a href="/#webhosting">Webhosting</a></li>
+      <li><a href="/#devops" class="active">DevOps</a></li>
+      <li><a href="/about.html">Über uns</a></li>
+      <li><a href="/impressum.html">Impressum</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="container article-page">
+  <article>
+    <div class="article-header">
+      <div class="card-meta">
+        <span class="card-tag devops">⚙️ DevOps</span>
+        <span>15. Juni 2026</span>
+        <span>· 11 Min Lesezeit</span>
+      </div>
+      <h1>K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</h1>
+      <p style="color:var(--text-secondary);font-size:1.1rem">Kubernetes ist der De-facto-Standard für Container-Orchestrierung – aber die Einrichtung von einem vollwertigen Cluster ist aufwändig. K3s von Rancher (jetzt SUSE) schafft Abhilfe: Eine Lightweight-Kubernetes-Distribution, die speziell für ressourcenbeschränkte Umgebungen wie einen VPS optimiert ist.</p>
+    </div>
+    <div class="adsense-placeholder"><p><strong>— Anzeige —</strong></p><p>Google AdSense Platzhalter</p></div>
+    <div class="article-content">
+
+      <h2>Was ist K3s?</h2>
+      <p>K3s ist eine hoch verfügbare, zertifizierte Kubernetes-Distribution, die für den Betrieb auf kleinen Geräten und in ressourcenbeschränkten Umgebungen entwickelt wurde. Die Binärdatei ist nur ~60 MB groß und benötigt lediglich 512 MB RAM und eine CPU – ideal für einen VPS mit 2 GB RAM. K3s ersetzt etcd durch SQLite (optional etcd für HA), integriert einen eigenen Ingress-Controller (Traefik), eine eigene Storage-Lösung (Local Path Provisioner) und vereinfacht viele Kubernetes-Konzepte, ohne an der API-Kompatibilität zu sparen.</p>
+
+      <h2>Voraussetzungen</h2>
+      <p>Bevor es losgeht, benötigst du:</p>
+      <ul>
+        <li>VPS mit mindestens 1 GB RAM, 2 CPUs und 20 GB SSD (empfohlen: 2 GB RAM, 2 vCPUs)</li>
+        <li>Ubuntu 22.04 oder 24.04 LTS (oder Debian 12)</li>
+        <li>Root-Zugriff per SSH</li>
+        <li>Eine Domain, die auf die IP deines Servers zeigt (optional, aber empfohlen)</li>
+        <li>Firewall: Ports 6443 (Kubernetes API), 80/443 (Ingress) und 22 (SSH) freigeben</li>
+      </ul>
+
+      <h2>K3s in 5 Minuten installieren</h2>
+      <p>Die Installation von K3s ist denkbar einfach – ein einziger Befehl reicht:</p>
+
+      <pre><code>curl -sfL https://get.k3s.io | sh -
+</code></pre>
+
+      <p>Nach etwa 60 Sekunden läuft dein Kubernetes-Cluster. Überprüfe den Status:</p>
+
+      <pre><code>sudo k3s kubectl get nodes
+sudo k3s kubectl get pods -A
+</code></pre>
+
+      <p>Standardmäßig installiert K3s bereits Traefik als Ingress-Controller, CoreDNS für die interne Namensauflösung, den Local Path Provisioner für Storage und HelmChart CRD für Helm-Integration. Du kannst diese Komponenten bei Bedarf deaktivieren – zum Beispiel mit <code>--disable traefik</code>.</p>
+
+      <h2>Kubectl einrichten (optional)</h2>
+      <p>Für eine komfortablere Steuerung installierst du kubectl und kopierst die Kubeconfig:</p>
+
+      <pre><code>sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+sudo chown $USER ~/.kube/config
+export KUBECONFIG=~/.kube/config
+</code></pre>
+
+      <p>Jetzt kannst du kubectl direkt verwenden: <code>kubectl get nodes</code>.</p>
+
+      <h2>Erste Anwendung deployen</h2>
+      <p>Testen wir den Cluster mit einer einfachen Nginx-Anwendung:</p>
+
+      <pre><code>kubectl create deployment nginx --image=nginx
+kubectl expose deployment nginx --port=80 --type=ClusterIP
+kubectl create ingress nginx --rule="nginx.deinedomain.de/*=nginx:80"
+</code></pre>
+
+      <p>Nach wenigen Sekunden ist die Anwendung über die Domain erreichbar – sofern der DNS-Eintrag gesetzt ist. Du kannst auch LoadBalancer-Services verwenden, wenn du K3s mit dem integrierten Service-LB (Klipper) betreibst.</p>
+
+      <h2>Storage &amp; Persistente Daten</h2>
+      <p>K3s bringt den Local Path Provisioner mit, der Persistent Volumes auf dem lokalen Dateisystem des Nodes bereitstellt. Für Produktionsumgebungen solltest du jedoch eine verteilte Storage-Lösung wie Longhorn (ebenfalls von Rancher) oder Rook/Ceph in Betracht ziehen:</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Storage-Lösung</th>
+            <th>Typ</th>
+            <th>Vorteile</th>
+            <th>Nachteile</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Local Path Provisioner</td><td>Lokal</td><td>Einfach, schnell, vorinstalliert</td><td>Kein Multi-Node, kein Backup</td></tr>
+          <tr><td>Longhorn</td><td>Verteilt</td><td>Replikation, Snapshots, Multi-Node</td><td>Ressourcenintensiver</td></tr>
+          <tr><td>Rook/Ceph</td><td>Verteilt</td><td>Sehr ausgereift, viele Features</td><td>Komplexe Einrichtung</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Wichtige K3s-Konfigurationen</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Konfiguration</th>
+            <th>Option</th>
+            <th>Beschreibung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Installation</td><td><code>curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable traefik" sh -</code></td><td>Traefik deaktivieren</td></tr>
+          <tr><td>Server-Start</td><td><code>--write-kubeconfig-mode 644</code></td><td>Kubeconfig ohne sudo nutzen</td></tr>
+          <tr><td>Node-Token</td><td><code>/var/lib/rancher/k3s/server/node-token</code></td><td>Token für Agent-Node-Installation</td></tr>
+          <tr><td>Agent install</td><td><code>curl -sfL https://get.k3s.io | K3S_URL=https://server:6443 K3S_TOKEN=... sh -</code></td><td>Weitere Nodes hinzufügen</td></tr>
+          <tr><td>Docker statt containerd</td><td><code>--docker</code></td><td>Docker als Container-Runtime</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Multi-Node-Cluster aufbauen</h2>
+      <p>Ein großer Vorteil von K3s: Du kannst ganz einfach einen Multi-Node-Cluster aufsetzen. Installiere auf dem zweiten VPS den K3s-Agenten und verbinde ihn mit dem Server:</p>
+
+      <pre><code>curl -sfL https://get.k3s.io | K3S_URL=https://&lt;SERVER-IP&gt;:6443 K3S_TOKEN=&lt;NODE-TOKEN&gt; sh -
+</code></pre>
+
+      <p>Der Node-Token befindet sich auf dem Server unter <code>/var/lib/rancher/k3s/server/node-token</code>. Nach der Verbindung kannst du mit <code>kubectl get nodes</code> beide Nodes sehen. Für Hochverfügbarkeit benötigst du mindestens 3 Server-Nodes mit einer externen etcd-Datenbank.</p>
+
+      <h2>Monitoring &amp; Management</h2>
+      <p>Zur Überwachung deines K3s-Clusters eignen sich:</p>
+      <ul>
+        <li><strong>K9s:</strong> Terminal-basiertes Kubernetes-UI – extrem nützlich für den Alltag</li>
+        <li><strong>Rancher Dashboard:</strong> Webbasiertes Management für mehrere Cluster</li>
+        <li><strong>Prometheus &amp; Grafana:</strong> Überwachung mit kube-prometheus-stack via Helm</li>
+      </ul>
+
+      <h2>Fazit</h2>
+      <p>K3s ist die ideale Kubernetes-Distribution für den Betrieb auf einem VPS. Die Installation ist in wenigen Minuten erledigt, der Ressourcenverbrauch ist minimal und die Kompatibilität mit der Kubernetes-API ist vollständig gegeben. Egal, ob du eine kleine Webanwendung, eine Microservices-Architektur oder eine CI/CD-Umgebung betreiben möchtest – K3s macht Kubernetes auch auf einem günstigen VPS zugänglich. Probiere es aus: Starte deinen ersten Single-Node-Cluster und erweitere ihn nach Bedarf zu einem hochverfügbaren Multi-Node-Setup.</p>
+
+    </div>
+    <div class="amazon-affiliate" style="margin:30px 0;padding:15px;background:#f3e5f5;border:1px solid #9C27B0;border-radius:8px;text-align:center">
+      <p><strong>⚙️ Kubernetes &amp; DevOps Hardware</strong></p>
+      <p><a href="https://www.amazon.de/s?k=Kubernetes+K3s+DevOps&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">👉 Bei Amazon entdecken</a></p>
+    </div>
+    <div class="adsense-placeholder"><p><strong>— Anzeige —</strong></p><p>Google AdSense Platzhalter (Ende)</p></div>
+  </article>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>hosta<span style="color:var(--accent)">zar</span></h4>
+        <p style="color:var(--text-muted);font-size:0.9rem">Dein Hosting- &amp; Server-Portal mit Guides, Vergleichen und Tutorials.</p>
+      </div>
+      <div>
+        <h4>Kategorien</h4>
+        <ul>
+          <li><a href="/#gaming">🎮 Gaming</a></li>
+          <li><a href="/#webhosting">🌐 Webhosting</a></li>
+          <li><a href="/#devops">⚙️ DevOps</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Rechtliches</h4>
+        <ul>
+          <li><a href="/about.html">Über uns</a></li>
+          <li><a href="/impressum.html">Impressum</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 hostazar.com – Alle Rechte vorbehalten.</span>
+      <span>Made with ❤️ für die Hosting-Community</span>
+    </div>
+    <p class="affiliate-note">* Bei den mit Sternchen gekennzeichneten Links handelt es sich um Affiliate-Links. Wenn du über diese Links einkaufst, erhalten wir eine kleine Provision – für dich entstehen keine Mehrkosten. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.</p>
+  </div>
+</footer>
+
+</body></html>
