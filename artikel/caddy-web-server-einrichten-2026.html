@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caddy Web Server einrichten – Moderner Reverse Proxy mit Auto-HTTPS 2026 | hostazar.com</title>
+  <meta name="description" content="Caddy Web Server einrichten: Automatisches HTTPS, einfaches Caddyfile, Reverse Proxy &amp; Static File Server. Vollständiger Guide 2026 mit Docker, PHP-FPM &amp; Plugins.">
+  <meta name="keywords" content="Caddy Web Server, Caddy einrichten, Caddy Reverse Proxy, Auto-HTTPS, Caddyfile, Let's Encrypt Caddy, Caddy vs Nginx, Caddy Docker, Static File Server Caddy, Caddy PHP-FPM">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hostazar.com/artikel/caddy-web-server-einrichten-2026.html">
+  <link rel="stylesheet" href="/css/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hostazar.com/artikel/caddy-web-server-einrichten-2026.html">
+  <meta property="og:title" content="Caddy Web Server einrichten – Moderner Reverse Proxy mit Auto-HTTPS 2026">
+  <meta property="og:description" content="Caddy Web Server einrichten: Automatisches HTTPS, einfaches Caddyfile, Reverse Proxy &amp; Static File Server. Vollständiger Guide 2026 mit Docker, PHP-FPM &amp; Plugins.">
+  <meta property="og:image" content="https://hostazar.com/images/caddy-web-server-einrichten-2026.png">
+  <meta property="og:locale" content="de_DE">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Caddy Web Server einrichten – Moderner Reverse Proxy mit Auto-HTTPS 2026">
+  <meta name="twitter:description" content="Caddy Web Server einrichten: Automatisches HTTPS, einfaches Caddyfile, Reverse Proxy &amp; Static File Server. Vollständiger Guide 2026.">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Caddy Web Server einrichten – Moderner Reverse Proxy mit Auto-HTTPS 2026",
+    "url": "https://hostazar.com/artikel/caddy-web-server-einrichten-2026.html",
+    "datePublished": "2026-06-15",
+    "dateModified": "2026-06-15",
+    "author": { "@type": "Organization", "name": "hostazar.com" },
+    "publisher": { "@type": "Organization", "name": "hostazar.com" },
+    "description": "Caddy Web Server einrichten: Automatisches HTTPS, einfaches Caddyfile, Reverse Proxy & Static File Server. Vollständiger Guide 2026 mit Docker, PHP-FPM & Plugins.",
+    "image": "https://hostazar.com/images/caddy-web-server-einrichten-2026.png",
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://hostazar.com/artikel/caddy-web-server-einrichten-2026.html" },
+    "wordCount": 1450,
+    "articleSection": "DevOps / Tools",
+    "inLanguage": "de"
+  }
+  </script>
+  <script src="/data/script.js" defer></script>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">hosta<span>zar</span></a>
+    <ul class="nav-links">
+      <li><a href="/">Startseite</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">🎮 Gaming</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Beliebt</h4>
+              <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">
+                <img src="/images/7-days-to-die-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</span>
+              </a>
+              <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
+                <img src="/images/ark-survival-ascended-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2</span>
+              </a>
+              <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">
+                <img src="/images/conan-exiles-server-hosten.png" alt="" loading="lazy">
+                <span class="mega-title">Conan Exiles Server mieten – Setup &amp; Kosten 2026</span>
+              </a>
+              <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">
+                <img src="/images/cs2-server-mieten-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</span>
+              </a>
+              <a href="/artikel/dayz-server-mieten-2026.html" class="mega-item">
+                <img src="/images/dayz-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+              </a>
+              <a href="/artikel/enshrouded-server-hosting-2026.html" class="mega-item">
+                <img src="/images/enshrouded-server-hosting-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Enshrouded Server – Hosting-Guide &amp; Setup für Koop 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Anleitungen</h4>
+              <a href="/artikel/farming-simulator-25-server-mieten-2026.html" class="mega-item">
+                <img src="/images/farming-simulator-25-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Farming Simulator 25 Server mieten – Multiplayer-Guide 2026</span>
+              </a>
+              <a href="/artikel/grounded-server-hosting.html" class="mega-item">
+                <img src="/images/grounded-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Grounded Server hosten – Kosten, Setup &amp; Anbieter 2026</span>
+              </a>
+              <a href="/artikel/icarus-server-hosting.html" class="mega-item">
+                <img src="/images/icarus-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Icarus Server hosten – Dedicated Server für Koop 2026</span>
+              </a>
+              <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
+                <img src="/images/minecraft-server-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Minecraft Server mieten oder selbst hosten? Der ultimative Ver</span>
+              </a>
+              <a href="/artikel/nightingale-server-hosting.html" class="mega-item">
+                <img src="/images/nightingale-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Nightingale Server hosten – Realm-Hosting-Guide 2026</span>
+              </a>
+              <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
+                <img src="/images/palworld-server-hosting-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Palworld Server mieten oder selbst hosten? Der komplette Hosti</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Vergleiche</h4>
+              <a href="/artikel/project-zomboid-server-hosting-2026.html" class="mega-item">
+                <img src="/images/project-zomboid-server-hosting-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Project Zomboid Server – Hosting &amp; Setup für Multiplayer 2</span>
+              </a>
+              <a href="/artikel/rust-server-mieten-guide-2026.html" class="mega-item">
+                <img src="/images/rust-server-mieten-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Rust Server mieten – Kosten, Setup, Mods &amp; Anbieter 2026</span>
+              </a>
+              <a href="/artikel/satisfactory-server-mieten-oder-selbst-hosten-2026.html" class="mega-item">
+                <img src="/images/satisfactory-server-mieten-oder-selbst-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Satisfactory Server mieten oder selbst hosten? Der Guide 2026</span>
+              </a>
+              <a href="/artikel/scum-server-mieten.html" class="mega-item">
+                <img src="/images/scum-server-mieten.png" alt="" loading="lazy">
+                <span class="mega-title">SCUM Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+              </a>
+              <a href="/artikel/smalland-server-hosting.html" class="mega-item">
+                <img src="/images/smalland-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Smalland Server mieten – Guide für den Koop-Server 2026</span>
+              </a>
+              <a href="/artikel/sons-of-the-forest-server.html" class="mega-item">
+                <img src="/images/sons-of-the-forest-server.png" alt="" loading="lazy">
+                <span class="mega-title">Sons of the Forest Server hosten – Setup-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Setup</h4>
+              <a href="/artikel/space-engineers-server.html" class="mega-item">
+                <img src="/images/space-engineers-server.png" alt="" loading="lazy">
+                <span class="mega-title">Space Engineers Server mieten oder selbst hosten 2026</span>
+              </a>
+              <a href="/artikel/terraria-server-hosten-2026.html" class="mega-item">
+                <img src="/images/terraria-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Terraria Server hosten – Komplettanleitung für Multiplayer 202</span>
+              </a>
+              <a href="/artikel/the-forest-server-hosting.html" class="mega-item">
+                <img src="/images/the-forest-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">The Forest Server hosten – Koop-Guide 2026</span>
+              </a>
+              <a href="/artikel/v-rising-server-mieten-2026.html" class="mega-item">
+                <img src="/images/v-rising-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">V Rising Server mieten oder selbst hosten? Guide 2026</span>
+              </a>
+              <a href="/artikel/valheim-server-vps-mieten-2026.html" class="mega-item">
+                <img src="/images/valheim-server-vps-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Perfo</span>
+              </a>
+              <a href="/artikel/gameserver-mieten-guide.html" class="mega-item">
+                <img src="/images/gameserver-mieten-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Gameserver mieten 2025 – Der ultimative Guide</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/gaming/">→ Alle 24 Gaming‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">🌐 Webhosting</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Beliebt</h4>
+              <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="mega-item">
+                <img src="/images/cloud-hosting-vs-shared-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Cloud Hosting vs. Shared Hosting – Vergleich 2026</span>
+              </a>
+              <a href="/artikel/cloudflare-tunnel-einrichten.html" class="mega-item">
+                <img src="/images/cloudflare-tunnel-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</span>
+              </a>
+              <a href="/artikel/docker-wordpress-hosten.html" class="mega-item">
+                <img src="/images/docker-wordpress-hosten.png" alt="" loading="lazy">
+                <span class="mega-title">WordPress mit Docker hosten – Modernes Setup 2026</span>
+              </a>
+              <a href="/artikel/domain-kaufen-einrichten-2026.html" class="mega-item">
+                <img src="/images/domain-kaufen-einrichten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Domain kaufen und einrichten – Schritt-für-Schritt 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Anleitungen</h4>
+              <a href="/artikel/email-server-selbst-hosten-2026.html" class="mega-item">
+                <img src="/images/email-server-selbst-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</span>
+              </a>
+              <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html" class="mega-item">
+                <img src="/images/hetzner-cloud-vs-dediziert-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Hetzner Cloud vs. Dedizierter Server – Vergleich 2026</span>
+              </a>
+              <a href="/artikel/mysql-mariadb-optimierung.html" class="mega-item">
+                <img src="/images/mysql-mariadb-optimierung.png" alt="" loading="lazy">
+                <span class="mega-title">MySQL &amp; MariaDB optimieren – Performance-Guide 2026</span>
+              </a>
+              <a href="/artikel/netcup-vps-erfahrungen-2026.html" class="mega-item">
+                <img src="/images/netcup-vps-erfahrungen-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Netcup VPS Erfahrungen 2026 – Test, Preise &amp; Bewertung</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Vergleiche</h4>
+              <a href="/artikel/nextcloud-server-einrichten.html" class="mega-item">
+                <img src="/images/nextcloud-server-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">Nextcloud Server einrichten – Cloud-Speicher selbst hosten 202</span>
+              </a>
+              <a href="/artikel/plesk-vs-cpanel-vergleich.html" class="mega-item">
+                <img src="/images/plesk-vs-cpanel-vergleich.png" alt="" loading="lazy">
+                <span class="mega-title">Plesk vs. cPanel – Der große Hosting-Panel-Vergleich 2026</span>
+              </a>
+              <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
+                <img src="/images/ssl-zertifikat-lets-encrypt-2026.png" alt="" loading="lazy">
+                <span class="mega-title">SSL-Zertifikat mit Let's Encrypt einrichten – Anleitung 2026</span>
+              </a>
+              <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
+                <img src="/images/webhosting-anbieter-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Die 5 besten Webhosting-Anbieter 2026 im Vergleich</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Setup</h4>
+              <a href="/artikel/webseite-sicherheit-2026.html" class="mega-item">
+                <img src="/images/webseite-sicherheit-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Webseite sichern – Security-Checkliste für deine Website 2026</span>
+              </a>
+              <a href="/artikel/website-online-bringen-guide-2026.html" class="mega-item">
+                <img src="/images/website-online-bringen-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Webseite online bringen – Der Komplettguide von A bis Z 2026</span>
+              </a>
+              <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
+                <img src="/images/wordpress-hosting-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">WordPress Hosting Vergleich 2026 – Die besten Anbieter</span>
+              </a>
+              <a href="/artikel/webhosting-vserver-vergleich.html" class="mega-item">
+                <img src="/images/webhosting-vserver-vergleich.png" alt="" loading="lazy">
+                <span class="mega-title">Webhosting vs. VServer – Was passt zu dir?</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/webhosting/">→ Alle 16 Webhosting‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/" class="active">⚙️ DevOps</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Beliebt</h4>
+              <a href="/artikel/ansible-automation-guide.html" class="mega-item">
+                <img src="/images/ansible-automation-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</span>
+              </a>
+              <a href="/artikel/backup-strategien-vps-server-2026.html" class="mega-item">
+                <img src="/images/backup-strategien-vps-server-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Backup-Strategien für VPS und Server – Der Guide 2026</span>
+              </a>
+              <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="mega-item">
+                <img src="/images/docker-vs-podman-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</span>
+              </a>
+              <a href="/artikel/elk-stack-log-management.html" class="mega-item">
+                <img src="/images/elk-stack-log-management.png" alt="" loading="lazy">
+                <span class="mega-title">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</span>
+              </a>
+              <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="mega-item">
+                <img src="/images/github-actions-ci-cd-pipeline-2026.png" alt="" loading="lazy">
+                <span class="mega-title">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Anleitungen</h4>
+              <a href="/artikel/gitops-argocd-einrichten.html" class="mega-item">
+                <img src="/images/gitops-argocd-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</span>
+              </a>
+              <a href="/artikel/k3s-kubernetes-vps-2026.html" class="mega-item">
+                <img src="/images/k3s-kubernetes-vps-2026.png" alt="" loading="lazy">
+                <span class="mega-title">K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</span>
+              </a>
+              <a href="/artikel/linux-server-harden.html" class="mega-item">
+                <img src="/images/linux-server-harden.png" alt="" loading="lazy">
+                <span class="mega-title">Linux Server härten – Security-Baseline 2026</span>
+              </a>
+              <a href="/artikel/n8n-automation-server.html" class="mega-item">
+                <img src="/images/n8n-automation-server.png" alt="" loading="lazy">
+                <span class="mega-title">n8n Automation Server hosten – Workflow-Automatisierung 2026</span>
+              </a>
+              <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" class="mega-item">
+                <img src="/images/nginx-reverse-proxy-einrichten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Nginx Reverse Proxy konfigurieren – Einsteiger-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Vergleiche</h4>
+              <a href="/artikel/postgresql-vps-optimierung.html" class="mega-item">
+                <img src="/images/postgresql-vps-optimierung.png" alt="" loading="lazy">
+                <span class="mega-title">PostgreSQL auf dem VPS optimieren – Tuning-Guide 2026</span>
+              </a>
+              <a href="/artikel/prometheus-grafana-monitoring-2026.html" class="mega-item">
+                <img src="/images/prometheus-grafana-monitoring-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Server Monitoring mit Prometheus &amp; Grafana – Setup 2026</span>
+              </a>
+              <a href="/artikel/terraform-infrastructure-as-code-2026.html" class="mega-item">
+                <img src="/images/terraform-infrastructure-as-code-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Terraform Infrastructure as Code – Einführung &amp; Beispiele </span>
+              </a>
+              <a href="/artikel/traefik-reverse-proxy.html" class="mega-item">
+                <img src="/images/traefik-reverse-proxy.png" alt="" loading="lazy">
+                <span class="mega-title">Traefik Reverse Proxy einrichten – Moderner Docker-Proxy 2026</span>
+              </a>
+              <a href="/artikel/wireguard-vpn-server.html" class="mega-item">
+                <img src="/images/wireguard-vpn-server.png" alt="" loading="lazy">
+                <span class="mega-title">WireGuard VPN Server einrichten – Schnell &amp; Sicher 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Setup</h4>
+              <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">
+                <img src="/images/docker-compose-vps-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse</span>
+              </a>
+              <a href="/artikel/vps-absichern-2026.html" class="mega-item">
+                <img src="/images/vps-absichern-2026.png" alt="" loading="lazy">
+                <span class="mega-title">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</span>
+              </a>
+              <a href="/artikel/devops-tools-2024.html" class="mega-item">
+                <img src="/images/devops-tools-2024.png" alt="" loading="lazy">
+                <span class="mega-title">DevOps-Tools 2024 – Die 10 wichtigsten Tools im Überblick</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/devops/">→ Alle 18 DevOps‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li><a href="/about.html">Über uns</a></li>
+      <li><a href="/impressum.html">Impressum</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="container article-page">
+  <article>
+    <div class="article-header">
+      <div class="card-meta">
+        <span class="card-tag devops">DevOps</span>
+        <span>15. Juni 2026</span>
+        <span>📖 12 Min Lesezeit</span>
+      </div>
+    <div class="hero-image-wrap" style="margin:1.5rem 0;border-radius:12px;overflow:hidden;">
+      <img src="../images/caddy-web-server-einrichten-2026.png" alt="Caddy Web Server einrichten – Moderner Reverse Proxy mit Auto-HTTPS 2026 | hostazar.com" class="hero-image" style="width:100%;height:auto;display:block;">
+    </div>
+
+      <h1>Caddy Web Server einrichten – Moderner Reverse Proxy mit Auto-HTTPS 2026</h1>
+      <p class="article-subtitle">Der Go-basierte Webserver mit automatischem HTTPS, einfacher Konfiguration und eingebautem Reverse Proxy. Schritt-für-Schritt-Guide für Einsteiger und Profis.</p>
+    </div>
+    <div class="adsense-placeholder"><p><strong>&mdash; Anzeige &mdash;</strong></p><p>Google AdSense Platzhalter</p></div>
+    <div id="breadcrumbs"></div>
+    <div class="article-content">
+
+      <h2>Was ist der Caddy Web Server?</h2>
+      <p>Der <strong>Caddy Web Server</strong> (oft auch nur „Caddy” genannt) ist ein moderner, in Go geschriebener Webserver, der vor allem durch eine Besonderheit bekannt geworden ist: <strong>Automatisches HTTPS</strong> out of the box. Während Konkurrenzprodukte wie Nginx oder Apache meist manuelle SSL-Konfiguration erfordern, holt Caddy automatisch gültige Let's Encrypt-Zertifikate für jede Domain – und verlängert sie auch selbstständig.</p>
+      <p>Doch Caddy kann weit mehr als nur HTTPS. Dank des innovativen <strong>Caddyfile</strong>-Formats lassen sich Reverse-Proxy-Regeln, Static-File-Hosting, PHP-FPM-Weiterleitungen und sogar komplexe Middleware-Ketten in wenigen Zeilen konfigurieren. Das macht Caddy zur idealen Wahl für DevOps-Teams, die eine unkomplizierte, aber leistungsstarke Lösung für ihre Infrastruktur suchen.</p>
+      <p>In diesem Guide zeigen wir Ihnen, wie Sie Caddy 2026 auf Ihrem VPS oder Server einrichten, konfigurieren und in Betrieb nehmen.</p>
+
+      <h2>Caddy vs. Nginx vs. Traefik – Ein Vergleich</h2>
+      <p>Bevor wir ins Setup einsteigen, werfen wir einen Blick auf die Unterschiede zwischen den drei populärsten Reverse-Proxys im DevOps-Umfeld:</p>
+
+      <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:0.95rem;">
+        <thead>
+          <tr style="background:var(--bg-card);border-bottom:2px solid var(--accent);">
+            <th style="padding:12px;text-align:left;border:1px solid var(--border);">Eigenschaft</th>
+            <th style="padding:12px;text-align:left;border:1px solid var(--border);background:rgba(255,152,0,0.15);">Caddy</th>
+            <th style="padding:12px;text-align:left;border:1px solid var(--border);">Nginx</th>
+            <th style="padding:12px;text-align:left;border:1px solid var(--border);">Traefik</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px;border:1px solid var(--border);font-weight:600;">Sprache</td>
+            <td style="padding:10px;border:1px solid var(--border);">Go</td>
+            <td style="padding:10px;border:1px solid var(--border);">C</td>
+            <td style="padding:10px;border:1px solid var(--border);">Go</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px;border:1px solid var(--border);font-weight:600;">Auto-HTTPS</td>
+            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">✅ Ja (Standard)</td>
+            <td style="padding:10px;border:1px solid var(--border);">⚠️ Manuell (Certbot)</td>
+            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">✅ Ja (Standard)</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px;border:1px solid var(--border);font-weight:600;">Konfiguration</td>
+            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">Caddyfile (sehr einfach)</td>
+            <td style="padding:10px;border:1px solid var(--border);">nginx.conf (mittel)</td>
+            <td style="padding:10px;border:1px solid var(--border);">YAML / Labels (mittel)</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px;border:1px solid var(--border);font-weight:600;">Docker-Integration</td>
+            <td style="padding:10px;border:1px solid var(--border);">⚠️ Über Labels (manuell)</td>
+            <td style="padding:10px;border:1px solid var(--border);">⚠️ Manuelle Konfiguration</td>
+            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">✅ Automatisch (Default)</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px;border:1px solid var(--border);font-weight:600;">Performance</td>
+            <td style="padding:10px;border:1px solid var(--border);">Sehr gut (Go)</td>
+            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">Hervorragend (C)</td>
+            <td style="padding:10px;border:1px solid var(--border);">Sehr gut (Go)</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px;border:1px solid var(--border);font-weight:600;">Plugins</td>
+            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">✅ Module (einfach)</td>
+            <td style="padding:10px;border:1px solid var(--border);">⚠️ Third-Party Module</td>
+            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">✅ Middleware</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px;border:1px solid var(--border);font-weight:600;">HTTP/2 &amp; HTTP/3</td>
+            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">✅ Ja (beide)</td>
+            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">✅ Ja (beide)</td>
+            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">✅ Ja (beide)</td>
+          </tr>
+          <tr>
+            <td style="padding:10px;border:1px solid var(--border);font-weight:600;">Einsatzgebiet</td>
+            <td style="padding:10px;border:1px solid var(--border);">Allrounder, Static Sites, Reverse Proxy</td>
+            <td style="padding:10px;border:1px solid var(--border);">Traditioneller Webserver, Load Balancer</td>
+            <td style="padding:10px;border:1px solid var(--border);">Cloud-Native, Microservices, Docker</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p><strong>Fazit des Vergleichs:</strong> Caddy kombiniert die Einfachheit von Traefiks Auto-HTTPS mit der Flexibilität eines klassischen Webservers – und ist dabei deutlich einfacher zu konfigurieren als Nginx. Für Einsteiger und erfahrene DevOps gleichermaßen geeignet.</p>
+
+      <h2>Caddy installieren – Die drei besten Methoden</h2>
+      <p>Caddy kann auf mehreren Wegen installiert werden. Wir zeigen die drei gängigsten Methoden für Linux (Ubuntu/Debian).</p>
+
+      <h3>1. Installation per Paketmanager (apt)</h3>
+      <p>Die offizielle Caddy-Community bietet ein eigenes APT-Repository an. So binden Sie es ein:</p>
+      <pre><code>sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+sudo apt update
+sudo apt install caddy</code></pre>
+      <p>Nach der Installation läuft Caddy automatisch als Systemd-Dienst und stellt bereits eine Willkommensseite auf Port 80 bereit.</p>
+
+      <h3>2. Docker-Installation</h3>
+      <p>Für Docker-Umgebungen ist das offizielle Image die erste Wahl:</p>
+      <pre><code>docker pull caddy:latest
+docker run -d -p 80:80 -p 443:443 \
+  -v $PWD/Caddyfile:/etc/caddy/Caddyfile \
+  -v caddy_data:/data \
+  --name caddy caddy:latest</code></pre>
+
+      <h3>3. Binär-Download (manuell)</h3>
+      <p>Für maximale Kontrolle laden Sie das Binär direkt von der offiziellen <a href="https://caddyserver.com/download" target="_blank" rel="nofollow">Caddy-Download-Seite</a> herunter:</p>
+      <pre><code>curl -OL "https://github.com/caddyserver/caddy/releases/latest/download/caddy_linux_amd64.tar.gz"
+tar xzf caddy_linux_amd64.tar.gz
+sudo mv caddy /usr/bin/
+sudo setcap 'cap_net_bind_service=+ep' /usr/bin/caddy
+caddy version</code></pre>
+
+      <div class="adsense-placeholder"><p><strong>&mdash; Anzeige &mdash;</strong></p><p>Google AdSense Platzhalter</p></div>
+
+      <h2>Das Caddyfile – Die einfachste Konfigurationssprache der Welt</h2>
+      <p>Das Herzstück von Caddy ist das <strong>Caddyfile</strong>. Anders als die verschachtelten Blöcke in nginx.conf ist das Caddyfile extrem lesbar und benötigt oft nur eine einzige Zeile, um eine Website zum Laufen zu bringen.</p>
+
+      <h3>Minimales Caddyfile – Static File Server</h3>
+      <pre><code>example.com {
+    root * /var/www/example
+    file_server
+}</code></pre>
+      <p>Das war's! Caddy erkennt automatisch, dass Port 443 (HTTPS) verwendet werden soll, holt ein Let's Encrypt-Zertifikat für <code>example.com</code> und serviert den Inhalt aus <code>/var/www/example</code>. Kein manuelles Zertifikatsmanagement, keine SSL-Konfiguration.</p>
+
+      <h3>Reverse Proxy einrichten</h3>
+      <p>Ein Reverse Proxy ist mit Caddy ebenfalls in wenigen Zeilen erledigt:</p>
+      <pre><code>api.example.com {
+    reverse_proxy localhost:3000
+}
+
+app.example.com {
+    reverse_proxy localhost:8080 {
+        health_uri /health
+        health_interval 30s
+    }
+}</code></pre>
+      <p>Caddy leitet Anfragen an <code>api.example.com</code> transparent an den lokalen Port 3000 weiter – natürlich inklusive HTTPS. Die Health-Check-Option im zweiten Block sorgt dafür, dass bei einem Ausfall des Backends automatisch kein Traffic mehr dorthin geleitet wird.</p>
+
+      <h3>PHP-FPM mit Caddy</h3>
+      <p>Für PHP-Anwendungen (z. B. WordPress, Laravel) nutzen Sie das <code>php_fastcgi</code>-Directive:</p>
+      <pre><code>wordpress.example.com {
+    root * /var/www/wordpress
+    php_fastcgi unix//var/run/php/php8.3-fpm.sock
+    file_server
+}</code></pre>
+      <p>Damit können Sie WordPress und andere PHP-Anwendungen ohne Nginx oder Apache betreiben – Caddy übernimmt sowohl das SSL als auch das PHP-Routing.</p>
+
+      <h2>Auto-HTTPS mit Let's Encrypt – Caddys Killer-Feature</h2>
+      <p>Caddy integriert den <strong>ACME-Client (Automatic Certificate Management Environment)</strong> direkt in den Server. Das bedeutet: Sobald Sie eine Domain in Ihrem Caddyfile eintragen, passiert Folgendes automatisch:</p>
+      <ul>
+        <li><strong>Zertifikatsanfrage:</strong> Caddy kontaktiert Let's Encrypt und stellt eine HTTPS-Zertifikatsanfrage für Ihre Domain.</li>
+        <li><strong>Challenge:</strong> Caddy beantwortet die HTTP-01- oder TLS-ALPN-01-Challenge selbstständig – ohne dass Sie einen Port freischalten oder eine Datei ablegen müssen.</li>
+        <li><strong>Installation:</strong> Das ausgestellte Zertifikat wird sofort geladen und HTTPS aktiviert.</li>
+        <li><strong>Automatische Verlängerung:</strong> 30 Tage vor Ablauf verlängert Caddy das Zertifikat automatisch. Kein Cronjob, kein Certbot, kein manuelles Eingreifen.</li>
+      </ul>
+      <p>Optional können Sie auch <strong>ZeroSSL</strong> als ACME-Provider verwenden oder ein eigenes <strong>internes CA</strong> für Entwicklungs- und Staging-Umgebungen definieren.</p>
+
+      <pre><code># Eigener ACME-Provider (z. B. ZeroSSL)
+{
+    acme_ca https://acme.zerossl.com/v2/DV90
+    email admin@example.com
+}
+
+example.com {
+    reverse_proxy localhost:3000
+}</code></pre>
+
+      <h2>Caddy mit Docker Compose – Produktions-Setup</h2>
+      <p>Für eine professionelle Container-Umgebung empfehlen wir den Einsatz von Docker Compose. So sieht ein vollständiges Setup mit Caddy als Reverse Proxy vor einer Node.js-App aus:</p>
+
+      <pre><code>version: '3.8'
+services:
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web
+
+  app:
+    build: ./app
+    expose:
+      - "3000"
+    networks:
+      - web
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  web:
+    driver: bridge</code></pre>
+
+      <p>Das zugehörige Caddyfile:</p>
+      <pre><code>meineapp.de {
+    reverse_proxy app:3000
+    header / {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+}</code></pre>
+
+      <div class="adsense-placeholder"><p><strong>&mdash; Anzeige &mdash;</strong></p><p>Google AdSense Platzhalter</p></div>
+
+      <h2>Caddy API – Konfiguration ohne Neustart</h2>
+      <p>Caddy bietet eine mächtige <strong>Admin-API</strong>, mit der Sie die Konfiguration zur Laufzeit ändern können – ohne Neustart. Standardmäßig lauscht die API auf <code>localhost:2019</code>.</p>
+
+      <pre><code># Aktuelle Konfiguration abrufen
+curl localhost:2019/config/
+
+# Neue Route hinzufügen
+curl -X POST localhost:2019/config/apps/http/servers/srv0/routes/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "handle": [{
+      "handler": "subroute",
+      "routes": [{
+        "handle": [{
+          "handler": "reverse_proxy",
+          "upstreams": [{"dial": "localhost:4000"}]
+        }]
+      }]
+    }],
+    "match": [{"host": ["neu.example.com"]}]
+  }'</code></pre>
+      <p>Diese API macht Caddy besonders attraktiv für dynamische Umgebungen, in denen häufig neue Services hinzukommen – ähnlich wie bei Traefik, jedoch mit deutlich einfacherer Syntax.</p>
+
+      <h2>Caddy-Module (Plugins) – Erweiterungen installieren</h2>
+      <p>Anders als bei Nginx, wo Module oft aufwändig kompiliert werden müssen, verwendet Caddy ein <strong>xcaddy</strong>-Buildsystem. Sie laden einfach die benötigten Module und erhalten ein maßgeschneidertes Binary:</p>
+
+      <pre><code># xcaddy installieren
+go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+
+# Caddy mit Modulen bauen
+xcaddy build v2.8.0 \
+  --with github.com/caddyserver/transform-encoder \
+  --with github.com/caddyserver/nginx-adapter \
+  --with github.com/mholt/caddy-l4</code></pre>
+
+      <p>Beliebte Caddy-Module für 2026:</p>
+      <ul>
+        <li><strong>caddy-l4:</strong> Layer-4-Load-Balancing (TCP/UDP)</li>
+        <li><strong>caddy-security:</strong> Authentifizierung, OAuth, CORS-Management</li>
+        <li><strong>caddy-json-encoder:</strong> Strukturierte Logs im JSON-Format</li>
+        <li><strong>nginx-adapter:</strong> Importiert existierende Nginx-Konfigurationen nach Caddy</li>
+        <li><strong>caddy-cache:</strong> HTTP-Caching-Layer für statische Assets</li>
+      </ul>
+
+      <h2>Best Practices für Caddy in der Produktion</h2>
+      <p>Damit Ihr Caddy-Setup stabil und sicher läuft, sollten Sie folgende Praktiken beachten:</p>
+
+      <ul>
+        <li><strong>Daten-Persistenz sichern:</strong> Das Verzeichnis <code>/data</code> enthält alle Zertifikate. Stellen Sie sicher, dass es bei einem Container-Neustart erhalten bleibt (Docker-Volume oder Host-Binding).</li>
+        <li><strong>Logging konfigurieren:</strong> Nutzen Sie das <code>log</code>-Directive, um Access- und Error-Logs getrennt zu speichern:</li>
+      </ul>
+      <pre><code>example.com {
+    log {
+        output file /var/log/caddy/access.log
+        format json
+    }
+    reverse_proxy localhost:3000
+}</code></pre>
+
+      <ul>
+        <li><strong>Rate-Limiting einsetzen:</strong> Schützen Sie Ihre API-Endpunkte mit dem <code>rate_limit</code>-Directive vor Überlastung.</li>
+        <li><strong>Header Security:</strong> Setzen Sie Sicherheits-Header wie HSTS, X-Content-Type-Options und Content-Security-Policy.</li>
+        <li><strong>Monitoring:</strong> Exportieren Sie Metriken über das Prometheus-Modul, um Performance und Fehlerraten zu überwachen.</li>
+        <li><strong>Updates:</strong> Halten Sie Caddy aktuell – neue Versionen erscheinen regelmäßig mit Sicherheitspatches und Performance-Verbesserungen.</li>
+      </ul>
+
+      <h2>Caddy als Static File Server</h2>
+      <p>Caddy eignet sich hervorragend als <strong>Static File Server</strong> – sei es für eine Single-Page-Application (React, Vue, Svelte) oder eine einfache HTML-Website:</p>
+
+      <pre><code>meineseite.de {
+    root * /var/www/meineseite
+    encode gzip
+    file_server {
+        index index.html
+        browse
+    }
+    handle_errors {
+        @404 {
+            expression {http.error.status_code} == 404
+        }
+        rewrite @404 /404.html
+    }
+}</code></pre>
+      <p>Die <code>encode</code>-Direktive aktiviert automatische Gzip-Kompression, <code>browse</code> erlaubt das Durchstöbern von Verzeichnissen (optional) und die <code>handle_errors</code>-Direktive fängt 404-Fehler ab.</p>
+
+      <h2>Fazit – Lohnt sich Caddy 2026?</h2>
+      <p>Der <strong>Caddy Web Server</strong> hat sich in den letzten Jahren von einem Nischenprodukt zu einer ernstzunehmenden Alternative für Nginx und Traefik entwickelt. Seine Stärken liegen klar in der <strong>Einfachheit</strong> und dem <strong>automatischen HTTPS</strong>. Für Einsteiger, die schnell eine sichere Website betreiben möchten, gibt es kaum eine bessere Wahl. Aber auch erfahrene DevOps-Profis schätzen die API, die Modularität und die saubere Go-Architektur.</p>
+      <p>Wo Caddy (noch) nicht glänzt: Bei extrem hochfrequentierten Static-File-Szenarien liegt Nginx in der Rohperformance minimal vorn. Und wer eine vollautomatische Docker-Discovery wie bei Traefik braucht, muss bei Caddy etwas mehr Handarbeit investieren.</p>
+      <p>Dennoch: Für 90 % aller Anwendungsfälle – Reverse Proxy, Static Files, PHP-FPM, Docker-Setup – ist Caddy nicht nur gut genug, sondern oft die bessere Wahl. Probieren Sie es aus! Die Installation dauert keine fünf Minuten, und Sie werden überrascht sein, wie einfach modernes Hosting sein kann.</p>
+
+    </div>
+
+    <div class="amazon-affiliate" style="margin:30px 0;padding:20px;background:var(--bg-card);border:1px solid var(--accent);border-radius:12px;text-align:center">
+      <p><strong>⚙️ Caddy &amp; Webserver-Tools</strong></p>
+      <p style="margin:12px 0;">Caddy-kompatible Hardware, VPS-Angebote und Zubehör für dein Server-Setup.</p>
+      <p><a href="https://www.amazon.de/s?k=Caddy+Web+Server&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">👉 Bei Amazon entdecken</a></p>
+      <p style="margin-top:8px;font-size:0.75rem">* Affiliate-Link. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.</p>
+    </div>
+
+    <div id="related-articles"></div>
+    <div class="adsense-placeholder"><p><strong>&mdash; Anzeige &mdash;</strong></p><p>Google AdSense Platzhalter (Ende)</p></div>
+  </article>
+</main>
+
+<footer class="footer"><div class="container"><div class="footer-grid"><div><h4>hosta<span style="color:var(--accent)">zar</span></h4><p style="color:var(--text-muted);font-size:0.9rem">Dein Hosting- &amp; Server-Portal mit Guides.</p></div><div><h4>Kategorien</h4><ul><li><a href="/gaming/">🎮 Gaming</a></li><li><a href="/webhosting/">🌐 Webhosting</a></li><li><a href="/devops/">⚙️ DevOps</a></li></ul></div><div><h4>Rechtliches</h4><ul><li><a href="/about.html">Über uns</a></li><li><a href="/impressum.html">Impressum</a></li></ul></div></div><div class="footer-bottom"><span>© 2026 hostazar.com</span></div></div></footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  if(typeof hostazarApp !== 'undefined'){
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {containerId:'related-articles',category:'devops',excludeSlug:'caddy-web-server-einrichten-2026',count:3},
+      breadcrumbs: [{url:'/devops/',label:'DevOps'},{label:'Caddy Web Server einrichten – Moderner Reverse Proxy mit Auto-HTTPS 2026'}]
+    });
+  }
+});
+</script>
+</body>
+</html>
