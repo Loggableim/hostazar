@@ -23,36 +23,65 @@ def h(s):
     d = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}
     return ''.join(d.get(c, c) for c in s)
 
-NAV_HTML = '''<nav class="navbar">
+def build_mega_nav():
+    """Generate mega navigation with all articles in dropdowns."""
+    cats_order = ['gaming', 'webhosting', 'devops']
+    cat_labels = {'gaming': '🎮 Gaming', 'webhosting': '🌐 Webhosting', 'devops': '⚙️ DevOps'}
+    cat_colors = {'gaming': '#4CAF50', 'webhosting': '#2196F3', 'devops': '#FF9800'}
+    
+    nav = '''<nav class="navbar">
   <div class="container">
     <a href="/" class="logo">hosta<span>zar</span></a>
     <ul class="nav-links">
-      <li><a href="/">Startseite</a></li>
+      <li><a href="/">Startseite</a></li>'''
+
+    for cat in cats_order:
+        articles = CAT_GROUPS.get(cat, [])
+        color = cat_colors.get(cat, '#9C27B0')
+        nav += f'''
       <li class="nav-dropdown">
-        <a href="/gaming/">Gaming</a>
+        <a href="/{cat}/">{cat_labels.get(cat, cat)}</a>
         <div class="nav-dropdown-menu">
-          <a href="/gaming/">🎮 Alle Gaming-Artikel</a>
+          <div class="mega-grid">'''
+        
+        # Split articles into 4 columns
+        per_col = max(1, (len(articles) + 3) // 4)
+        cols = [articles[i:i+per_col] for i in range(0, len(articles), per_col)]
+        col_labels = ['Beliebt', 'Anleitungen', 'Vergleiche', 'Setup']
+        
+        for ci, col_articles in enumerate(cols):
+            nav += f'''
+            <div class="mega-column">
+              <h4><span style="color:{color}">◆</span> {col_labels[ci] if ci < len(col_labels) else 'Mehr'}</h4>'''
+            for a in col_articles:
+                img = f"/images/{a['slug']}.png"
+                title_raw = a['title'].replace('&amp;','&').replace('&','&amp;').replace(' — ',' – ')
+                title_short = title_raw[:62]
+                nav += f'''
+              <a href="/artikel/{a['slug']}.html" class="mega-item">
+                <img src="{img}" alt="" loading="lazy">
+                <span class="mega-title">{title_short}</span>
+              </a>'''
+            nav += '''
+            </div>'''
+        
+        nav += f'''
+            <div class="mega-view-all">
+              <a href="/{cat}/">→ Alle {len(articles)} {cat_labels.get(cat, cat).split()[1]}‑Artikel anzeigen</a>
+            </div>
+          </div>
         </div>
-      </li>
-      <li class="nav-dropdown">
-        <a href="/webhosting/">Webhosting</a>
-        <div class="nav-dropdown-menu">
-          <a href="/webhosting/">🌐 Alle Webhosting-Artikel</a>
-        </div>
-      </li>
-      <li class="nav-dropdown">
-        <a href="/devops/">DevOps</a>
-        <div class="nav-dropdown-menu">
-          <a href="/devops/">⚙️ Alle DevOps-Artikel</a>
-        </div>
-      </li>
+      </li>'''
+
+    nav += '''
       <li><a href="/about.html">Über uns</a></li>
       <li><a href="/impressum.html">Impressum</a></li>
     </ul>
   </div>
 </nav>'''
+    return nav
 
-OLD_NAV_PATTERN = r'<nav class="navbar">.*?</nav>'
+NAV_HTML = build_mega_nav()
 
 FOOTER_HTML = '''<footer class="footer">
   <div class="container">
@@ -378,9 +407,9 @@ def patch_articles():
             content = content.replace('</head>', '  <script src="/data/script.js" defer></script>\n</head>')
             changed = True
 
-        # 2. Replace nav
+        # 2. Replace nav - check if it lacks mega-grid
         old_nav = re.search(r'<nav class="navbar">.*?</nav>', content, re.DOTALL)
-        if old_nav and 'nav-dropdown' not in old_nav.group():
+        if old_nav and 'mega-grid' not in old_nav.group():
             content = content.replace(old_nav.group(), NAV_HTML)
             changed = True
 
