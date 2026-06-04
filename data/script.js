@@ -319,4 +319,49 @@
   };
 
   window.hostazarApp = app;
+
+  /* ---- Cookie Consent Banner ---- */
+  (function() {
+    var banner = document.createElement('div');
+    banner.className = 'cookie-banner';
+    banner.innerHTML = '<div class="cookie-inner"><p>🍪 Diese Website verwendet Cookies und Dienste wie Google AdSense sowie Amazon Affiliate-Links. Mit Klick auf "Akzeptieren" stimmst du der Verwendung zu. <a href="/datenschutz.html">Mehr erfahren</a></p><button class="cookie-btn">Akzeptieren</button></div>';
+    var btn = banner.querySelector('.cookie-btn');
+    btn.addEventListener('click', function() {
+      banner.classList.remove('show');
+      try { localStorage.setItem('hostazar_cookie_consent', '1'); } catch(e) {}
+    });
+    // Check if already accepted
+    var hasConsent = false;
+    try { hasConsent = localStorage.getItem('hostazar_cookie_consent') === '1'; } catch(e) {}
+    if (!hasConsent) {
+      document.body.appendChild(banner);
+      setTimeout(function() { banner.classList.add('show'); }, 500);
+    }
+  })();
+
+  /* ---- Hamburger Menu Toggle ---- */
+  (function() {
+    var toggle = document.querySelector('.nav-toggle');
+    var navLinks = document.querySelector('.nav-links');
+    if (toggle && navLinks) {
+      toggle.addEventListener('click', function() {
+        navLinks.classList.toggle('open');
+      });
+      // Close menu when clicking a link (mobile)
+      navLinks.querySelectorAll('a').forEach(function(link) {
+        link.addEventListener('click', function() {
+          navLinks.classList.remove('open');
+        });
+      });
+    }
+    // Mobile: toggle dropdown on click instead of hover
+    if (window.innerWidth <= 768) {
+      document.querySelectorAll('.nav-dropdown > a').forEach(function(dropToggle) {
+        dropToggle.addEventListener('click', function(e) {
+          var parent = this.parentElement;
+          parent.classList.toggle('open');
+        });
+      });
+    }
+  })();
 })();
