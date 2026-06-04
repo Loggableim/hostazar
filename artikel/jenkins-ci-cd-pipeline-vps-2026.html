@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jenkins CI/CD Pipeline auf dem VPS – Automatisierte Builds &amp; Deployments 2026 | hostazar.com</title>
+  <meta name="description" content="Jenkins CI/CD Pipeline auf dem VPS einrichten – Vollständige Anleitung 2026. Installation, Jenkinsfile, Git-Integration, Build, Test &amp; Deployment automatisieren.">
+  <meta name="keywords" content="Jenkins, CI/CD Pipeline, Jenkins VPS, Jenkins auf VPS, Jenkins Installation, Jenkinsfile, DevOps, Automatisierte Builds, Deployment Automation">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hostazar.com/artikel/jenkins-ci-cd-pipeline-vps-2026.html">
+  <link rel="stylesheet" href="/css/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hostazar.com/artikel/jenkins-ci-cd-pipeline-vps-2026.html">
+  <meta property="og:title" content="Jenkins CI/CD Pipeline auf dem VPS – Automatisierte Builds &amp; Deployments 2026">
+  <meta property="og:description" content="Jenkins CI/CD Pipeline auf dem VPS einrichten – Vollständige Anleitung 2026. Installation, Jenkinsfile, Git-Integration, Build, Test &amp; Deployment automatisieren.">
+  <meta property="og:image" content="https://hostazar.com/images/jenkins-ci-cd-pipeline-vps-2026.png">
+  <meta property="og:locale" content="de_DE">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Jenkins CI/CD Pipeline auf dem VPS – Automatisierte Builds &amp; Deployments 2026">
+  <meta name="twitter:description" content="Jenkins CI/CD Pipeline auf dem VPS einrichten – Vollständige Anleitung 2026.">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Jenkins CI/CD Pipeline auf dem VPS – Automatisierte Builds &amp; Deployments 2026",
+    "url": "https://hostazar.com/artikel/jenkins-ci-cd-pipeline-vps-2026.html",
+    "datePublished": "2026-06-04",
+    "dateModified": "2026-06-04",
+    "author": { "@type": "Organization", "name": "hostazar.com" },
+    "publisher": { "@type": "Organization", "name": "hostazar.com" },
+    "description": "Jenkins CI/CD Pipeline auf dem VPS einrichten – Vollständige Anleitung 2026. Installation, Jenkinsfile, Git-Integration, Build, Test &amp; Deployment automatisieren.",
+    "image": "https://hostazar.com/images/jenkins-ci-cd-pipeline-vps-2026.png",
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://hostazar.com/artikel/jenkins-ci-cd-pipeline-vps-2026.html" },
+    "wordCount": 950,
+    "articleSection": "DevOps / CI-CD",
+    "inLanguage": "de"
+  }
+  </script>
+  <script src="/data/script.js" defer></script>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">hosta<span>zar</span></a>
+    <ul class="nav-links">
+      <li><a href="/">Startseite</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">🎮 Gaming</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Beliebt</h4>
+              <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">
+                <img src="/images/7-days-to-die-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</span>
+              </a>
+              <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
+                <img src="/images/ark-survival-ascended-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2</span>
+              </a>
+              <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">
+                <img src="/images/conan-exiles-server-hosten.png" alt="" loading="lazy">
+                <span class="mega-title">Conan Exiles Server mieten – Setup &amp; Kosten 2026</span>
+              </a>
+              <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">
+                <img src="/images/cs2-server-mieten-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</span>
+              </a>
+              <a href="/artikel/dayz-server-mieten-2026.html" class="mega-item">
+                <img src="/images/dayz-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+              </a>
+              <a href="/artikel/enshrouded-server-hosting-2026.html" class="mega-item">
+                <img src="/images/enshrouded-server-hosting-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Enshrouded Server – Hosting-Guide &amp; Setup für Koop 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Anleitungen</h4>
+              <a href="/artikel/farming-simulator-25-server-mieten-2026.html" class="mega-item">
+                <img src="/images/farming-simulator-25-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Farming Simulator 25 Server mieten – Multiplayer-Guide 2026</span>
+              </a>
+              <a href="/artikel/grounded-server-hosting.html" class="mega-item">
+                <img src="/images/grounded-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Grounded Server hosten – Kosten, Setup &amp; Anbieter 2026</span>
+              </a>
+              <a href="/artikel/icarus-server-hosting.html" class="mega-item">
+                <img src="/images/icarus-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Icarus Server hosten – Dedicated Server für Koop 2026</span>
+              </a>
+              <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
+                <img src="/images/minecraft-server-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Minecraft Server mieten oder selbst hosten? Der ultimative Ver</span>
+              </a>
+              <a href="/artikel/nightingale-server-hosting.html" class="mega-item">
+                <img src="/images/nightingale-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Nightingale Server hosten – Realm-Hosting-Guide 2026</span>
+              </a>
+              <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
+                <img src="/images/palworld-server-hosting-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Palworld Server mieten oder selbst hosten? Der komplette Hosti</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Vergleiche</h4>
+              <a href="/artikel/project-zomboid-server-hosting-2026.html" class="mega-item">
+                <img src="/images/project-zomboid-server-hosting-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Project Zomboid Server – Hosting &amp; Setup für Multiplayer 2</span>
+              </a>
+              <a href="/artikel/rust-server-mieten-guide-2026.html" class="mega-item">
+                <img src="/images/rust-server-mieten-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Rust Server mieten – Kosten, Setup, Mods &amp; Anbieter 2026</span>
+              </a>
+              <a href="/artikel/satisfactory-server-mieten-oder-selbst-hosten-2026.html" class="mega-item">
+                <img src="/images/satisfactory-server-mieten-oder-selbst-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Satisfactory Server mieten oder selbst hosten? Der Guide 2026</span>
+              </a>
+              <a href="/artikel/scum-server-mieten.html" class="mega-item">
+                <img src="/images/scum-server-mieten.png" alt="" loading="lazy">
+                <span class="mega-title">SCUM Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+              </a>
+              <a href="/artikel/smalland-server-hosting.html" class="mega-item">
+                <img src="/images/smalland-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Smalland Server mieten – Guide für den Koop-Server 2026</span>
+              </a>
+              <a href="/artikel/sons-of-the-forest-server.html" class="mega-item">
+                <img src="/images/sons-of-the-forest-server.png" alt="" loading="lazy">
+                <span class="mega-title">Sons of the Forest Server hosten – Setup-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Setup</h4>
+              <a href="/artikel/space-engineers-server.html" class="mega-item">
+                <img src="/images/space-engineers-server.png" alt="" loading="lazy">
+                <span class="mega-title">Space Engineers Server mieten oder selbst hosten 2026</span>
+              </a>
+              <a href="/artikel/terraria-server-hosten-2026.html" class="mega-item">
+                <img src="/images/terraria-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Terraria Server hosten – Komplettanleitung für Multiplayer 202</span>
+              </a>
+              <a href="/artikel/the-forest-server-hosting.html" class="mega-item">
+                <img src="/images/the-forest-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">The Forest Server hosten – Koop-Guide 2026</span>
+              </a>
+              <a href="/artikel/v-rising-server-mieten-2026.html" class="mega-item">
+                <img src="/images/v-rising-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">V Rising Server mieten oder selbst hosten? Guide 2026</span>
+              </a>
+              <a href="/artikel/valheim-server-vps-mieten-2026.html" class="mega-item">
+                <img src="/images/valheim-server-vps-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Perfo</span>
+              </a>
+              <a href="/artikel/gameserver-mieten-guide.html" class="mega-item">
+                <img src="/images/gameserver-mieten-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Gameserver mieten 2025 – Der ultimative Guide</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/gaming/">→ Alle 24 Gaming‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">🌐 Webhosting</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Beliebt</h4>
+              <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="mega-item">
+                <img src="/images/cloud-hosting-vs-shared-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Cloud Hosting vs. Shared Hosting – Vergleich 2026</span>
+              </a>
+              <a href="/artikel/cloudflare-tunnel-einrichten.html" class="mega-item">
+                <img src="/images/cloudflare-tunnel-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</span>
+              </a>
+              <a href="/artikel/docker-wordpress-hosten.html" class="mega-item">
+                <img src="/images/docker-wordpress-hosten.png" alt="" loading="lazy">
+                <span class="mega-title">WordPress mit Docker hosten – Modernes Setup 2026</span>
+              </a>
+              <a href="/artikel/domain-kaufen-einrichten-2026.html" class="mega-item">
+                <img src="/images/domain-kaufen-einrichten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Domain kaufen und einrichten – Schritt-für-Schritt 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Anleitungen</h4>
+              <a href="/artikel/email-server-selbst-hosten-2026.html" class="mega-item">
+                <img src="/images/email-server-selbst-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</span>
+              </a>
+              <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html" class="mega-item">
+                <img src="/images/hetzner-cloud-vs-dediziert-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Hetzner Cloud vs. Dedizierter Server – Vergleich 2026</span>
+              </a>
+              <a href="/artikel/mysql-mariadb-optimierung.html" class="mega-item">
+                <img src="/images/mysql-mariadb-optimierung.png" alt="" loading="lazy">
+                <span class="mega-title">MySQL &amp; MariaDB optimieren – Performance-Guide 2026</span>
+              </a>
+              <a href="/artikel/netcup-vps-erfahrungen-2026.html" class="mega-item">
+                <img src="/images/netcup-vps-erfahrungen-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Netcup VPS Erfahrungen 2026 – Test, Preise &amp; Bewertung</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Vergleiche</h4>
+              <a href="/artikel/nextcloud-server-einrichten.html" class="mega-item">
+                <img src="/images/nextcloud-server-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">Nextcloud Server einrichten – Cloud-Speicher selbst hosten 202</span>
+              </a>
+              <a href="/artikel/plesk-vs-cpanel-vergleich.html" class="mega-item">
+                <img src="/images/plesk-vs-cpanel-vergleich.png" alt="" loading="lazy">
+                <span class="mega-title">Plesk vs. cPanel – Der große Hosting-Panel-Vergleich 2026</span>
+              </a>
+              <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
+                <img src="/images/ssl-zertifikat-lets-encrypt-2026.png" alt="" loading="lazy">
+                <span class="mega-title">SSL-Zertifikat mit Let's Encrypt einrichten – Anleitung 2026</span>
+              </a>
+              <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
+                <img src="/images/webhosting-anbieter-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Die 5 besten Webhosting-Anbieter 2026 im Vergleich</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Setup</h4>
+              <a href="/artikel/webseite-sicherheit-2026.html" class="mega-item">
+                <img src="/images/webseite-sicherheit-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Webseite sichern – Security-Checkliste für deine Website 2026</span>
+              </a>
+              <a href="/artikel/website-online-bringen-guide-2026.html" class="mega-item">
+                <img src="/images/website-online-bringen-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Webseite online bringen – Der Komplettguide von A bis Z 2026</span>
+              </a>
+              <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
+                <img src="/images/wordpress-hosting-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">WordPress Hosting Vergleich 2026 – Die besten Anbieter</span>
+              </a>
+              <a href="/artikel/webhosting-vserver-vergleich.html" class="mega-item">
+                <img src="/images/webhosting-vserver-vergleich.png" alt="" loading="lazy">
+                <span class="mega-title">Webhosting vs. VServer – Was passt zu dir?</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/webhosting/">→ Alle 16 Webhosting‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/">⚙️ DevOps</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Beliebt</h4>
+              <a href="/artikel/ansible-automation-guide.html" class="mega-item">
+                <img src="/images/ansible-automation-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</span>
+              </a>
+              <a href="/artikel/backup-strategien-vps-server-2026.html" class="mega-item">
+                <img src="/images/backup-strategien-vps-server-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Backup-Strategien für VPS und Server – Der Guide 2026</span>
+              </a>
+              <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="mega-item">
+                <img src="/images/docker-vs-podman-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</span>
+              </a>
+              <a href="/artikel/elk-stack-log-management.html" class="mega-item">
+                <img src="/images/elk-stack-log-management.png" alt="" loading="lazy">
+                <span class="mega-title">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</span>
+              </a>
+              <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="mega-item">
+                <img src="/images/github-actions-ci-cd-pipeline-2026.png" alt="" loading="lazy">
+                <span class="mega-title">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Anleitungen</h4>
+              <a href="/artikel/gitops-argocd-einrichten.html" class="mega-item">
+                <img src="/images/gitops-argocd-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</span>
+              </a>
+              <a href="/artikel/k3s-kubernetes-vps-2026.html" class="mega-item">
+                <img src="/images/k3s-kubernetes-vps-2026.png" alt="" loading="lazy">
+                <span class="mega-title">K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</span>
+              </a>
+              <a href="/artikel/linux-server-harden.html" class="mega-item">
+                <img src="/images/linux-server-harden.png" alt="" loading="lazy">
+                <span class="mega-title">Linux Server härten – Security-Baseline 2026</span>
+              </a>
+              <a href="/artikel/n8n-automation-server.html" class="mega-item">
+                <img src="/images/n8n-automation-server.png" alt="" loading="lazy">
+                <span class="mega-title">n8n Automation Server hosten – Workflow-Automatisierung 2026</span>
+              </a>
+              <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" class="mega-item">
+                <img src="/images/nginx-reverse-proxy-einrichten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Nginx Reverse Proxy konfigurieren – Einsteiger-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Vergleiche</h4>
+              <a href="/artikel/postgresql-vps-optimierung.html" class="mega-item">
+                <img src="/images/postgresql-vps-optimierung.png" alt="" loading="lazy">
+                <span class="mega-title">PostgreSQL auf dem VPS optimieren – Tuning-Guide 2026</span>
+              </a>
+              <a href="/artikel/prometheus-grafana-monitoring-2026.html" class="mega-item">
+                <img src="/images/prometheus-grafana-monitoring-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Server Monitoring mit Prometheus &amp; Grafana – Setup 2026</span>
+              </a>
+              <a href="/artikel/terraform-infrastructure-as-code-2026.html" class="mega-item">
+                <img src="/images/terraform-infrastructure-as-code-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Terraform Infrastructure as Code – Einführung &amp; Beispiele </span>
+              </a>
+              <a href="/artikel/traefik-reverse-proxy.html" class="mega-item">
+                <img src="/images/traefik-reverse-proxy.png" alt="" loading="lazy">
+                <span class="mega-title">Traefik Reverse Proxy einrichten – Moderner Docker-Proxy 2026</span>
+              </a>
+              <a href="/artikel/wireguard-vpn-server.html" class="mega-item">
+                <img src="/images/wireguard-vpn-server.png" alt="" loading="lazy">
+                <span class="mega-title">WireGuard VPN Server einrichten – Schnell &amp; Sicher 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Setup</h4>
+              <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">
+                <img src="/images/docker-compose-vps-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse</span>
+              </a>
+              <a href="/artikel/vps-absichern-2026.html" class="mega-item">
+                <img src="/images/vps-absichern-2026.png" alt="" loading="lazy">
+                <span class="mega-title">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</span>
+              </a>
+              <a href="/artikel/devops-tools-2024.html" class="mega-item">
+                <img src="/images/devops-tools-2024.png" alt="" loading="lazy">
+                <span class="mega-title">DevOps-Tools 2024 – Die 10 wichtigsten Tools im Überblick</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/devops/">→ Alle 18 DevOps‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li><a href="/about.html">Über uns</a></li>
+      <li><a href="/impressum.html">Impressum</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="container article-page">
+  <article>
+    <div class="article-header">
+      <div class="card-meta">
+        <span class="card-tag devops">⚙️ DevOps</span>
+        <span>04. Juni 2026</span>
+        <span>· 12 Min Lesezeit</span>
+      </div>
+    <div class="hero-image-wrap" style="margin:1.5rem 0;border-radius:12px;overflow:hidden;">
+      <img src="../images/jenkins-ci-cd-pipeline-vps-2026.png" alt="Jenkins CI/CD Pipeline auf dem VPS – Automatisierte Builds &amp; Deployments 2026 | hostazar.com" class="hero-image" style="width:100%;height:auto;display:block;">
+    </div>
+
+      <h1>Jenkins CI/CD Pipeline auf dem VPS – Automatisierte Builds &amp; Deployments 2026</h1>
+      <p style="color:var(--text-secondary);font-size:1.1rem">Jenkins ist der bekannteste Open-Source-Automatisierungsserver für Continuous Integration und Continuous Delivery. In diesem Guide erfährst du, wie du Jenkins auf deinem eigenen VPS installierst, eine vollständige CI/CD-Pipeline aufsetzt und von automatisierten Builds und Deployments profitierst.</p>
+    </div>
+    <div class="adsense-placeholder"><p><strong>— Anzeige —</strong></p><p>Google AdSense Platzhalter</p></div>
+    <div id="breadcrumbs"></div>
+    <div class="article-content">
+
+      <h2>Was ist Jenkins?</h2>
+      <p>Jenkins ist ein in Java geschriebener Open-Source-Automatisierungsserver, der 2011 aus dem Hudson-Projekt hervorgegangen ist. Mit über 1.800 verfügbaren Plugins und einer riesigen Community zählt Jenkins seit über einem Jahrzehnt zu den am weitesten verbreiteten CI/CD-Tools weltweit. Das Herzstück von Jenkins sind sogenannte <strong>Pipelines</strong>: Workflows, die Build-, Test- und Deployment-Schritte in einer definierten Abfolge ausführen. Ob eine einfache Node.js-App, eine komplexe Microservices-Architektur oder ein eingebettetes System – Jenkins lässt sich dank seiner Plugin-Architektur für nahezu jede Technologie konfigurieren.</p>
+      <p>Der große Vorteil von Jenkins gegenüber Cloud-nativen CI/CD-Diensten: Du hostest Jenkins auf <strong>deiner eigenen Infrastruktur</strong>. Das bedeutet volle Kontrolle über die Ausführungsumgebung, keine Limits durch Minutenkontingente und keine Vendor-Lock-in-Effekte. Du entscheidest, welche Ressourcen deine Builds bekommen, wann sie laufen und wie lange sie archiviert werden.</p>
+
+      <h2>Warum Jenkins auf dem VPS betreiben?</h2>
+      <p>Ein VPS (Virtual Private Server) bietet die ideale Plattform für Jenkins. Im Vergleich zu Cloud-Managed-Services wie GitHub Actions oder GitLab CI hast du folgende Vorteile:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Kriterium</th>
+            <th>Jenkins auf VPS</th>
+            <th>Cloud CI/CD (GitHub Actions / GitLab CI)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Kosten</td><td>Fixe VPS-Miete (ab ~4 €/Monat)</td><td>Oft Pay-per-Use, teils teure Minutes</td></tr>
+          <tr><td>Kontrolle</td><td>Vollständig</td><td>Eingeschränkt</td></tr>
+          <tr><td>Hardware</td><td>Selbst wählbar (CPU, RAM, SSD)</td><td>Vorgegeben</td></tr>
+          <tr><td>Plugins &amp; Erweiterbarkeit</td><td>Unbegrenzt</td><td>Nur angebotene Integrationen</td></tr>
+          <tr><td>Datenhoheit</td><td>100 % eigene Daten</td><td>Daten verlassen das Unternehmen</td></tr>
+          <tr><td>Wartung</td><td>Eigenverantwortlich</td><td>Anbieter übernimmt</td></tr>
+        </tbody>
+      </table>
+      <p>Für Teams und Einzelentwickler, die maximale Flexibilität benötigen und ohnehin einen VPS für ihre Projekte betreiben, ist Jenkins die kosteneffizienteste und mächtigste Lösung.</p>
+
+      <h2>Installation von Jenkins auf Ubuntu/Debian VPS</h2>
+      <p>Die Installation von Jenkins auf einem Ubuntu 22.04 LTS oder Debian 12 VPS ist dank offizieller Paket-Repositories unkompliziert. Voraussetzung ist eine Java Runtime Environment (JRE) ab Version 11 – Jenkins selbst ist eine Java-Anwendung.</p>
+
+      <pre><code># System aktualisieren
+sudo apt update && sudo apt upgrade -y
+
+# Java 17 (OpenJDK) installieren
+sudo apt install openjdk-17-jdk -y
+
+# Jenkins Repository hinzufügen
+curl -fsSL https://pkg.jenkins.io/debian/jenkins.io-2023.key \
+  | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+  https://pkg.jenkins.io/debian binary/ \
+  | sudo tee /etc/apt/sources.list.d/jenkins.list
+
+# Jenkins installieren
+sudo apt update
+sudo apt install jenkins -y
+
+# Jenkins starten und beim Booten automatisch starten
+sudo systemctl enable --now jenkins
+
+# Status prüfen
+sudo systemctl status jenkins</code></pre>
+
+      <p>Nach der Installation erreichst du Jenkins über <code>http://DEINE_VPS_IP:8080</code>. Das initiale Admin-Passwort findest du mit:</p>
+      <pre><code>sudo cat /var/lib/jenkins/secrets/initialAdminPassword</code></pre>
+      <p>Der Setup-Assistent führt dich durch die Installation der empfohlenen Plugins und die Erstellung des ersten Admin-Benutzers. Wähle unbedingt die <strong>„Empfohlene Plugins installieren“</strong>-Option – darunter sind essenzielle Plugins wie Git, Pipeline und Credentials Binding.</p>
+
+      <h2>Erste Pipeline konfigurieren: Jenkinsfile</h2>
+      <p>Das Herz jeder Jenkins-Pipeline ist das <strong>Jenkinsfile</strong> – eine Textdatei, die deinen gesamten CI/CD-Workflow als Code definiert (Pipeline as Code). Es gibt zwei Syntax-Varianten:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Merkmal</th>
+            <th>Deklarative Pipeline</th>
+            <th>Scripted Pipeline</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Syntax</td><td>Einfach, strukturiert (<code>pipeline { agent any … }</code>)</td><td>Flexibel, Groovy-basiert (<code>node { … }</code>)</td></tr>
+          <tr><td>Einstieg</td><td>Leicht, ideal für Einsteiger</td><td>Erfordert Groovy-Kenntnisse</td></tr>
+          <tr><td>Stages</td><td>Explizite <code>stage</code>-Blöcke</td><td>Frei definierbar</td></tr>
+          <tr><td>Parallelisierung</td><td>Eingebaute <code>parallel</code>-Direktive</td><td>Manuelle Implementierung</td></tr>
+          <tr><td>Empfehlung</td><td>Bevorzugt für die meisten Projekte</td><td>Für komplexe, dynamische Workflows</td></tr>
+        </tbody>
+      </table>
+      <p>Für den Einstieg empfehle ich die <strong>deklarative Syntax</strong>. Hier ein minimales Jenkinsfile für ein Node.js-Projekt:</p>
+
+      <pre><code>pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/deinuser/dein-repo.git'
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm ci'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'npm test'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'npm run build'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh '''
+                    scp -r dist/* deploy@server:/var/www/myapp/
+                '''
+            }
+        }
+    }
+}</code></pre>
+
+      <p>Speichere dieses Jenkinsfile im <strong>Root deines Git-Repositories</strong>. Jenkins erkennt es automatisch, wenn du eine Pipeline mit der Quelle „Pipeline script from SCM“ anlegst. So ist der Workflow versioniert und liegt direkt neben dem Quellcode.</p>
+
+      <div class="highlight-box" style="background:var(--card-bg);border:1px solid #ffb74d;border-radius:8px;padding:15px;margin:20px 0">
+        <p><strong>💡 Tipp:</strong> Nutze die <code>post</code>-Sektion in deklarativen Pipelines, um Aktionen nach einem Build auszuführen – zum Beispiel Benachrichtigungen per E-Mail oder Slack zu versenden:</p>
+        <pre><code>post {
+    success {
+        emailext to: 'team@example.com',
+                 subject: "Build erfolgreich: ${env.BUILD_NUMBER}",
+                 body: "Der Build war erfolgreich."
+    }
+    failure {
+        slackSend channel: '#ci-cd',
+                  color: 'danger',
+                  message: "Build ${env.BUILD_NUMBER} fehlgeschlagen!"
+    }
+}</code></pre>
+      </div>
+
+      <h2>Integration mit Git: GitHub/GitLab Webhooks</h2>
+      <p>Eine CI/CD-Pipeline lebt von der automatischen Auslösung bei Code-Änderungen. Jenkins integriert sich über <strong>Webhooks</strong> mit Git-Hosting-Diensten. Die Einrichtung erfolgt in drei Schritten:</p>
+      <ol>
+        <li><strong>Jenkins-Job konfigurieren:</strong> Aktiviere im Pipeline-Job „GitHub hook trigger for GITScm polling“ (für GitHub) oder „Build when a change is pushed to GitLab“ (für GitLab).</li>
+        <li><strong>Webhook im Git-Dienst anlegen:</strong> Gehe in deinem GitHub/GitLab-Repository zu Settings → Webhooks und füge die Jenkins-URL ein: <code>http://DEINE_VPS_IP:8080/github-webhook/</code> (GitHub) oder <code>http://DEINE_VPS_IP:8080/project/DEIN-PROJEKT</code> (GitLab). Wähle als Auslöser „Push events“ und optional „Pull requests“.</li>
+        <li><strong>Testen:</strong> Push einen Commit auf den getrackten Branch – Jenkins sollte automatisch einen neuen Build starten.</li>
+      </ol>
+      <p><strong>Wichtig:</strong> Für Produktivumgebungen solltest du Jenkins hinter einem Nginx-Reverse-Proxy mit SSL betreiben und den Webhook-Zugriff per API-Token absichern. Das verhindert, dass Unbefugte Builds auslösen können.</p>
+
+      <h2>Build, Test, Deploy: Eine vollständige CI/CD-Pipeline</h2>
+      <p>Schauen wir uns eine vollständige CI/CD-Pipeline für eine Webanwendung an, die in Docker-Container verpackt und auf dem VPS deployed wird. Wir nutzen das Docker Pipeline Plugin, um Build-Images zu erstellen und zu pushen.</p>
+
+      <pre><code>pipeline {
+    agent any
+
+    environment {
+        DOCKER_REGISTRY = 'ghcr.io/deinuser'
+        IMAGE_NAME = 'meine-app'
+        IMAGE_TAG = "${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps { checkout scm }
+        }
+        stage('Unit Tests') {
+            steps { sh 'npm test' }
+        }
+        stage('Integration Tests') {
+            steps { sh 'npm run test:integration' }
+        }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build("${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}")
+                    docker.build("${DOCKER_REGISTRY}/${IMAGE_NAME}:latest")
+                }
+            }
+        }
+        stage('Push to Registry') {
+            steps {
+                script {
+                    docker.withRegistry('', 'ghcr-credentials') {
+                        docker.image("${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}").push()
+                        docker.image("${DOCKER_REGISTRY}/${IMAGE_NAME}:latest").push()
+                    }
+                }
+            }
+        }
+        stage('Deploy to VPS') {
+            steps {
+                sh '''
+                    ssh deploy@vps-host "cd /opt/myapp && \
+                    docker-compose pull && \
+                    docker-compose up -d"
+                '''
+            }
+        }
+    }
+}</code></pre>
+
+      <p>Diese Pipeline demonstriert den kompletten Weg von <strong>Code-Commit bis Live-Deployment</strong>:</p>
+      <ul>
+        <li>Nach jedem Push <strong>checkt</strong> Jenkins den aktuellen Code aus.</li>
+        <li>Unit- und Integrationstests laufen automatisch – schlägt ein Test fehl, wird die Pipeline abgebrochen.</li>
+        <li>Bei Erfolg wird ein <strong>Docker-Image</strong> gebaut und in die GitHub Container Registry gepusht.</li>
+        <li>Der Deployment-Step verbindet sich per SSH mit dem VPS und führt <code>docker-compose pull &amp;&amp; up -d</code> aus – die neue Version ist live.</li>
+      </ul>
+
+      <h2>Wichtige Plugins für Jenkins 2026</h2>
+      <p>Jenkins' Stärke liegt im Plugin-Ökosystem. Hier die wichtigsten Plugins, die du für eine moderne CI/CD-Pipeline benötigst:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Plugin</th>
+            <th>Funktion</th>
+            <th>Empfehlung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Blue Ocean</strong></td><td>Moderne, visuelle Pipeline-Oberfläche</td><td>⭐ Pflicht – ersetzt die alte UI</td></tr>
+          <tr><td><strong>Pipeline: Declarative</strong></td><td>Deklarative Pipeline-Syntax</td><td>⭐ Pflicht</td></tr>
+          <tr><td><strong>Docker Pipeline</strong></td><td>Docker-Builds &amp; -Pushes in Pipelines</td><td>⭐ Pflicht für Container-Workflows</td></tr>
+          <tr><td><strong>Credentials Binding</strong></td><td>Sichere Verwaltung von Secrets</td><td>⭐ Pflicht</td></tr>
+          <tr><td><strong>Git / GitHub Integration</strong></td><td>Git-Checkout, Webhooks, PR-Status</td><td>⭐ Pflicht</td></tr>
+          <tr><td><strong>Slack / E-Mail Extension</strong></td><td>Benachrichtigungen bei Build-Status</td><td>🔹 Empfohlen</td></tr>
+          <tr><td><strong>SonarQube Scanner</strong></td><td>Code-Qualitätsanalyse &amp; Security-Scans</td><td>🔹 Empfohlen</td></tr>
+          <tr><td><strong>OWASP Dependency-Check</strong></td><td>Sicherheitslücken in Dependencies erkennen</td><td>🔹 Empfohlen</td></tr>
+          <tr><td><strong>Pipeline: Stage View</strong></td><td>Detailansicht der Pipeline-Stages</td><td>🔹 Empfohlen</td></tr>
+        </tbody>
+      </table>
+      <p>Die Installation erfolgt direkt über die Jenkins-Oberfläche unter <strong>„Jenkins verwalten“ → „Plugins verwalten“</strong>. Blue Ocean installierst du am besten gleich zu Beginn – es ersetzt die klassische Jenkins-Oberfläche durch ein modernes, farbcodiertes Dashboard, das den Pipeline-Flow visualisiert.</p>
+
+      <h2>Sicherheit: Jenkins absichern (Benutzer, SSL, Backup)</h2>
+      <p>Ein Jenkins-Server, der im Internet erreichbar ist, ist ein potenzielles Einfallstor. Mit diesen Maßnahmen schützt du deine CI/CD-Umgebung:</p>
+
+      <h3>1. Benutzerverwaltung &amp; Berechtigungen</h3>
+      <ul>
+        <li>Erstelle nach der Installation sofort einen <strong>Admin-Benutzer</strong> und deaktiviere die anonyme Benutzergruppe unter „Jenkins verwalten“ → „Global Security konfigurieren“.</li>
+        <li>Aktiviere die <strong>Matrix-basierte Sicherheit</strong> und weise nur die minimal notwendigen Rechte zu.</li>
+        <li>Nutze das <strong>Role-Based Strategy Plugin</strong>, um verschiedene Berechtigungsstufen für Developer, QA und Admins zu definieren.</li>
+      </ul>
+
+      <h3>2. SSL/TLS mit Let's Encrypt</h3>
+      <p>Setze Jenkins hinter einen <strong>Nginx-Reverse-Proxy mit kostenlosem SSL-Zertifikat von Let's Encrypt</strong>:</p>
+      <pre><code># Nginx-Konfiguration für Jenkins
+server {
+    listen 443 ssl;
+    server_name ci.deine-domain.de;
+
+    ssl_certificate /etc/letsencrypt/live/ci.deine-domain.de/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/ci.deine-domain.de/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}</code></pre>
+
+      <h3>3. Regelmäßige Backups</h3>
+      <p>Das Jenkins-Home-Verzeichnis <code>/var/lib/jenkins</code> enthält alle Konfigurationen, Jobs und Build-Artefakte. Ein Backup ist essenziell:</p>
+      <pre><code># Einfaches Tarball-Backup
+sudo tar -czf jenkins-backup-$(date +%F).tar.gz /var/lib/jenkins
+
+# Mit dem ThinBackup Plugin automatisieren
+# Oder als Cron-Job einrichten:
+0 3 * * * tar -czf /backup/jenkins-$(date +\%F).tar.gz /var/lib/jenkins</code></pre>
+
+      <h2>Vor- und Nachteile: Jenkins vs. GitHub Actions / GitLab CI</h2>
+      <p>Zum Abschluss ein ehrlicher Vergleich, der dir bei der Entscheidung hilft:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Kriterium</th>
+            <th>Jenkins (VPS)</th>
+            <th>GitHub Actions</th>
+            <th>GitLab CI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Setup-Aufwand</td><td>Mittel (eigene Installation)</td><td>Sehr gering (integriert)</td><td>Gering (integriert)</td></tr>
+          <tr><td>Hosting</td><td>Eigener Server nötig</td><td>GitHub-Cloud</td><td>GitLab-Cloud oder Self-Hosted</td></tr>
+          <tr><td>Kosten (monatlich)</td><td>VPS ab ~4 €</td><td>Kostenlos (2000 Min/Monat)</td><td>Kostenlos (400 Min/Monat)</td></tr>
+          <tr><td>Plugin-Ökosystem</td><td>Über 1.800 Plugins</td><td>Marketplace (~20.000 Actions)</td><td>Integrierte Templates</td></tr>
+          <tr><td>Pipeline-Komplexität</td><td>Sehr hoch (alles möglich)</td><td>Hoch</td><td>Hoch</td></tr>
+          <tr><td>Wartung</td><td>Eigenverantwortlich</td><td>Keine (Managed Service)</td><td>Keine (Cloud) / Eigen (On-Prem)</td></tr>
+          <tr><td>Datenhoheit</td><td>100 %</td><td>Abhängig von GitHub</td><td>Abhängig von GitLab</td></tr>
+          <tr><td>Integration Git</td><td>Webhook-nachkonfigurieren</td><td>Native GitHub-Integration</td><td>Native GitLab-Integration</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Fazit des Vergleichs:</strong> Jenkins ist die erste Wahl, wenn du maximale Kontrolle, ein riesiges Plugin-Ökosystem und keine Abhängigkeit von Cloud-Anbietern möchtest. GitHub Actions und GitLab CI punkten mit geringerem Setup-Aufwand und sind ideal, wenn du ohnehin in deren Ökosystem arbeitest und keine besonderen Anforderungen an die Build-Umgebung hast.</p>
+
+      <div class="highlight-box" style="background:var(--card-bg);border:1px solid #ffb74d;border-radius:8px;padding:15px;margin:20px 0">
+        <p><strong>⚡ Hybrid-Ansatz für 2026:</strong> Viele Teams kombinieren Jenkins auf dem VPS mit Cloud-CI/CD. Beispiel: GitHub Actions für schnelle PR-Checks (Lint, Unit-Tests) und Jenkins für schwere Jobs wie Integrationstests, Docker-Builds und Production-Deployments. So nutzt du die Stärken beider Welten.</p>
+      </div>
+
+      <div class="amazon-affiliate" style="margin:30px 0;padding:15px;background:var(--card-bg);border:1px solid #ffb74d;border-radius:8px;text-align:center">
+        <p><strong>⚙️ Empfohlene Hardware &amp; DevOps-Ressourcen</strong></p>
+        <p style="font-size:0.95rem;color:var(--text-secondary);margin:10px 0">Für einen reibungslosen Jenkins-Betrieb empfehle ich einen VPS mit mindestens 2 vCPUs und 4 GB RAM sowie folgende Tools:</p>
+        <p>
+          <a href="https://www.amazon.de/s?k=VPS+Server+Hosting&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">🖥️ VPS &amp; Server bei Amazon entdecken</a> ·
+          <a href="https://www.amazon.de/s?k=DevOps+B%C3%BCcher+Jenkins&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">📚 DevOps-Fachliteratur</a> ·
+          <a href="https://www.amazon.de/s?k=Netzwerk+Storage+NAS&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">💾 NAS &amp; Backup-Lösungen</a>
+        </p>
+        <p><a href="https://www.amazon.de/s?k=Jenkins+CI+CD+DevOps&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored" style="display:inline-block;margin-top:10px;padding:10px 24px;background:#ffb74d;color:#1a1a1a;border-radius:6px;font-weight:700;text-decoration:none">👉 Alle DevOps-Produkte bei Amazon ansehen</a></p>
+      </div>
+
+      <h2>Fazit</h2>
+      <p>Jenkins ist und bleibt 2026 eine der leistungsfähigsten CI/CD-Plattformen – besonders dann, wenn du die volle Kontrolle über deine Build-Infrastruktur haben möchtest. Die Installation auf einem VPS ist dank des offiziellen Paket-Repositories unkompliziert, und mit der deklarativen Pipeline-Syntax und Plugins wie Blue Ocean, Docker Pipeline und Credentials Binding baust du in kürzester Zeit eine professionelle CI/CD-Pipeline.</p>
+      <p>Die Einrichtung erfordert zwar etwas mehr initialen Aufwand als Cloud-Alternativen, aber du erhältst dafür:</p>
+      <ul>
+        <li><strong>Unbegrenzte Build-Minuten</strong> – keine Limits, keine versteckten Kosten</li>
+        <li><strong>Volle Datenhoheit</strong> – dein Code verlässt nie deinen Server</li>
+        <li><strong>Maximale Flexibilität</strong> – über 1.800 Plugins für jeden Use Case</li>
+        <li><strong>Lernkurve</strong> – Jenkins-Kenntnisse sind in jedem DevOps-Team gefragt</li>
+      </ul>
+      <p>Starte noch heute mit deiner eigenen Jenkins-Instanz auf dem VPS und automatisiere deine Builds, Tests und Deployments. Dein zukünftiges Ich – und dein Team – werden es dir danken.</p>
+
+    </div>
+    <div class="amazon-affiliate" style="margin:30px 0;padding:15px;background:#f3e5f5;border:1px solid #9C27B0;border-radius:8px;text-align:center">
+      <p><strong>⚙️ DevOps &amp; CI/CD Tools</strong></p>
+      <p><a href="https://www.amazon.de/s?k=Jenkins+CI+CD+DevOps&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">👉 Bei Amazon entdecken</a></p>
+    </div>
+    <div class="adsense-placeholder"><p><strong>— Anzeige —</strong></p><p>Google AdSense Platzhalter (Ende)</p></div>
+  </article>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>hosta<span style="color:var(--accent)">zar</span></h4>
+        <p style="color:var(--text-muted);font-size:0.9rem">Dein Hosting- &amp; Server-Portal mit Guides, Vergleichen und Tutorials.</p>
+      </div>
+      <div>
+        <h4>Kategorien</h4>
+        <ul>
+          <li><a href="/#gaming">🎮 Gaming</a></li>
+          <li><a href="/#webhosting">🌐 Webhosting</a></li>
+          <li><a href="/#devops">⚙️ DevOps</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Rechtliches</h4>
+        <ul>
+          <li><a href="/about.html">Über uns</a></li>
+          <li><a href="/impressum.html">Impressum</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 hostazar.com – Alle Rechte vorbehalten.</span>
+      <span>Made with ❤️ für die Hosting-Community</span>
+    </div>
+    <p class="affiliate-note">* Bei den mit Sternchen gekennzeichneten Links handelt es sich um Affiliate-Links. Wenn du über diese Links einkaufst, erhalten wir eine kleine Provision – für dich entstehen keine Mehrkosten. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.</p>
+  </div>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'devops',
+        excludeSlug: 'jenkins-ci-cd-pipeline-vps-2026',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/devops/', label: 'DevOps' },
+        { label: 'Jenkins CI/CD Pipeline auf dem VPS – Automatisierte Builds &amp; Deployments 2026' }
+      ]
+    });
+  }
+});
+</script>
+</body></html>
