@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MinIO Object Storage selbst hosten 2026 – S3-kompatibel auf dem VPS | hostazar.com</title>
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hostazar.com/artikel/minio-object-storage-selbst-hosten-2026.html">
+  <link rel="stylesheet" href="/css/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hostazar.com/artikel/minio-object-storage-selbst-hosten-2026.html">
+  <meta property="og:title" content="MinIO Object Storage selbst hosten 2026 – S3-kompatibel auf dem VPS">
+  <meta property="og:description" content="MinIO Object Storage selbst hosten 2026 – S3-kompatibel, performant und unter deiner Kontrolle. Komplettanleitung mit Docker, nginx-Proxy, IAM & Backup.">
+  <meta property="og:image" content="https://hostazar.com/images/minio-object-storage-selbst-hosten-2026.png">
+  <meta property="og:locale" content="de_DE">
+  <script type="application/ld+json">{
+    "@context":"https://schema.org","@type":"BlogPosting",
+    "headline":"MinIO Object Storage selbst hosten 2026 – S3-kompatibel auf dem VPS","url":"https://hostazar.com/artikel/minio-object-storage-selbst-hosten-2026.html",
+    "datePublished":"2026-06-15","dateModified":"2026-06-15",
+    "author":{"@type":"Organization","name":"hostazar.com"},
+    "publisher":{"@type":"Organization","name":"hostazar.com","logo":{"@type":"ImageObject","url":"https://hostazar.com/images/favicon.png"}},
+    "description":"MinIO Object Storage selbst hosten 2026 – S3-kompatibel, performant und unter deiner Kontrolle. Komplettanleitung mit Docker, nginx-Proxy, IAM, KMS und Backup-Strategie.","wordCount":2050
+  }</script>
+  <script src="/data/script.js" defer></script>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9094916118868532"
+    crossorigin="anonymous"></script>
+</head>
+<body>
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">hosta<span>zar</span></a>
+    <ul class="nav-links">
+      <li><a href="/">Startseite</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">🎮 Gaming</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Beliebt</h4>
+              <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">
+                <img src="/images/7-days-to-die-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</span>
+              </a>
+              <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
+                <img src="/images/ark-survival-ascended-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2</span>
+              </a>
+              <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">
+                <img src="/images/conan-exiles-server-hosten.png" alt="" loading="lazy">
+                <span class="mega-title">Conan Exiles Server mieten – Setup &amp; Kosten 2026</span>
+              </a>
+              <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">
+                <img src="/images/cs2-server-mieten-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</span>
+              </a>
+              <a href="/artikel/dayz-server-mieten-2026.html" class="mega-item">
+                <img src="/images/dayz-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+              </a>
+              <a href="/artikel/enshrouded-server-hosting-2026.html" class="mega-item">
+                <img src="/images/enshrouded-server-hosting-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Enshrouded Server – Hosting-Guide &amp; Setup für Koop 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Anleitungen</h4>
+              <a href="/artikel/farming-simulator-25-server-mieten-2026.html" class="mega-item">
+                <img src="/images/farming-simulator-25-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Farming Simulator 25 Server mieten – Multiplayer-Guide 2026</span>
+              </a>
+              <a href="/artikel/grounded-server-hosting.html" class="mega-item">
+                <img src="/images/grounded-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Grounded Server hosten – Kosten, Setup &amp; Anbieter 2026</span>
+              </a>
+              <a href="/artikel/icarus-server-hosting.html" class="mega-item">
+                <img src="/images/icarus-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Icarus Server hosten – Dedicated Server für Koop 2026</span>
+              </a>
+              <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
+                <img src="/images/minecraft-server-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Minecraft Server mieten oder selbst hosten? Der ultimative Ver</span>
+              </a>
+              <a href="/artikel/nightingale-server-hosting.html" class="mega-item">
+                <img src="/images/nightingale-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Nightingale Server hosten – Realm-Hosting-Guide 2026</span>
+              </a>
+              <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
+                <img src="/images/palworld-server-hosting-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Palworld Server mieten oder selbst hosten? Der komplette Hosti</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Vergleiche</h4>
+              <a href="/artikel/project-zomboid-server-hosting-2026.html" class="mega-item">
+                <img src="/images/project-zomboid-server-hosting-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Project Zomboid Server – Hosting &amp; Setup für Multiplayer 2</span>
+              </a>
+              <a href="/artikel/rust-server-mieten-guide-2026.html" class="mega-item">
+                <img src="/images/rust-server-mieten-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Rust Server mieten – Kosten, Setup, Mods &amp; Anbieter 2026</span>
+              </a>
+              <a href="/artikel/satisfactory-server-mieten-oder-selbst-hosten-2026.html" class="mega-item">
+                <img src="/images/satisfactory-server-mieten-oder-selbst-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Satisfactory Server mieten oder selbst hosten? Der Guide 2026</span>
+              </a>
+              <a href="/artikel/scum-server-mieten.html" class="mega-item">
+                <img src="/images/scum-server-mieten.png" alt="" loading="lazy">
+                <span class="mega-title">SCUM Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+              </a>
+              <a href="/artikel/smalland-server-hosting.html" class="mega-item">
+                <img src="/images/smalland-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Smalland Server mieten – Guide für den Koop-Server 2026</span>
+              </a>
+              <a href="/artikel/sons-of-the-forest-server.html" class="mega-item">
+                <img src="/images/sons-of-the-forest-server.png" alt="" loading="lazy">
+                <span class="mega-title">Sons of the Forest Server hosten – Setup-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Setup</h4>
+              <a href="/artikel/space-engineers-server.html" class="mega-item">
+                <img src="/images/space-engineers-server.png" alt="" loading="lazy">
+                <span class="mega-title">Space Engineers Server mieten oder selbst hosten 2026</span>
+              </a>
+              <a href="/artikel/terraria-server-hosten-2026.html" class="mega-item">
+                <img src="/images/terraria-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Terraria Server hosten – Komplettanleitung für Multiplayer 202</span>
+              </a>
+              <a href="/artikel/the-forest-server-hosting.html" class="mega-item">
+                <img src="/images/the-forest-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">The Forest Server hosten – Koop-Guide 2026</span>
+              </a>
+              <a href="/artikel/v-rising-server-mieten-2026.html" class="mega-item">
+                <img src="/images/v-rising-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">V Rising Server mieten oder selbst hosten? Guide 2026</span>
+              </a>
+              <a href="/artikel/valheim-server-vps-mieten-2026.html" class="mega-item">
+                <img src="/images/valheim-server-vps-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Perfo</span>
+              </a>
+              <a href="/artikel/gameserver-mieten-guide.html" class="mega-item">
+                <img src="/images/gameserver-mieten-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Gameserver mieten 2025 – Der ultimative Guide</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/gaming/">→ Alle 24 Gaming‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">🌐 Webhosting</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Beliebt</h4>
+              <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="mega-item">
+                <img src="/images/cloud-hosting-vs-shared-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Cloud Hosting vs. Shared Hosting – Vergleich 2026</span>
+              </a>
+              <a href="/artikel/cloudflare-tunnel-einrichten.html" class="mega-item">
+                <img src="/images/cloudflare-tunnel-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</span>
+              </a>
+              <a href="/artikel/docker-wordpress-hosten.html" class="mega-item">
+                <img src="/images/docker-wordpress-hosten.png" alt="" loading="lazy">
+                <span class="mega-title">WordPress mit Docker hosten – Modernes Setup 2026</span>
+              </a>
+              <a href="/artikel/domain-kaufen-einrichten-2026.html" class="mega-item">
+                <img src="/images/domain-kaufen-einrichten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Domain kaufen und einrichten – Schritt-für-Schritt 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Anleitungen</h4>
+              <a href="/artikel/email-server-selbst-hosten-2026.html" class="mega-item">
+                <img src="/images/email-server-selbst-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</span>
+              </a>
+              <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html" class="mega-item">
+                <img src="/images/hetzner-cloud-vs-dediziert-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Hetzner Cloud vs. Dedizierter Server – Vergleich 2026</span>
+              </a>
+              <a href="/artikel/mysql-mariadb-optimierung.html" class="mega-item">
+                <img src="/images/mysql-mariadb-optimierung.png" alt="" loading="lazy">
+                <span class="mega-title">MySQL &amp; MariaDB optimieren – Performance-Guide 2026</span>
+              </a>
+              <a href="/artikel/netcup-vps-erfahrungen-2026.html" class="mega-item">
+                <img src="/images/netcup-vps-erfahrungen-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Netcup VPS Erfahrungen 2026 – Test, Preise &amp; Bewertung</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Vergleiche</h4>
+              <a href="/artikel/nextcloud-server-einrichten.html" class="mega-item">
+                <img src="/images/nextcloud-server-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">Nextcloud Server einrichten – Cloud-Speicher selbst hosten 202</span>
+              </a>
+              <a href="/artikel/plesk-vs-cpanel-vergleich.html" class="mega-item">
+                <img src="/images/plesk-vs-cpanel-vergleich.png" alt="" loading="lazy">
+                <span class="mega-title">Plesk vs. cPanel – Der große Hosting-Panel-Vergleich 2026</span>
+              </a>
+              <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
+                <img src="/images/ssl-zertifikat-lets-encrypt-2026.png" alt="" loading="lazy">
+                <span class="mega-title">SSL-Zertifikat mit Let's Encrypt einrichten – Anleitung 2026</span>
+              </a>
+              <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
+                <img src="/images/webhosting-anbieter-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Die 5 besten Webhosting-Anbieter 2026 im Vergleich</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Setup</h4>
+              <a href="/artikel/webseite-sicherheit-2026.html" class="mega-item">
+                <img src="/images/webseite-sicherheit-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Webseite sichern – Security-Checkliste für deine Website 2026</span>
+              </a>
+              <a href="/artikel/website-online-bringen-guide-2026.html" class="mega-item">
+                <img src="/images/website-online-bringen-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Webseite online bringen – Der Komplettguide von A bis Z 2026</span>
+              </a>
+              <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
+                <img src="/images/wordpress-hosting-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">WordPress Hosting Vergleich 2026 – Die besten Anbieter</span>
+              </a>
+              <a href="/artikel/webhosting-vserver-vergleich.html" class="mega-item">
+                <img src="/images/webhosting-vserver-vergleich.png" alt="" loading="lazy">
+                <span class="mega-title">Webhosting vs. VServer – Was passt zu dir?</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/webhosting/">→ Alle 16 Webhosting‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/">⚙️ DevOps</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Beliebt</h4>
+              <a href="/artikel/ansible-automation-guide.html" class="mega-item">
+                <img src="/images/ansible-automation-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</span>
+              </a>
+              <a href="/artikel/backup-strategien-vps-server-2026.html" class="mega-item">
+                <img src="/images/backup-strategien-vps-server-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Backup-Strategien für VPS und Server – Der Guide 2026</span>
+              </a>
+              <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="mega-item">
+                <img src="/images/docker-vs-podman-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</span>
+              </a>
+              <a href="/artikel/elk-stack-log-management.html" class="mega-item">
+                <img src="/images/elk-stack-log-management.png" alt="" loading="lazy">
+                <span class="mega-title">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</span>
+              </a>
+              <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="mega-item">
+                <img src="/images/github-actions-ci-cd-pipeline-2026.png" alt="" loading="lazy">
+                <span class="mega-title">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Anleitungen</h4>
+              <a href="/artikel/gitops-argocd-einrichten.html" class="mega-item">
+                <img src="/images/gitops-argocd-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</span>
+              </a>
+              <a href="/artikel/k3s-kubernetes-vps-2026.html" class="mega-item">
+                <img src="/images/k3s-kubernetes-vps-2026.png" alt="" loading="lazy">
+                <span class="mega-title">K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</span>
+              </a>
+              <a href="/artikel/linux-server-harden.html" class="mega-item">
+                <img src="/images/linux-server-harden.png" alt="" loading="lazy">
+                <span class="mega-title">Linux Server härten – Security-Baseline 2026</span>
+              </a>
+              <a href="/artikel/n8n-automation-server.html" class="mega-item">
+                <img src="/images/n8n-automation-server.png" alt="" loading="lazy">
+                <span class="mega-title">n8n Automation Server hosten – Workflow-Automatisierung 2026</span>
+              </a>
+              <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" class="mega-item">
+                <img src="/images/nginx-reverse-proxy-einrichten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Nginx Reverse Proxy konfigurieren – Einsteiger-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Vergleiche</h4>
+              <a href="/artikel/postgresql-vps-optimierung.html" class="mega-item">
+                <img src="/images/postgresql-vps-optimierung.png" alt="" loading="lazy">
+                <span class="mega-title">PostgreSQL auf dem VPS optimieren – Tuning-Guide 2026</span>
+              </a>
+              <a href="/artikel/prometheus-grafana-monitoring-2026.html" class="mega-item">
+                <img src="/images/prometheus-grafana-monitoring-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Server Monitoring mit Prometheus &amp; Grafana – Setup 2026</span>
+              </a>
+              <a href="/artikel/terraform-infrastructure-as-code-2026.html" class="mega-item">
+                <img src="/images/terraform-infrastructure-as-code-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Terraform Infrastructure as Code – Einführung &amp; Beispiele </span>
+              </a>
+              <a href="/artikel/traefik-reverse-proxy.html" class="mega-item">
+                <img src="/images/traefik-reverse-proxy.png" alt="" loading="lazy">
+                <span class="mega-title">Traefik Reverse Proxy einrichten – Moderner Docker-Proxy 2026</span>
+              </a>
+              <a href="/artikel/wireguard-vpn-server.html" class="mega-item">
+                <img src="/images/wireguard-vpn-server.png" alt="" loading="lazy">
+                <span class="mega-title">WireGuard VPN Server einrichten – Schnell &amp; Sicher 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Setup</h4>
+              <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">
+                <img src="/images/docker-compose-vps-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse</span>
+              </a>
+              <a href="/artikel/vps-absichern-2026.html" class="mega-item">
+                <img src="/images/vps-absichern-2026.png" alt="" loading="lazy">
+                <span class="mega-title">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</span>
+              </a>
+              <a href="/artikel/devops-tools-2024.html" class="mega-item">
+                <img src="/images/devops-tools-2024.png" alt="" loading="lazy">
+                <span class="mega-title">DevOps-Tools 2024 – Die 10 wichtigsten Tools im Überblick</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/devops/">→ Alle 18 DevOps‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li><a href="/about.html">Über uns</a></li>
+      <li><a href="/impressum.html">Impressum</a></li>
+    </ul>
+  </div>
+</nav>
+<main class="container article-page">
+  <article>
+    <div class="article-header">
+      <div class="card-meta">
+        <span class="card-tag devops">DevOps</span>
+        <span>15. Juni 2026</span>
+        <span>⏱ 9 Min Lesezeit</span>
+      </div>
+    <div class="hero-image-wrap" style="margin:1.5rem 0;border-radius:12px;overflow:hidden;">
+      <img src="../images/minio-object-storage-selbst-hosten-2026.png" alt="MinIO Object Storage selbst hosten 2026 – S3-kompatibel auf dem VPS" class="hero-image" style="width:100%;height:auto;display:block;">
+    </div>
+
+      <h1>MinIO Object Storage selbst hosten 2026 – S3-kompatibel auf dem VPS</h1>
+    </div>
+    <div class="adsense-placeholder"><p><strong>— Anzeige —</strong></p><p>Google AdSense Platzhalter</p></div>
+    <div id="breadcrumbs"></div>
+    <div class="article-content">
+      <h2>MinIO Object Storage selbst hosten 2026 – S3-kompatibel auf dem VPS</h2>
+      <p>Wer heute größere Mengen an Dateien verwaltet – seien es Backups, Log-Archive, Medieninhalte oder Daten für Machine-Learning-Pipelines – stößt früher oder später an die Grenzen von klassischem File-Storage. Die Lösung lautet in den meisten professionellen Setups: <strong>Object Storage</strong>. Und wenn du Wert auf Datensouveränität, volle API-Kompatibilität zu Amazon S3 und vor allem auf Kostenkontrolle legst, führt kaum ein Weg an <strong>MinIO</strong> vorbei. In diesem ausführlichen Guide zeigen wir dir, wie du <strong>MinIO Object Storage selbst hosten</strong> kannst – auf deinem eigenen VPS, hinter nginx, mit Docker und IAM, ganz ohne Cloud-Lock-in.</p>
+
+      <h2>Was ist MinIO und warum selbst hosten?</h2>
+      <p>MinIO ist ein in Go geschriebener, quelloffener Object-Storage-Server, der die <strong>S3-API</strong> von Amazon Web Services 1:1 nachbildet. Damit funktionieren alle gängigen SDKs (AWS CLI, boto3, aws-sdk-js etc.) ohne Anpassungen. Der Clou: Du kannst MinIO als Drop-in-Replacement für S3 betreiben – lokal, hybrid oder als Private Cloud. Das macht die Lösung extrem attraktiv für alle, die ihre Daten nicht aus der Hand geben möchten, aber gleichzeitig auf etablierte Schnittstellen setzen wollen.</p>
+      <p>Die Gründe für <strong>MinIO selbst gehostet</strong> sind vielfältig:</p>
+      <ul>
+        <li><strong>Volle Datenkontrolle:</strong> Alle Objekte liegen auf deiner eigenen Hardware. Kein US-Cloud-Act, kein Vendor-Lock-in.</li>
+        <li><strong>S3-API-Kompatibilität:</strong> Jede App, die mit S3 spricht, funktioniert auch mit MinIO – von Nextcloud über Restic bis zu Velero.</li>
+        <li><strong>Skalierbarkeit:</strong> MinIO unterstützt Erasure Coding und ist ab Version RELEASE.2024-01-31T20-20-33Z offiziell <strong>AGPL-3.0</strong> lizenziert – die ältere Apache-2.0-Lizenz gilt nur noch für ältere Versionen.</li>
+        <li><strong>Hohe Performance:</strong> Dank Go und asynchroner Architektur schafft MinIO problemlos mehrere GByte/s Throughput, selbst auf Consumer-Hardware.</li>
+        <li><strong>Kostentransparenz:</strong> Du zahlst nur für den VPS, nicht pro GB und nicht pro API-Call. Gerade bei wachsenden Datenmengen ein enormer Vorteil.</li>
+      </ul>
+
+      <h2>Systemvoraussetzungen</h2>
+      <p>Bevor wir mit dem Setup loslegen, solltest du sicherstellen, dass dein VPS die nötigen Ressourcen mitbringt. MinIO ist zwar genügsam, performant wird es aber erst mit der richtigen Hardware-Auswahl.</p>
+      <ul>
+        <li><strong>CPU:</strong> mindestens 2 vCPUs, empfohlen 4+ Kerne für produktive Workloads.</li>
+        <li><strong>RAM:</strong> ab 4 GB, besser 8 GB. MinIO nutzt RAM als Cache – je mehr, desto schneller.</li>
+        <li><strong>Storage:</strong> NVMe-SSDs mit hoher IOPS. Für Datenmengen über 1 TB lohnt sich ein separates Volume.</li>
+        <li><strong>Betriebssystem:</strong> Ubuntu 22.04/24.04 LTS oder Debian 12 – beides wird offiziell unterstützt.</li>
+        <li><strong>Docker &amp; Docker Compose:</strong> aktuelle Version (mindestens 24.x).</li>
+        <li><strong>Netzwerk:</strong> Öffentliche IPv4-Adresse, eine Domain für TLS sowie freie Ports (9000 für API, 9001 für Console).</li>
+      </ul>
+      <p>Wenn du auf der Suche nach passender Hardware bist, achte beim VPS-Vergleich auf NVMe-IOPS-Garantien. Für lokale Setups empfiehlt sich zudem ein <a href="https://www.amazon.de/s?k=NVMe+SSD+2TB&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">leistungsstarke NVMe-SSD</a> oder ein kleiner <a href="https://www.amazon.de/s?k=Mini+PC+N100&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">Mini-PC mit Intel N100</a> als Heimserver. Wer größere Datenmengen vorhalten möchte, sollte sich zusätzlich ein <a href="https://www.amazon.de/s?k=4-Bay+NAS&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">4-Bay-NAS-Gehäuse</a> anschauen.</p>
+
+      <h2>Docker-Setup: MinIO in 5 Minuten</h2>
+      <p>Der schnellste und reproduzierbarste Weg, <strong>MinIO auf einem VPS zu installieren</strong>, führt über Docker. Wir verwenden das offizielle Image <code>minio/minio</code> in Kombination mit Docker Compose – das erleichtert spätere Updates und Backups enorm. Eine gute Grundlage dafür bietet dir unser <a href="/artikel/docker-compose-vps-guide.html">Docker Compose auf dem VPS-Guide</a>.</p>
+      <p>Lege zuerst das Datenverzeichnis an und definiere das Compose-File:</p>
+      <h3>1. Verzeichnisse vorbereiten</h3>
+      <p><code>mkdir -p /opt/minio/data &amp;&amp; mkdir -p /opt/minio/config</code></p>
+      <h3>2. docker-compose.yml</h3>
+      <p><code>version: '3.9'<br>
+services:<br>
+&nbsp;&nbsp;minio:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;image: minio/minio:latest<br>
+&nbsp;&nbsp;&nbsp;&nbsp;container_name: minio<br>
+&nbsp;&nbsp;&nbsp;&nbsp;restart: unless-stopped<br>
+&nbsp;&nbsp;&nbsp;&nbsp;command: server /data --console-address ":9001"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;environment:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MINIO_ROOT_USER: admin<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MINIO_ROOT_PASSWORD: supersecret-password<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ports:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- "9000:9000"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- "9001:9001"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;volumes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- /opt/minio/data:/data<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- /opt/minio/config:/root/.minio<br>
+&nbsp;&nbsp;&nbsp;&nbsp;healthcheck:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;interval: 30s<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timeout: 10s<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;retries: 3</code></p>
+      <h3>3. Starten</h3>
+      <p><code>docker compose up -d</code></p>
+      <p>Anschließend ist die MinIO Console unter <code>http://DEINE-IP:9001</code> erreichbar. Logge dich mit dem Root-User ein, den du oben in den Umgebungsvariablen definiert hast. Wichtig: Ändere das Passwort direkt nach dem ersten Login – MinIO akzeptiert Root-Credentials auch für jeden Bucket und das ist in Produktion ein No-Go.</p>
+
+      <h2>Konfiguration mit nginx als Reverse-Proxy</h2>
+      <p>MinIO direkt auf Port 9000/9001 ans Internet zu hängen, ist möglich, aber nicht empfehlenswert. Ein vorgelagerter nginx mit TLS-Termination bietet dir zusätzliche Sicherheit, HSTS, HTTP/2 und eine saubere URL. Falls du noch keinen nginx laufen hast, hilft dir unser <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html">Nginx Reverse Proxy Guide</a> weiter.</p>
+      <h3>vHost für die S3-API</h3>
+      <p><code>server {<br>
+&nbsp;&nbsp;listen 443 ssl http2;<br>
+&nbsp;&nbsp;server_name s3.deinedomain.de;<br>
+&nbsp;&nbsp;client_max_body_size 0;<br>
+&nbsp;&nbsp;ssl_certificate /etc/letsencrypt/live/s3.deinedomain.de/fullchain.pem;<br>
+&nbsp;&nbsp;ssl_certificate_key /etc/letsencrypt/live/s3.deinedomain.de/privkey.pem;<br>
+&nbsp;&nbsp;location / {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;proxy_pass http://127.0.0.1:9000;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;proxy_set_header Host $host;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;proxy_set_header X-Real-IP $remote_addr;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;proxy_set_header X-Forwarded-Proto $scheme;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;chunked_transfer_encoding off;<br>
+&nbsp;&nbsp;}<br>
+}</code></p>
+      <h3>vHost für die Web-Console</h3>
+      <p><code>server {<br>
+&nbsp;&nbsp;listen 443 ssl http2;<br>
+&nbsp;&nbsp;server_name minio.deinedomain.de;<br>
+&nbsp;&nbsp;ssl_certificate /etc/letsencrypt/live/minio.deinedomain.de/fullchain.pem;<br>
+&nbsp;&nbsp;ssl_certificate_key /etc/letsencrypt/live/minio.deinedomain.de/privkey.pem;<br>
+&nbsp;&nbsp;location / {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;proxy_pass http://127.0.0.1:9001;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;proxy_set_header Host $host;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;proxy_http_version 1.1;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;proxy_set_header Upgrade $http_upgrade;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;proxy_set_header Connection "upgrade";<br>
+&nbsp;&nbsp;}<br>
+}</code></p>
+      <p>Vergiss nicht, deine Firewall (UFW oder iptables) zu härten – dabei hilft dir unser <a href="/artikel/vps-absichern-2026.html">VPS absichern Guide</a>. So bleibt die MinIO Console nur autorisierten IPs zugänglich.</p>
+
+      <h2>Buckets &amp; Zugriffsrechte mit IAM</h2>
+      <p>MinIO kennt zwei Strukturebenen: <strong>Buckets</strong> (vergleichbar mit Ordnern auf oberster Ebene) und <strong>Objekte</strong> (deine Dateien). Die Rechtevergabe läuft über das hauseigene IAM-System, das AWS IAM nachempfunden ist – inklusive Policies im JSON-Format.</p>
+      <h3>Bucket anlegen via mc</h3>
+      <p>Wir nutzen den MinIO-Client <code>mc</code>, um das lokale MinIO zu konfigurieren:</p>
+      <p><code>mc alias set local https://s3.deinedomain.de admin 'supersecret-password'<br>
+mc mb local/backups<br>
+mc mb local/medien<br>
+mc anonymous set download local/medien</code></p>
+      <h3>Read-only Policy für einen Service-User</h3>
+      <p><code>{<br>
+&nbsp;&nbsp;"Version": "2012-10-17",<br>
+&nbsp;&nbsp;"Statement": [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"Effect": "Allow",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"Action": ["s3:GetObject"],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"Resource": ["arn:aws:s3:::backups/*"]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;]<br>
+}</code></p>
+      <p>Diese Policy hängst du dann via <code>mc admin policy add</code> an einen dedizierten Service-User. So bekommt z. B. dein Backup-Agent nur Lese- und Schreibrechte auf den Bucket <code>backups</code> – nichts anderes. Das Prinzip der geringsten Privilegien (<em>least privilege</em>) ist gerade bei selbst gehostetem Storage ein Muss.</p>
+
+      <h2>MinIO Client &amp; SDK-Examples</h2>
+      <p>Da MinIO 100% S3-kompatibel ist, kannst du praktisch jedes Tool direkt verwenden. Die offiziellen AWS-SDKs funktionieren out-of-the-box, lediglich der Endpoint muss umgebogen werden.</p>
+      <h3>AWS CLI nutzen</h3>
+      <p><code>aws configure --profile minio<br>
+AWS Access Key ID: &lt;access-key&gt;<br>
+AWS Secret Access Key: &lt;secret-key&gt;<br>
+Default region name: eu-central-1<br>
+Default output format: json</code></p>
+      <p>Anschließend exportierst du noch den Endpoint:</p>
+      <p><code>export AWS_ENDPOINT_URL_S3=https://s3.deinedomain.de<br>
+aws --profile minio s3 ls s3://backups/</code></p>
+      <h3>Python mit boto3</h3>
+      <p><code>import boto3<br>
+s3 = boto3.client(<br>
+&nbsp;&nbsp;"s3",<br>
+&nbsp;&nbsp;endpoint_url="https://s3.deinedomain.de",<br>
+&nbsp;&nbsp;aws_access_key_id="...",<br>
+&nbsp;&nbsp;aws_secret_access_key="..."<br>
+)<br>
+s3.upload_file("lokale-datei.zip", "backups", "2026/backup.zip")<br>
+print(s3.list_objects_v2(Bucket="backups"))</code></p>
+      <h3>Node.js</h3>
+      <p><code>import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";<br>
+const s3 = new S3Client({<br>
+&nbsp;&nbsp;endpoint: "https://s3.deinedomain.de",<br>
+&nbsp;&nbsp;region: "eu-central-1",<br>
+&nbsp;&nbsp;credentials: { accessKeyId, secretAccessKey }<br>
+});<br>
+await s3.send(new PutObjectCommand({<br>
+&nbsp;&nbsp;Bucket: "medien",<br>
+&nbsp;&nbsp;Key: "bilder/cover.jpg",<br>
+&nbsp;&nbsp;Body: fileStream<br>
+}));</code></p>
+
+      <h2>Backup-Strategie für MinIO</h2>
+      <p>Auch wenn MinIO selbst hochverfügbar läuft, ist regelmäßiges Backup Pflicht. Dafür gibt es mehrere bewährte Strategien. Eine ausführliche Übersicht findest du in unserem <a href="/artikel/backup-strategien-vps-server-2026.html">Backup-Strategien-Guide</a>; die drei wichtigsten Wege für MinIO im Überblick:</p>
+      <ul>
+        <li><strong>mc mirror:</strong> Synchronisiert ganze Buckets auf einen zweiten MinIO-Server oder eine Hetzner Storage Box. Einfach und inkrementell.</li>
+        <li><strong>Snapshots des Dateisystems:</strong> LVM- oder ZFS-Snapshots der Volumes – ideal in Kombination mit Erasure Coding.</li>
+        <li><strong>Restic / Borgbackup nach S3:</strong> Speichern ihre Repos direkt in einem MinIO-Bucket. Restic nutzt die S3-API nativ und profitiert von Deduplizierung und Verschlüsselung.</li>
+      </ul>
+      <p>Für die <strong>3-2-1-Regel</strong> solltest du mindestens eine Kopie Off-Site vorhalten – etwa in einer Hetzner Storage Box oder einem zweiten VPS an einem anderen Standort.</p>
+
+      <h2>Performance-Tuning</h2>
+      <p>MinIO läuft zwar out-of-the-box erstaunlich flott, mit ein paar Stellschrauben holst du aber das Maximum heraus:</p>
+      <ul>
+        <li><strong>Storage-Tuning:</strong> Setze das Dateisystem auf <code>xfs</code> oder <code>ext4</code> mit <code>noatime</code>. Auf ZFS/Btrfs lohnt sich <code>recordsize=1M</code>.</li>
+        <li><strong>Worker-Tuning:</strong> Setze <code>MINIO_API_REQUESTS_MAX=2500</code> und <code>MINIO_API_REQUESTS_DEADLINE=10m</code> für hohe Concurrency.</li>
+        <li><strong>Cache:</strong> RAM-Disk oder NVMe-Cache für Metadaten. <code>MINIO_CACHE_DRIVES</code> konfiguriert einen dedizierten Drive-Cache.</li>
+        <li><strong>Netzwerk:</strong> Aktiviere HTTP/2 im nginx, idealerweise sogar HTTP/3. Bei Multi-Node-Setups ist 10 Gbit/s Pflicht.</li>
+        <li><strong>Erasure Coding:</strong> Bei Single-Node-Setups deaktiviert; ab 4 Knoten mit <code>EC:2</code> (verliere 2 Knoten, Daten bleiben lesbar) starten.</li>
+      </ul>
+      <p>In der Praxis erreicht ein einzelner VPS mit NVMe-Storage problemlos 1–2 Gbit/s sequenziellen Durchsatz, was für die meisten Use-Cases mehr als ausreichend ist.</p>
+
+      <h2>Sicherheit: TLS, IAM &amp; MinIO-KMS</h2>
+      <p>Datensouveränität ist nur dann real, wenn die Security stimmt. MinIO bringt dafür drei zentrale Bausteine mit:</p>
+      <ul>
+        <li><strong>TLS by Default:</strong> Setze <code>MINIO_SERVER_URL</code> und konfiguriere TLS-Zertifikate. Mit Let's Encrypt bist du in 5 Minuten startklar – siehe unser <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html">SSL-Guide</a>.</li>
+        <li><strong>IAM &amp; Policies:</strong> Vergib niemals Root-Credentials an Anwendungen. Lege pro Service einen eigenen User mit minimaler Policy an.</li>
+        <li><strong>MinIO-KMS:</strong> Aktiviere serverseitige Verschlüsselung mit SSE-KMS. Unterstützt werden AWS KMS, HashiCorp Vault und ein lokales Keystore-Backend. So sind alle Objekte at-rest verschlüsselt.</li>
+        <li><strong>Audit-Logs:</strong> Aktiviere den integrierten Audit-Log-Webhook und werte die Einträge in Loki oder Splunk aus.</li>
+        <li><strong>Brute-Force-Schutz:</strong> Setze ein vorgelagertes Rate-Limiting im nginx oder – besser – einen vorgeschalteten WAF/CDN.</li>
+      </ul>
+
+      <h2>Vergleich: MinIO vs. Hetzner Storage Box vs. Wasabi vs. Backblaze B2</h2>
+      <p>Die Frage "selbst hosten oder mieten?" ist berechtigt. Hier ein kompakter Vergleich, damit du die richtige Wahl für deinen Use-Case triffst:</p>
+      <ul>
+        <li><strong>MinIO selbst gehostet:</strong> Volle Kontrolle, keine API-Limits, einmaliger Hardware-Aufwand. Du bist aber auch für Uptime, Backups und Security selbst verantwortlich.</li>
+        <li><strong>Hetzner Storage Box:</strong> 1 €/TB Monat, rsync-fähig, in Deutschland gehostet. Ideal für klassische Backups, aber keine echte S3-API.</li>
+        <li><strong>Wasabi Hot Cloud Storage:</strong> 7 $/TB Monat, S3-kompatibel, kein Egress-Gebühr. Perfekt, wenn du aus der EU nicht raus willst – Rechenzentrum in Amsterdam.</li>
+        <li><strong>Backblaze B2:</strong> 6 $/TB Monat, günstigster S3-Storage, Egress 0,01 $/GB. Beliebt bei Indie-Entwicklern und als Glacier-Alternative.</li>
+      </ul>
+      <p>Wer eine mittelgroße Plattform betreibt und S3-API braucht, fährt mit MinIO auf einem 100-€-VPS mittelfristig günstiger als mit Cloud-Storage ab ~3 TB. Wer nur mal ein paar Backups ablegen will, ist mit der Hetzner Storage Box besser bedient.</p>
+
+      <h2>FAQ – Häufige Fragen zu MinIO</h2>
+      <h3>1. Ist MinIO wirklich S3-kompatibel?</h3>
+      <p>Ja, vollständig. Alle S3-API-Operationen (PUT, GET, LIST, DELETE, Multipart-Upload etc.) werden unterstützt. Auch AWS-Signer-v4 funktioniert identisch.</p>
+      <h3>2. Wie viel RAM braucht MinIO mindestens?</h3>
+      <p>Offiziell werden 2 GB vorausgesetzt, produktiv solltest du 8 GB oder mehr einplanen, besonders wenn du intensiv mit Metadaten arbeitest.</p>
+      <h3>3. Kann ich MinIO mit Nextcloud oder Restic nutzen?</h3>
+      <p>Absolut. Restic unterstützt MinIO nativ als Backend. Nextcloud kannst du ebenfalls auf einen MinIO-Bucket als Primary Storage konfigurieren.</p>
+      <h3>4. Was kostet MinIO?</h3>
+      <p>Die Community-Edition ist kostenlos (AGPL-3.0). Für Enterprise-Features (z. B. KMS-Integration mit HSM, Support) gibt es eine kommerzielle Lizenz.</p>
+      <h3>5. Wie skaliere ich MinIO?</h3>
+      <p>Horizontal: Mehr Server hinzufügen, MinIO erkennt sie automatisch. Vertikal: Mehr RAM, schnellere NVMe, 10G-Netzwerk. Erasure Coding sorgt für Ausfallsicherheit.</p>
+      <h3>6. Brauche ich zwingend Docker?</h3>
+      <p>Nein, MinIO läuft auch als Binary direkt auf dem Host. Docker erleichtert aber Updates und Konfiguration deutlich.</p>
+      <h3>7. Ist MinIO sicher genug für sensible Daten?</h3>
+      <p>Ja, mit aktivierter TLS-Termination, IAM-Policies, SSE-KMS und gehärtetem Server erreichst du ein Sicherheitsniveau, das mit AWS S3 vergleichbar ist.</p>
+      <h3>8. Wie vergleicht sich MinIO mit Ceph?</h3>
+      <p>Ceph ist mächtiger, aber komplexer in Setup und Betrieb. Für die meisten mittelständischen Setups ist MinIO die deutlich pragmatischere Wahl.</p>
+
+      <h2>Fazit</h2>
+      <p><strong>MinIO selbst gehostet</strong> ist 2026 die wohl beste Wahl, wenn du einen performanten, S3-kompatiblen Object Storage auf deinem eigenen VPS betreiben willst. Du behältst die volle Datenkontrolle, zahlst keine API-Gebühren und kannst jede S3-kompatible Anwendung ohne Anpassung nutzen. Mit Docker, nginx-Proxy, IAM und KMS baust du dir in unter einer Stunde ein Setup, das in Sachen Sicherheit und Performance locker mit AWS S3 mithält. Wenn du bereit bist, Verantwortung für Backups und Patches zu übernehmen, bekommst du dafür ein Stück digitale Souveränität zurück, das bei reinen Cloud-Lösungen oft verloren geht.</p>
+
+    </div>
+    <div class="affiliate-box">
+      <p><strong>Empfohlene Hardware für dein MinIO-Setup</strong></p>
+      <a href="https://www.amazon.de/s?k=NVMe+SSD+2TB&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">NVMe-SSDs auf Amazon ansehen &rarr;</a>
+      <p style="margin-top:8px;font-size:0.75rem">* Affiliate-Link. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.</p>
+    </div>
+    <div id="related-articles"></div>
+    <div class="adsense-placeholder"><p><strong>— Anzeige —</strong></p><p>Google AdSense Platzhalter (Ende)</p></div>
+  </article>
+</main>
+<footer class="footer"><div class="container"><div class="footer-grid"><div><h4>hosta<span style="color:var(--accent)">zar</span></h4><p style="color:var(--text-muted);font-size:0.9rem">Dein Hosting- &amp; Server-Portal mit Guides.</p></div><div><h4>Kategorien</h4><ul><li><a href="/gaming/">🎮 Gaming</a></li><li><a href="/webhosting/">🌐 Webhosting</a></li><li><a href="/devops/">⚙️ DevOps</a></li></ul></div><div><h4>Rechtliches</h4><ul><li><a href="/about.html">Über uns</a></li><li><a href="/impressum.html">Impressum</a></li></ul></div></div><div class="footer-bottom"><span>© 2026 hostazar.com</span></div></div></footer>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  if(typeof hostazarApp !== 'undefined'){
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {containerId:'related-articles',category:'devops',excludeSlug:'minio-object-storage-selbst-hosten-2026',count:3},
+      breadcrumbs: [{url:'/devops/',label:'DevOps'},{label:'MinIO Object Storage selbst hosten 2026 – S3-kompatibel auf dem VPS'}]
+    });
+  }
+});
+</script>
+</body>
+</html>
