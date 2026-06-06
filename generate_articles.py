@@ -4,14 +4,11 @@
 import json
 import os
 import sys
-import time
-import urllib.request
-import urllib.error
 import html as html_mod
 
-API_KEY = ""
-API_URL = "https://openrouter.ai/api/v1/chat/completions"
-MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+# Provider-Helper aus dem Framework laden
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '_framework'))
+from provider_pool import llm_chat
 
 OUT_DIR = "/c/HermesPortable/home/scripts/blog-automation/hostazar/artikel"
 
@@ -270,48 +267,14 @@ def build_article_html(slug, title, tags, desc, h1, subtitle, content, wordcount
 
 
 def call_llm(prompt, system_msg="Du bist ein deutscher SEO-Content-Autor für hostazar.com. Schreibe informativ, detailliert und suchmaschinenoptimiert auf Deutsch."):
-    """Call OpenRouter API and return response text."""
-    data = json.dumps({
-        "model": MODEL,
-        "messages": [
-            {"role": "system", "content": system_msg},
-            {"role": "user", "content": prompt}
-        ],
-        "max_tokens": 4096,
-        "temperature": 0.7,
-    }).encode("utf-8")
-
-    req = urllib.request.Request(API_URL, data=data, headers={
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {API_KEY}",
-        "HTTP-Referer": "https://hostazar.com",
-        "X-Title": "hostazar Article Generator"
-    })
-
-    for attempt in range(5):
-        try:
-            with urllib.request.urlopen(req, timeout=120) as resp:
-                result = json.loads(resp.read().decode("utf-8"))
-                return result["choices"][0]["message"]["content"]
-        except urllib.error.HTTPError as e:
-            body = e.read().decode("utf-8")
-            print(f"  HTTP Error {e.code}: {body[:200]}")
-            if e.code == 429:
-                wait = (attempt + 1) * 10
-                print(f"  Rate limited, waiting {wait}s...")
-                time.sleep(wait)
-            elif e.code == 503:
-                wait = (attempt + 1) * 15
-                print(f"  Service unavailable, waiting {wait}s...")
-                time.sleep(wait)
-            else:
-                raise
-        except (urllib.error.URLError, OSError) as e:
-            wait = (attempt + 1) * 10
-            print(f"  Connection error: {e}, retrying in {wait}s...")
-            time.sleep(wait)
-
-    raise Exception("Failed after 5 API call attempts")
+    """Call LLM via the Framework Provider-Pool (NVIDIA/Gemini priority)."""
+    return llm_chat(
+        system_prompt=system_msg,
+        user_prompt=prompt,
+        provider="content",
+        max_tokens=4096,
+        temperature=0.7,
+    )
 
 
 def generate_article_content(article):
@@ -415,6 +378,7 @@ def main():
         # Rate limiting delay between articles
         if i < len(ARTICLES):
             print("  Waiting 3s before next article...")
+            import time
             time.sleep(3)
 
     print("\n=== All done! ===")
