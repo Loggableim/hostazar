@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plausible Analytics – Selbstgehostetes Web-Analytics auf VPS 2026 | hostazar.com</title>
+  <meta name="description" content="Plausible Analytics auf VPS installieren: DSGVO-konforme, Cookie-freie Web-Analytics-Alternative zu Google Analytics. Docker-Compose-Setup mit ClickHouse &amp; PostgreSQL.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hostazar.com/artikel/plausible-analytics-vps-2026.html">
+  <link rel="stylesheet" href="/css/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hostazar.com/artikel/plausible-analytics-vps-2026.html">
+  <meta property="og:title" content="Plausible Analytics – Selbstgehostetes Web-Analytics auf VPS 2026">
+  <meta property="og:description" content="Plausible Analytics auf VPS installieren: DSGVO-konforme, Cookie-freie Web-Analytics-Alternative zu Google Analytics. Docker-Compose-Setup mit ClickHouse &amp; PostgreSQL.">
+  <meta property="og:image" content="https://hostazar.com/images/plausible-analytics-vps-2026.png">
+  <meta property="og:locale" content="de_DE">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://hostazar.com/artikel/plausible-analytics-vps-2026.html">
+  <meta name="twitter:title" content="Plausible Analytics – Selbstgehostetes Web-Analytics auf VPS 2026">
+  <meta name="twitter:description" content="Plausible Analytics auf VPS installieren: DSGVO-konforme, Cookie-freie Web-Analytics-Alternative zu Google Analytics. Docker-Compose-Setup mit ClickHouse &amp; PostgreSQL.">
+  <meta name="twitter:image" content="https://hostazar.com/images/plausible-analytics-vps-2026.png">
+  <script type="application/ld+json">{
+    "@context":"https://schema.org","@type":"BlogPosting",
+    "headline":"Plausible Analytics – Selbstgehostetes Web-Analytics auf VPS 2026","url":"https://hostazar.com/artikel/plausible-analytics-vps-2026.html",
+    "datePublished":"2026-06-06","dateModified":"2026-06-06",
+    "author":{"@type":"Organization","name":"hostazar.com"},
+    "description":"Plausible Analytics auf VPS installieren: DSGVO-konforme, Cookie-freie Web-Analytics-Alternative zu Google Analytics. Docker-Compose-Setup mit ClickHouse &amp; PostgreSQL.","wordCount":1900
+  }</script>
+  <script src="/data/script.js" defer></script>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9094916118868532"
+    crossorigin="anonymous"></script>
+</head>
+<body>
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">hosta<span>zar</span></a>
+    <ul class="nav-links">
+      <li><a href="/">Startseite</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">🎮 Gaming</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Beliebt</h4>
+              <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">
+                <img src="/images/7-days-to-die-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</span>
+              </a>
+              <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
+                <img src="/images/ark-survival-ascended-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2</span>
+              </a>
+              <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">
+                <img src="/images/conan-exiles-server-hosten.png" alt="" loading="lazy">
+                <span class="mega-title">Conan Exiles Server mieten – Setup &amp; Kosten 2026</span>
+              </a>
+              <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">
+                <img src="/images/cs2-server-mieten-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</span>
+              </a>
+              <a href="/artikel/dayz-server-mieten-2026.html" class="mega-item">
+                <img src="/images/dayz-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+              </a>
+              <a href="/artikel/enshrouded-server-hosting-2026.html" class="mega-item">
+                <img src="/images/enshrouded-server-hosting-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Enshrouded Server – Hosting-Guide &amp; Setup für Koop 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Anleitungen</h4>
+              <a href="/artikel/farming-simulator-25-server-mieten-2026.html" class="mega-item">
+                <img src="/images/farming-simulator-25-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Farming Simulator 25 Server mieten – Multiplayer-Guide 2026</span>
+              </a>
+              <a href="/artikel/grounded-server-hosting.html" class="mega-item">
+                <img src="/images/grounded-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Grounded Server hosten – Kosten, Setup &amp; Anbieter 2026</span>
+              </a>
+              <a href="/artikel/icarus-server-hosting.html" class="mega-item">
+                <img src="/images/icarus-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Icarus Server hosten – Dedicated Server für Koop 2026</span>
+              </a>
+              <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
+                <img src="/images/minecraft-server-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Minecraft Server mieten oder selbst hosten? Der ultimative Ver</span>
+              </a>
+              <a href="/artikel/nightingale-server-hosting.html" class="mega-item">
+                <img src="/images/nightingale-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Nightingale Server hosten – Realm-Hosting-Guide 2026</span>
+              </a>
+              <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
+                <img src="/images/palworld-server-hosting-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Palworld Server mieten oder selbst hosten? Der komplette Hosti</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Vergleiche</h4>
+              <a href="/artikel/project-zomboid-server-hosting-2026.html" class="mega-item">
+                <img src="/images/project-zomboid-server-hosting-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Project Zomboid Server – Hosting &amp; Setup für Multiplayer 2</span>
+              </a>
+              <a href="/artikel/rust-server-mieten-guide-2026.html" class="mega-item">
+                <img src="/images/rust-server-mieten-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Rust Server mieten – Kosten, Setup, Mods &amp; Anbieter 2026</span>
+              </a>
+              <a href="/artikel/satisfactory-server-mieten-oder-selbst-hosten-2026.html" class="mega-item">
+                <img src="/images/satisfactory-server-mieten-oder-selbst-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Satisfactory Server mieten oder selbst hosten? Der Guide 2026</span>
+              </a>
+              <a href="/artikel/scum-server-mieten.html" class="mega-item">
+                <img src="/images/scum-server-mieten.png" alt="" loading="lazy">
+                <span class="mega-title">SCUM Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+              </a>
+              <a href="/artikel/smalland-server-hosting.html" class="mega-item">
+                <img src="/images/smalland-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Smalland Server mieten – Guide für den Koop-Server 2026</span>
+              </a>
+              <a href="/artikel/sons-of-the-forest-server.html" class="mega-item">
+                <img src="/images/sons-of-the-forest-server.png" alt="" loading="lazy">
+                <span class="mega-title">Sons of the Forest Server hosten – Setup-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Setup</h4>
+              <a href="/artikel/space-engineers-server.html" class="mega-item">
+                <img src="/images/space-engineers-server.png" alt="" loading="lazy">
+                <span class="mega-title">Space Engineers Server mieten oder selbst hosten 2026</span>
+              </a>
+              <a href="/artikel/terraria-server-hosten-2026.html" class="mega-item">
+                <img src="/images/terraria-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Terraria Server hosten – Komplettanleitung für Multiplayer 202</span>
+              </a>
+              <a href="/artikel/the-forest-server-hosting.html" class="mega-item">
+                <img src="/images/the-forest-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">The Forest Server hosten – Koop-Guide 2026</span>
+              </a>
+              <a href="/artikel/v-rising-server-mieten-2026.html" class="mega-item">
+                <img src="/images/v-rising-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">V Rising Server mieten oder selbst hosten? Guide 2026</span>
+              </a>
+              <a href="/artikel/valheim-server-vps-mieten-2026.html" class="mega-item">
+                <img src="/images/valheim-server-vps-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Perfo</span>
+              </a>
+              <a href="/artikel/gameserver-mieten-guide.html" class="mega-item">
+                <img src="/images/gameserver-mieten-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Gameserver mieten 2025 – Der ultimative Guide</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/gaming/">→ Alle 24 Gaming‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">🌐 Webhosting</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Beliebt</h4>
+              <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="mega-item">
+                <img src="/images/cloud-hosting-vs-shared-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Cloud Hosting vs. Shared Hosting – Vergleich 2026</span>
+              </a>
+              <a href="/artikel/cloudflare-tunnel-einrichten.html" class="mega-item">
+                <img src="/images/cloudflare-tunnel-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</span>
+              </a>
+              <a href="/artikel/docker-wordpress-hosten.html" class="mega-item">
+                <img src="/images/docker-wordpress-hosten.png" alt="" loading="lazy">
+                <span class="mega-title">WordPress mit Docker hosten – Modernes Setup 2026</span>
+              </a>
+              <a href="/artikel/domain-kaufen-einrichten-2026.html" class="mega-item">
+                <img src="/images/domain-kaufen-einrichten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Domain kaufen und einrichten – Schritt-für-Schritt 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Anleitungen</h4>
+              <a href="/artikel/email-server-selbst-hosten-2026.html" class="mega-item">
+                <img src="/images/email-server-selbst-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</span>
+              </a>
+              <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html" class="mega-item">
+                <img src="/images/hetzner-cloud-vs-dediziert-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Hetzner Cloud vs. Dedizierter Server – Vergleich 2026</span>
+              </a>
+              <a href="/artikel/mysql-mariadb-optimierung.html" class="mega-item">
+                <img src="/images/mysql-mariadb-optimierung.png" alt="" loading="lazy">
+                <span class="mega-title">MySQL &amp; MariaDB optimieren – Performance-Guide 2026</span>
+              </a>
+              <a href="/artikel/netcup-vps-erfahrungen-2026.html" class="mega-item">
+                <img src="/images/netcup-vps-erfahrungen-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Netcup VPS Erfahrungen 2026 – Test, Preise &amp; Bewertung</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Vergleiche</h4>
+              <a href="/artikel/nextcloud-server-einrichten.html" class="mega-item">
+                <img src="/images/nextcloud-server-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">Nextcloud Server einrichten – Cloud-Speicher selbst hosten 202</span>
+              </a>
+              <a href="/artikel/plesk-vs-cpanel-vergleich.html" class="mega-item">
+                <img src="/images/plesk-vs-cpanel-vergleich.png" alt="" loading="lazy">
+                <span class="mega-title">Plesk vs. cPanel – Der große Hosting-Panel-Vergleich 2026</span>
+              </a>
+              <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
+                <img src="/images/ssl-zertifikat-lets-encrypt-2026.png" alt="" loading="lazy">
+                <span class="mega-title">SSL-Zertifikat mit Let's Encrypt einrichten – Anleitung 2026</span>
+              </a>
+              <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
+                <img src="/images/webhosting-anbieter-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Die 5 besten Webhosting-Anbieter 2026 im Vergleich</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Setup</h4>
+              <a href="/artikel/webseite-sicherheit-2026.html" class="mega-item">
+                <img src="/images/webseite-sicherheit-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Webseite sichern – Security-Checkliste für deine Website 2026</span>
+              </a>
+              <a href="/artikel/website-online-bringen-guide-2026.html" class="mega-item">
+                <img src="/images/website-online-bringen-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Webseite online bringen – Der Komplettguide von A bis Z 2026</span>
+              </a>
+              <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
+                <img src="/images/wordpress-hosting-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">WordPress Hosting Vergleich 2026 – Die besten Anbieter</span>
+              </a>
+              <a href="/artikel/webhosting-vserver-vergleich.html" class="mega-item">
+                <img src="/images/webhosting-vserver-vergleich.png" alt="" loading="lazy">
+                <span class="mega-title">Webhosting vs. VServer – Was passt zu dir?</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/webhosting/">→ Alle 16 Webhosting‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/">⚙️ DevOps</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Beliebt</h4>
+              <a href="/artikel/ansible-automation-guide.html" class="mega-item">
+                <img src="/images/ansible-automation-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</span>
+              </a>
+              <a href="/artikel/backup-strategien-vps-server-2026.html" class="mega-item">
+                <img src="/images/backup-strategien-vps-server-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Backup-Strategien für VPS und Server – Der Guide 2026</span>
+              </a>
+              <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="mega-item">
+                <img src="/images/docker-vs-podman-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</span>
+              </a>
+              <a href="/artikel/elk-stack-log-management.html" class="mega-item">
+                <img src="/images/elk-stack-log-management.png" alt="" loading="lazy">
+                <span class="mega-title">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</span>
+              </a>
+              <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="mega-item">
+                <img src="/images/github-actions-ci-cd-pipeline-2026.png" alt="" loading="lazy">
+                <span class="mega-title">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Anleitungen</h4>
+              <a href="/artikel/gitops-argocd-einrichten.html" class="mega-item">
+                <img src="/images/gitops-argocd-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</span>
+              </a>
+              <a href="/artikel/k3s-kubernetes-vps-2026.html" class="mega-item">
+                <img src="/images/k3s-kubernetes-vps-2026.png" alt="" loading="lazy">
+                <span class="mega-title">K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</span>
+              </a>
+              <a href="/artikel/linux-server-harden.html" class="mega-item">
+                <img src="/images/linux-server-harden.png" alt="" loading="lazy">
+                <span class="mega-title">Linux Server härten – Security-Baseline 2026</span>
+              </a>
+              <a href="/artikel/n8n-automation-server.html" class="mega-item">
+                <img src="/images/n8n-automation-server.png" alt="" loading="lazy">
+                <span class="mega-title">n8n Automation Server hosten – Workflow-Automatisierung 2026</span>
+              </a>
+              <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" class="mega-item">
+                <img src="/images/nginx-reverse-proxy-einrichten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Nginx Reverse Proxy konfigurieren – Einsteiger-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Vergleiche</h4>
+              <a href="/artikel/postgresql-vps-optimierung.html" class="mega-item">
+                <img src="/images/postgresql-vps-optimierung.png" alt="" loading="lazy">
+                <span class="mega-title">PostgreSQL auf dem VPS optimieren – Tuning-Guide 2026</span>
+              </a>
+              <a href="/artikel/prometheus-grafana-monitoring-2026.html" class="mega-item">
+                <img src="/images/prometheus-grafana-monitoring-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Server Monitoring mit Prometheus &amp; Grafana – Setup 2026</span>
+              </a>
+              <a href="/artikel/terraform-infrastructure-as-code-2026.html" class="mega-item">
+                <img src="/images/terraform-infrastructure-as-code-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Terraform Infrastructure as Code – Einführung &amp; Beispiele </span>
+              </a>
+              <a href="/artikel/traefik-reverse-proxy.html" class="mega-item">
+                <img src="/images/traefik-reverse-proxy.png" alt="" loading="lazy">
+                <span class="mega-title">Traefik Reverse Proxy einrichten – Moderner Docker-Proxy 2026</span>
+              </a>
+              <a href="/artikel/wireguard-vpn-server.html" class="mega-item">
+                <img src="/images/wireguard-vpn-server.png" alt="" loading="lazy">
+                <span class="mega-title">WireGuard VPN Server einrichten – Schnell &amp; Sicher 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Setup</h4>
+              <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">
+                <img src="/images/docker-compose-vps-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse</span>
+              </a>
+              <a href="/artikel/vps-absichern-2026.html" class="mega-item">
+                <img src="/images/vps-absichern-2026.png" alt="" loading="lazy">
+                <span class="mega-title">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</span>
+              </a>
+              <a href="/artikel/devops-tools-2024.html" class="mega-item">
+                <img src="/images/devops-tools-2024.png" alt="" loading="lazy">
+                <span class="mega-title">DevOps-Tools 2024 – Die 10 wichtigsten Tools im Überblick</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/devops/">→ Alle 18 DevOps‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li><a href="/about.html">Über uns</a></li>
+      <li><a href="/impressum.html">Impressum</a></li>
+    </ul>
+  </div>
+</nav>
+<main class="container article-page">
+  <article>
+    <div class="article-header">
+      <div class="card-meta">
+        <span class="card-tag webhosting">Webhosting</span>
+        <span>06. Juni 2026</span>
+        <span>⏱ 12 Min Lesezeit</span>
+      </div>
+    <div class="hero-image-wrap" style="margin:1.5rem 0;border-radius:12px;overflow:hidden;">
+      <img src="../images/plausible-analytics-vps-2026.png" alt="Plausible Analytics – Selbstgehostetes Web-Analytics auf VPS 2026 | hostazar.com" class="hero-image" style="width:100%;height:auto;display:block;">
+    </div>
+
+<title>Plausible Analytics – Selbstgehostetes Web-Analytics auf VPS 2026 | hostazar.com</title>
+    </div>
+    <div class="adsense-placeholder"><p><strong>— Anzeige —</strong></p><p>Google AdSense Platzhalter</p></div>
+    <div id="breadcrumbs"></div>
+    <div class="article-content">
+      <h2>Was ist Plausible Analytics? Die DSGVO-konforme Google-Alternative</h2>
+      <p><strong>Plausible Analytics</strong> ist eine moderne, quelloffene Web-Analytics-Plattform, die vollständig auf deinem eigenen Server läuft und dabei komplett ohne Cookies auskommt. Entwickelt wurde das Projekt von Uku Taht und Marko Saric als schlanke, datenschutzfreundliche Alternative zu Google Analytics. Während Google Analytics Unmengen an Tracking-Cookies setzt und personenbezogene Daten sammelt, beschränkt sich <strong>Plausible Analytics</strong> auf das absolut Notwendige: Seitenaufrufe, Besucherzahlen, Verweisquellen und Geräteinformationen – und das alles auf Basis von anonymisierten, aggregierten Daten.</p>
+      <p>Für Webseitenbetreiber in der EU ist <strong>Plausible Analytics</strong> besonders attraktiv, weil es von Haus aus DSGVO-konform ist. Da keine Cookies gesetzt und keine personenbezogenen Daten gespeichert werden, entfällt die lästige Cookie-Consent-Banner-Pflicht gemäß der ePrivacy-Richtlinie. Das schafft nicht nur rechtliche Sicherheit, sondern verbessert auch die User Experience und die Ladegeschwindigkeit deiner Seiten – denn das Tracking-Script ist mit unter 1 KB Größe ein echtes Schwergewicht in Sachen Effizienz.</p>
+      <p>Die selbstgehostete Version gibt dir die vollständige Kontrolle über deine Analysedaten. Anders als bei Google Analytics oder der kommerziellen Cloud-Version von Plausible bleiben deine Besucherdaten auf deinem eigenen VPS, verlassen nie deine Infrastruktur und unterliegen ausschließlich deinen Datenschutzrichtlinien. Im Jahr 2026 ist <strong>Plausible Analytics</strong> damit die erste Wahl für datenschutzbewusste Webseitenbetreiber, die keine Kompromisse zwischen umfassender Analyse und Datenschutz eingehen wollen.</p>
+
+      <h2>Plausible Analytics vs. Google Analytics – Ein fairer Vergleich</h2>
+      <p>Der direkte Vergleich zeigt, warum sich immer mehr Webseitenbetreiber für <strong>Plausible Analytics</strong> entscheiden:</p>
+      <ul>
+        <li><strong>Datenschutz:</strong> Plausible kommt ohne Cookies aus, Google Analytics setzt mehrere Tracking-Cookies. Plausible speichert keine personenbezogenen Daten, Google Analytics schon.</li>
+        <li><strong>DSGVO-Konformität:</strong> Plausible Analytics ist out-of-the-box DSGVO-konform. Bei Google Analytics benötigst du einen Auftragsverarbeitungsvertrag (AVV), eine Cookie-Consent-Lösung und ggf. einen Data-Protection-Impact-Assessment.</li>
+        <li><strong>Performance:</strong> Das Plausible-Script ist mit weniger als 1 KB extrem leichtgewichtig. Das Google-Analytics-Tag wiegt rund 45 KB und bremst deine Seitengeschwindigkeit spürbar.</li>
+        <li><strong>Kosten:</strong> Selbstgehostet ist Plausible komplett kostenlos. Google Analytics 4 ist zwar in der Basisversion ebenfalls kostenlos, aber die kommerzielle Nutzung ist durch Datenweitergabe an Google erkauft.</li>
+        <li><strong>Datenhoheit:</strong> Bei selbstgehostetem Plausible liegen alle Daten auf deinem VPS. Bei Google Analytics werden die Daten auf US-amerikanischen Servern verarbeitet.</li>
+      </ul>
+      <p>Der gravierendste Unterschied liegt jedoch in der Benutzerfreundlichkeit: Während Google Analytics 4 mit seiner Event-basierten Datenmodellierung und der komplexen Oberfläche viele Einsteiger überfordert, bietet <strong>Plausible Analytics</strong> ein aufgeräumtes, intuitives Dashboard, das auf den ersten Blick zeigt, was wirklich wichtig ist.</p>
+
+      <h2>Plausible Analytics vs. Matomo, Umami und Fathom – Alternativen im Vergleich</h2>
+      <p><strong>Plausible Analytics</strong> ist nicht der einzige datenschutzfreundliche Analytics-Dienst auf dem Markt. Vier Kandidaten stechen 2026 besonders hervor:</p>
+      <p><strong>Matomo</strong> (ehemals Piwik) ist der etablierteste Player im Segment. Es bietet eine extrem umfangreiche Feature-Palette inklusive Conversion-Tracking, A/B-Testing und Heatmaps. Der Haken: Matomo braucht zwingend Cookies für viele Kernfunktionen, ist deutlich ressourcenhungriger und die Installation ist aufwändiger. Wo <strong>Plausible Analytics</strong> mit einem Docker-Compose-Setup in fünf Minuten läuft, kann die Matomo-Installation mit MySQL, PHP-FPM und Nginx-Konfiguration schnell eine Stunde dauern.</p>
+      <p><strong>Umami</strong> ist dem Plausible-Konzept sehr ähnlich: offen, leichtgewichtig und cookie-frei. Allerdings ist die Community kleiner, die Weiterentwicklung langsamer und die Dokumentation nicht so ausgereift wie bei Plausible. Zudem fehlen Umami einige praktische Features wie E-Mail-Reports und der Import von Google-Analytics-Daten.</p>
+      <p><strong>Fathom Analytics</strong> ist der kommerzielle Premium-Anbieter in dieser Runde. Das Tool ist hervorragend designed und technisch ausgereift, kostet aber ab 15 USD pro Monat für die Cloud-Version. Selbsthosten ist bei Fathom nicht mehr vorgesehen – die letzte Selfhosted-Version wurde 2023 eingestellt.</p>
+      <p>Die Entscheidung fällt letztlich nach deinen Prioritäten: <strong>Plausible Analytics</strong> bietet den optimalen Kompromiss aus Umfang, Einfachheit und Kosteneffizienz für die meisten Selbsthoster.</p>
+
+      <h2>Systemvoraussetzungen: VPS für Plausible Analytics</h2>
+      <p>Bevor du mit der Installation beginnst, solltest du sicherstellen, dass dein Server die Mindestanforderungen erfüllt. <strong>Plausible Analytics</strong> setzt auf einen modernen Stack aus ClickHouse (für die schnelle Analyse großer Datenmengen) und PostgreSQL (für Metadaten und Konfiguration).</p>
+      <ul>
+        <li><strong>CPU:</strong> 2 vCPUs (Minimum), 4 vCPUs empfohlen für mehrere Websites</li>
+        <li><strong>RAM:</strong> 2 GB Minimum, 4 GB empfohlen (ClickHouse ist speicherhungrig)</li>
+        <li><strong>Speicher:</strong> 20 GB SSD freier Speicherplatz (die Datenbank wächst mit der Anzahl der Seitenaufrufe)</li>
+        <li><strong>Betriebssystem:</strong> Ubuntu 22.04/24.04 LTS, Debian 12 oder jede andere Distribution mit Docker-Unterstützung</li>
+        <li><strong>Docker &amp; Docker Compose:</strong> Version 23+ bzw. Compose V2</li>
+        <li><strong>Domain:</strong> Eine Subdomain für die Plausible-Instanz (z. B. analytics.deinedomain.de) inklusive DNS-A-Eintrag auf deine VPS-IP</li>
+        <li><strong>Reverse Proxy:</strong> Caddy, Nginx oder Traefik für SSL-Terminierung via Let's Encrypt</li>
+      </ul>
+      <p>Für kleinere Projekte mit bis zu 50.000 monatlichen Seitenaufrufen reicht ein einfacher VPS mit 2 vCPUs und 2 GB RAM völlig aus. Für größere Portale empfehlen wir einen VPS mit 4 GB RAM und schneller NVMe-SSD. Ein guter Einstieg ist der <a href="https://www.amazon.de/s?k=VPS+Server+mieten&tag=nova079-20" target="_blank" rel="nofollow sponsored">VPS-Einstiegstarif bei Netcup oder Hetzner</a>.</p>
+
+      <h2>Docker-Installation von Plausible Analytics – Schritt für Schritt</h2>
+      <p>Die Installation von <strong>Plausible Analytics</strong> erfolgt am einfachsten über Docker Compose. Das offizielle GitHub-Repository stellt eine vorgefertigte docker-compose.yml zur Verfügung, die alle benötigten Services enthält: Plausible selbst, ClickHouse für die Analyse-Datenbank und PostgreSQL für die Anwendungsdaten.</p>
+
+      <h3>1. Projektverzeichnis anlegen und Konfiguration herunterladen</h3>
+      <p>Erstelle ein Verzeichnis für deine Plausible-Instanz und lade die Konfigurationsdateien herunter:</p>
+      <pre>mkdir -p /opt/plausible &amp;&amp; cd /opt/plausible
+wget https://raw.githubusercontent.com/plausible/analytics/master/docker-compose.yml
+wget https://raw.githubusercontent.com/plausible/analytics/master/plausible-conf.env</pre>
+
+      <h3>2. Umgebungsvariablen konfigurieren</h3>
+      <p>Bearbeite die Datei <code>plausible-conf.env</code> mit deinen Daten. Die wichtigsten Einstellungen sind:</p>
+      <pre>BASE_URL=https://analytics.deinedomain.de
+SECRET_KEY_BASE=openssl rand -base64 48 (selbst generieren)
+SIGNUP_SESSION_MINUTES=0</pre>
+      <p>Mit <code>SIGNUP_SESSION_MINUTES=0</code> deaktivierst du die öffentliche Registrierung – ein absolutes Muss für selbstgehostete Instanzen. Anschließend legst du den Admin-Account über die Weboberfläche an.</p>
+
+      <h3>3. Container starten</h3>
+      <p>Starte das Setup mit einem Befehl:</p>
+      <pre>docker compose up -d</pre>
+      <p>Nach wenigen Sekunden sollten alle drei Container laufen. Prüfe mit <code>docker compose ps</code>, ob Plausible (Port 8000), ClickHouse (Port 8123) und PostgreSQL (Port 5432) gestartet sind. Die Weboberfläche erreichst du zunächst unter <code>http://dein-server:8000</code> – aber Achtung: Direkter HTTP-Zugriff ohne SSL ist unsicher und sollte nur zum Testen genutzt werden.</p>
+
+      <h3>4. Persistenz und Backups</h3>
+      <p>Die Datenbanken von ClickHouse und PostgreSQL werden in Docker-Volumes gespeichert. Empfehlenswert ist ein regelmäßiges Backup per Cronjob auf ein externes Volume:</p>
+      <pre>0 2 * * * docker compose exec postgres pg_dump -U plausible plausible &gt; /backup/plausible-db-$(date +\%F).sql
+0 3 * * * docker compose exec clickhouse clickhouse-client --query "BACKUP TABLE plausible.events TO '/backup/events-$(date +\%F)'"</pre>
+
+      <h2>Reverse Proxy mit SSL-Konfiguration (Caddy, Nginx, Traefik)</h2>
+      <p>Für den produktiven Einsatz benötigt <strong>Plausible Analytics</strong> eine verschlüsselte HTTPS-Verbindung. Wir zeigen dir drei Varianten, je nachdem, welchen Reverse Proxy du bevorzugst:</p>
+
+      <h3>Mit Caddy (einfachste Variante)</h3>
+      <p>Caddy ist der unkomplizierteste Reverse Proxy, da er Let's-Encrypt-Zertifikate automatisch beantragt und erneuert. Die minimale Caddyfile-Konfiguration:</p>
+      <pre>analytics.deinedomain.de {
+  reverse_proxy plausible:8000
+}</pre>
+      <p>Das war's. Caddy erkennt automatisch, dass ein Zertifikat benötigt wird, und stellt die Verbindung auf HTTPS um. Starte Caddy mit einem Docker-Container, der das Plausible-Netzwerk teilt.</p>
+
+      <h3>Mit Nginx</h3>
+      <p>Für Nginx erstellst du einen virtuellen Host mit SSL-Terminierung via Certbot:</p>
+      <pre>server {
+  listen 443 ssl;
+  server_name analytics.deinedomain.de;
+
+  ssl_certificate /etc/letsencrypt/live/analytics.deinedomain.de/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/analytics.deinedomain.de/privkey.pem;
+
+  location / {
+    proxy_pass http://127.0.0.1:8000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+}</pre>
+      <p>Vergiss nicht, die Proxy-Header korrekt zu setzen – andernfalls funktioniert die Authentifizierung von Plausible nicht.</p>
+
+      <h3>Mit Traefik</h3>
+      <p>In einem Docker-Compose-Setup mit Traefik genügen folgende Labels im Plausible-Service:</p>
+      <pre>labels:
+  - "traefik.enable=true"
+  - "traefik.http.routers.plausible.rule=Host(`analytics.deinedomain.de`)"
+  - "traefik.http.routers.plausible.entrypoints=websecure"
+  - "traefik.http.routers.plausible.tls.certresolver=letsencrypt"
+  - "traefik.http.services.plausible.loadbalancer.server.port=8000"</pre>
+
+      <h2>E-Mail für Reports und Passwort-Reset konfigurieren</h2>
+      <p><strong>Plausible Analytics</strong> kann regelmäßige E-Mail-Reports versenden – täglich, wöchentlich oder monatlich. Dafür benötigst du einen SMTP-Server. Trage in der <code>plausible-conf.env</code> folgende Variablen ein:</p>
+      <pre>MAILER_ADAPTER=Bamboo.SMTP
+SMTP_HOST=smtp.deinedomain.de
+SMTP_PORT=587
+SMTP_USER=dein@email.de
+SMTP_PASS=dein-passwort
+SMTP_RETRIES=2</pre>
+      <p>Alternativ kannst du einen Transactional-E-Mail-Dienst wie Mailgun, SendGrid oder Amazon SES nutzen. Für das alleinige Zurücksetzen von Passwörtern und das Senden von Einladungen reicht auch ein einfacher Gmail-Account mit App-Passwort – Google hat die App-Passwort-Funktion aber 2025 zunehmend eingeschränkt. Empfehlenswert ist daher ein dedizierter SMTP-Relay.</p>
+      <p>Sobald die E-Mail-Konfiguration steht, kannst du unter "Settings → Email Reports" die gewünschte Frequenz und Empfänger einstellen. Die Reports enthalten eine kompakte Zusammenfassung der wichtigsten Metriken für den gewählten Zeitraum.</p>
+
+      <h2>Google Analytics-Import: Daten migrieren zu Plausible</h2>
+      <p>Wenn du von Google Analytics zu <strong>Plausible Analytics</strong> wechselst, musst du nicht bei null anfangen. Plausible bietet ein Import-Tool, das deine historischen Daten aus Google Analytics übernimmt und in das Plausible-Format konvertiert.</p>
+      <p>So funktioniert der Import:</p>
+      <ol>
+        <li>Gehe in deinem Plausible-Dashboard zu "Settings → Import/Export → Google Analytics Import".</li>
+        <li>Klicke auf "Connect to Google Analytics" und autorisiere den Zugriff auf dein Google-Konto.</li>
+        <li>Wähle die Property aus, die du importieren möchtest.</li>
+        <li>Lege den Startzeitpunkt des Imports fest (z. B. die letzten 12 Monate).</li>
+        <li>Starte den Import – je nach Datenmenge kann der Vorgang einige Minuten bis Stunden dauern.</li>
+      </ol>
+      <p>Wichtig: Der Import überträgt nur aggregierte Daten – keine Rohdaten, keine einzelnen Besucher-IDs, keine Events. Das ist konform mit den DSGVO-Grundsätzen der Datenminimierung. Nach dem Import siehst du deine historischen Daten nahtlos im Plausible-Dashboard, als wären sie von Anfang an dort erfasst worden.</p>
+      <p>Parallel dazu solltest du das Plausible-Tracking-Script auf deiner Website einbinden. Der Aufruf erfolgt als einfaches <code>&lt;script&gt;</code>-Tag mit nur einer Zeile. Entferne nach erfolgreichem Import und parallelem Tracking das Google-Analytics-Script von deiner Seite – und schon bist du komplett auf <strong>Plausible Analytics</strong> umgestiegen.</p>
+
+      <h2>Dashboard-Funktionen: Was Plausible Analytics dir zeigt</h2>
+      <p>Das Dashboard von <strong>Plausible Analytics</strong> ist bewusst übersichtlich gehalten – ganz nach dem Motto "weniger ist mehr". Es zeigt dir auf einen Blick die wichtigsten Kennzahlen:</p>
+      <ul>
+        <li><strong>Besucher (Unique Visitors):</strong> Die Anzahl der eindeutigen Besucher im gewählten Zeitraum. Anders als Google Analytics identifiziert Plausible Besucher nicht über Cookies, sondern über einen anonymisierten Hash aus IP-Adresse und User-Agent, der täglich rotiert.</li>
+        <li><strong>Seitenaufrufe (Pageviews):</strong> Die Gesamtzahl aller Seitenaufrufe, inklusive Mehrfachaufrufen durch denselben Besucher.</li>
+        <li><strong>Absprungrate (Bounce Rate):</strong> Der Prozentsatz der Besucher, die nach dem Aufruf einer einzigen Seite die Website wieder verlassen haben.</li>
+        <li><strong>Besuchsdauer (Visit Duration):</strong> Die durchschnittliche Verweildauer eines Besuchers in Minuten und Sekunden.</li>
+        <li><strong>Verweisquellen (Referrers):</strong> Welche Websites, Suchmaschinen oder Social-Media-Plattformen Besucher auf deine Seite schicken.</li>
+        <li><strong>Seiten (Top Pages):</strong> Die meistbesuchten Seiten deiner Website, sortiert nach Aufrufen.</li>
+        <li><strong>Länder (Countries):</strong> Geografische Verteilung deiner Besucher – nützlich für mehrsprachige oder internationale Websites.</li>
+        <li><strong>Geräte (Devices):</strong> Aufschlüsselung nach Desktop, Tablet und Mobilgeräten sowie Betriebssystemen.</li>
+        <li><strong>Betriebssysteme (Operating Systems):</strong> Windows, macOS, Linux, iOS, Android – alles auf einen Blick.</li>
+      </ul>
+      <p>Ein besonderes Highlight ist der Live-Dashboard-Modus. Wenn du ihn aktivierst, siehst du die aktuellen Besucher in Echtzeit – inklusive der Seite, die sie gerade betrachten, der Verweisquelle und des Landes. Das ist nicht nur spannend, sondern hilft dir auch, die unmittelbare Wirkung von Social-Media-Posts oder Newslettern zu beobachten.</p>
+
+      <h2>Performance und Skalierbarkeit: So leicht ist Plausible wirklich</h2>
+      <p>Das <strong>Plausible Analytics</strong>-Tracking-Script wiegt weniger als 1 KB (minimiert und gzip-komprimiert). Zum Vergleich: Google Analytics 4 bringt rund 45 KB auf die Waage, Matomo sogar bis zu 60 KB. Das bedeutet eine messbar bessere Ladezeit und einen besseren PageSpeed-Score vor allem auf mobilen Endgeräten.</p>
+      <p>Der Server-Stack selbst ist auf Skalierbarkeit ausgelegt. ClickHouse, die zugrundeliegende Datenbank, ist eine der schnellsten Analyse-Datenbanken überhaupt. Ein gut konfigurierter VPS mit 4 GB RAM bewältigt problemlos mehrere Millionen Seitenaufrufe pro Monat. Die eigentliche Plausible-Anwendung ist in Elixir (Phoenix-Framework) geschrieben und kann über mehrere Worker-Prozesse horizontal skaliert werden.</p>
+      <p>Für die allermeisten Projekte reicht ein einzelner Docker-Host. Erst ab etwa 5 Millionen monatlichen Seitenaufrufen lohnt es sich, über eine getrennte ClickHouse-Instanz oder eine Load-Balancer-Konfiguration nachzudenken – für 99 % der Selbsthoster ist das aber irrelevant.</p>
+
+      <h2>Sicherheit und Wartung: Plausible auf dem VPS absichern</h2>
+      <p>Ein selbstgehostetes Tool ist nur so sicher wie der Server, auf dem es läuft. Wir empfehlen folgende Maßnahmen, um deine <strong>Plausible Analytics</strong>-Instanz abzusichern:</p>
+      <ul>
+        <li><strong>Firewall konfigurieren:</strong> Schalte alle Ports außer 80, 443 und 22 (SSH) in der UFW oder iptables. Die internen Ports von ClickHouse (8123, 9000) und PostgreSQL (5432) dürfen nur innerhalb des Docker-Netzwerks erreichbar sein.</li>
+        <li><strong>HTTPS erzwingen:</strong> Leite sämtlichen HTTP-Traffic per 301-Redirect auf HTTPS um. Plausible selbst sollte über HTTP nur per Reverse Proxy erreichbar sein.</li>
+        <li><strong>Authenticated Reverse Proxy:</strong> Optional kannst du deine Plausible-Instanz hinter einem Basic-Auth-Gateway betreiben, sodass nur autorisierte Personen auf das Dashboard zugreifen können.</li>
+        <li><strong>Regelmäßige Updates:</strong> Halte Docker-Images aktuell. Nutze Watchtower (`containrrr/watchtower`) für automatisierte Updates oder führe manuell <code>docker compose pull &amp;&amp; docker compose up -d</code> aus.</li>
+        <li><strong>Backup-Strategie:</strong> Sichere regelmäßig die PostgreSQL-und ClickHouse-Daten auf ein externes Volume oder in die Cloud. Ohne Backup sind deine historischen Analysedaten unwiederbringlich verloren, falls der Docker-Host ausfällt.</li>
+      </ul>
+
+      <h2>Selbsthosten vs. Cloud-Version: Vor- und Nachteile</h2>
+      <p><strong>Plausible Analytics</strong> gibt es in zwei Varianten: die selbstgehostete Open-Source-Version und die kommerzielle Cloud-Version auf plausible.io. Welche Variante für dich infrage kommt, hängt von deinen Prioritäten ab:</p>
+      <p><strong>Selbstgehostet (VPS):</strong> Kostet nur den VPS selbst (ab ca. 4 €/Monat), bietet volle Datenkontrolle, unbegrenzte Seitenaufrufe und volle Konfigurationsfreiheit. Nachteil: Du bist für Updates, Wartung und Sicherheit selbst verantwortlich.</p>
+      <p><strong>Cloud-Version (plausible.io):</strong> Ab 9 €/Monat für 10.000 Seitenaufrufe, keine Server-Verwaltung nötig, automatische Updates, offizielle Unterstützung. Nachteil: Daten liegen auf fremden Servern, begrenzte Seitenaufrufe in den Basistarifen, monatliche Kosten steigen mit dem Traffic.</p>
+      <p>Für technisch affine Betreiber mit Traffic über 50.000 Seitenaufrufen monatlich rechnet sich das Selbsthosten in der Regel bereits nach wenigen Monaten. Bei einem Jahresvergleich zahlst du für die Cloud-Version bei 100.000 Aufrufen bereits über 180 € – dein VPS kostet dich vielleicht 60 € im Jahr und bietet unbegrenzten Traffic.</p>
+
+      <h2>Best Practices für dein Plausible Analytics Setup</h2>
+      <ul>
+        <li><strong>Registrierung deaktivieren:</strong> Setze <code>SIGNUP_SESSION_MINUTES=0</code> und lege nur einen Admin-Account an. So verhinderst du, dass Fremde sich auf deiner Instanz registrieren.</li>
+        <li><strong>Mehrere Websites verwalten:</strong> Plausible unterstützt beliebig viele Websites pro Instanz. Jede Website bekommt ein eigenes Tracking-Script und ein separates Dashboard.</li>
+        <li><strong>Öffentliche Dashboards:</strong> Du kannst deine Statistiken über einen geteilten Link öffentlich machen – nützlich für Open-Source-Projekte, Blogs oder als Nachweis für Sponsoren.</li>
+        <li><strong>API nutzen:</strong> Die REST-API von Plausible erlaubt es dir, Daten in eigene Dashboards oder Tools zu integrieren. Perfekt für individuelle Auswertungen.</li>
+        <li><strong>Ziele (Goals) definieren:</strong> Tracke Conversions wie Newsletter-Anmeldungen, Button-Klicks oder Datei-Downloads – ganz ohne Cookies.</li>
+        <li><strong>Uptime-Monitoring koppeln:</strong> Kombiniere Plausible mit einem Monitoring-Tool wie <a href="/artikel/uptime-kuma-monitoring-einrichten-2026.html">Uptime Kuma</a>, um sowohl Traffic-Daten als auch die Verfügbarkeit deiner Website im Blick zu behalten.</li>
+      </ul>
+
+      <h2>Raspberry Pi als günstige Alternative zum VPS</h2>
+      <p>Wenn du keine laufenden Serverkosten haben möchtest, kannst du <strong>Plausible Analytics</strong> auch auf einem Raspberry Pi 5 (4 oder 8 GB RAM) betreiben. Die Installation per Docker Compose ist identisch zur VPS-Variante. Der Raspberry Pi 5 mit 4 GB RAM bewältigt problemlos bis zu 100.000 Seitenaufrufe pro Monat – bei einem Stromverbrauch von unter 10 Watt. Empfehlenswert ist der Einsatz einer schnellen USB-SSD statt einer microSD-Karte, da ClickHouse intensive Schreiboperationen ausführt. Als Betriebssystem eignet sich Raspberry Pi OS Lite (64 Bit) oder Ubuntu Server for Raspberry Pi.</p>
+      <p>Der Nachteil des Raspberry Pis: Er läuft in deinem Heimnetzwerk und benötigt eine dynamische DNS-Lösung (z. B. Cloudflare DDNS) oder einen Tunnel (z. B. Cloudflare Tunnel), um aus dem Internet erreichbar zu sein. Zudem ist die Ausfallsicherheit ohne USV geringer als bei einem VPS im Rechenzentrum. Trotzdem ist der Pi eine hervorragende Option für Hobbyprojekte und kleine Blogs.</p>
+
+      <h2>Fazit: Plausible Analytics auf dem VPS – die smarte Analytics-Lösung 2026</h2>
+      <p><strong>Plausible Analytics</strong> hat sich 2026 als die führende Open-Source-Alternative zu Google Analytics etabliert. Die Kombination aus DSGVO-Konformität ohne Cookie-Banner, einem extrem leichten Tracking-Script und einem aufgeräumten, übersichtlichen Dashboard macht es zur idealen Lösung für datenschutzbewusste Webseitenbetreiber.</p>
+      <p>Die Installation auf dem eigenen VPS ist mit Docker Compose in weniger als 15 Minuten erledigt. Du erhältst eine vollwertige Analytics-Plattform, die in puncto Übersichtlichkeit und Performance Google Analytics weit hinter sich lässt – und das ohne monatliche Lizenzkosten und ohne Datenabfluss an Dritte. Ob du nun einen kleinen Blog, einen Online-Shop oder ein ganzes Netzwerk von Websites betreibst: Mit <strong>Plausible Analytics</strong> auf deinem VPS triffst du eine zukunftssichere Entscheidung für Datenschutz, Leistung und volle Kontrolle.</p>
+      <p>Mehr zum Thema Webhosting und VPS findest du in unserem <a href="/artikel/webhosting-anbieter-vergleich-2026.html">Webhosting-Anbieter-Vergleich 2026</a> und unserem ausführlichen <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html">SSL-Zertifikat-Guide mit Let's Encrypt</a>.</p>
+
+    </div>
+    <div class="affiliate-box">
+      <p><strong>Empfohlene Hardware und Tools für dein Plausible Analytics Setup</strong></p>
+      <a href="https://www.amazon.de/s?k=VPS+Server+mieten&tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">VPS-Angebote auf Amazon ansehen &rarr;</a>
+      <p style="margin-top:8px"><a href="https://www.amazon.de/s?k=Domain+Registrierung&tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">Domain-Registrierung &amp; DNS &rarr;</a></p>
+      <p><a href="https://www.amazon.de/s?k=Raspberry+Pi+5+Kit&tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">Raspberry Pi 5 Kit auf Amazon ansehen &rarr;</a></p>
+      <p style="margin-top:8px;font-size:0.75rem">* Affiliate-Link. Als Amazon-Partner verdienen wir an qualifizierten Verk&auml;ufen.</p>
+    </div>
+    <div id="related-articles"></div>
+    <div class="adsense-placeholder"><p><strong>— Anzeige —</strong></p><p>Google AdSense Platzhalter (Ende)</p></div>
+  </article>
+</main>
+<footer class="footer"><div class="container"><div class="footer-grid"><div><h4>hosta<span style="color:var(--accent)">zar</span></h4><p style="color:var(--text-muted);font-size:0.9rem">Dein Hosting- &amp; Server-Portal mit Guides.</p></div><div><h4>Kategorien</h4><ul><li><a href="/gaming/">🎮 Gaming</a></li><li><a href="/webhosting/">🌐 Webhosting</a></li><li><a href="/devops/">⚙️ DevOps</a></li></ul></div><div><h4>Rechtliches</h4><ul><li><a href="/about.html">Über uns</a></li><li><a href="/impressum.html">Impressum</a></li></ul></div></div><div class="footer-bottom"><span>© 2026 hostazar.com</span></div></div></footer>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  if(typeof hostazarApp !== 'undefined'){
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {containerId:'related-articles',category:'webhosting',excludeSlug:'plausible-analytics-vps-2026',count:3},
+      breadcrumbs: [{url:'/webhosting/',label:'Webhosting'},{label:'Plausible Analytics – Selbstgehostetes Web-Analytics auf VPS 2026'}]
+    });
+  }
+});
+</script>
+</body>
+</html>
