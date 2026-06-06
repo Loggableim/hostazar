@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Palworld Mods & Dedicated Server Guide 2026 – BepInEx, server.ini, Admin-Tools | hostazar.com</title>
+  <meta name="description" content="Palworld Mods & Dedicated Server 2026: BepInEx, UEModLoader und PalSchema installieren, server.ini konfigurieren, Cheat-Befehle, Crossplay, Backups und Performance-Tuning.">
+  <meta name="keywords" content="Palworld Mods 2026, Palworld Dedicated Server, BepInEx Palworld, Palworld server.ini, Palworld Admin Commands, UEModLoader, PalSchema, Palworld Cheats, Palworld Crossplay">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hostazar.com/artikel/palworld-server-mods-guide-2026.html">
+  <link rel="stylesheet" href="/css/style.css">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hostazar.com/artikel/palworld-server-mods-guide-2026.html">
+  <meta property="og:title" content="Palworld Mods & Dedicated Server Guide 2026 – BepInEx, server.ini, Admin-Tools">
+  <meta property="og:description" content="BepInEx, UEModLoader, PalSchema, server.ini-Tuning, Cheat-Befehle, Crossplay und Backups – der komplette Mod- und Admin-Guide für deinen Palworld-Server.">
+  <meta property="og:image" content="https://hostazar.com/images/palworld-server-mods-guide-2026.png">
+  <meta property="og:locale" content="de_DE">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Palworld Mods & Dedicated Server Guide 2026 – BepInEx, server.ini, Admin-Tools">
+  <meta name="twitter:description" content="Der deutsche Mod- und Dedicated-Server-Guide für Palworld 2026: BepInEx, server.ini, Cheats, Crossplay, Backups und Performance.">
+  <meta name="twitter:image" content="https://hostazar.com/images/palworld-server-mods-guide-2026.png">
+
+  <!-- Article JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Palworld Mods & Dedicated Server Guide 2026 – BepInEx, server.ini, Admin-Tools",
+    "url": "https://hostazar.com/artikel/palworld-server-mods-guide-2026.html",
+    "datePublished": "2026-06-06",
+    "dateModified": "2026-06-06",
+    "author": { "@type": "Organization", "name": "hostazar.com" },
+    "publisher": { "@type": "Organization", "name": "hostazar.com" },
+    "description": "Palworld Mods & Dedicated Server 2026: BepInEx, UEModLoader und PalSchema installieren, server.ini konfigurieren, Cheat-Befehle, Crossplay, Backups und Performance-Tuning.",
+    "image": "https://hostazar.com/images/palworld-server-mods-guide-2026.png",
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://hostazar.com/artikel/palworld-server-mods-guide-2026.html" },
+    "wordCount": 2050,
+    "articleSection": "Gaming / Gameserver",
+    "inLanguage": "de"
+  }
+  </script>
+  <script src="/data/script.js" defer></script>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9094916118868532"
+    crossorigin="anonymous"></script>
+
+<meta property="og:site_name" content="Hostazar — VPS & DevOps Portal" />
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">hosta<span>zar</span></a>
+    <ul class="nav-links">
+      <li><a href="/">Startseite</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">🎮 Gaming</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Beliebt</h4>
+              <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">
+                <img src="/images/7-days-to-die-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</span>
+              </a>
+              <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
+                <img src="/images/ark-survival-ascended-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2026</span>
+              </a>
+              <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">
+                <img src="/images/conan-exiles-server-hosten.png" alt="" loading="lazy">
+                <span class="mega-title">Conan Exiles Server mieten – Setup &amp; Kosten 2026</span>
+              </a>
+              <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">
+                <img src="/images/cs2-server-mieten-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</span>
+              </a>
+              <a href="/artikel/dayz-server-mieten-2026.html" class="mega-item">
+                <img src="/images/dayz-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+              </a>
+              <a href="/artikel/enshrouded-server-hosting-2026.html" class="mega-item">
+                <img src="/images/enshrouded-server-hosting-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Enshrouded Server – Hosting-Guide &amp; Setup für Koop 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Anleitungen</h4>
+              <a href="/artikel/farming-simulator-25-server-mieten-2026.html" class="mega-item">
+                <img src="/images/farming-simulator-25-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Farming Simulator 25 Server mieten – Multiplayer-Guide 2026</span>
+              </a>
+              <a href="/artikel/grounded-server-hosting.html" class="mega-item">
+                <img src="/images/grounded-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Grounded Server hosten – Kosten, Setup &amp; Anbieter 2026</span>
+              </a>
+              <a href="/artikel/icarus-server-hosting.html" class="mega-item">
+                <img src="/images/icarus-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Icarus Server hosten – Dedicated Server für Koop 2026</span>
+              </a>
+              <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
+                <img src="/images/minecraft-server-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Minecraft Server mieten oder selbst hosten? Der ultimative Vergleich 2026</span>
+              </a>
+              <a href="/artikel/nightingale-server-hosting.html" class="mega-item">
+                <img src="/images/nightingale-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Nightingale Server hosten – Realm-Hosting-Guide 2026</span>
+              </a>
+              <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
+                <img src="/images/palworld-server-hosting-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Palworld Server mieten oder selbst hosten? Der komplette Hosting-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Vergleiche</h4>
+              <a href="/artikel/project-zomboid-server-hosting-2026.html" class="mega-item">
+                <img src="/images/project-zomboid-server-hosting-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Project Zomboid Server – Hosting &amp; Setup für Multiplayer 2026</span>
+              </a>
+              <a href="/artikel/rust-server-mieten-guide-2026.html" class="mega-item">
+                <img src="/images/rust-server-mieten-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Rust Server mieten – Kosten, Setup, Mods &amp; Anbieter 2026</span>
+              </a>
+              <a href="/artikel/satisfactory-server-mieten-oder-selbst-hosten-2026.html" class="mega-item">
+                <img src="/images/satisfactory-server-mieten-oder-selbst-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Satisfactory Server mieten oder selbst hosten? Der Guide 2026</span>
+              </a>
+              <a href="/artikel/scum-server-mieten.html" class="mega-item">
+                <img src="/images/scum-server-mieten.png" alt="" loading="lazy">
+                <span class="mega-title">SCUM Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+              </a>
+              <a href="/artikel/smalland-server-hosting.html" class="mega-item">
+                <img src="/images/smalland-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Smalland Server mieten – Guide für den Koop-Server 2026</span>
+              </a>
+              <a href="/artikel/sons-of-the-forest-server.html" class="mega-item">
+                <img src="/images/sons-of-the-forest-server.png" alt="" loading="lazy">
+                <span class="mega-title">Sons of the Forest Server hosten – Setup-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Setup</h4>
+              <a href="/artikel/space-engineers-server.html" class="mega-item">
+                <img src="/images/space-engineers-server.png" alt="" loading="lazy">
+                <span class="mega-title">Space Engineers Server mieten oder selbst hosten 2026</span>
+              </a>
+              <a href="/artikel/terraria-server-hosten-2026.html" class="mega-item">
+                <img src="/images/terraria-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Terraria Server hosten – Komplettanleitung für Multiplayer 2026</span>
+              </a>
+              <a href="/artikel/the-forest-server-hosting.html" class="mega-item">
+                <img src="/images/the-forest-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">The Forest Server hosten – Koop-Guide 2026</span>
+              </a>
+              <a href="/artikel/v-rising-server-mieten-2026.html" class="mega-item">
+                <img src="/images/v-rising-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">V Rising Server mieten oder selbst hosten? Guide 2026</span>
+              </a>
+              <a href="/artikel/valheim-server-vps-mieten-2026.html" class="mega-item">
+                <img src="/images/valheim-server-vps-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Valheim Server mieten oder auf VPS hosten 2026</span>
+              </a>
+              <a href="/artikel/gameserver-mieten-guide.html" class="mega-item">
+                <img src="/images/gameserver-mieten-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Gameserver mieten 2025 – Der ultimative Guide</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/gaming/">→ Alle Gaming‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li><a href="/webhosting/">🌐 Webhosting</a></li>
+      <li><a href="/devops/">⚙️ DevOps</a></li>
+      <li><a href="/about.html">Über uns</a></li>
+      <li><a href="/impressum.html">Impressum</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="container article-page">
+  <article>
+    <div class="article-header">
+      <div class="card-meta">
+        <span class="card-tag gaming">🎮 Gaming / Mods</span>
+        <span>6. Juni 2026</span>
+        <span>· 14 Min Lesezeit</span>
+      </div>
+      <div class="hero-image-wrap" style="margin:1.5rem 0;border-radius:12px;overflow:hidden;">
+        <img src="/images/palworld-server-mods-guide-2026.png" alt="Palworld Mods & Dedicated Server Guide 2026 – BepInEx, server.ini und Admin-Tools | hostazar.com" class="hero-image" style="width:100%;height:auto;display:block;">
+      </div>
+      <h1>Palworld Mods & Dedicated Server Guide 2026 – BepInEx, server.ini, Admin-Tools</h1>
+      <p style="color:var(--text-secondary);font-size:1.1rem">Mods installieren, server.ini perfekt tunen, Cheat-Befehle nutzen, Crossplay aktivieren und Backups automatisieren – so holst du 2026 das Maximum aus deinem Palworld Dedicated Server heraus.</p>
+    </div>
+
+    <!-- AdSense Placeholder -->
+    <div class="adsense-placeholder">
+      <p><strong>— Anzeige —</strong></p>
+      <p>Google AdSense Platzhalter</p>
+    </div>
+
+    <div id="breadcrumbs"></div>
+    <div class="article-content">
+
+      <h2>Warum Palworld auf einem eigenen Dedicated Server?</h2>
+      <p>Ein eigener <strong>Palworld Dedicated Server</strong> ist die einzige Lösung, die dir gleichzeitig volle Performance, Admin-Rechte und Mod-Support bietet. Auf offiziellen Serellen oder über das Matchmaking von Pocketpair bist du an Slot-Limits, kurze Session-Zeiten und das vorgegebene Regelwerk gebunden. Auf einem selbst verwalteten Server entscheidest du, wie viele Spieler joinen, wie schnell die Nacht wechselt, wie streng der Tod bestraft wird und welche Mods das Gameplay ergänzen.</p>
+
+      <p>Drei Gründe sprechen 2026 besonders für den eigenen Server: <strong>Performance</strong> – du dimensionierst RAM, CPU und NVMe exakt nach Spielerzahl und Weltgröße. <strong>Mods</strong> – BepInEx, PalSchema und UEModLoader eröffnen Quality-of-Life-Verbesserungen, Pal-Overhauls und Admin-Werkzeuge, die das Originalspiel nicht liefert. <strong>Admin-Rechte</strong> – Teleport, Inventar-Manipulation, Spawn-Steuerung und Cheat-Befehle machen Community-Management überhaupt erst möglich.</p>
+
+      <div class="highlight-box">
+        <p><strong>🔑 Hinweis zur Artikelserie:</strong> Dieser Guide ist die direkte <strong>Fortführung unseres Hosting-Grundlagenartikels</strong> (<a href="palworld-server-hosting-guide-2026.html">Palworld Server mieten oder selbst hosten? Der komplette Hosting-Guide 2026</a>). Dort findest du den vollständigen Vergleich zwischen Miet-Server, VPS und Home-Hosting, RAM-/CPU-Empfehlungen und die Schritt-für-Schritt-Installationsanleitung. Hier konzentrieren wir uns auf <strong>Mods, Custom-Config, Admin-Tools und Performance-Tuning</strong>.</p>
+      </div>
+
+      <h2>Systemanforderungen für einen modded Palworld-Server</h2>
+      <p>Mods erhöhen die Anforderungen spürbar – vor allem an RAM und Single-Core-CPU-Leistung. Die folgende Tabelle zeigt erprobte Werte aus 2026er-Teststellungen mit aktivem BepInEx-Setup und Quality-of-Life-Mods:</p>
+
+      <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+        <thead>
+          <tr style="background:var(--accent);color:white;">
+            <th style="padding:12px;text-align:left;">Szenario</th>
+            <th style="padding:12px;text-align:left;">Spieler</th>
+            <th style="padding:12px;text-align:left;">RAM</th>
+            <th style="padding:12px;text-align:left;">CPU</th>
+            <th style="padding:12px;text-align:left;">Speicher</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:10px;">Kleine Koop-Runde, wenige QoL-Mods</td>
+            <td style="padding:10px;">2–4</td>
+            <td style="padding:10px;">8 GB</td>
+            <td style="padding:10px;">4 vCPU, hoher Single-Core-Takt</td>
+            <td style="padding:10px;">40 GB NVMe</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:10px;">Aktive Freundesgruppe mit Overhaul-Mods</td>
+            <td style="padding:10px;">5–12</td>
+            <td style="padding:10px;">12–16 GB</td>
+            <td style="padding:10px;">6 vCPU, dedizierte Kerne</td>
+            <td style="padding:10px;">60 GB NVMe</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:10px;">Große Community + BepInEx + UEModLoader</td>
+            <td style="padding:10px;">13–24</td>
+            <td style="padding:10px;">20–24 GB</td>
+            <td style="padding:10px;">8 vCPU, AMD EPYC / Ryzen 9</td>
+            <td style="padding:10px;">80+ GB NVMe</td>
+          </tr>
+          <tr>
+            <td style="padding:10px;">Public Mod-Server, 24/7, viele Basen</td>
+            <td style="padding:10px;">25–32</td>
+            <td style="padding:10px;">32 GB</td>
+            <td style="padding:10px;">8+ dedizierte Kerne, Premium-CPU</td>
+            <td style="padding:10px;">120 GB NVMe + Backup-Volume</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>Wichtig: <strong>Single-Core-Leistung schlägt Kern-Anzahl</strong>. Palworld skaliert hauptsächlich über den Haupthread der UE5-Engine. Moderne AMD-Epyc-, Ryzen-7- oder Intel-Xeon-VPS-Konfigurationen schlagen Billigangebote mit 16 vCPUs, die auf Atom-Cores basieren.</p>
+
+      <h2>Dedicated Server auf VPS installieren (Linux &amp; Windows)</h2>
+      <p>Die Installation läuft auf beiden Plattformen identisch ab, lediglich die Systemvorbereitung unterscheidet sich. Grundsätzlich empfehlen wir <strong>Linux (Ubuntu 22.04/24.04 LTS)</strong>, weil es günstiger ist, weniger RAM-Verbrauch hat und sich hervorragend als systemd-Dienst einrichten lässt. Windows lohnt sich nur, wenn du Tools mit GUI einsetzen willst oder bereits eine Windows-Lizenz besitzt.</p>
+
+      <p><strong>Linux-Vorbereitung (Ubuntu):</strong></p>
+      <pre style="background:#0d1117;color:#c9d1d9;padding:15px;border-radius:8px;overflow-x:auto;"><code>sudo apt update &amp;&amp; sudo apt upgrade -y
+sudo apt install -y lib32gcc-s1 lib32stdc++6 steamcmd
+sudo useradd -m -s /bin/bash palworld
+sudo mkdir -p /opt/palworld
+sudo chown palworld:palworld /opt/palworld</code></pre>
+
+      <p><strong>Windows-Vorbereitung:</strong></p>
+      <ul>
+        <li>Visual C++ Redistributable 2022 installieren</li>
+        <li>DirectX End-User Runtime bereitstellen</li>
+        <li>Eigenes Verzeichnis <code>C:\PalworldServer</code> anlegen</li>
+        <li>Windows-Firewall-Regel für UDP 8211 erstellen</li>
+      </ul>
+
+      <h2>SteamCMD-Setup für Palworld</h2>
+      <p>Der offizielle Palworld-Server wird über <strong>SteamCMD</strong> geladen und aktualisiert. Lege ein eigenes Verzeichnis an und führe folgende Befehle aus:</p>
+
+      <pre style="background:#0d1117;color:#c9d1d9;padding:15px;border-radius:8px;overflow-x:auto;"><code># Linux
+steamcmd +login anonymous \
+  +force_install_dir /opt/palworld \
+  +app_update 2394010 validate \
+  +quit
+
+# Windows (CMD als Admin)
+steamcmd.exe +login anonymous ^
+  +force_install_dir C:\PalworldServer ^
+  +app_update 2394010 validate ^
+  +quit</code></pre>
+
+      <p>Damit der Server nicht als Root läuft, startest du ihn auf Linux später mit dem angelegten <code>palworld</code>-User. Per systemd-Service sorgst du zusätzlich für automatische Neustarts nach Crashs oder Reboots.</p>
+
+      <pre style="background:#0d1117;color:#c9d1d9;padding:15px;border-radius:8px;overflow-x:auto;"><code># /etc/systemd/system/palworld.service
+[Unit]
+Description=Palworld Dedicated Server
+After=network.target
+
+[Service]
+User=palworld
+WorkingDirectory=/opt/palworld
+ExecStart=/opt/palworld/PalServer.sh
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=100000
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+
+      <p>Aktivieren und starten:</p>
+      <pre style="background:#0d1117;color:#c9d1d9;padding:15px;border-radius:8px;overflow-x:auto;"><code>sudo systemctl daemon-reload
+sudo systemctl enable --now palworld
+sudo systemctl status palworld</code></pre>
+
+      <h2>server.ini Konfiguration erklärt</h2>
+      <p>Die zentrale Konfigurationsdatei für deinen Palworld-Server ist <code>PalWorldSettings.ini</code> (oft nur <code>server.ini</code> genannt). Sie liegt im Verzeichnis <code>/opt/palworld/Pal/Saved/Config/LinuxServer/</code>. Beim ersten Serverstart wird sie automatisch mit Standardwerten erzeugt. Hier ein praxiserprobtes Beispiel für eine gut spielbare Mid-Game-Welt mit aktiver Community:</p>
+
+      <pre style="background:#0d1117;color:#c9d1d9;padding:15px;border-radius:8px;overflow-x:auto;"><code>; /opt/palworld/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini
+
+[/Script/Pal.PalGameWorldSettings]
+OptionSettings=(
+  ServerName="Hostazar Palworld 2026",
+  ServerDescription="Modded Koop-Server, PvE, 16 Slots",
+  AdminPassword="AENDERN-MIT-LANGEM-PASSWORT!",
+  ServerPassword="",
+
+  ; Welt &amp; Schwierigkeit
+  Difficulty=Normal,
+  DayTimeSpeedRate=1.0,
+  NightTimeSpeedRate=1.0,
+  ExpRate=1.5,
+  PalCaptureRate=1.5,
+  PalSpawnNumRate=1.2,
+  PalDamageRateAttack=1.0,
+  PalDamageRateDefense=1.0,
+  PlayerDamageRateAttack=1.0,
+  PlayerDamageRateDefense=1.0,
+  PlayerStomachDecreaseRate=1.0,
+  PlayerStaminaDecreaseRate=1.0,
+  PlayerAutoHPRegeneRate=1.0,
+  PlayerAutoHpRegeneRateInSleep=2.0,
+
+  ; Tod &amp; Items
+  DeathPenalty=All,                ; None / Item / Equipment / All
+  bEnableInvaderEnemy=True,
+  DropItemMaxNum=5000,
+  DropItemAliveMaxHours=12.0,
+
+  ; Basen &amp; Bauen
+  BaseCampMaxNum=128,
+  BaseCampWorkerMaxNum=20,
+  BuildObjectHpRate=1.0,
+  BuildObjectDamageRate=1.0,
+  BuildObjectDeteriorationDamageRate=1.0,
+
+  ; Performance
+  CollectionObjectHpRate=1.0,
+  CollectionObjectRespawnSpeedRate=1.0,
+  EnemyDropItemRate=1.0,
+  bEnableAimAssistPad=True,
+  bEnableAimAssistKeyboard=True,
+
+  ; PvP &amp; Multiplayer
+  bEnablePlayerToPlayerDamage=False,
+  bEnableFriendlyFire=False,
+  bEnableNonLoginPenalty=True,
+  NonLoginPenaltyHard=False,
+
+  ; Slots &amp; Netzwerk
+  ServerPlayerMaxNum=16,
+  bIsUseBackupSaveData=True,
+  BackupInterval=30,
+  SaveInterval=30
+)</code></pre>
+
+      <p>Die wichtigsten Parameter im Überblick:</p>
+      <ul>
+        <li><strong>DeathPenalty</strong> – <code>None</code> (kein Verlust), <code>Item</code>, <code>Equipment</code>, <code>All</code> (komplett). Auf PvE-Servern mit aktiver Community empfehlen wir <code>Item</code> für moderaten Druck.</li>
+        <li><strong>PalSpawnNumRate</strong> – Multiplikator für die Spawn-Dichte. Werte zwischen 1.0 und 1.5 sind erfahrungsgemäß sinnvoll. Über 2.0 leidet die Performance.</li>
+        <li><strong>DayTimeSpeedRate / NightTimeSpeedRate</strong> – Beschleunigt den Tag-Nacht-Wechsel. Für gemütliche Koop-Runden 1.0, für Speed-Runner 2.0–3.0.</li>
+        <li><strong>ExpRate / PalCaptureRate</strong> – Beide gleichmäßig anheben, sonst kippt die Spielbalance. 1.5/1.5 ist ein guter Start.</li>
+        <li><strong>BaseCampMaxNum</strong> – Erlaubt mehrere Basen pro Guild. 64–128 ist auf größeren Servern realistisch.</li>
+        <li><strong>ServerPlayerMaxNum</strong> – Slot-Anzahl. Performance-kritisch: 16 stabile Slots &gt; 32 ruckelnde.</li>
+        <li><strong>BackupInterval</strong> – Automatische Sicherung alle 30 Minuten. In Kombination mit <code>bIsUseBackupSaveData=True</code> ein wirksamer Schutz.</li>
+      </ul>
+
+      <div class="highlight-box">
+        <p><strong>⚠️ Sicherheits-Hinweis:</strong> <code>AdminPassword</code> und <code>ServerPassword</code> niemals öffentlich posten. Bei gemieteten Servern prüfen, ob der Anbieter die Werte im Panel einsehbar anzeigt – sonst Spieler-IPs aussperren.</p>
+      </div>
+
+      <h2>Mods installieren: BepInEx, PalSchema, UEModLoader</h2>
+      <p>Die Modding-Szene für Palworld nutzt <strong>BepInEx</strong> als universellen Mod-Loader. Damit lassen sich Pal-Stat-Änderungen, UI-Overhauls und Server-seitige Tweaks einspielen, ohne den Spielcode zu patchen. Ergänzend existieren <strong>PalSchema</strong> für Datenanpassungen und der <strong>UEModLoader</strong> für umfangreichere Unreal-Engine-Mods.</p>
+
+      <p><strong>1. BepInEx installieren (Linux):</strong></p>
+      <pre style="background:#0d1117;color:#c9d1d9;padding:15px;border-radius:8px;overflow-x:auto;"><code>cd /opt/palworld
+wget https://github.com/BepInEx/BepInEx/releases/latest/download/BepInEx_Unix_x64_5.4.23.3.zip
+unzip BepInEx_Unix_x64_5.4.23.3.zip
+chmod +x BepInEx/run_bepinex.sh
+./BepInEx/run_bepinex.sh PalServer.sh</code></pre>
+
+      <p><strong>2. Mods einbinden:</strong></p>
+      <p>Alle heruntergeladenen <code>.dll</code>-Dateien landen in <code>BepInEx/plugins/</code>. Beim nächsten Start des Servers werden sie automatisch geladen – sichtbar in der Konsole als „Plugin loaded: …“.</p>
+
+      <p><strong>3. PalSchema konfigurieren:</strong></p>
+      <p>PalSchema-Dateien (<code>*.json</code>) liegen unter <code>BepInEx/config/PalSchema/</code>. Jede Datei überschreibt Spawn-Wahrscheinlichkeiten, Pal-Stats, Drops oder Boss-Verhalten. Beispiel:</p>
+      <pre style="background:#0d1117;color:#c9d1d9;padding:15px;border-radius:8px;overflow-x:auto;"><code>{
+  "PalName": "Lamball",
+  "OverrideStats": {
+    "HP": 1200,
+    "Attack": 95,
+    "Defense": 80,
+    "CraftSpeed": 100
+  },
+  "OverrideDropItems": [
+    { "ItemName": "Wool", "DropRate": 0.6 }
+  ]
+}</code></pre>
+
+      <p><strong>4. UEModLoader für schwere Mods:</strong></p>
+      <p>UEModLoader wird zusätzlich zu BepInEx installiert und erlaubt .pak-Mods, die komplette Unreal-Asset-Pakete austauschen – etwa überarbeitete Map-Sektionen, Custom-Pals oder komplette UI-Reskins. Die Dateien landen in <code>Pal/Content/Paks/Mods/</code>.</p>
+
+      <h2>Beste Palworld-Mods 2026</h2>
+      <p>Die Mod-Community hat sich 2026 deutlich professionalisiert. Diese Mods sind in unseren Tests stabil, kompatibel mit dem aktuellen Patch und verbessern Gameplay oder Admin-Alltag spürbar:</p>
+
+      <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+        <thead>
+          <tr style="background:var(--accent);color:white;">
+            <th style="padding:12px;text-align:left;">Mod</th>
+            <th style="padding:12px;text-align:left;">Kategorie</th>
+            <th style="padding:12px;text-align:left;">Loader</th>
+            <th style="padding:12px;text-align:left;">Wirkung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:10px;"><strong>Pal Overhaul</strong></td>
+            <td style="padding:10px;">Gameplay</td>
+            <td style="padding:10px;">PalSchema</td>
+            <td style="padding:10px;">Rebalancierte Stats, neue Moves, frische Spawn-Pools</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:10px;"><strong>QoL Mega-Pack</strong></td>
+            <td style="padding:10px;">Quality of Life</td>
+            <td style="padding:10px;">BepInEx</td>
+            <td style="padding:10px;">Stapelgrößen, Auto-Sort, Fast-Travel, Map-Marker</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:10px;"><strong>More Pal Mod</strong></td>
+            <td style="padding:10px;">Content</td>
+            <td style="padding:10px;">UEModLoader</td>
+            <td style="padding:10px;">+40 Custom-Pals, neue Biome, zusätzliche Bosse</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:10px;"><strong>Server Admin Tools</strong></td>
+            <td style="padding:10px;">Administration</td>
+            <td style="padding:10px;">BepInEx</td>
+            <td style="padding:10px;">GUI für Ban, Kick, Teleport, Item-Give, Live-Spielerliste</td>
+          </tr>
+          <tr>
+            <td style="padding:10px;"><strong>Palworld Plus</strong></td>
+            <td style="padding:10px;">Performance</td>
+            <td style="padding:10px;">BepInEx</td>
+            <td style="padding:10px;">Reduziert Tickrate-Spikes, optimiert KI-Berechnungen, GPU-Last -15 %</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>Beim Modden gilt: <strong>Weniger ist mehr</strong>. Teste neue Mods immer auf einer separaten Kopie des Servers, bevor du sie auf die Hauptwelt loslässt. Jeder Mod erhöht die Komplexität und das Risiko von Inkompatibilitäten nach Updates.</p>
+
+      <h2>Cheat-Befehle &amp; Admin-Commands Liste</h2>
+      <p>Als Admin loggst du dich in die Server-Konsole ein (oder verbindest dich per RCON). Diese Befehle funktionieren mit aktiviertem <code>AdminPassword</code>:</p>
+
+      <pre style="background:#0d1117;color:#c9d1d9;padding:15px;border-radius:8px;overflow-x:auto;"><code>; Welt-Info
+/info                          ; Allgemeine Server-Info anzeigen
+/showplayers                   ; Liste aller verbundenen Spieler
+
+; Teleport
+/TeleportToPlayer <Name>       ; Zu Spieler teleportieren
+/TeleportToMe <Name>           ; Spieler zu dir holen
+
+; Inventar
+/GiveItem <ItemID> <Anzahl> <SpielerName>
+                              ; Item direkt ins Inventar geben
+/GivePal <PalName>            ; Pal als Ei verschenken
+
+; Spieler-Management
+/KickPlayer <Name>            ; Vom Server werfen
+/BanPlayer <Name>             ; Permanent aussperren
+/Broadcast <Nachricht>        ; Serverweite Nachricht senden
+
+; Server
+/SaveWorld                     ; Welt sofort speichern
+/Shutdown <Sekunden> <Nachricht>
+                              ; Geplanter Restart mit Hinweis
+/Exit                          ; Server sofort beenden
+
+; Welt-Settings live
+/SetTime <Stunde>             ; Tageszeit setzen (0-24)
+/SetWeather <Typ>             ; Clear / Rain / Sandstorm
+/SetDifficulty <Stufe>        ; Easy / Normal / Hard</code></pre>
+
+      <p>Die genauen <strong>Item-IDs</strong> findest du in der Palworld-Wiki oder in der PalSchema-Datenbank. Beliebte Beispiele: <code>Wood</code>, <code>Stone</code>, <code>PalSphere</code>, <code>LegendaryPalSphere</code>, <code>Meat</code>, <code>Coal</code>, <code>Ingot</code>, <code>PalUpgradeStone</code>.</p>
+
+      <h2>Crossplay-Konfiguration (Steam + Xbox + Game Pass)</h2>
+      <p>Seit dem Crossplay-Patch 2025 spielen Steam-, Xbox- und Game-Pass-User in denselben Welten. Auf deinem Dedicated Server ist Crossplay <strong>standardmäßig aktiv</strong>. Wichtig ist, dass die <code>RESTAPI</code>-Plugins korrekt geladen sind und dein Anbieter <strong>Multi-Plattform-Listen-Server</strong> unterstützt. Bei Nitrado, G-Portal und den meisten deutschen Hostern ist das der Fall.</p>
+
+      <ul>
+        <li><strong>Server-Region EU/US:</strong> Spieler aller Plattformen verbinden sich automatisch über den globalen Server-Browser.</li>
+        <li><strong>Invite-Codes:</strong> Funktionieren plattformübergreifend – ein Steam-Spieler kann Xbox-Freunde einladen.</li>
+        <li><strong>Voice-Chat:</strong> Plattform-intern (Steam Voice / Xbox Party). Eigene Discord-Channel lohnen sich für gemischte Gruppen.</li>
+        <li><strong>Account-Limits:</strong> Xbox-Konten benötigen Game-Pass-Abo. Steam-Accounts benötigen nur den Base-Game-Kauf.</li>
+      </ul>
+
+      <div class="highlight-box">
+        <p><strong>🔌 Praxis-Tipp:</strong> Bei Problemen mit Crossplay-Login den <code>RCONEnabled=True</code>-Parameter prüfen und sicherstellen, dass der UDP-Port <code>8211</code> für alle Plattformen erreichbar ist. Manche Internet-Provider (vor allem Mobilfunk) blockieren UDP-Ausgang – da hilft ein Wechsel auf eine Festnetz-Leitung oder VPN mit UDP-Support.</p>
+      </div>
+
+      <h2>Backup-Strategie für Savegames</h2>
+      <p>Palworld-Welten können 1–4 GB groß werden – und sie enthalten hunderte Stunden Spielzeit. Eine mehrstufige Backup-Strategie schützt vor Datenverlust:</p>
+
+      <ol>
+        <li><strong>Automatisches In-Game-Backup:</strong> <code>bIsUseBackupSaveData=True</code> + <code>BackupInterval=30</code> in der server.ini erzeugt alle 30 Minuten Snapshots im Savegame-Ordner.</li>
+        <li><strong>Stündliches Cron-Backup:</strong> Auf Linux per cronjob, der den <code>Saved/SaveGames/</code>-Ordner in ein Backup-Verzeichnis kopiert und ältere Stände nach 7 Tagen löscht.</li>
+        <li><strong>Tägliche Off-Site-Sicherung:</strong> Per <code>rclone</code> auf einen S3-kompatiblen Speicher (Hetzner Storage Box, Backblaze B2, Wasabi) oder auf einen zweiten VPS.</li>
+        <li><strong>Vor jedem Update:</strong> Manueller Snapshot. Bei großen Patches hat Pocketpair schon mehrfach Welten zerschossen – ohne Backup ist die Welt dann weg.</li>
+        <li><strong>Restore-Test:</strong> Mindestens einmal pro Quartal ein Backup auf einem Testserver zurückspielen und prüfen, ob alle Basen, Pals und Inventare vollständig sind.</li>
+      </ol>
+
+      <pre style="background:#0d1117;color:#c9d1d9;padding:15px;border-radius:8px;overflow-x:auto;"><code># /usr/local/bin/palworld-backup.sh
+#!/bin/bash
+SRC=/opt/palworld/Pal/Saved/SaveGames
+DST=/backups/palworld/$(date +%Y%m%d-%H%M)
+mkdir -p "$DST"
+tar czf "$DST/save.tar.gz" -C "$SRC" .
+find /backups/palworld -type d -mtime +7 -exec rm -rf {} +</code></pre>
+
+      <h2>Performance-Tuning: Tickrate, Memory, Garbage Collection</h2>
+      <p>Mit diesen Stellschrauben holst du 10–25 % mehr Performance aus deinem Server – wichtig gerade auf modded Welten mit vielen Pals und Basen:</p>
+
+      <ul>
+        <li><strong>Java-/UE-Startparameter:</strong> Auf Linux dem <code>PalServer.sh</code> <code>-useallmats -NoVerifyGC -NoAsyncLoadingThread</code> hinzufügen (nur für fortgeschrittene Admins).</li>
+        <li><strong>Tickrate beobachten:</strong> Live-Status mit <code>/info</code>. Werte unter 30 ms/Frame sind ideal, alles über 60 ms deutet auf Engpässe hin.</li>
+        <li><strong>Memory-Limit setzen:</strong> Auf Linux-VPS per systemd-Unit <code>MemoryMax=22G</code> definieren, damit der OOM-Killer nicht den ganzen Server abschießt.</li>
+        <li><strong>Swapiness reduzieren:</strong> <code>sysctl vm.swappiness=10</code> verhindert aggressives Auslagern auf SSD.</li>
+        <li><strong>Disk-I/O:</strong> NVMe-VPS bevorzugen, SATA-SSD ist in 2026er-Setups deutlich langsamer.</li>
+        <li><strong>Mod-Last reduzieren:</strong> Mods wie „Palworld Plus" (Performance-Pack) aktivieren – sie optimieren KI- und Streaming-Logik.</li>
+      </ul>
+
+      <div class="highlight-box">
+        <p><strong>🛠️ Monitoring-Pflicht:</strong> Auf <code>Uptime Kuma</code> oder <code>Prometheus + Grafana</code> setzen, um CPU, RAM und Tickrate dauerhaft im Blick zu behalten. Wir haben das in unserem <a href="prometheus-grafana-monitoring-2026.html">Prometheus-Grafana-Guide</a> und im <a href="uptime-kuma-monitoring-einrichten-2026.html">Uptime-Kuma-Tutorial</a> detailliert beschrieben.</p>
+      </div>
+
+      <h2>Häufige Probleme: Verbindungsabbrüche, Mod-Inkompatibilität, Anti-Cheat</h2>
+      <p>Drei Fehlerklassen treten auf modded Palworld-Servern regelmäßig auf – mit den passenden Workouts löst du sie in unter zehn Minuten:</p>
+
+      <p><strong>1. Verbindungsabbrüche &amp; Timeout-Fehler</strong><br>
+      Häufige Ursache: UDP-Port <code>8211</code> durch Firewall oder NAT geblockt. Auf VPS mit <code>ufw</code> oder <code>firewalld</code> freischalten. Bei Home-Hosting Port-Forwarding am Router prüfen. Anti-Cheat kickt gelegentlich Spieler mit aggressiven VPNs – in dem Fall IPv4-only aktivieren.</p>
+
+      <p><strong>2. Mod-Inkompatibilität nach Update</strong><br>
+      Pocketpair patcht alle 4–6 Wochen. Mods hinken oft 1–14 Tage hinterher. Workaround: Server auf der letzten stabilen Version pinnen, bis alle Mods aktualisiert wurden. Mehrere Mod-Loader (BepInEx + UEModLoader) können sich gegenseitig blocken – die Reihenfolge in <code>chainload</code> beachten.</p>
+
+      <p><strong>3. Anti-Cheat-Bans trotz privater Welt</strong><br>
+      Auch auf privaten Dedis läuft der Anti-Cheat. Einige Mods – besonders Speed-Hacks, Godmode oder Item-Duplikation – triggern ihn. Server-Admin-Tools filtern das sauber heraus. Wer dauerhaft cheaten will, sollte einen reinen Offline- bzw. LAN-Server betreiben.</p>
+
+      <h2>Vergleich: Miet-Server vs. Self-Hosting (Kosten)</h2>
+      <p>Für die Mod- und Custom-Config-Nutzung sind <strong>VPS</strong> oder <strong>Rootserver</strong> fast immer die bessere Wahl als reine Gameserver-Pakete, weil du vollen Datei-Zugriff brauchst. Diese Tabelle zeigt typische Monatskosten 2026:</p>
+
+      <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+        <thead>
+          <tr style="background:var(--accent);color:white;">
+            <th style="padding:12px;text-align:left;">Lösung</th>
+            <th style="padding:12px;text-align:left;">Mod-Support</th>
+            <th style="padding:12px;text-align:left;">RAM</th>
+            <th style="padding:12px;text-align:left;">Kosten / Monat</th>
+            <th style="padding:12px;text-align:left;">Wartung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:10px;"><strong>Gameserver mieten (Standard)</strong></td>
+            <td style="padding:10px;">begrenzt</td>
+            <td style="padding:10px;">8–16 GB</td>
+            <td style="padding:10px;">10–25 €</td>
+            <td style="padding:10px;">Anbieter</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:10px;"><strong>Gameserver mieten (Mod-Slot)</strong></td>
+            <td style="padding:10px;">ja</td>
+            <td style="padding:10px;">12–32 GB</td>
+            <td style="padding:10px;">20–45 €</td>
+            <td style="padding:10px;">Anbieter</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:10px;"><strong>VPS (Hetzner / Netcup / IONOS)</strong></td>
+            <td style="padding:10px;">voll</td>
+            <td style="padding:10px;">16–32 GB</td>
+            <td style="padding:10px;">15–40 €</td>
+            <td style="padding:10px;">selbst</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:10px;"><strong>Rootserver (dediziert)</strong></td>
+            <td style="padding:10px;">voll</td>
+            <td style="padding:10px;">32–64 GB</td>
+            <td style="padding:10px;">50–90 €</td>
+            <td style="padding:10px;">selbst</td>
+          </tr>
+          <tr>
+            <td style="padding:10px;"><strong>Home-Server / Mini-PC</strong></td>
+            <td style="padding:10px;">voll</td>
+            <td style="padding:10px;">16–32 GB</td>
+            <td style="padding:10px;">0 € + 5–15 € Strom</td>
+            <td style="padding:10px;">selbst + Risiko</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>Unsere Empfehlung: <strong>Mod-Einsteiger</strong> starten mit einem 16-GB-VPS bei Hetzner oder Netcup (~15–20 €/Monat) und lernen die ersten Wochen das Setup. <strong>Mod-Power-User</strong> mit mehreren Welten oder Crossplay-Communitys fahren mit einem Rootserver besser, weil sie mehrere Palworld-Instanzen, Voice-Server und Backups parallel betreiben können. Eine detaillierte Anbieterübersicht liefert unser <a href="vps-mieten-vergleich-2026.html">VPS-Vergleich 2026</a> und der <a href="hetzner-cloud-vs-dediziert-vergleich-2026.html">Hetzner-Cloud-vs-Dediziert-Vergleich</a>.</p>
+
+      <h2>Fazit: Mods, Admin-Power und Stabilität in 2026</h2>
+      <p>Ein modded Palworld Dedicated Server ist 2026 die mit Abstand flexibelste Variante, das Spiel mit deiner Community zu erleben. Mit <strong>BepInEx, PalSchema und UEModLoader</strong> hebst du Gameplay, Performance und Admin-Komfort auf ein Niveau, das offizielle Server nicht bieten. Die <code>server.ini</code> gibt dir präzise Kontrolle über Spawn-Verhalten, Tod-Strafen, Slotzahl und Backup-Intervalle. Cheat- und Admin-Befehle decken alle Community-Management-Aufgaben ab, die ein wachsender Server mit sich bringt.</p>
+
+      <p>Achte auf eine <strong>mehrstufige Backup-Strategie</strong>, plane Mod-Updates bewusst, halte deine server.ini dokumentiert und beobachte CPU, RAM und Tickrate über ein Monitoring. Wer diese Basics sauber umsetzt, hat einen Palworld-Server, der auch nach Monaten noch stabil läuft – egal ob mit 4 oder 24 Spielern.</p>
+
+      <p>Wenn du bei der Hosting-Grundlage noch unsicher bist, lies zuerst unseren <a href="palworld-server-hosting-guide-2026.html">Vorgänger-Artikel: Palworld Server mieten oder selbst hosten? Der komplette Hosting-Guide 2026</a>. Für Modding-Workflows jenseits von Palworld hilft unser <a href="minecraft-server-mods-plugins-guide-2026.html">Minecraft-Mods-und-Plugins-Guide 2026</a> – viele Konzepte wie Mod-Loader, Plugin-Ordner und Backup-Strategie funktionieren analog.</p>
+
+      <div class="highlight-box">
+        <p><strong>🎯 Unser Fazit in einem Satz:</strong> Wer 2026 Palworld ernsthaft mit Mods spielen will, kommt um einen eigenen VPS mit BepInEx-Setup, gut getunter <code>server.ini</code>, automatischen Off-Site-Backups und einem kleinen Admin-Tool-Stack nicht herum – alles andere ist Kompromiss.</p>
+      </div>
+
+      <!-- Affiliate Box 1: SSD / Hardware -->
+      <div class="affiliate-box">
+        <p>🔗 Empfohlene SSD-Hardware für Palworld-Server</p>
+        <p><strong>NVMe-SSDs, USB-Sticks für Backups und externe SSDs</strong> – damit Savegames schnell laden und Backups zuverlässig ausgelagert werden.</p>
+        <a href="https://www.amazon.de/s?k=NVMe+SSD+1TB+Server&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">NVMe-SSDs auf Amazon ansehen →</a>
+        <p style="margin-top:8px;font-size:0.75rem">* Affiliate-Link. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.</p>
+      </div>
+
+      <!-- Affiliate Box 2: Gaming-Laptop für unterwegs -->
+      <div class="affiliate-box">
+        <p>🔗 Gaming-Laptop für Palworld unterwegs</p>
+        <p><strong>Aktuelle Gaming-Laptops mit RTX 40/50-GPU</strong> – damit du deinen Palworld-Server auch auf Reisen, im Hotel-WLAN oder bei Freunden testen und verwalten kannst.</p>
+        <a href="https://www.amazon.de/s?k=Gaming+Laptop+RTX&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">Gaming-Laptops entdecken →</a>
+        <p style="margin-top:8px;font-size:0.75rem">* Affiliate-Link. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.</p>
+      </div>
+
+      <!-- Affiliate Box 3: USB-Stick für Backups -->
+      <div class="affiliate-box">
+        <p>🔗 USB-Sticks &amp; externe SSDs für Server-Backups</p>
+        <p><strong>Schnelle USB-3.2-Sticks und robuste externe SSDs</strong> – ideal für lokale Snapshot-Backups deiner Palworld-Savegames, wenn du zuhause selbst hostest.</p>
+        <a href="https://www.amazon.de/s?k=USB+Stick+128GB+schnell&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">Backup-Speicher auf Amazon →</a>
+        <p style="margin-top:8px;font-size:0.75rem">* Affiliate-Link. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.</p>
+      </div>
+
+    </div>
+
+    <div class="adsense-placeholder">
+      <p><strong>— Anzeige —</strong></p>
+      <p>Google AdSense Platzhalter (Ende des Artikels)</p>
+    </div>
+
+    <div id="related-articles"></div>
+  </article>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>hosta<span style="color:var(--accent)">zar</span></h4>
+        <p style="color:var(--text-muted);font-size:0.9rem">Dein Hosting- & Server-Portal mit Guides, Vergleichen und Tutorials.</p>
+      </div>
+      <div>
+        <h4>Kategorien</h4>
+        <ul>
+          <li><a href="/#gaming">🎮 Gaming</a></li>
+          <li><a href="/#webhosting">🌐 Webhosting</a></li>
+          <li><a href="/#devops">⚙️ DevOps</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Rechtliches</h4>
+        <ul>
+          <li><a href="/about.html">Über uns</a></li>
+          <li><a href="/impressum.html">Impressum</a></li>
+          <li><a href="/datenschutz.html">Datenschutz</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 hostazar.com – Alle Rechte vorbehalten.</span>
+      <span>Made with ❤️ für die Hosting-Community</span>
+    </div>
+    <p class="affiliate-note">* Bei den mit Sternchen gekennzeichneten Links handelt es sich um Affiliate-Links. Wenn du über diese Links einkaufst, erhalten wir eine kleine Provision – für dich entstehen keine Mehrkosten. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.</p>
+  </div>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'gaming',
+        excludeSlug: 'palworld-server-mods-guide-2026',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/gaming/', label: 'Gaming' },
+        { label: 'Palworld Mods & Dedicated Server Guide 2026' }
+      ]
+    });
+  }
+});
+</script>
+</body>
+</html>
