@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LEMP Stack auf VPS einrichten 2026 – Anleitung &amp; Setup | hostazar.com</title>
+  <meta name="description" content="Schritt-für-Schritt-Anleitung zum Einrichten eines LEMP Stacks (Linux, Nginx, MariaDB, PHP-FPM) auf einem VPS 2026. Bare-Metal Setup, Docker-Alternative, Performance-Tipps &amp; Sicherheitsempfehlungen.">
+  <meta name="keywords" content="LEMP Stack, Nginx, MariaDB, PHP-FPM, VPS Server, Webhosting, Server Einrichtung 2026, Linux Server, PHP Optimierung, Docker Alternative">
+  <meta name="robots" content="index, follow">
+  <meta property="og:title" content="LEMP Stack auf VPS einrichten 2026 – Anleitung &amp; Setup | hostazar.com">
+  <meta property="og:url" content="https://hostazar.com/artikel/lemp-stack-vps-einrichten-2026.html">
+  <meta property="og:type" content="article">
+  <meta property="og:description" content="Kompletter Guide zum LEMP Stack auf VPS einrichten 2026: Von Linux über Nginx bis MariaDB &amp; PHP-FPM – inkl. Performance &amp; Sicherheitstipps.">
+  <meta property="og:image" content="https://hostazar.com/images/lemp-stack-vps-einrichten-2026.png">
+  <meta property="og:locale" content="de_DE">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="LEMP Stack auf VPS einrichten 2026 – Anleitung &amp; Setup | hostazar.com">
+  <meta name="twitter:description" content="Schritt-für-Schritt-Anleitung zum Einrichten eines LEMP Stacks auf einem VPS im Jahr 2026.">
+  <meta name="twitter:image" content="https://hostazar.com/images/lemp-stack-vps-einrichten-2026.png">
+  <link rel="canonical" href="https://hostazar.com/artikel/lemp-stack-vps-einrichten-2026.html">
+  <link rel="stylesheet" href="/css/style.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "LEMP Stack auf VPS einrichten 2026 – Anleitung &amp; Setup",
+    "url": "https://hostazar.com/artikel/lemp-stack-vps-einrichten-2026.html",
+    "datePublished": "2026-06-05",
+    "dateModified": "2026-06-05",
+    "author": {"@type": "Organization", "name": "hostazar.com"},
+    "publisher": {"@type": "Organization", "name": "hostazar.com"},
+    "description": "Schritt-für-Schritt-Anleitung zum Einrichten eines LEMP Stacks (Linux, Nginx, MariaDB, PHP-FPM) auf einem VPS 2026.",
+    "image": "https://hostazar.com/images/lemp-stack-vps-einrichten-2026.png",
+    "mainEntityOfPage": {"@type": "WebPage", "@id": "https://hostazar.com/artikel/lemp-stack-vps-einrichten-2026.html"},
+    "wordCount": 2100,
+    "articleSection": "Webhosting",
+    "inLanguage": "de"
+  }
+  </script>
+  <script src="/data/script.js" defer></script>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9094916118868532" crossorigin="anonymous"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="logo">hosta<span>zar</span></a>
+      <ul class="nav-links">
+        <li><a href="/">Startseite</a></li>
+        <li class="nav-dropdown">
+          <a href="/webhosting/">🌐 Webhosting</a>
+          <div class="nav-dropdown-menu">
+            <div class="mega-grid">
+              <div class="mega-column">
+                <h4><span style="color:#2196F3">◆</span> Beliebt</h4>
+                <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="mega-item">
+                  <img src="/images/cloud-hosting-vs-shared-hosting.png" alt="" loading="lazy">
+                  <span class="mega-title">Cloud Hosting vs. Shared Hosting – Vergleich 2026</span>
+                </a>
+                <a href="/artikel/cloudflare-tunnel-einrichten.html" class="mega-item">
+                  <img src="/images/cloudflare-tunnel-einrichten.png" alt="" loading="lazy">
+                  <span class="mega-title">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</span>
+                </a>
+                <a href="/artikel/docker-wordpress-hosten.html" class="mega-item">
+                  <img src="/images/docker-wordpress-hosten.png" alt="" loading="lazy">
+                  <span class="mega-title">WordPress mit Docker hosten – Modernes Setup 2026</span>
+                </a>
+                <a href="/artikel/domain-kaufen-einrichten-2026.html" class="mega-item">
+                  <img src="/images/domain-kaufen-einrichten-2026.png" alt="" loading="lazy">
+                  <span class="mega-title">Domain kaufen und einrichten – Schritt-für-Schritt 2026</span>
+                </a>
+              </div>
+              <div class="mega-column">
+                <h4><span style="color:#2196F3">◆</span> Anleitungen</h4>
+                <a href="/artikel/email-server-selbst-hosten-2026.html" class="mega-item">
+                  <img src="/images/email-server-selbst-hosten-2026.png" alt="" loading="lazy">
+                  <span class="mega-title">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</span>
+                </a>
+                <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html" class="mega-item">
+                  <img src="/images/hetzner-cloud-vs-dediziert-vergleich-2026.png" alt="" loading="lazy">
+                  <span class="mega-title">Hetzner Cloud vs. Dedizierter Server – Vergleich 2026</span>
+                </a>
+                <a href="/artikel/mysql-mariadb-optimierung.html" class="mega-item">
+                  <img src="/images/mysql-mariadb-optimierung.png" alt="" loading="lazy">
+                  <span class="mega-title">MySQL &amp; MariaDB optimieren – Performance-Guide 2026</span>
+                </a>
+                <a href="/artikel/netcup-vps-erfahrungen-2026.html" class="mega-item">
+                  <img src="/images/netcup-vps-erfahrungen-2026.png" alt="" loading="lazy">
+                  <span class="mega-title">Netcup VPS Erfahrungen 2026 – Test, Preise &amp; Bewertung</span>
+                </a>
+              </div>
+              <div class="mega-column">
+                <h4><span style="color:#2196F3">◆</span> Vergleiche</h4>
+                <a href="/artikel/nextcloud-server-einrichten.html" class="mega-item">
+                  <img src="/images/nextcloud-server-einrichten.png" alt="" loading="lazy">
+                  <span class="mega-title">Nextcloud Server einrichten – Cloud-Speicher selbst hosten 202</span>
+                </a>
+                <a href="/artikel/plesk-vs-cpanel-vergleich.html" class="mega-item">
+                  <img src="/images/plesk-vs-cpanel-vergleich.png" alt="" loading="lazy">
+                  <span class="mega-title">Plesk vs. cPanel – Der große Hosting-Panel-Vergleich 2026</span>
+                </a>
+                <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
+                  <img src="/images/ssl-zertifikat-lets-encrypt-2026.png" alt="" loading="lazy">
+                  <span class="mega-title">SSL-Zertifikat mit Let's Encrypt einrichten – Anleitung 2026</span>
+                </a>
+                <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
+                  <img src="/images/webhosting-anbieter-vergleich-2026.png" alt="" loading="lazy">
+                  <span class="mega-title">Die 5 besten Webhosting-Anbieter 2026 im Vergleich</span>
+                </a>
+              </div>
+              <div class="mega-column">
+                <h4><span style="color:#2196F3">◆</span> Setup</h4>
+                <a href="/artikel/webseite-sicherheit-2026.html" class="mega-item">
+                  <img src="/images/webseite-sicherheit-2026.png" alt="" loading="lazy">
+                  <span class="mega-title">Webseite sichern – Security-Checkliste für deine Website 2026</span>
+                </a>
+                <a href="/artikel/website-online-bringen-guide-2026.html" class="mega-item">
+                  <img src="/images/website-online-bringen-guide-2026.png" alt="" loading="lazy">
+                  <span class="mega-title">Webseite online bringen – Der Komplettguide von A bis Z 2026</span>
+                </a>
+                <a href="/artikel/webhosting-vserver-vergleich.html" class="mega-item">
+                  <img src="/images/webhosting-vserver-vergleich.png" alt="" loading="lazy">
+                  <span class="mega-title">Webhosting vs. VServer – Was passt zu dir?</span>
+                </a>
+                <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
+                  <img src="/images/wordpress-hosting-vergleich-2026.png" alt="" loading="lazy">
+                  <span class="mega-title">WordPress Hosting Vergleich 2026 – Die besten Anbieter</span>
+                </a>
+              </div>
+              <div class="mega-view-all">
+                <a href="/webhosting/">→ Alle 16 Webhosting‑Artikel anzeigen</a>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="nav-dropdown">
+          <a href="/devops/">⚙️ DevOps</a>
+          <div class="nav-dropdown-menu">
+            <div class="mega-grid">
+              <div class="mega-column">
+                <h4><span style="color:#FF9800">◆</span> Beliebt</h4>
+                <a href="/artikel/ansible-automation-guide.html" class="mega-item">
+                  <img src="/images/ansible-automation-guide.png" alt="" loading="lazy">
+                  <span class="mega-title">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</span>
+                </a>
+                <a href="/artikel/backup-strategien-vps-server-2026.html" class="mega-item">
+                  <img src="/images/backup-strategien-vps-server-2026.png" alt="" loading="lazy">
+                  <span class="mega-title">Backup-Strategien für VPS und Server – Der Guide 2026</span>
+                </a>
+                <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="mega-item">
+                  <img src="/images/docker-vs-podman-vergleich-2026.png" alt="" loading="lazy">
+                  <span class="mega-title">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</span>
+                </a>
+                <a href="/artikel/elk-stack-log-management.html" class="mega-item">
+                  <img src="/images/elk-stack-log-management.png" alt="" loading="lazy">
+                  <span class="mega-title">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</span>
+                </a>
+              </div>
+              <div class="mega-column">
+                <h4><span style="color:#FF9800">◆</span> Anleitungen</h4>
+                <a href="/artikel/gitops-argocd-einrichten.html" class="mega-item">
+                  <img src="/images/gitops-argocd-einrichten.png" alt="" loading="lazy">
+                  <span class="mega-title">GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</span>
+                </a>
+                <a href="/artikel/k3s-kubernetes-vps-2026.html" class="mega-item">
+                  <img src="/images/k3s-kubernetes-vps-2026.png" alt="" loading="lazy">
+                  <span class="mega-title">K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</span>
+                </a>
+                <a href="/artikel/linux-server-harden.html" class="mega-item">
+                  <img src="/images/linux-server-harden.png" alt="" loading="lazy">
+                  <span class="mega-title">Linux Server härten – Security-Baseline 2026</span>
+                </a>
+                <a href="/artikel/n8n-automation-server.html" class="mega-item">
+                  <img src="/images/n8n-automation-server.png" alt="" loading="lazy">
+                  <span class="mega-title">n8n Automation Server hosten – Workflow-Automatisierung 2026</span>
+                </a>
+              </div>
+              <div class="mega-column">
+                <h4><span style="color:#FF9800">◆</span> Vergleiche</h4>
+                <a href="/artikel/postgresql-vps-optimierung.html" class="mega-item">
+                  <img src="/images/postgresql-vps-optimierung.png" alt="" loading="lazy">
+                  <span class="mega-title">PostgreSQL auf dem VPS optimieren – Tuning-Guide 2026</span>
+                </a>
+                <a href="/artikel/prometheus-grafana-monitoring-2026.html" class="mega-item">
+                  <img src="/images/prometheus-grafana-monitoring-2026.png" alt="" loading="lazy">
+                  <span class="mega-title">Server Monitoring mit Prometheus &amp; Grafana – Setup 2026</span>
+                </a>
+                <a href="/artikel/terraform-infrastructure-as-code-2026.html" class="mega-item">
+                  <img src="/images/terraform-infrastructure-as-code-2026.png" alt="" loading="lazy">
+                  <span class="mega-title">Terraform Infrastructure as Code – Einführung &amp; Beispiele </span>
+                </a>
+                <a href="/artikel/traefik-reverse-proxy.html" class="mega-item">
+                  <img src="/images/traefik-reverse-proxy.png" alt="" loading="lazy">
+                  <span class="mega-title">Traefik Reverse Proxy einrichten – Moderner Docker-Proxy 2026</span>
+                </a>
+              </div>
+              <div class="mega-column">
+                <h4><span style="color:#FF9800">◆</span> Setup</h4>
+                <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">
+                  <img src="/images/docker-compose-vps-guide.png" alt="" loading="lazy">
+                  <span class="mega-title">Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy</span>
+                </a>
+                <a href="/artikel/vps-absichern-2026.html" class="mega-item">
+                  <img src="/images/vps-absichern-2026.png" alt="" loading="lazy">
+                  <span class="mega-title">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</span>
+                </a>
+                <a href="/artikel/devops-tools-2024.html" class="mega-item">
+                  <img src="/images/devops-tools-2024.png" alt="" loading="lazy">
+                  <span class="mega-title">DevOps-Tools 2024 – Die 10 wichtigsten Tools im Überblick</span>
+                </a>
+                <a href="/artikel/vps-anbieter-vergleich-2026.html" class="mega-item">
+                  <img src="/images/vps-anbieter-vergleich-2026.png" alt="" loading="lazy">
+                  <span class="mega-title">VPS‑Anbieter‑Vergleich 2026 – Die 5 günstigsten Provider im Test</span>
+                </a>
+              </div>
+              <div class="mega-view-all">
+                <a href="/devops/">→ Alle 18 DevOps‑Artikel anzeigen</a>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li><a href="/about.html">Über uns</a></li>
+        <li><a href="/impressum.html">Impressum</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="container article-page">
+    <article>
+      <div class="article-header">
+        <div class="card-meta">
+          <span class="card-tag webhosting">Webhosting</span>
+          <span>5. Juni 2026</span>
+          <span>· 14 Min Lesezeit</span>
+        </div>
+        <div class="hero-image-wrap" style="margin:1.5rem 0;border-radius:12px;overflow:hidden;">
+          <img src="../images/lemp-stack-vps-einrichten-2026.png" alt="LEMP Stack auf VPS | hostazar.com" class="hero-image" style="width:100%;height:auto;display:block;">
+        </div>
+        <h1>LEMP Stack auf VPS einrichten 2026 – Anleitung &amp; Setup</h1>
+        <p style="color:var(--text-secondary);font-size:1.1rem">Kompletter Schritt‑für‑Schritt‑Guide zum Aufbau eines modernen LEMP‑Stacks (Linux, Nginx, MariaDB, PHP‑FPM) auf einem VPS im Jahr 2026. Ideal für WordPress, eigene Web‑Apps und Performance‑optimierte Hostinganlagen.</p>
+      </div>
+
+      <div class="adsense-placeholder">
+        <p><strong>— Anzeige —</strong></p>
+        <p>Google AdSense Platzhalter</p>
+      </div>
+
+      <div id="breadcrumbs"></div>
+
+      <div class="article-content">
+        <h2>Was ist der LEMP Stack?</h2>
+        <p>Der <strong>LEMP‑Stack</strong> ist die populäre Alternative zum LAMP‑Stack, bei der <em>Linux</em> als Betriebssystem, <em>Nginx</em> als Webserver, <em>MariaDB</em> als relationale Datenbank und <em>PHP‑FPM</em> als PHP‑Verarbeitungs‑Engine zum Einsatz kommen. Durch die hohen Performance‑Werte von Nginx und die Flexibilität von PHP‑FPM eignet sich dieser Stack besonders für anspruchsvolle Web‑Anwendungen, Content‑Management‑Systeme wie WordPress und moderne API‑Umgebungen.</p>
+
+        <h2>Warum ein LEMP Stack auf einem VPS?</h2>
+        <p>Ein Virtual Private Server (VPS) bietet dir komplette Root‑Rechte, eigene Ressourcen und volle Kontrolle über Software‑Versionen – genau das, was du brauchst, um einen LEMP Stack eigenständig zusammenzustellen. Im Vergleich zu Shared‑Hosting‑Lösungen kannst du hier:</p>
+        <ul>
+          <li>Nginx individuell konfigurieren (HTTP/2, TLS‑Optimierung, Caching)</li>
+          <li>MariaDB mit fein abgestimmtem Cache und Replikation einrichten</li>
+          <li>PHP‑FPM mit mehreren Pool‑Konfigurationen für unterschiedliche Anwendungen bereitstellen</li>
+          <li>Skalierbarkeit durch Docker‑Container oder Kubernetes‑ähnliche Lösungen erweitern</li>
+        </ul>
+
+        <h2>Voraussetzungen &amp; Vorbereitung</h2>
+        <p>Bevor du mit der Installation beginnst, kläre folgende Punkte:</p>
+        <ol>
+          <li><strong>VPS‑Provider:</strong> Empfohlen werden Anbieter mit mindestens <code>2 GB RAM</code>, <code>1 vCPU</code> und SSD‑Speicher. Unser <a href="https://www.amazon.de/s?k=VPS+Server+SSD+Hosting&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">Amazon‑Affiliate‑Auswahl</a> bietet passende Server‑Modelle.</li>
+          <li><strong>Linux‑Distribution:</strong> Ubuntu 24.04 LTS oder Debian 12 werden fournir gut unterstützt.</li>
+          <li><strong>Root‑Zugriff:</strong> Du benötigst SSH‑Zugang mit sudo‑Rechten.</li>
+          <li><strong>Domain (optional):</strong> Für ein HTTPS‑Zertifikat über Let’s Encrypt ist eine DNS‑Zeile empfehlenswert.</li>
+        </ol>
+
+        <h2>Schritt‑für‑Schritt‑Installation</h2>
+        <h3>1. System aktualisieren &amp; Grundpakete installieren</h3>
+        <pre><code>sudo apt update &amp;&amp; sudo apt upgrade -y
+sudo apt install -y curl gnupg2 ca-certificates lsb-release software-properties-common</code></pre>
+
+        <h3>2. Nginx installieren und konfigurieren</h3>
+        <pre><code>sudo apt install -y nginx
+sudo systemctl enable nginx &amp;&amp; sudo systemctl start nginx</code></pre>
+        <p>Erstelle anschließend eine optimierte <code>nginx.conf</code> mit aktiviertem <code>gzip</code>, <code>expires</code> und <code>http2</code> Modul. Beispiel‑Snippet:</p>
+        <pre><code>http {
+    sendfile           on;
+    tcp_nopush         on;
+    tcp_nodelay        on;
+    keepalive_timeout  65;
+    types_hash_max_size 2048;
+
+    gzip               on;
+    gzip_types         text/css application/javascript text/javascript;
+    gzip_comp_level    6;
+
+    # HTTP/2 aktivieren
+    http2              on;
+}
+</code></pre>
+
+        <h3>3. MariaDB (kompatibel zu MySQL) installieren</h3>
+        <pre><code>sudo apt install -y mariadb-server mariadb-client
+sudo systemctl enable mariadb &amp;&amp; sudo systemctl start mariadb</code></pre>
+        <p>Führe die Sicherheitskonfiguration aus:</p>
+        <pre><code>sudo mysql_secure_installation
+# Setze root Passwort, entferne anonyme Benutzer, disallow remote root login, etc.
+</code></pre>
+
+        <h3>4. PHP‑FPM installieren</h3>
+        <pre><code>sudo apt install -y php-fpm php-mysql php-xml php-mbstring php-gd
+sudo systemctl enable php8.2-fpm @ php8.2-fpm  # passt zur jeweiligen PHP‑Version
+</code></pre>
+        <p>Passe den Pool‑Editor <code>/etc/php/8.2/fpm/pool.d/www.conf</code> an, um <code>pm = dynamic</code>, <code>pm.max_children = 15</code> und <code>pm.start_servers = 3</code> zu setzen.</p>
+
+        <h3>5. PHP‑Info‑Seite testen</h3>
+        <pre><code># Erstelle Test‑Datei im Webroot
+echo '&lt;?php phpinfo(); ?&gt;' | sudo tee /var/www/html/info.php
+# Aufrufen: http://deine-domain.de/info.php
+</pre>
+        <p>Stelle sicher, dass <strong>“Loaded Configuration File”</strong> auf deine <code>/etc/php/8.2/fpm/php.ini</code> zeigt und dass <code>“OPcache”</code> aktiviert ist.</p>
+
+        <h3>6. FIrewall (UFW) konfigurieren</h3>
+        <pre><code>sudo ufw allow OpenSSH
+sudo ufw allow 'Nginx Full'   # öffnet 80 &amp; 443
+sudo ufw enable
+</code></pre>
+
+        <h2>Performance‑Optimierungen</h2>
+        <p>Ein gut konfigurierter LEMP Stack zeichnet sich durch schnelle Antwortzeiten aus. Empfohlene Optimierungen:</p>
+        <ul>
+          <li><strong>Nginx‑Caching:</strong> Installiere <code>nginx‑cache‑kickstart</code> oder <code>fastcgi‑cache</code>, um statische Inhalte zu cachen.</li>
+          <li><strong>MariaDB‑Tuning:</strong> Passe <code>innodb_buffer_pool_size</code> auf etwa <code>50‑70 %</code> des verfügbaren RAM an.</li>
+          <li><strong>PHP‑OPcache:</strong> Aktivere OPcache in der <code>php.ini</code> und setze <code>opcache.memory_consumption=128</code>.</li>
+          <li><strong>HTTP/2 &amp; TLS:</strong> Nutze moderne Zertifikate (Let’s Encrypt) und deaktivere alte Protokolle.</li>
+        </ul>
+
+        <h2>Sicherheitshinweise</h2>
+        <p>Sicherheit steht an erster Stelle. Einige bewährte Maßnahmen:</p>
+        <ol>
+          <li>Regelmäßige System‑ und Paket‑Updates mit <code>apt update &amp;&amp; apt upgrade -y</code>.</li>
+          <li>Fail2Ban einrichten, um Brute‑Force‑ attacks zu blockieren: <code>sudo apt install fail2ban</code>.</li>
+          <li>SSH‑Zugang mit Schlüssel‑Authentifizierung absichern und Port 22 ggf. ändern.</li>
+          <li>Automatisierte Backups deiner Datenbanken und Web‑Files mit <code>mysqldump</code> und <code>rsync</code>.</li>
+        </ol>
+
+        <h2>Alternative: Docker‑Kompose für schnelle Umgebung</h2>
+        <p>Falls du keine manuelle Installation bevorzugst, kannst du den gesamten Stack in einer <code>docker-compose.yml</code> zusammenfassen:</p>
+        <pre><code>version: '3.8'
+services:
+  nginx:
+    image: nginx:alpine
+    ports: ['80:80', '443:443']
+    volumes: [./html:/usr/share/nginx/html, ./nginx.conf:/etc/nginx/nginx.conf]
+    depends_on: [php-fpm, db]
+  php-fpm:
+    image: php:8.2-fpm-alpine
+    volumes: [./html:/var/www/html]
+  db:
+    image: mariadb:10.11
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: lemp
+    volumes: [db_data:/var/lib/mysql]
+volumes:
+  db_data:
+</code></pre>
+        <p>Damit hast du in wenigen Minuten eine reproduzierbare Entwicklungsumgebung.</p>
+
+        <h2>Monitoring &amp; Logging</h2>
+        <p>Zur Überwachung deiner Server‑Performance empfiehlt sich die Kombination aus <strong>Prometheus</strong> und <strong>Grafana</strong>. Alternativ kann <strong>Netdata</strong> Echtzeit‑Metriken bereitstellen.</p>
+        <p>Ein zentrales <em>Log‑Management</em> mit <strong>Grafana Loki</strong> (wie in unserem zugehörigen Artikel <a href="/artikel/grafana-loki-log-aggregation-vps-2026.html">Grafana Loki Log‑Aggregation 2026</a>) ermöglicht dir, Nginx‑Zugriffe, PHP‑Fehler und MariaDB‑Logs an einer Stelle zu analysieren.</p>
+
+        <h2>Fazit</h2>
+        <p>Der LEMP‑Stack auf einem VPS bietet dir maximale Flexibilität, hohe Performance und professionelle Sicherheitsfeatures. Mit den hier beschriebenen Schritten bist du bestens gerüstet, um deine eigenen Web‑Anwendungen sicher und skalierbar zu betreiben – egal, ob du WordPress, eigene PHP‑Frameworks oder API‑Dienste hostest.</p>
+
+        <h2>Weiterführende Artikel</h2>
+        <div class="related-articles-container" id="related-articles" data-container-id="related-articles" data-category="webhosting" data-exclude-slug="lemp-stack-vps-einrichten-2026" data-count="3"></div>
+      </div>
+
+      <div class="adsense-placeholder">
+        <p><strong>— Anzeige —</strong></p>
+        <p>Weiterführende Empfehlungen für VPS‑Hardware finden Sie bei unseren Partnern.</p>
+      </div>
+    </article>
+  </main>
+</body>
+</html>
