@@ -33,7 +33,10 @@ with open(os.path.join(BASE, 'data', 'kategorien.json'), encoding='utf-8') as f:
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 def h(s):
-    return html_mod.escape(str(s))
+    t = str(s)
+    # First unescape any existing entities, then re-escape
+    t = t.replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>').replace('&quot;', '"').replace('&#39;', "'").replace('&ndash;', '–').replace('&mdash;', '—')
+    return t.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;')
 
 def article_url(slug):
     return SITE_URL + '/artikel/' + slug + '.html'
@@ -204,8 +207,8 @@ def page_shell(title, desc, canonical, body_html,
 # ── Navigation ───────────────────────────────────────────────────────────────
 
 def build_mega_nav_html():
-    cats_order = ['gaming', 'webhosting', 'devops']
-    cat_colors = {'gaming': '#4CAF50', 'webhosting': '#2196F3', 'devops': '#FF9800'}
+    cats_order = ['gaming', 'webhosting', 'devops', 'ki-llm']
+    cat_colors = {'gaming': '#4CAF50', 'webhosting': '#2196F3', 'devops': '#FF9800', 'ki-llm': '#9C27B0'}
 
     lines = [
         '<nav class="navbar">',
@@ -380,8 +383,8 @@ def build_index():
         cat_counts[a.get('category', 'devops')] = cat_counts.get(a.get('category', 'devops'), 0) + 1
 
     stats_inner = '        <div class="stat-item"><div class="stat-num">' + str(total) + '</div><div class="stat-label">Artikel gesamt</div></div>\n'
-    cat_labels = {'gaming': 'Gaming', 'webhosting': 'Webhosting', 'devops': 'DevOps'}
-    for cat in ['gaming', 'webhosting', 'devops']:
+    cat_labels = {'gaming': 'Gaming', 'webhosting': 'Webhosting', 'devops': 'DevOps', 'ki-llm': 'KI & LLM'}
+    for cat in ['gaming', 'webhosting', 'devops', 'ki-llm']:
         count = cat_counts.get(cat, 0)
         label = cat_labels.get(cat, cat)
         stats_inner += '        <div class="stat-item"><div class="stat-num">' + str(count) + '</div><div class="stat-label">' + label + '</div></div>\n'
@@ -406,9 +409,8 @@ def build_index():
 </section>'''
 
     cat_sections = ''
-    cat_emojis = {'gaming': 'Gaming', 'webhosting': 'Webhosting', 'devops': 'DevOps'}
-    cat_colors = {'gaming': '#4CAF50', 'webhosting': '#2196F3', 'devops': '#FF9800'}
-    for cat in ['gaming', 'webhosting', 'devops']:
+    cat_colors = {'gaming': '#4CAF50', 'webhosting': '#2196F3', 'devops': '#FF9800', 'ki-llm': '#9C27B0'}
+    for cat in ['gaming', 'webhosting', 'devops', 'ki-llm']:
         arts = CAT_GROUPS.get(cat, [])
         if not arts:
             continue
