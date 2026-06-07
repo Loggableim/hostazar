@@ -878,5 +878,24 @@
   </div>
 </div>
 <script src="/data/script.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'devops',
+        excludeSlug: 'elk-stack-log-management',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/devops/', label: 'DevOps' },
+        { label: 'ELK Stack – Log-Management mit Elasticsearch & Kibana 2026' }
+      ]
+    });
+  }
+});
+</script>
 </body>
 </html>

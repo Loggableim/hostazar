@@ -878,5 +878,24 @@
   </div>
 </div>
 <script src="/data/script.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'ki-llm',
+        excludeSlug: 'open-webui-ollama-betreiben-2026',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/ki-llm/', label: 'KI & LLM' },
+        { label: 'Open WebUI mit Ollama betreiben – Der bessere ChatGPT-Klon 2026' }
+      ]
+    });
+  }
+});
+</script>
 </body>
 </html>

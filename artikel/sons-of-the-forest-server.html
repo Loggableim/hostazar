@@ -878,5 +878,24 @@
   </div>
 </div>
 <script src="/data/script.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'gaming',
+        excludeSlug: 'sons-of-the-forest-server',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/gaming/', label: 'Gaming' },
+        { label: 'Sons of the Forest Server hosten – Setup-Guide 2026' }
+      ]
+    });
+  }
+});
+</script>
 </body>
 </html>

@@ -878,5 +878,24 @@
   </div>
 </div>
 <script src="/data/script.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'ki-llm',
+        excludeSlug: 'comfyui-auf-gpu-hosten',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/ki-llm/', label: 'KI & LLM' },
+        { label: 'ComfyUI auf GPU hosten – Bild-KI Workflows 2026 mit Flux, SDXL & SD3' }
+      ]
+    });
+  }
+});
+</script>
 </body>
 </html>

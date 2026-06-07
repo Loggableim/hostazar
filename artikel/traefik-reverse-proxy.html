@@ -878,5 +878,24 @@
   </div>
 </div>
 <script src="/data/script.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'devops',
+        excludeSlug: 'traefik-reverse-proxy',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/devops/', label: 'DevOps' },
+        { label: 'Traefik Reverse Proxy einrichten – Moderner Docker-Proxy 2026' }
+      ]
+    });
+  }
+});
+</script>
 </body>
 </html>

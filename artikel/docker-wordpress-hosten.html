@@ -878,5 +878,24 @@
   </div>
 </div>
 <script src="/data/script.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'webhosting',
+        excludeSlug: 'docker-wordpress-hosten',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/webhosting/', label: 'Webhosting' },
+        { label: 'WordPress mit Docker hosten – Modernes Setup 2026' }
+      ]
+    });
+  }
+});
+</script>
 </body>
 </html>
