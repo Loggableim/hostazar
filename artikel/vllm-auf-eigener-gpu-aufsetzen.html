@@ -4,285 +4,521 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention | hostazar.com</title>
-  <meta name="description" content="vLLM auf eigener GPU aufsetzen 2026: PagedAttention, Continuous Batching, Multi-LoRA & OpenAI-API. Vollständige Anleitung für Production-Ready LLM Serving mit NVIDIA GPUs, Docker & Kubernetes.">
-  <meta name="keywords" content="vLLM installieren, PagedAttention, LLM Serving GPU, vLLM Docker, Multi-LoRA vLLM, Continuous Batching, LLM Inference Server, OpenAI kompatible API, vLLM NVIDIA, Kubernetes LLM Serving">
+  <meta name="description" content="vLLM auf eigener GPU aufsetzen 2026: PagedAttention, Continuous Batching, Multi-LoRA &amp; OpenAI-API. Vollständige Anleitung für Production-Ready LLM Serving mit NVIDIA GPUs, Docker &amp; Kubernetes.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://hostazar.com/artikel/vllm-auf-eigener-gpu-aufsetzen.html">
   <link rel="stylesheet" href="/css/style.css">
-
-  <!-- Open Graph -->
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://hostazar.com/artikel/vllm-auf-eigener-gpu-aufsetzen.html">
-  <meta property="og:title" content="vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention">
-  <meta property="og:description" content="vLLM auf eigener GPU aufsetzen 2026: PagedAttention, Continuous Batching, Multi-LoRA & OpenAI-API. Vollständige Anleitung für Production-Ready LLM Serving mit NVIDIA GPUs.">
+  <meta property="og:title" content="vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention | hostazar.com">
+  <meta property="og:description" content="vLLM auf eigener GPU aufsetzen 2026: PagedAttention, Continuous Batching, Multi-LoRA &amp; OpenAI-API. Vollständige Anleitung für Production-Ready LLM Serving mit NVIDIA GPUs, Docker &amp; Kubernetes.">
   <meta property="og:image" content="https://hostazar.com/images/vllm-auf-eigener-gpu-aufsetzen.png">
   <meta property="og:locale" content="de_DE">
-  <meta property="og:site_name" content="Hostazar — VPS & DevOps Portal" />
+  <meta property="og:site_name" content="Hostazar &mdash; VPS &amp; DevOps Portal">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention | hostazar.com">
+  <meta name="twitter:description" content="vLLM auf eigener GPU aufsetzen 2026: PagedAttention, Continuous Batching, Multi-LoRA &amp; OpenAI-API. Vollständige Anleitung für Production-Ready LLM Serving mit NVIDIA GPUs, Docker &amp; Kubernetes.">
+  <meta name="twitter:image" content="https://hostazar.com/images/vllm-auf-eigener-gpu-aufsetzen.png">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
 
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention | hostazar.com" />
-  <meta name="twitter:description" content="vLLM auf eigener GPU aufsetzen 2026: PagedAttention, Continuous Batching, Multi-LoRA & OpenAI-API. Vollständige Anleitung." />
-  <meta name="twitter:image" content="https://hostazar.com/images/vllm-auf-eigener-gpu-aufsetzen.png" />
-
-  <!-- Article JSON-LD -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    "headline": "vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention",
-    "url": "https://hostazar.com/artikel/vllm-auf-eigener-gpu-aufsetzen.html",
-    "datePublished": "2026-06-07",
-    "dateModified": "2026-06-07",
-    "author": { "@type": "Organization", "name": "hostazar.com" },
-    "publisher": { "@type": "Organization", "name": "hostazar.com" },
-    "description": "vLLM auf eigener GPU aufsetzen 2026: PagedAttention, Continuous Batching, Multi-LoRA & OpenAI-API. Vollständige Anleitung für Production-Ready LLM Serving mit NVIDIA GPUs, Docker & Kubernetes.",
-    "image": "https://hostazar.com/images/vllm-auf-eigener-gpu-aufsetzen.png",
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://hostazar.com/artikel/vllm-auf-eigener-gpu-aufsetzen.html" },
-    "wordCount": 2431,
-    "inLanguage": "de"
-  }
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention | hostazar.com",
+  "url": "https://hostazar.com/artikel/vllm-auf-eigener-gpu-aufsetzen.html",
+  "description": "vLLM auf eigener GPU aufsetzen 2026: PagedAttention, Continuous Batching, Multi-LoRA & OpenAI-API. Vollständige Anleitung für Production-Ready LLM Serving mit NVIDIA GPUs, Docker & Kubernetes.",
+  "inLanguage": "de",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "hostazar.com",
+    "url": "https://hostazar.com"
+  },
+  "datePublished": "2026-06-07",
+  "dateModified": "2026-06-07",
+  "image": "https://hostazar.com/images/vllm-auf-eigener-gpu-aufsetzen.png",
+  "author": {
+    "@type": "Organization",
+    "name": "hostazar.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "hostazar.com"
+  },
+  "wordCount": 2999
+}
   </script>
-  <script src="/data/script.js" defer></script>
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9094916118868532"
-    crossorigin="anonymous"></script>
-
-<style>
-  .vllm-compare { overflow-x: auto; margin: 2rem 0; }
-  .vllm-compare table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-  .vllm-compare th { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #e94560; padding: 12px 8px; text-align: left; }
-  .vllm-compare td { padding: 10px 8px; border-bottom: 1px solid #2a2a4e; }
-  .vllm-compare tr:hover td { background: rgba(233, 69, 96, 0.08); }
-  .vllm-win { color: #4CAF50; font-weight: bold; }
-  .vllm-code { background: #0d1b2a; border: 1px solid #2a5a8c; border-radius: 8px; padding: 1rem; margin: 1rem 0; overflow-x: auto; }
-  .vllm-code pre { margin: 0; background: #0a1520; padding: 1rem; border-radius: 4px; overflow-x: auto; }
-  .vllm-code code { font-size: 0.85rem; }
-  .metric-card { display: inline-block; background: linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 100%); border: 1px solid #2a5a8c; border-radius: 8px; padding: 1rem 1.5rem; margin: 0.5rem; text-align: center; }
-  .metric-card .num { font-size: 2rem; font-weight: bold; color: #e94560; }
-  .metric-card .label { font-size: 0.8rem; color: #888; }
-  .card-tag.kibi { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
-</style>
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Startseite",
+      "item": "https://hostazar.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "KI & LLM",
+      "item": "https://hostazar.com/ki-llm/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention | hostazar.com",
+      "item": "https://hostazar.com/artikel/vllm-auf-eigener-gpu-aufsetzen.html"
+    }
+  ]
+}
+  </script>
 </head>
 <body>
-
 <nav class="navbar">
   <div class="container">
     <a href="/" class="logo">hosta<span>zar</span></a>
+    <button class="nav-toggle" aria-label="Men&#252; &#246;ffnen">&#9776;</button>
     <ul class="nav-links">
       <li><a href="/">Startseite</a></li>
       <li class="nav-dropdown">
         <a href="/gaming/">🎮 Gaming</a>
-        <div class="nav-dropdown-menu">
-          <div class="mega-grid">
-            <div class="mega-column">
-              <h4><span style="color:#4CAF50">◆</span> Beliebt</h4>
-              <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">
-                <img src="/images/7-days-to-die-server-hosten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</span>
-              </a>
-              <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
-                <img src="/images/ark-survival-ascended-server-hosten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2</span>
-              </a>
-              <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
-                <img src="/images/minecraft-server-vergleich-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Minecraft Server Vergleich 2026</span>
-              </a>
-              <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">
-                <img src="/images/cs2-server-mieten-guide-2026.png" alt="" loading="lazy">
-                <span class="mega-title">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</span>
-              </a>
-              <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
-                <img src="/images/palworld-server-hosting-guide-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Palworld Server Hosting Guide 2026</span>
-              </a>
-            </div>
-            <div class="mega-column">
-              <h4><span style="color:#4CAF50">◆</span> Anleitungen</h4>
-              <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">
-                <img src="/images/conan-exiles-server-hosten.png" alt="" loading="lazy">
-                <span class="mega-title">Conan Exiles Server mieten</span>
-              </a>
-              <a href="/artikel/dayz-server-mieten-2026.html" class="mega-item">
-                <img src="/images/dayz-server-mieten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">DayZ Server mieten</span>
-              </a>
-              <a href="/artikel/enshrouded-server-hosting-2026.html" class="mega-item">
-                <img src="/images/enshrouded-server-hosting-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Enshrouded Server – Hosting-Guide</span>
-              </a>
-              <a href="/artikel/fivem-server-mieten-2026.html" class="mega-item">
-                <img src="/images/fivem-server-mieten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">FiveM Server mieten</span>
-              </a>
-              <a href="/artikel/valheim-server-vps-mieten-2026.html" class="mega-item">
-                <img src="/images/valheim-server-vps-mieten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Valheim Server mieten oder auf VPS hosten</span>
-              </a>
-            </div>
-            <div class="mega-column">
-              <h4><span style="color:#4CAF50">◆</span> Vergleiche</h4>
-              <a href="/artikel/minecraft-bedrock-vs-java-server-2026.html" class="mega-item">
-                <img src="/images/minecraft-bedrock-vs-java-server-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Minecraft Bedrock vs. Java – Server-Vergleich 2026</span>
-              </a>
-              <a href="/artikel/gameserver-mieten-guide.html" class="mega-item">
-                <img src="/images/gameserver-mieten-guide.png" alt="" loading="lazy">
-                <span class="mega-title">Gameserver mieten 2025 – Der ultimative Guide</span>
-              </a>
-              <a href="/artikel/vps-anbieter-vergleich-2026.html" class="mega-item">
-                <img src="/images/vps-anbieter-vergleich-2026.png" alt="" loading="lazy">
-                <span class="mega-title">VPS Anbieter Vergleich 2026</span>
-              </a>
-            </div>
-            <div class="mega-view-all">
-              <a href="/gaming/">→ Alle Gaming‑Artikel anzeigen</a>
-            </div>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#4CAF50">&#9670;</span> A-Z</h4>
+            <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">
+              <img src="/images/7-days-to-die-server-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
+              <img src="/images/ark-survival-ascended-server-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">
+              <img src="/images/conan-exiles-server-hosten.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Conan Exiles Server mieten – Setup &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">
+              <img src="/images/cs2-server-mieten-guide-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</span>
+            </a>
+            <a href="/artikel/dayz-server-mieten-2026.html" class="mega-item">
+              <img src="/images/dayz-server-mieten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+            </a>
+            <a href="/artikel/enshrouded-server-hosting-2026.html" class="mega-item">
+              <img src="/images/enshrouded-server-hosting-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Enshrouded Server – Hosting-Guide &amp; Setup für Koop 2026</span>
+            </a>
+            <a href="/artikel/farming-simulator-25-server-mieten-2026.html" class="mega-item">
+              <img src="/images/farming-simulator-25-server-mieten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Farming Simulator 25 Server mieten – Multiplayer-Guide 2026</span>
+            </a>
+            <a href="/artikel/grounded-server-hosting.html" class="mega-item">
+              <img src="/images/grounded-server-hosting.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Grounded Server hosten – Kosten, Setup &amp; Anbieter 2026</span>
+            </a>
+            <a href="/artikel/icarus-server-hosting.html" class="mega-item">
+              <img src="/images/icarus-server-hosting.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Icarus Server hosten – Dedicated Server für Koop 2026</span>
+            </a>
+            <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
+              <img src="/images/minecraft-server-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Server mieten oder selbst hosten? Der ultimative Vergleich 2026</span>
+            </a>
+            <a href="/artikel/nightingale-server-hosting.html" class="mega-item">
+              <img src="/images/nightingale-server-hosting.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nightingale Server hosten – Realm-Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
+              <img src="/images/palworld-server-hosting-guide-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Palworld Server mieten oder selbst hosten? Der komplette Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/project-zomboid-server-hosting-2026.html" class="mega-item">
+              <img src="/images/project-zomboid-server-hosting-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Project Zomboid Server – Hosting &amp; Setup für Multiplayer 2026</span>
+            </a>
+            <a href="/artikel/rust-server-mieten-guide-2026.html" class="mega-item">
+              <img src="/images/rust-server-mieten-guide-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Rust Server mieten – Kosten, Setup, Mods &amp; Anbieter 2026</span>
+            </a>
+            <a href="/artikel/satisfactory-server-mieten-oder-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/satisfactory-server-mieten-oder-selbst-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Satisfactory Server mieten oder selbst hosten? Der Guide 2026</span>
+            </a>
+            <a href="/artikel/scum-server-mieten.html" class="mega-item">
+              <img src="/images/scum-server-mieten.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">SCUM Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+            </a>
+            <a href="/artikel/smalland-server-hosting.html" class="mega-item">
+              <img src="/images/smalland-server-hosting.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Smalland Server mieten – Guide für den Koop-Server 2026</span>
+            </a>
           </div>
-        </div>
+          <div class="mega-column">
+            <h4><span style="color:#4CAF50">&#9670;</span> Neueste</h4>
+            <a href="/artikel/sons-of-the-forest-server.html" class="mega-item">
+              <img src="/images/sons-of-the-forest-server.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Sons of the Forest Server hosten – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/space-engineers-server.html" class="mega-item">
+              <img src="/images/space-engineers-server.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Space Engineers Server mieten oder selbst hosten 2026</span>
+            </a>
+            <a href="/artikel/terraria-server-hosten-2026.html" class="mega-item">
+              <img src="/images/terraria-server-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Terraria Server hosten – Komplettanleitung für Multiplayer 2026</span>
+            </a>
+            <a href="/artikel/the-forest-server-hosting.html" class="mega-item">
+              <img src="/images/the-forest-server-hosting.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">The Forest Server hosten – Koop-Guide 2026</span>
+            </a>
+            <a href="/artikel/v-rising-server-mieten-2026.html" class="mega-item">
+              <img src="/images/v-rising-server-mieten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">V Rising Server mieten oder selbst hosten? Guide 2026</span>
+            </a>
+            <a href="/artikel/factorio-server-hosting-2026.html" class="mega-item">
+              <img src="/images/factorio-server-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Factorio Server mieten oder selbst hosten? Der komplette Dedicated Server Guide 2026</span>
+            </a>
+            <a href="/artikel/minecraft-server-mods-plugins-guide-2026.html" class="mega-item">
+              <img src="/images/minecraft-server-mods-plugins-guide-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Server mit Mods und Plugins – Der ultimative Modding-Guide 2026</span>
+            </a>
+            <a href="/artikel/ddos-schutz-gameserver-2026.html" class="mega-item">
+              <img src="/images/ddos-schutz-gameserver-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DDoS-Schutz für Gameserver – Anbieter &amp; Konfiguration 2026</span>
+            </a>
+            <a href="/artikel/minecraft-bedrock-vs-java-server-2026.html" class="mega-item">
+              <img src="/images/minecraft-bedrock-vs-java-server-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Bedrock vs. Java Server – Unterschiede &amp; Hosting 2026</span>
+            </a>
+            <a href="/artikel/raft-server-mieten-2026.html" class="mega-item">
+              <img src="/images/raft-server-mieten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Raft Server mieten – Dedicated Server Guide &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/palworld-server-mods-guide-2026.html" class="mega-item">
+              <img src="/images/palworld-server-mods-guide-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Palworld Mods &amp; Dedicated Server Guide 2026 – BepInEx, server.ini, Admin-Tools</span>
+            </a>
+            <a href="/artikel/pterodactyl-panel-installieren-2026.html" class="mega-item">
+              <img src="/images/pterodactyl-panel-installieren-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Pterodactyl Panel installieren – Gameserver-Management auf VPS 2026</span>
+            </a>
+            <a href="/artikel/dont-starve-together-server-hosten-2026.html" class="mega-item">
+              <img src="/images/dont-starve-together-server-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Don&#x27;t Starve Together Server hosten – Dedicated Server Setup &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/fivem-server-mieten-2026.html" class="mega-item">
+              <img src="/images/fivem-server-mieten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">FiveM (GTA V) Server mieten – Roleplay-Server Hosting Guide 2026</span>
+            </a>
+            <a href="/artikel/gaming-pc-finanzieren.html" class="mega-item">
+              <img src="/images/gaming-pc-finanzieren.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gaming-PC finanzieren – ETF-Entnahme oder Ratenkredit?</span>
+            </a>
+            <a href="/artikel/valheim-server-vps-mieten-2026.html" class="mega-item">
+              <img src="/images/valheim-server-vps-mieten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026</span>
+            </a>
+            <a href="/artikel/gameserver-mieten-guide.html" class="mega-item">
+              <img src="/images/gameserver-mieten-guide.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gameserver mieten 2025 – Der ultimative Guide</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/gaming/">Alle Gaming-Artikel</a></div>
+        </div></div>
       </li>
       <li class="nav-dropdown">
         <a href="/webhosting/">🌐 Webhosting</a>
-        <div class="nav-dropdown-menu">
-          <div class="mega-grid">
-            <div class="mega-column">
-              <h4><span style="color:#2196F3">◆</span> Beliebt</h4>
-              <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="mega-item">
-                <img src="/images/cloud-hosting-vs-shared-hosting.png" alt="" loading="lazy">
-                <span class="mega-title">Cloud Hosting vs. Shared Hosting</span>
-              </a>
-              <a href="/artikel/domain-kaufen-einrichten-2026.html" class="mega-item">
-                <img src="/images/domain-kaufen-einrichten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Domain kaufen und einrichten</span>
-              </a>
-              <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html" class="mega-item">
-                <img src="/images/hetzner-cloud-vs-dediziert-vergleich-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Hetzner Cloud vs. Dediziert</span>
-              </a>
-            </div>
-            <div class="mega-column">
-              <h4><span style="color:#2196F3">◆</span> Anleitungen</h4>
-              <a href="/artikel/nextcloud-server-einrichten.html" class="mega-item">
-                <img src="/images/nextcloud-server-einrichten.png" alt="" loading="lazy">
-                <span class="mega-title">NextCloud Server einrichten</span>
-              </a>
-              <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
-                <img src="/images/ssl-zertifikat-lets-encrypt-2026.png" alt="" loading="lazy">
-                <span class="mega-title">SSL-Zertifikat mit Let's Encrypt</span>
-              </a>
-              <a href="/artikel/webseite-geschwindigkeit-optimieren-2026.html" class="mega-item">
-                <img src="/images/webseite-geschwindigkeit-optimieren-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Webseite-Geschwindigkeit optimieren</span>
-              </a>
-            </div>
-            <div class="mega-column">
-              <h4><span style="color:#2196F3">◆</span> Vergleiche</h4>
-              <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
-                <img src="/images/webhosting-anbieter-vergleich-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Webhosting Anbieter Vergleich 2026</span>
-              </a>
-              <a href="/artikel/plesk-vs-cpanel-vergleich.html" class="mega-item">
-                <img src="/images/plesk-vs-cpanel-vergleich.png" alt="" loading="lazy">
-                <span class="mega-title">Plesk vs. cPanel</span>
-              </a>
-              <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
-                <img src="/images/wordpress-hosting-vergleich-2026.png" alt="" loading="lazy">
-                <span class="mega-title">WordPress Hosting Vergleich 2026</span>
-              </a>
-            </div>
-            <div class="mega-view-all">
-              <a href="/webhosting/">→ Alle Webhosting‑Artikel anzeigen</a>
-            </div>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#2196F3">&#9670;</span> A-Z</h4>
+            <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="mega-item">
+              <img src="/images/cloud-hosting-vs-shared-hosting.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloud Hosting vs. Shared Hosting – Vergleich 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-tunnel-einrichten.html" class="mega-item">
+              <img src="/images/cloudflare-tunnel-einrichten.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</span>
+            </a>
+            <a href="/artikel/docker-wordpress-hosten.html" class="mega-item">
+              <img src="/images/docker-wordpress-hosten.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WordPress mit Docker hosten – Modernes Setup 2026</span>
+            </a>
+            <a href="/artikel/domain-kaufen-einrichten-2026.html" class="mega-item">
+              <img src="/images/domain-kaufen-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Domain kaufen und einrichten – Schritt-für-Schritt 2026</span>
+            </a>
+            <a href="/artikel/email-server-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/email-server-selbst-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</span>
+            </a>
+            <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html" class="mega-item">
+              <img src="/images/hetzner-cloud-vs-dediziert-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Hetzner Cloud vs. Dedizierter Server – Vergleich 2026</span>
+            </a>
+            <a href="/artikel/mysql-mariadb-optimierung.html" class="mega-item">
+              <img src="/images/mysql-mariadb-optimierung.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">MySQL &amp; MariaDB optimieren – Performance-Guide 2026</span>
+            </a>
+            <a href="/artikel/netcup-vps-erfahrungen-2026.html" class="mega-item">
+              <img src="/images/netcup-vps-erfahrungen-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Netcup VPS Erfahrungen 2026 – Test, Preise &amp; Bewertung</span>
+            </a>
+            <a href="/artikel/nextcloud-server-einrichten.html" class="mega-item">
+              <img src="/images/nextcloud-server-einrichten.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nextcloud Server einrichten – Cloud-Speicher selbst hosten 2026</span>
+            </a>
           </div>
-        </div>
+          <div class="mega-column">
+            <h4><span style="color:#2196F3">&#9670;</span> Neueste</h4>
+            <a href="/artikel/plesk-vs-cpanel-vergleich.html" class="mega-item">
+              <img src="/images/plesk-vs-cpanel-vergleich.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Plesk vs. cPanel – Der große Hosting-Panel-Vergleich 2026</span>
+            </a>
+            <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
+              <img src="/images/ssl-zertifikat-lets-encrypt-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">SSL-Zertifikat mit Let&#x27;s Encrypt einrichten – Anleitung 2026</span>
+            </a>
+            <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
+              <img src="/images/webhosting-anbieter-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Die 5 besten Webhosting-Anbieter 2026 im Vergleich</span>
+            </a>
+            <a href="/artikel/webseite-sicherheit-2026.html" class="mega-item">
+              <img src="/images/webseite-sicherheit-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webseite sichern – Security-Checkliste für deine Website 2026</span>
+            </a>
+            <a href="/artikel/website-online-bringen-guide-2026.html" class="mega-item">
+              <img src="/images/website-online-bringen-guide-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webseite online bringen – Der Komplettguide von A bis Z 2026</span>
+            </a>
+            <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
+              <img src="/images/wordpress-hosting-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WordPress Hosting Vergleich 2026 – Die besten Anbieter</span>
+            </a>
+            <a href="/artikel/caddy-web-server-einrichten-2026.html" class="mega-item">
+              <img src="/images/caddy-web-server-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Caddy Web Server einrichten – Moderner Reverse Proxy mit Auto-HTTPS 2026</span>
+            </a>
+            <a href="/artikel/hugo-astro-static-site-vergleich-2026.html" class="mega-item">
+              <img src="/images/hugo-astro-static-site-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Hugo vs. Astro – Static Site Generator Hosting Vergleich 2026</span>
+            </a>
+            <a href="/artikel/webhosting-vserver-vergleich.html" class="mega-item">
+              <img src="/images/webhosting-vserver-vergleich.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webhosting vs. VServer – Was passt zu dir?</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/webhosting/">Alle Webhosting-Artikel</a></div>
+        </div></div>
       </li>
       <li class="nav-dropdown">
         <a href="/devops/">⚙️ DevOps</a>
-        <div class="nav-dropdown-menu">
-          <div class="mega-grid">
-            <div class="mega-column">
-              <h4><span style="color:#FF9800">◆</span> Beliebt</h4>
-              <a href="/artikel/ollama-llm-server-vps-2026.html" class="mega-item">
-                <img src="/images/ollama-llm-server-vps-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Ollama LLM Server auf VPS hosten 2026</span>
-              </a>
-              <a href="/artikel/free-llm-benchmark-2026.html" class="mega-item">
-                <img src="/images/free-llm-benchmark-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Free LLMs 2026 – Der ultimative Benchmark</span>
-              </a>
-              <a href="/artikel/vllm-auf-eigener-gpu-aufsetzen.html" class="mega-item">
-                <img src="/images/vllm-auf-eigener-gpu-aufsetzen.png" alt="" loading="lazy">
-                <span class="mega-title">vLLM auf eigener GPU aufsetzen – Production-Ready LLM Serving</span>
-              </a>
-              <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">
-                <img src="/images/docker-compose-vps-guide.png" alt="" loading="lazy">
-                <span class="mega-title">Docker Compose auf dem VPS</span>
-              </a>
-            </div>
-            <div class="mega-column">
-              <h4><span style="color:#FF9800">◆</span> Anleitungen</h4>
-              <a href="/artikel/k3s-kubernetes-vps-2026.html" class="mega-item">
-                <img src="/images/k3s-kubernetes-vps-2026.png" alt="" loading="lazy">
-                <span class="mega-title">K3s Kubernetes auf dem VPS</span>
-              </a>
-              <a href="/artikel/prometheus-grafana-monitoring-2026.html" class="mega-item">
-                <img src="/images/prometheus-grafana-monitoring-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Monitoring mit Prometheus &amp; Grafana</span>
-              </a>
-              <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" class="mega-item">
-                <img src="/images/nginx-reverse-proxy-einrichten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Nginx Reverse Proxy konfigurieren</span>
-              </a>
-              <a href="/artikel/linux-server-harden.html" class="mega-item">
-                <img src="/images/linux-server-harden.png" alt="" loading="lazy">
-                <span class="mega-title">Linux Server härten</span>
-              </a>
-            </div>
-            <div class="mega-column">
-              <h4><span style="color:#FF9800">◆</span> Vergleiche &amp; Guides</h4>
-              <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="mega-item">
-                <img src="/images/docker-vs-podman-vergleich-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Docker vs. Podman</span>
-              </a>
-              <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="mega-item">
-                <img src="/images/github-actions-ci-cd-pipeline-2026.png" alt="" loading="lazy">
-                <span class="mega-title">GitHub Actions CI/CD Pipeline</span>
-              </a>
-              <a href="/artikel/terraform-infrastructure-as-code-2026.html" class="mega-item">
-                <img src="/images/terraform-infrastructure-as-code-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Terraform Infrastructure as Code</span>
-              </a>
-            </div>
-            <div class="mega-view-all">
-              <a href="/devops/">→ Alle DevOps‑Artikel anzeigen</a>
-            </div>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#FF9800">&#9670;</span> A-Z</h4>
+            <a href="/artikel/ansible-automation-guide.html" class="mega-item">
+              <img src="/images/ansible-automation-guide.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</span>
+            </a>
+            <a href="/artikel/backup-strategien-vps-server-2026.html" class="mega-item">
+              <img src="/images/backup-strategien-vps-server-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Backup-Strategien für VPS und Server – Der Guide 2026</span>
+            </a>
+            <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="mega-item">
+              <img src="/images/docker-vs-podman-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</span>
+            </a>
+            <a href="/artikel/elk-stack-log-management.html" class="mega-item">
+              <img src="/images/elk-stack-log-management.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</span>
+            </a>
+            <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="mega-item">
+              <img src="/images/github-actions-ci-cd-pipeline-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</span>
+            </a>
+            <a href="/artikel/gitops-argocd-einrichten.html" class="mega-item">
+              <img src="/images/gitops-argocd-einrichten.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</span>
+            </a>
+            <a href="/artikel/k3s-kubernetes-vps-2026.html" class="mega-item">
+              <img src="/images/k3s-kubernetes-vps-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/linux-server-harden.html" class="mega-item">
+              <img src="/images/linux-server-harden.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Linux Server härten – Security-Baseline 2026</span>
+            </a>
+            <a href="/artikel/n8n-automation-server.html" class="mega-item">
+              <img src="/images/n8n-automation-server.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">n8n Automation Server hosten – Workflow-Automatisierung 2026</span>
+            </a>
+            <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" class="mega-item">
+              <img src="/images/nginx-reverse-proxy-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nginx Reverse Proxy konfigurieren – Einsteiger-Guide 2026</span>
+            </a>
+            <a href="/artikel/postgresql-vps-optimierung.html" class="mega-item">
+              <img src="/images/postgresql-vps-optimierung.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">PostgreSQL auf dem VPS optimieren – Tuning-Guide 2026</span>
+            </a>
+            <a href="/artikel/prometheus-grafana-monitoring-2026.html" class="mega-item">
+              <img src="/images/prometheus-grafana-monitoring-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Server Monitoring mit Prometheus &amp; Grafana – Setup 2026</span>
+            </a>
+            <a href="/artikel/terraform-infrastructure-as-code-2026.html" class="mega-item">
+              <img src="/images/terraform-infrastructure-as-code-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Terraform Infrastructure as Code – Einführung &amp; Beispiele 2026</span>
+            </a>
+            <a href="/artikel/traefik-reverse-proxy.html" class="mega-item">
+              <img src="/images/traefik-reverse-proxy.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Traefik Reverse Proxy einrichten – Moderner Docker-Proxy 2026</span>
+            </a>
+            <a href="/artikel/wireguard-vpn-server.html" class="mega-item">
+              <img src="/images/wireguard-vpn-server.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WireGuard VPN Server einrichten – Schnell &amp; Sicher 2026</span>
+            </a>
+            <a href="/artikel/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.html" class="mega-item">
+              <img src="/images/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">OpenRouter API vs. eigene GPU – Kostenvergleich 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-pages-vercel-netlify-vergleich-2026.html" class="mega-item">
+              <img src="/images/cloudflare-pages-vercel-netlify-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare Pages vs Vercel vs Netlify – Static Hosting Vergleich 2026</span>
+            </a>
+            <a href="/artikel/gaestebeitrag-finanz-junkie-server-kosten-investor-guide.html" class="mega-item">
+              <img src="/images/server-kosten-investor-guide.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Server mieten oder kaufen: Die versteckten Kosten der Digitalisierung – Ein Investor-Guide | Gastbeitrag</span>
+            </a>
+            <a href="/artikel/gitlab-ci-cd-pipeline-guide-2026.html" class="mega-item">
+              <img src="/images/gitlab-ci-cd-pipeline-guide-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitLab CI/CD Pipeline einrichten – Schritt-für-Schritt Guide 2026</span>
+            </a>
+            <a href="/artikel/minio-object-storage-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/minio-object-storage-selbst-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">MinIO Object Storage selbst hosten 2026 – S3-kompatibel auf dem VPS</span>
+            </a>
+            <a href="/artikel/proxmox-heimserver-einrichten-2026.html" class="mega-item">
+              <img src="/images/proxmox-heimserver-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Proxmox Heimserver einrichten 2026 – Virtualisierung zuhause Schritt für Schritt</span>
+            </a>
+            <a href="/artikel/vps-mieten-vergleich-2026.html" class="mega-item">
+              <img src="/images/vps-mieten-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS mieten 2026: Die besten Anbieter, Preise &amp; Tipps für Entwickler</span>
+            </a>
+            <a href="/artikel/quantisierte-modelle-gguf-awq-gptq-exl2-bitsandbytes-2026.html" class="mega-item">
+              <img src="/images/quantisierte-modelle-gguf-awq-gptq-exl2-bitsandbytes-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Quantisierte Modelle: GGUF, AWQ, GPTQ, EXL2, Bitsandbytes – Was ist besser? 2026</span>
+            </a>
           </div>
-        </div>
+          <div class="mega-column">
+            <h4><span style="color:#FF9800">&#9670;</span> Neueste</h4>
+            <a href="/artikel/text-generation-webui-oobabooga-einrichten-2026.html" class="mega-item">
+              <img src="/images/text-generation-webui-oobabooga-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Text Generation WebUI (oobabooga) einrichten – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/dedizierter-server-vs-vps-2026.html" class="mega-item">
+              <img src="/images/dedizierter-server-vs-vps-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Dedizierter Server vs. VPS – Der große Vergleich 2026</span>
+            </a>
+            <a href="/artikel/helm-charts-kubernetes-guide-2026.html" class="mega-item">
+              <img src="/images/helm-charts-kubernetes-guide-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Helm Charts – Kubernetes Package Manager Einführung &amp; Praxis 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-waf-einrichten-2026.html" class="mega-item">
+              <img src="/images/cloudflare-waf-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare WAF einrichten – DDoS-Schutz &amp;amp; Bot-Filter 2026</span>
+            </a>
+            <a href="/artikel/discord-bot-vps-hosten-2026.html" class="mega-item">
+              <img src="/images/discord-bot-vps-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Discord Bot auf VPS hosten – Komplettanleitung 2026</span>
+            </a>
+            <a href="/artikel/jitsi-meet-server-vps-2026.html" class="mega-item">
+              <img src="/images/jitsi-meet-server-vps-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Jitsi Meet Server selbst hosten – Videokonferenzen auf VPS 2026</span>
+            </a>
+            <a href="/artikel/plausible-analytics-vps-2026.html" class="mega-item">
+              <img src="/images/plausible-analytics-vps-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Plausible Analytics – Selbstgehostetes Web-Analytics auf VPS 2026</span>
+            </a>
+            <a href="/artikel/portainer-docker-management-vps-2026.html" class="mega-item">
+              <img src="/images/portainer-docker-management-vps-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Portainer – Docker Management UI auf VPS einrichten 2026</span>
+            </a>
+            <a href="/artikel/ghost-cms-hosting-vps-2026.html" class="mega-item">
+              <img src="/images/ghost-cms-hosting-vps-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ghost CMS Hosting auf VPS 2026 – Blog-Software installieren &amp; betreiben</span>
+            </a>
+            <a href="/artikel/lemp-stack-vps-einrichten-2026.html" class="mega-item">
+              <img src="/images/lemp-stack-vps-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LEMP Stack auf VPS einrichten 2026 – Anleitung &amp;amp; Setup</span>
+            </a>
+            <a href="/artikel/redis-cache-vps-einrichten-2026.html" class="mega-item">
+              <img src="/images/uptime-kuma-monitoring-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Redis Cache auf VPS einrichten und optimieren 2026</span>
+            </a>
+            <a href="/artikel/teamspeak-server-mieten-2026.html" class="mega-item">
+              <img src="/images/teamspeak-server-mieten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">TeamSpeak 3 Server mieten 2026 – Sprachserver für Gamer</span>
+            </a>
+            <a href="/artikel/uptime-kuma-monitoring-einrichten-2026.html" class="mega-item">
+              <img src="/images/uptime-kuma-monitoring-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Uptime Kuma einrichten – Status Pages &amp;amp; Server-Monitoring 2026</span>
+            </a>
+            <a href="/artikel/vaultwarden-passwort-manager-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/vaultwarden-passwort-manager-selbst-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Vaultwarden Passwort-Manager selbst hosten – Sicherer als die Cloud 2026</span>
+            </a>
+            <a href="/artikel/contabo-vps-erfahrungen-2026.html" class="mega-item">
+              <img src="/images/contabo-vps-erfahrungen-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Contabo VPS Erfahrungen 2026 – Test, Preise &amp; Setup-Guide</span>
+            </a>
+            <a href="/artikel/gitea-git-server-vps-2026.html" class="mega-item">
+              <img src="/images/gitea-git-server-vps-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gitea – Selfhosted Git-Server auf VPS installieren &amp;amp; betreiben 2026</span>
+            </a>
+            <a href="/artikel/jenkins-ci-cd-pipeline-vps-2026.html" class="mega-item">
+              <img src="/images/jenkins-ci-cd-pipeline-vps-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Jenkins CI/CD Pipeline auf dem VPS – Automatisierte Builds &amp;amp; Deployments 2026</span>
+            </a>
+            <a href="/artikel/vps-anbieter-vergleich-2026.html" class="mega-item">
+              <img src="/images/vps-anbieter-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS-Anbieter Vergleich 2026 – Hetzner, Netcup, Contabo, IONOS im Test</span>
+            </a>
+            <a href="/artikel/webseite-geschwindigkeit-optimieren-2026.html" class="mega-item">
+              <img src="/images/webseite-geschwindigkeit-optimieren-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Website-Geschwindigkeit optimieren – PageSpeed-Guide 2026</span>
+            </a>
+            <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">
+              <img src="/images/docker-compose-vps-guide.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben</span>
+            </a>
+            <a href="/artikel/vps-absichern-2026.html" class="mega-item">
+              <img src="/images/vps-absichern-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</span>
+            </a>
+            <a href="/artikel/devops-tools-2024.html" class="mega-item">
+              <img src="/images/devops-tools-2024.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DevOps-Tools 2024 – Die 10 wichtigsten Tools im Überblick</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/devops/">Alle DevOps-Artikel</a></div>
+        </div></div>
       </li>
-      <li><a href="/about.html">Über uns</a></li>
-      <li><a href="/impressum.html">Impressum</a></li>
+      <li><a href="/about.html">&#220;ber</a></li>
     </ul>
   </div>
 </nav>
-
-<main class="container article-page">
-  <article>
-    <div class="article-header">
-      <div class="card-meta">
-        <span class="card-tag devops">DevOps / KI</span>
-        <span>7. Juni 2026</span>
-        <span>⏱ 12 Min Lesezeit</span>
-      </div>
-    <div class="hero-image-wrap" style="margin:1.5rem 0;border-radius:12px;overflow:hidden;">
-      <img src="../images/vllm-auf-eigener-gpu-aufsetzen.png" alt="vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention | hostazar.com" class="hero-image" style="width:100%;height:auto;display:block;">
+  <nav class="breadcrumbs"><a href="https://hostazar.com/">hostazar</a><span class="sep"> &rsaquo; </span><a href="https://hostazar.com/ki-llm/">KI &amp; LLM</a><span class="sep"> &rsaquo; </span><span class="current">vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention | hostazar.com</span></nav>
+<main class="article-page">
+  <div class="container">
+    <div class="article-meta-top">
+      <span class="card-tag ki-llm">KI &amp; LLM</span>
+      <span>14 Min Lesezeit</span>
     </div>
 
-      <h1>vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention</h1>
-    </div>
-    <div class="adsense-placeholder"><p><strong>&mdash; Anzeige &mdash;</strong></p><p>Google AdSense Platzhalter</p></div>
-    <div id="breadcrumbs"></div>
-    <div class="article-content">
 
       <h2>vLLM auf eigener GPU aufsetzen – Einleitung</h2>
       <p>Large Language Models wie <strong>Llama 3.3 70B</strong>, <strong>Mixtral 8x22B</strong> oder <strong>Qwen 2.5 72B</strong> sind 2026 die treibende Kraft hinter zahllosen KI-Anwendungen – von Chatbots über Code-Assistenten bis hin zu Retrieval-Augmented-Generation-Systemen. Doch mit zunehmender Modellgröße wird die Inferenz zum Engpass: Selbst eine NVIDIA RTX 4090 mit 24 GB VRAM kommt bei einem 70B-Modell ohne Optimierung schnell an ihre Grenzen. Hier setzt <strong>vLLM</strong> an – ein hochoptimiertes Open-Source-Inference-Framework, das speziell für <strong>Production-Ready LLM Serving</strong> auf eigener GPU entwickelt wurde.</p>
@@ -352,311 +588,178 @@
           </tr>
         </tbody>
       </table>
-      </div>
+      
 
-      <p><strong>CPU und RAM:</strong> Neben der GPU sind ein moderner Multi-Core-Prozessor (AMD EPYC oder Intel Xeon, mindestens 8 Kerne) sowie <strong>32–128 GB System-RAM</strong> empfehlenswert – der CPU wandelt Token-Embeddings um und steuert den Datenfluss zur GPU. Für die SSD gilt: Eine schnelle <strong>NVMe mit 1 TB</strong> oder mehr, da Modelle in Q4-Quantisierung schnell 40–80 GB belegen.</p>
-
-      <h2>Installation: vLLM auf dem GPU-Server einrichten</h2>
-      <p>Wir zeigen dir drei Wege: die native pip-Installation (maximale Flexibilität), Docker (saubere Isolation) und das Kubernetes-Helm-Deployment (produktiver Standard). Als Betriebssystem empfehlen wir <strong>Ubuntu 24.04 LTS</strong> mit NVIDIA-Treiber 555+ und CUDA 12.4+.</p>
-
-      <h3>Variante 1: Native Installation mit pip (Python 3.11+)</h3>
-      <p>Die einfachste Methode für einen dedizierten GPU-Server:</p>
-      <div class="vllm-code">
-      <pre><code># Voraussetzungen prüfen
-nvidia-smi  # Sollte CUDA 12.4+ anzeigen
-python3 --version  # 3.11 oder 3.12 empfohlen
-
-# Python-venv einrichten
-python3 -m venv vllm-env
-source vllm-env/bin/activate
-
-# vLLM installieren (pip-Version ~0.8.x Stand 2026)
-pip install vllm
-
-# Schnelltest: Server starten
-vllm serve mistralai/Mistral-7B-Instruct-v0.3 \
-  --tensor-parallel-size 1 \
-  --gpu-memory-utilization 0.90 \
-  --max-model-len 8192</code></pre>
-      </div>
-      <p>vLLM lädt das Modell automatisch von Hugging Face herunter (sofern es öffentlich ist). Bei eigenem Speicherpfad setzt du <code>--model /pfad/zum/Modell</code>. Der Server startet standardmäßig auf <code>http://0.0.0.0:8000</code> und stellt die OpenAI-kompatible REST-API bereit.</p>
-
-      <h3>Variante 2: Docker (empfohlen für Produktion)</h3>
-      <p>Das offizielle Docker-Image <code>vllm/vllm-openai</code> enthält alle Abhängigkeiten vorkonfiguriert und lässt sich mit GPU-Passthrough betreiben:</p>
-      <div class="vllm-code">
-      <pre><code># vLLM mit Docker starten (GPU erforderlich)
-docker run --gpus all \
-  -e HF_TOKEN=${HF_TOKEN:-} \
-  -p 8000:8000 \
-  -v ~/.cache/huggingface:/root/.cache/huggingface \
-  vllm/vllm-openai:latest \
-  --model mistralai/Mistral-7B-Instruct-v0.3 \
-  --max-model-len 8192 \
-  --gpu-memory-utilization 0.90
-
-# Test: Chat-Completion abrufen
-curl http://localhost:8000/v1/chat/completions \
-  -d '{"model":"mistralai/Mistral-7B-Instruct-v0.3","messages":[{"role":"user","content":"Erkläre PagedAttention in 3 Sätzen."}]}'</code></pre>
-      </div>
-      <p>Für Modelle mit eingeschränktem Zugriff (z. B. Llama 3.3, Gemma 2) übergibst du den <strong>Hugging-Face-Token</strong> per <code>HF_TOKEN</code>-Umgebungsvariable – und stellst sicher, dass du die jeweilige Lizenz auf huggingface.co akzeptiert hast. Ein vollständiges <code>docker-compose.yml</code> für vLLM + Open WebUI + Nginx Reverse Proxy findest du in unserem <a href="/artikel/docker-compose-vps-guide.html">Docker-Compose-VPS-Guide</a>.</p>
-
-      <h3>Variante 3: Kubernetes mit Helm (für Cluster-Betrieb)</h3>
-      <p>Für skalierbare Produktionsumgebungen steht ein offizielles Helm-Chart bereit:</p>
-      <div class="vllm-code">
-      <pre><code># Helm-Repository hinzufügen
-helm repo add vllm https://vllm-project.github.io/helm-charts
-helm repo update
-
-# vLLM-Deployment installieren
-helm install vllm vllm/vllm \
-  --set model=mistralai/Mistral-7B-Instruct-v0.3 \
-  --set tensorParallelSize=1 \
-  --set gpuMemoryUtilization=0.9 \
-  --set resources.limits.nvidia.com/gpu=1</code></pre>
-      </div>
-      <p>Das Chart erstellt automatisch ein Deployment, einen Service (ClusterIP) und optional einen Ingress. Kombiniert mit dem <a href="/artikel/k3s-kubernetes-vps-2026.html">K3s-Leightweight-Kubernetes-Setup</a> und <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html">Nginx Reverse Proxy</a> erhältst du eine vollständige LLM-Serving-Plattform.</p>
-
-      <h2>PagedAttention und Continuous Batching – Die Innovationen im Detail</h2>
-      <p>Um zu verstehen, warum vLLM so viel effizienter ist, lohnt ein Blick unter die Haube.</p>
-
-      <h3>PagedAttention: Das Betriebssystem-Prinzip für den KV-Cache</h3>
-      <p>Bei der Textgenerierung mit einem Transformer-Modell wird für jedes Token ein <strong>Key-Value-Cache (KV-Cache)</strong> angelegt – im Grunde eine Matrix aller Attention-Scores zwischen den bereits generierten Tokens. Bei einem 70B-Modell und einer Kontextlänge von 4096 Tokens belegt dieser Cache schnell <strong>1–2 GB pro Anfrage</strong>. Das Problem: Herkömmliche Frameworks alloziieren diesen Cache als zusammenhängenden Speicherblock (<em>contiguous memory</em>), was zu Fragmentierung führt – selbst bei 80 GB VRAM sind oft nur 20–30 gleichzeitige Anfragen möglich.</p>
-      <p>vLLMs PagedAttention unterteilt den KV-Cache in <strong>feste Blöcke (Pages) von 16–32 Tokens</strong>. Diese Blöcke werden nicht-zusammenhängend im VRAM abgelegt – genau wie ein Betriebssystem Speicherseiten verwaltet. Die Attention-Berechnung erfolgt blockweise, und ein <strong>Block-Table</strong> (analog zur Page-Table) hält die Zuordnung zwischen logischen und physischen Blöcken. Ergebnis: <strong>Nahezu 100 % VRAM-Auslastung</strong> und bis zu 4× mehr gleichzeitige Anfragen bei gleichem VRAM.</p>
-
-      <div class="highlight-box" style="background:linear-gradient(135deg,#0d1b2a 0%,#1a3a5c 100%);border:1px solid #2a5a8c;border-radius:8px;padding:1.5rem;margin:1.5rem 0;">
-        <h4 style="color:#4CAF50;margin:0 0 0.5rem 0;">⚡ Performance-Vergleich: vLLM mit PagedAttention</h4>
-        <p style="margin:0;font-size:0.95rem;">In Benchmarks mit Llama 3.3 70B auf einer A100-80GB erreicht vLLM <strong>45–55 Tokens/s</strong> bei Q4-Quantisierung – das ist <strong>3–5× schneller</strong> als ein naives Hugging-Face-Setup und <strong>2× schneller</strong> als Text Generation Inference (TGI) bei vergleichbarem VRAM-Verbrauch. Die Speichereffizienz durch PagedAttention ermöglicht zudem <strong>70–80 parallele Anfragen</strong> auf einer einzelnen A100 – TGI schafft hier typischerweise 20–30.</p>
-      </div>
-
-      <h3>Continuous Batching: Volle GPU-Auslastung rund um die Uhr</h3>
-      <p>Stell dir vor, dein LLM-Server bekommt 100 Anfragen pro Minute, jede mit unterschiedlicher Antwortlänge (von 50 bis 2000 Tokens). Ohne Continuous Batching müsstest du entweder statische Batches bilden (warte, bis N Anfragen da sind, verarbeite sie gemeinsam – erhöht die Latenz) oder jede Anfrage einzeln abarbeiten (schlechte GPU-Auslastung).</p>
-      <p>vLLMs <strong>Continuous Batching</strong> (manchmal auch <em>in-flight batching</em> genannt) löst dieses Problem elegant: Sobald eine Anfrage in der Batch- Verarbeitung ihr End-of-Sequence-Token erreicht hat, wird sie aus dem Batch entfernt und eine neue Anfrage rückt sofort nach. Die GPU muss nie warten – sie arbeitet kontinuierlich. In der Praxis bedeutet das: <strong>70–90 % GPU-Auslastung</strong> selbst bei stark schwankendem Anfrageaufkommen, statt der typischen 20–40 % bei statischen Verfahren.</p>
-      <p>Aktiviert ist Continuous Batching in vLLM standardmäßig. Über die Parameter <code>--max-num-seqs</code> (maximale Anzahl paralleler Sequenzen) und <code>--max-num-batched-tokens</code> (maximale Anzahl Tokens pro Batch) kannst du das Verhalten an deine Hardware anpassen. Ein guter Startwert: <code>--max-num-seqs 256</code> auf einer A100, <code>--max-num-seqs 64</code> auf einer RTX 4090.</p>
-
-      <h2>OpenAI-kompatible API einrichten und nutzen</h2>
-      <p>Einer der größten Vorteile von vLLM ist die native OpenAI-kompatible REST-API. Der Server stellt zwei Endpunkte bereit – <code>/v1/chat/completions</code> für Chat-Modelle und <code>/v1/completions</code> für klassische Text-Complete-Modelle. Die API ist <strong>100 % Drop-In-kompatibel</strong>: Du änderst lediglich die Base-URL in deinem Client.</p>
-
-      <div class="vllm-code">
-      <pre><code># Python-Beispiel: OpenAI-Client gegen vLLM
-from openai import OpenAI
-
-client = OpenAI(
-    base_url="http://dein-server:8000/v1",
-    api_key="not-needed"  # vLLM hat keine Auth – Proxy macht das
-)
-
-response = client.chat.completions.create(
-    model="mistralai/Mistral-7B-Instruct-v0.3",
-    messages=[
-        {"role": "system", "content": "Du bist ein deutscher DevOps-Experte."},
-        {"role": "user", "content": "Wie konfiguriere ich vLLM für hohen Durchsatz?"}
-    ],
-    max_tokens=1024,
-    temperature=0.3
-)
-print(response.choices[0].message.content)</code></pre>
-      </div>
-
-      <p>Wichtig: Der vLLM-Server hat standardmäßig <strong>keine Authentifizierung</strong>. Setze daher zwingend einen Reverse Proxy (Nginx, Caddy oder Traefik) mit Basic-Auth, API-Key oder JWT davor. Nutze am besten ein WireGuard-VPN für den internen Zugriff – siehe unseren <a href="/artikel/wireguard-vpn-server.html">WireGuard-VPN-Guide</a>. Eine umfassende Absicherung des gesamten Servers findest du in <a href="/artikel/linux-server-harden.html">Linux-Server härten – Security-Baseline 2026</a>.</p>
-
-      <h2>Multi-LoRA: Dutzende Modelle auf einer GPU</h2>
-      <p>Ein echtes Killer-Feature von vLLM ist die <strong>Multi-LoRA-Unterstützung</strong>. LoRA (Low-Rank Adaptation) ist eine Parameter-efﬁziente Fine-Tuning-Methode, bei der nur kleine Adapter-Matrizen trainiert werden, während die Basis-Gewichte des Modells eingefroren bleiben. Ein typischer LoRA-Adapter ist nur 5–50 MB groß – selbst bei hundert verschiedenen Adaptern liegt der zusätzliche Speicherbedarf unter 5 GB.</p>
-      <p>Mit vLLMs Multi-LoRA kannst du:</p>
-      <ul>
-        <li>Einen <strong>Basis-Modell-Weight-Sharing-Pool</strong> betreiben: Ein Llama 3.3 70B wird einmal geladen (40 GB VRAM), dazu kommen 50 verschiedene LoRA-Adapter für verschiedene Aufgaben (Code, Kundenservice, deutscher Chatbot, SQL-Generator) – zusätzlicher VRAM: ~250 MB.</li>
-        <li>Den Adapter <strong>dynamisch pro Request</strong> auswählen: Im API-Request übergibst du den Parameter <code>lora_name</code> oder <code>lora_request</code> – vLLM lädt den entsprechenden Adapter im laufenden Betrieb.</li>
-        <li>Adapter heißen laden (<strong>hot-swap</strong>): Neue Adapter können über die API hinzugefügt werden, ohne den Server neuzustarten.</li>
-      </ul>
-
-      <div class="vllm-code">
-      <pre><code># Multi-LoRA starten
-vllm serve mistralai/Mistral-7B-Instruct-v0.3 \
-  --enable-lora \
-  --lora-modules devops-advisor=/path/to/devops-lora \
-  --max-lora-rank 64
-
-# Per API einen bestimmten LoRA-Adapter anfragen
-curl http://localhost:8000/v1/chat/completions \
-  -d '{
-    "model": "mistralai/Mistral-7B-Instruct-v0.3",
-    "messages": [{"role":"user","content":"Gib mir einen Docker-Compose-Tipp."}],
-    "lora_name": "devops-advisor"
-  }'</code></pre>
-      </div>
-
-      <h2>Monitoring und Metriken: vLLM überwachen</h2>
-      <p>Für den produktiven Betrieb ist ein Monitoring unerlässlich. vLLM bringt ein eingebautes Prometheus-Metriken-Exportformat mit, das du über den Endpunkt <code>/metrics</code> abrufen kannst (standardmäßig auf Port 8264). Die wichtigsten Metriken:</p>
-      <ul>
-        <li><strong><code>vllm:num_requests_running</code></strong> – aktuell laufende Anfragen</li>
-        <li><strong><code>vllm:num_requests_waiting</code></strong> – Anfragen in der Warteschlange</li>
-        <li><strong><code>vllm:gpu_cache_usage_pct</code></strong> – GPU-Cache-Auslastung in Prozent</li>
-        <li><strong><code>vllm:prompt_tokens_total</code></strong> – insgesamt verarbeitete Prompt-Tokens</li>
-        <li><strong><code>vllm:generation_tokens_total</code></strong> – insgesamt generierte Tokens</li>
-        <li><strong><code>vllm:request_success_total</code></strong> – erfolgreiche Requests (HTTP 200)</li>
-        <li><strong><code>vllm:request_latency_seconds</code></strong> – Latenz-Histogramm (p50, p95, p99)</li>
-      </ul>
-      <p>Diese Metriken integrierst du nahtlos in dein bestehendes <a href="/artikel/prometheus-grafana-monitoring-2026.html">Prometheus & Grafana Monitoring</a>. Ein fertiges Grafana-Dashboard für vLLM findest du auf <a href="https://grafana.com/grafana/dashboards/" target="_blank" rel="noopener">grafana.com</a> (Suche nach "vLLM").</p>
-
-      <div class="highlight-box" style="background:linear-gradient(135deg,#0d1b2a 0%,#1a3a5c 100%);border:1px solid #2a5a8c;border-radius:8px;padding:1.5rem;margin:1.5rem 0;">
-        <h4 style="color:#e94560;margin:0 0 0.5rem 0;">🔧 Produktions-Tipp: vLLM mit Systemd als Dienst</h4>
-        <p style="margin:0;font-size:0.95rem;">Für den 24/7-Betrieb richtest du vLLM am besten als Systemd-Dienst ein. Lege eine Datei <code>/etc/systemd/system/vllm.service</code> an, die den Docker-Container oder das Python-Skript startet, mit <code>Restart=always</code> und <code>RestartSec=5</code>. Kombiniere dies mit logrotate für die Logs und einem Healthcheck via <code>curl http://localhost:8000/health</code> – vLLM liefert auf dem Health-Endpunkt HTTP 200, sobald das Modell geladen und bereit ist.</p>
-      </div>
-
-      <h2>Vergleichstabelle: vLLM vs. Ollama vs. TGI vs. Triton Inference Server</h2>
-      <p>Welches Framework passt zu deinem Use-Case? Die folgende Tabelle zeigt die wichtigsten Unterschiede zwischen den vier führenden LLM-Serving-Lösungen:</p>
-
-      <div class="vllm-compare">
-      <table>
-        <thead>
-          <tr>
-            <th>Kriterium</th>
-            <th>vLLM ⭐</th>
-            <th>Ollama</th>
-            <th>HuggingFace TGI</th>
-            <th>NVIDIA Triton</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>PagedAttention</td>
-            <td class="vllm-win">✅ Ja</td>
-            <td>❌ Nein</td>
-            <td>❌ Nein</td>
-            <td>❌ Nein</td>
-          </tr>
-          <tr>
-            <td>Continuous Batching</td>
-            <td class="vllm-win">✅ Ja (dynamisch)</td>
-            <td>❌ Nein</td>
-            <td>✅ Ja (statisch)</td>
-            <td>✅ Ja (dynamisch)</td>
-          </tr>
-          <tr>
-            <td>Multi-LoRA</td>
-            <td class="vllm-win">✅ Native</td>
-            <td>❌ Nein</td>
-            <td>⚠️ Experimentell</td>
-            <td>✅ Ja</td>
-          </tr>
-          <tr>
-            <td>OpenAI-API</td>
-            <td class="vllm-win">✅ 100% kompatibel</td>
-            <td>✅ Ja</td>
-            <td>✅ Ja</td>
-            <td>✅ Ja</td>
-          </tr>
-          <tr>
-            <td>Tensor Parallel</td>
-            <td>✅ Ja</td>
-            <td>❌ Nein</td>
-            <td>✅ Ja</td>
-            <td class="vllm-win">✅ Multi-Node</td>
-          </tr>
-          <tr>
-            <td>Multi-GPU</td>
-            <td>✅ Ja (TP + PP)</td>
-            <td>⚠️ Eingeschränkt</td>
-            <td>✅ Ja</td>
-            <td class="vllm-win">✅ Vollständig</td>
-          </tr>
-          <tr>
-            <td>Quantisierung</td>
-            <td class="vllm-win">✅ GPTQ, AWQ, FP8</td>
-            <td>✅ GGUF (CPU)</td>
-            <td>✅ GPTQ, AWQ</td>
-            <td>✅ FP8, INT8, INT4</td>
-          </tr>
-          <tr>
-            <td>Schwepunkt</td>
-            <td>High-Throughput GPU</td>
-            <td>Einfachheit, CPU</td>
-            <td>HuggingFace-Integration</td>
-            <td>Enterprise, Multi-Framework</td>
-          </tr>
-          <tr>
-            <td>Idealer Use-Case</td>
-            <td class="vllm-win">Produktiver LLM-Service</td>
-            <td>Lokale/Lab-Nutzung</td>
-            <td>HF-native Workflows</td>
-            <td>Großunternehmen, Cluster</td>
-          </tr>
-        </tbody>
-      </table>
-      </div>
-
-      <p><strong>Fazit zum Vergleich:</strong> Für den produktiven Betrieb auf eigener GPU mit hohem Durchsatz und Multi-User-Zugriff ist <strong>vLLM die klar beste Wahl</strong>. Ollama punktet bei Einfachheit und CPU-Nutzung, TGI bei enger HuggingFace-Anbindung und Triton bei Enterprise-Multi-Node-Setups. Wenn du einen einzelnen GPU-Server mit 1–8 Karten betreibst und maximale Performance pro Watt und Euro suchst, setze auf vLLM.</p>
-
-      <h2>Skalierung: Tensor Parallel und Pipeline Parallel im Detail</h2>
-      <p>Sobald ein Modell nicht mehr in den VRAM einer einzelnen GPU passt (bei Llama 3.3 70B in Q4 sind das ~40 GB – eine RTX 4090 hat 24 GB), musst du auf <strong>Multi-GPU-Verteilung</strong> setzen. vLLM unterstützt zwei komplementäre Verfahren:</p>
-
-      <h3>Tensor Parallel (TP)</h3>
-      <p>Bei TP werden die einzelnen Transformer-Layer <strong>horizontal</strong> auf mehrere GPUs aufgeteilt: Jede GPU hält einen Teil der Gewichtsmatrizen und berechnet nur ihren Anteil. Die GPU-Kommunikation erfolgt über NCCL (NVLink oder InfiniBand). TP reduziert die Latenz pro Token, erfordert aber schnelle GPU-Verbindungen. Ein Beispiel für 2 GPUs:</p>
-
-      <div class="vllm-code">
-      <pre><code># Tensor Parallel über 2 GPUs
-vllm serve mistralai/Mixtral-8x22B-Instruct-v0.1 \
-  --tensor-parallel-size 2 \
-  --dtype auto</code></pre>
-      </div>
-
-      <h3>Pipeline Parallel (PP)</h3>
-      <p>PP teilt das Modell <strong>vertikal</strong> auf: GPU 1 berechnet die Layer 1–20, GPU 2 die Layer 21–40. Jede GPU hält die vollständigen Gewichte ihres Abschnitts. PP skaliert besser über langsamere Verbindungen (Ethernet) und eignet sich für Multi-Node-Setups. Der Durchsatz skaliert nahezu linear mit der Anzahl der GPUs:</p>
-
-      <div class="vllm-code">
-      <pre><code># Pipeline Parallel über 2 GPUs + Tensor Parallel pro Node
-vllm serve meta-llama/Llama-3.3-70B-Instruct \
-  --tensor-parallel-size 2 \
-  --pipeline-parallel-size 2 \
-  --max-model-len 16384</code></pre>
-      </div>
-
-      <div class="metric-card"><div class="num">2–4×</div><div class="label">mehr Durchsatz durch PagedAttention</div></div>
-      <div class="metric-card"><div class="num">~90%</div><div class="label">GPU-Auslastung durch Continuous Batching</div></div>
-      <div class="metric-card"><div class="num">50+</div><div class="label">LoRA-Adapter pro GPU möglich</div></div>
-      <div class="metric-card"><div class="num">1:1</div><div class="label">OpenAI-kompatible API</div></div>
-
-      <h2>Kostenbetrachtung: Lohnt sich eine eigene GPU für vLLM?</h2>
-      <p>Die Antwort hängt von deinem Nutzungsprofil ab. Wir vergleichen drei Szenarien für <strong>10 Millionen Tokens pro Monat</strong> (etwa 20.000 Chat-Anfragen à ~500 Tokens):</p>
-      <ul>
-        <li><strong>OpenAI GPT-4o (API):</strong> ~120–150 $ pro Monat bei gemischter Input/Output-Rate. Keine Vorabkosten, aber keine Datenhoheit.</li>
-        <li><strong>Hetzner GPU Cloud (A100 80 GB):</strong> ~2,50 €/Stunde. Bei 8 Stunden/Tag (Spitzenlastabdeckung) ~250 €/Monat. Flexibel, aber teuer bei Dauerbetrieb.</li>
-        <li><strong>Eigene GPU (RTX 4090 + CPU-Server):</strong> Einmalig ~2.000 € für die GPU, ~80 €/Monat für einen <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html">Hetzner-Dedicated-Server</a> mit GPU-Slot. Amortisation nach ~14 Monaten gegenüber der API.</li>
-        <li><strong>Dedizierter GPU-Server (2× A100):</strong> ~600–900 €/Monat bei OVHcloud oder Hetzner. Maximaler Durchsatz, Enterprise-Niveau.</li>
-      </ul>
-      <p>Unser Tipp: <strong>Starte mit einer einzelnen RTX 4090</strong> (oder warte auf die kommende RTX 5090 mit 32 GB VRAM) auf einem Hetzner-Dedicated-Server. Das Setup kostet dich rund 150–200 €/Monat all-inclusive und serviert problemlos 10–20 Millionen Tokens – weit unter dem API-Preis.</p>
-
-      <h2>Fazit</h2>
-      <p><strong>vLLM</strong> ist 2026 der Goldstandard für Production-Ready LLM Serving auf eigener GPU-Infrastruktur. Mit <strong>PagedAttention</strong> löst es das VRAM-Fragmentierungsproblem, mit <strong>Continuous Batching</strong> maximiert es die GPU-Auslastung und mit der <strong>OpenAI-kompatiblen API</strong> integrierst du es nahtlos in bestehende Tools und Workflows. Egal ob du einen einzelnen Chatbot für dein Team betreiben, eine KI-gestützte IDE mit Code-Vervollständigung ausstatten oder einen skalierbaren B2B-LLM-Service aufbauen willst – vLLM liefert die Performance und Zuverlässigkeit, die für den produktiven Einsatz nötig ist.</p>
-      <p>Die Kombination aus vLLM und einem leistungsstarken GPU-Server ersetzt teure Cloud-API-Abonnements und gibt dir die volle Kontrolle über deine Daten, Modelle und Kosten zurück. Zusammen mit Tools wie <strong>Open WebUI</strong> als Frontend, <strong>Prometheus & Grafana</strong> für Monitoring und einem <strong>Nginx Reverse Proxy</strong> für Sicherheit baust du dir damit eine KI-Plattform, die mit kommerziellen Anbietern Schritt hält – zu einem Bruchteil der Kosten.</p>
-
+<section class="related-section">
+  <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>
+  <div class="related-grid">
+    <article class="blog-card">
+  <a href="/artikel/llm-lokal-hosten-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/llm-lokal-hosten-2026.png" alt="LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag ki-llm" style="background:#9C27B022;color:#9C27B0">KI &amp; LLM</span>
+      <span>07. July 2026</span>
+      <span>14 Min</span>
     </div>
-
-    <!-- Amazon Affiliate Block -->
-    <div class="affiliate-box" style="margin:30px 0;padding:20px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);border:1px solid #e94560;border-radius:12px;text-align:center">
-      <p><strong>Empfohlene Hardware für dein vLLM-Setup</strong></p>
-      <a href="https://www.amazon.de/s?k=NVIDIA+RTX+4090+GPU&tag=nova079-20" target="_blank" rel="nofollow sponsored" style="display:inline-block;background:#e94560;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;margin:10px 5px;">NVIDIA GPUs auf Amazon ansehen →</a>
-      <a href="https://www.amazon.de/s?k=NVIDIA+A100+GPU&tag=nova079-20" target="_blank" rel="nofollow sponsored" style="display:inline-block;background:#0f3460;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;margin:10px 5px;">Enterprise-GPUs entdecken →</a>
-      <a href="https://www.amazon.de/s?k=NVMe+SSD+2TB&tag=nova079-20" target="_blank" rel="nofollow sponsored" style="display:inline-block;background:#0f3460;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;margin:10px 5px;">NVMe SSDs für LLM-Speicher →</a>
-      <p style="margin-top:12px;font-size:0.75rem;color:#888;">* Affiliate-Links. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.</p>
+    <h3><a href="/artikel/llm-lokal-hosten-2026.html">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</a></h3>
+    <p class="card-excerpt">LLM lokal hosten 2026: ✓ Hardware-Auswahl ✓ GPU-Vergleich (RTX 4090, RTX 5090, A6000) ✓ Ollama, vLLM &amp; Docker ✓ Modell-Wahl ✓ OpenAI-kompatible API ✓ Schritt-für-Schritt-Anleitung.</p>
+    <div class="card-footer">
+      <a href="/artikel/llm-lokal-hosten-2026.html" class="read-more">Weiterlesen &rarr;</a>
     </div>
-
-    <div id="related-articles"></div>
-    <div class="adsense-placeholder"><p><strong>&mdash; Anzeige &mdash;</strong></p><p>Google AdSense Platzhalter (Ende)</p></div>
-  </article>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/llama-cpp-cpu-vs-gpu-performance-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/llama-cpp-cpu-vs-gpu-performance-2026.png" alt="llama.cpp Performance 2026: CPU vs GPU – Tokens/s, BLAS-Backends &amp; Hardware-Vergleich" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag ki-llm" style="background:#9C27B022;color:#9C27B0">KI &amp; LLM</span>
+      <span>01. July 2026</span>
+      <span>14 Min</span>
+    </div>
+    <h3><a href="/artikel/llama-cpp-cpu-vs-gpu-performance-2026.html">llama.cpp Performance 2026: CPU vs GPU – Tokens/s, BLAS-Backends &amp; Hardware-Vergleich</a></h3>
+    <p class="card-excerpt">llama.cpp Performance-Vergleich 2026: CPU-only (Q4/Q8) vs GPU Offloading vs Full-GPU. ✓ CUDA, Metal &amp; Vulkan im Test ✓ Tokens/s-Benchmarks ✓ Hardware-Empfehlungen für RTX, Mac &amp; mehr!</p>
+    <div class="card-footer">
+      <a href="/artikel/llama-cpp-cpu-vs-gpu-performance-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/comfyui-auf-gpu-hosten.html" class="card-img-link">
+    <div class="card-img"><img src="/images/comfyui-auf-gpu-hosten.png" alt="ComfyUI auf GPU hosten – Bild-KI Workflows 2026 mit Flux, SDXL &amp; SD3" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag ki-llm" style="background:#9C27B022;color:#9C27B0">KI &amp; LLM</span>
+      <span>15. June 2026</span>
+      <span>11 Min</span>
+    </div>
+    <h3><a href="/artikel/comfyui-auf-gpu-hosten.html">ComfyUI auf GPU hosten – Bild-KI Workflows 2026 mit Flux, SDXL &amp; SD3</a></h3>
+    <p class="card-excerpt">ComfyUI auf GPU hosten 2026: Flux, SDXL, SD3 Modelle laden, Workflows teilen, API-Betrieb. GPU-Anforderungen, Queue-Management &amp; Anbietervergleich für Bild-KI.</p>
+    <div class="card-footer">
+      <a href="/artikel/comfyui-auf-gpu-hosten.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/ki-server-sicherheit-llm-api-absichern-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/ki-server-sicherheit-llm-api-absichern-2026.png" alt="KI-Server-Sicherheit: LLM API absichern, Rate-Limiting &amp; Monitoring 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag ki-llm" style="background:#9C27B022;color:#9C27B0">KI &amp; LLM</span>
+      <span>15. June 2026</span>
+      <span>13 Min</span>
+    </div>
+    <h3><a href="/artikel/ki-server-sicherheit-llm-api-absichern-2026.html">KI-Server-Sicherheit: LLM API absichern, Rate-Limiting &amp; Monitoring 2026</a></h3>
+    <p class="card-excerpt">LLM API Sicherheit für selbst gehostete KI-Server 2026: API-Key-Auth, Rate-Limiting mit Nginx &amp; Cloudflare, Request-Logging, Modell-Isolation, CORS &amp; DDoS-Schutz. Best Practices.</p>
+    <div class="card-footer">
+      <a href="/artikel/ki-server-sicherheit-llm-api-absichern-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/ollama-llm-server-vps-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/ollama-llm-server-vps-2026.png" alt="Ollama LLM Server auf VPS hosten 2026 – Lokale KI-Modelle selbst betreiben" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag ki-llm" style="background:#9C27B022;color:#9C27B0">KI &amp; LLM</span>
+      <span>15. June 2026</span>
+      <span>13 Min</span>
+    </div>
+    <h3><a href="/artikel/ollama-llm-server-vps-2026.html">Ollama LLM Server auf VPS hosten 2026 – Lokale KI-Modelle selbst betreiben</a></h3>
+    <p class="card-excerpt">Ollama LLM Server auf VPS 2026 selbst hosten: Llama 3.3, Mistral, Phi-3 lokal betreiben, API nutzen, Quantisierung, GPU-Skalierung &amp; Kostenvergleich.</p>
+    <div class="card-footer">
+      <a href="/artikel/ollama-llm-server-vps-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/runpod-serverless-vs-dedicated-gpu-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/runpod-serverless-vs-dedicated-gpu-2026.png" alt="RunPod Serverless vs Dedicated GPU 2026 – Was lohnt sich?" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag ki-llm" style="background:#9C27B022;color:#9C27B0">KI &amp; LLM</span>
+      <span>15. June 2026</span>
+      <span>11 Min</span>
+    </div>
+    <h3><a href="/artikel/runpod-serverless-vs-dedicated-gpu-2026.html">RunPod Serverless vs Dedicated GPU 2026 – Was lohnt sich?</a></h3>
+    <p class="card-excerpt">RunPod Serverless GPU vs Dedicated GPU im Vergleich 2026: Kosten, Latenz, Skalierung. Wann sich per-Sekunde-Abrechnung lohnt und wann ein dedizierter Pod günstiger ist. Inklusive Community Cloud vs Se</p>
+    <div class="card-footer">
+      <a href="/artikel/runpod-serverless-vs-dedicated-gpu-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+  </div>
+</section>
+  </div>
 </main>
 
-<footer class="footer"><div class="container"><div class="footer-grid"><div><h4>hosta<span style="color:var(--accent)">zar</span></h4><p style="color:var(--text-muted);font-size:0.9rem">Dein Hosting- &amp; Server-Portal mit Guides.</p></div><div><h4>Kategorien</h4><ul><li><a href="/gaming/">🎮 Gaming</a></li><li><a href="/webhosting/">🌐 Webhosting</a></li><li><a href="/devops/">⚙️ DevOps</a></li></ul></div><div><h4>Rechtliches</h4><ul><li><a href="/about.html">Über uns</a></li><li><a href="/impressum.html">Impressum</a></li></ul></div></div><div class="footer-bottom"><span>© 2026 hostazar.com</span></div></div></footer>
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  if(typeof hostazarApp !== 'undefined'){
-    hostazarApp.init({
-      gridId: 'related-articles',
-      relatedConfig: {containerId:'related-articles',category:'devops',excludeSlug:'vllm-auf-eigener-gpu-aufsetzen',count:3},
-      breadcrumbs: [{url:'/devops/',label:'DevOps'},{label:'vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention'}]
-    });
-  }
-});
-</script>
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>hostazar.com</h4>
+        <p style="color:var(--text-muted);font-size:.85rem;max-width:300px">
+          Unabh&#228;ngige Hosting-Reviews, Gameserver-Guides und DevOps-Tutorials. Transparent, testbench-basiert, werbefrei.
+        </p>
+      </div>
+      <div class="footer-links-columns"><h5>Gaming</h5>
+        <a href="/artikel/7-days-to-die-server-hosten-2026.html">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</a>
+        <a href="/artikel/ark-survival-ascended-server-hosten-2026.html">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2026</a>
+        <a href="/artikel/conan-exiles-server-hosten.html">Conan Exiles Server mieten – Setup &amp; Kosten 2026</a>
+        <a href="/artikel/cs2-server-mieten-guide-2026.html">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</a>
+        <a href="/artikel/dayz-server-mieten-2026.html">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</a>
+        <a href="/gaming/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>Webhosting</h5>
+        <a href="/artikel/cloud-hosting-vs-shared-hosting.html">Cloud Hosting vs. Shared Hosting – Vergleich 2026</a>
+        <a href="/artikel/cloudflare-tunnel-einrichten.html">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</a>
+        <a href="/artikel/docker-wordpress-hosten.html">WordPress mit Docker hosten – Modernes Setup 2026</a>
+        <a href="/artikel/domain-kaufen-einrichten-2026.html">Domain kaufen und einrichten – Schritt-für-Schritt 2026</a>
+        <a href="/artikel/email-server-selbst-hosten-2026.html">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</a>
+        <a href="/webhosting/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>DevOps</h5>
+        <a href="/artikel/ansible-automation-guide.html">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</a>
+        <a href="/artikel/backup-strategien-vps-server-2026.html">Backup-Strategien für VPS und Server – Der Guide 2026</a>
+        <a href="/artikel/docker-vs-podman-vergleich-2026.html">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</a>
+        <a href="/artikel/elk-stack-log-management.html">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</a>
+        <a href="/artikel/github-actions-ci-cd-pipeline-2026.html">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</a>
+        <a href="/devops/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>KI &amp; LLM</h5>
+        <a href="/artikel/llm-lokal-hosten-2026.html">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</a>
+        <a href="/artikel/llama-cpp-cpu-vs-gpu-performance-2026.html">llama.cpp Performance 2026: CPU vs GPU – Tokens/s, BLAS-Backends &amp; Hardware-Vergleich</a>
+        <a href="/artikel/comfyui-auf-gpu-hosten.html">ComfyUI auf GPU hosten – Bild-KI Workflows 2026 mit Flux, SDXL &amp; SD3</a>
+        <a href="/artikel/ki-server-sicherheit-llm-api-absichern-2026.html">KI-Server-Sicherheit: LLM API absichern, Rate-Limiting &amp; Monitoring 2026</a>
+        <a href="/artikel/ollama-llm-server-vps-2026.html">Ollama LLM Server auf VPS hosten 2026 – Lokale KI-Modelle selbst betreiben</a>
+        <a href="/ki-llm/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 hostazar.com</span>
+      <span>
+        <a href="/impressum.html">Impressum</a> &middot;
+        <a href="/datenschutz.html">Datenschutz</a>
+      </span>
+    </div>
+    <div class="affiliate-note">
+      * Affiliate-Links: Wir erhalten ggf. eine Provision beim Kauf. Das kostet dich keinen Cent mehr.
+    </div>
+  </div>
+</footer>
+<div class="cookie-banner" id="cookieBanner">
+  <div class="cookie-inner">
+    <p>Wir nutzen Cookies f&#252;r Analyse und AdSense. <a href="/datenschutz.html">Mehr erfahren</a></p>
+    <button class="cookie-btn" id="cookieBtn">Akzeptieren</button>
+  </div>
+</div>
+<script src="/data/script.js" defer></script>
 </body>
 </html>

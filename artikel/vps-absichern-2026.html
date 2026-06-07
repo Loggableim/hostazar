@@ -3,526 +3,709 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VPS absichern 2026: SSH, Firewall, Fail2ban & Updates | hostazar.com</title>
+  <title>VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates | hostazar.com</title>
   <meta name="description" content="VPS absichern 2026: Einsteiger-Guide für sichere SSH-Logins, UFW-Firewall, Fail2ban, automatische Updates, Backups und Monitoring auf deinem Linux-Server.">
-  <meta name="keywords" content="VPS absichern 2026, SSH Sicherheit, UFW Firewall, Fail2ban einrichten, automatische Updates Linux, Server Sicherheit, DevOps Einsteiger">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://hostazar.com/artikel/vps-absichern-2026.html">
   <link rel="stylesheet" href="/css/style.css">
-
-  <!-- Open Graph -->
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://hostazar.com/artikel/vps-absichern-2026.html">
-  <meta property="og:title" content="VPS absichern 2026: SSH, Firewall, Fail2ban und automatische Updates für Einsteiger">
-  <meta property="og:description" content="Praktischer Sicherheitsfahrplan für deinen ersten VPS: SSH härten, Firewall aktivieren, Fail2ban nutzen, Updates automatisieren und Backups nicht vergessen.">
+  <meta property="og:title" content="VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates | hostazar.com">
+  <meta property="og:description" content="VPS absichern 2026: Einsteiger-Guide für sichere SSH-Logins, UFW-Firewall, Fail2ban, automatische Updates, Backups und Monitoring auf deinem Linux-Server.">
   <meta property="og:image" content="https://hostazar.com/images/vps-absichern-2026.png">
   <meta property="og:locale" content="de_DE">
-  <meta property="article:published_time" content="2026-06-02">
-  <meta property="article:modified_time" content="2026-06-02">
-  <meta property="article:section" content="DevOps">
-  <meta property="article:tag" content="VPS Sicherheit">
-  <meta property="article:tag" content="SSH">
-  <meta property="article:tag" content="Fail2ban">
+  <meta property="og:site_name" content="Hostazar &mdash; VPS &amp; DevOps Portal">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates | hostazar.com">
+  <meta name="twitter:description" content="VPS absichern 2026: Einsteiger-Guide für sichere SSH-Logins, UFW-Firewall, Fail2ban, automatische Updates, Backups und Monitoring auf deinem Linux-Server.">
+  <meta name="twitter:image" content="https://hostazar.com/images/vps-absichern-2026.png">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
 
-  <!-- JSON-LD -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    "headline": "VPS absichern 2026: SSH, Firewall, Fail2ban und automatische Updates für Einsteiger",
-    "url": "https://hostazar.com/artikel/vps-absichern-2026.html",
-    "datePublished": "2026-06-02",
-    "dateModified": "2026-06-02",
-    "author": { "@type": "Organization", "name": "hostazar.com" },
-    "publisher": { "@type": "Organization", "name": "hostazar.com" },
-    "description": "VPS absichern 2026: Einsteiger-Guide für sichere SSH-Logins, UFW-Firewall, Fail2ban, automatische Updates, Backups und Monitoring auf deinem Linux-Server.",
-    "image": "https://hostazar.com/images/vps-absichern-2026.png",
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://hostazar.com/artikel/vps-absichern-2026.html" },
-    "wordCount": 1648,
-    "inLanguage": "de"
-  }
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "VPS absichern 2026: SSH, Firewall, Fail2ban & Updates | hostazar.com",
+  "url": "https://hostazar.com/artikel/vps-absichern-2026.html",
+  "description": "VPS absichern 2026: Einsteiger-Guide für sichere SSH-Logins, UFW-Firewall, Fail2ban, automatische Updates, Backups und Monitoring auf deinem Linux-Server.",
+  "inLanguage": "de",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "hostazar.com",
+    "url": "https://hostazar.com"
+  },
+  "datePublished": "2026-06-02",
+  "dateModified": "2026-06-02",
+  "image": "https://hostazar.com/images/vps-absichern-2026.png",
+  "author": {
+    "@type": "Organization",
+    "name": "hostazar.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "hostazar.com"
+  },
+  "wordCount": 1641
+}
   </script>
-  <script src="/data/script.js" defer></script>
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9094916118868532"
-    crossorigin="anonymous"></script>
-
-<meta property="og:site_name" content="Hostazar — VPS & DevOps Portal" />
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="VPS absichern 2026: SSH, Firewall, Fail2ban & Updates | hostazar.com" />
-<meta name="twitter:description" content="VPS absichern 2026: Einsteiger-Guide für sichere SSH-Logins, UFW-Firewall, Fail2ban, automatische Updates, Backups und Monitoring auf deinem Linux-Server." />
-<meta name="twitter:image" content="https://hostazar.com/images/7-days-to-die-server-hosten-2026.png" />
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Startseite",
+      "item": "https://hostazar.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "DevOps",
+      "item": "https://hostazar.com/devops/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "VPS absichern 2026: SSH, Firewall, Fail2ban & Updates | hostazar.com",
+      "item": "https://hostazar.com/artikel/vps-absichern-2026.html"
+    }
+  ]
+}
+  </script>
 </head>
 <body>
-
 <nav class="navbar">
   <div class="container">
     <a href="/" class="logo">hosta<span>zar</span></a>
+    <button class="nav-toggle" aria-label="Men&#252; &#246;ffnen">&#9776;</button>
     <ul class="nav-links">
       <li><a href="/">Startseite</a></li>
       <li class="nav-dropdown">
         <a href="/gaming/">🎮 Gaming</a>
-        <div class="nav-dropdown-menu">
-          <div class="mega-grid">
-            <div class="mega-column">
-              <h4><span style="color:#4CAF50">◆</span> Beliebt</h4>
-              <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">
-                <img src="/images/7-days-to-die-server-hosten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</span>
-              </a>
-              <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
-                <img src="/images/ark-survival-ascended-server-hosten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2</span>
-              </a>
-              <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">
-                <img src="/images/conan-exiles-server-hosten.png" alt="" loading="lazy">
-                <span class="mega-title">Conan Exiles Server mieten – Setup &amp; Kosten 2026</span>
-              </a>
-              <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">
-                <img src="/images/cs2-server-mieten-guide-2026.png" alt="" loading="lazy">
-                <span class="mega-title">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</span>
-              </a>
-              <a href="/artikel/dayz-server-mieten-2026.html" class="mega-item">
-                <img src="/images/dayz-server-mieten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
-              </a>
-              <a href="/artikel/enshrouded-server-hosting-2026.html" class="mega-item">
-                <img src="/images/enshrouded-server-hosting-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Enshrouded Server – Hosting-Guide &amp; Setup für Koop 2026</span>
-              </a>
-            </div>
-            <div class="mega-column">
-              <h4><span style="color:#4CAF50">◆</span> Anleitungen</h4>
-              <a href="/artikel/farming-simulator-25-server-mieten-2026.html" class="mega-item">
-                <img src="/images/farming-simulator-25-server-mieten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Farming Simulator 25 Server mieten – Multiplayer-Guide 2026</span>
-              </a>
-              <a href="/artikel/grounded-server-hosting.html" class="mega-item">
-                <img src="/images/grounded-server-hosting.png" alt="" loading="lazy">
-                <span class="mega-title">Grounded Server hosten – Kosten, Setup &amp; Anbieter 2026</span>
-              </a>
-              <a href="/artikel/icarus-server-hosting.html" class="mega-item">
-                <img src="/images/icarus-server-hosting.png" alt="" loading="lazy">
-                <span class="mega-title">Icarus Server hosten – Dedicated Server für Koop 2026</span>
-              </a>
-              <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
-                <img src="/images/minecraft-server-vergleich-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Minecraft Server mieten oder selbst hosten? Der ultimative Ver</span>
-              </a>
-              <a href="/artikel/nightingale-server-hosting.html" class="mega-item">
-                <img src="/images/nightingale-server-hosting.png" alt="" loading="lazy">
-                <span class="mega-title">Nightingale Server hosten – Realm-Hosting-Guide 2026</span>
-              </a>
-              <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
-                <img src="/images/palworld-server-hosting-guide-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Palworld Server mieten oder selbst hosten? Der komplette Hosti</span>
-              </a>
-            </div>
-            <div class="mega-column">
-              <h4><span style="color:#4CAF50">◆</span> Vergleiche</h4>
-              <a href="/artikel/project-zomboid-server-hosting-2026.html" class="mega-item">
-                <img src="/images/project-zomboid-server-hosting-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Project Zomboid Server – Hosting &amp; Setup für Multiplayer 2</span>
-              </a>
-              <a href="/artikel/rust-server-mieten-guide-2026.html" class="mega-item">
-                <img src="/images/rust-server-mieten-guide-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Rust Server mieten – Kosten, Setup, Mods &amp; Anbieter 2026</span>
-              </a>
-              <a href="/artikel/satisfactory-server-mieten-oder-selbst-hosten-2026.html" class="mega-item">
-                <img src="/images/satisfactory-server-mieten-oder-selbst-hosten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Satisfactory Server mieten oder selbst hosten? Der Guide 2026</span>
-              </a>
-              <a href="/artikel/scum-server-mieten.html" class="mega-item">
-                <img src="/images/scum-server-mieten.png" alt="" loading="lazy">
-                <span class="mega-title">SCUM Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
-              </a>
-              <a href="/artikel/smalland-server-hosting.html" class="mega-item">
-                <img src="/images/smalland-server-hosting.png" alt="" loading="lazy">
-                <span class="mega-title">Smalland Server mieten – Guide für den Koop-Server 2026</span>
-              </a>
-              <a href="/artikel/sons-of-the-forest-server.html" class="mega-item">
-                <img src="/images/sons-of-the-forest-server.png" alt="" loading="lazy">
-                <span class="mega-title">Sons of the Forest Server hosten – Setup-Guide 2026</span>
-              </a>
-            </div>
-            <div class="mega-column">
-              <h4><span style="color:#4CAF50">◆</span> Setup</h4>
-              <a href="/artikel/space-engineers-server.html" class="mega-item">
-                <img src="/images/space-engineers-server.png" alt="" loading="lazy">
-                <span class="mega-title">Space Engineers Server mieten oder selbst hosten 2026</span>
-              </a>
-              <a href="/artikel/terraria-server-hosten-2026.html" class="mega-item">
-                <img src="/images/terraria-server-hosten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Terraria Server hosten – Komplettanleitung für Multiplayer 202</span>
-              </a>
-              <a href="/artikel/the-forest-server-hosting.html" class="mega-item">
-                <img src="/images/the-forest-server-hosting.png" alt="" loading="lazy">
-                <span class="mega-title">The Forest Server hosten – Koop-Guide 2026</span>
-              </a>
-              <a href="/artikel/v-rising-server-mieten-2026.html" class="mega-item">
-                <img src="/images/v-rising-server-mieten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">V Rising Server mieten oder selbst hosten? Guide 2026</span>
-              </a>
-              <a href="/artikel/valheim-server-vps-mieten-2026.html" class="mega-item">
-                <img src="/images/valheim-server-vps-mieten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Perfo</span>
-              </a>
-              <a href="/artikel/gameserver-mieten-guide.html" class="mega-item">
-                <img src="/images/gameserver-mieten-guide.png" alt="" loading="lazy">
-                <span class="mega-title">Gameserver mieten 2025 – Der ultimative Guide</span>
-              </a>
-            </div>
-            <div class="mega-view-all">
-              <a href="/gaming/">→ Alle 24 Gaming‑Artikel anzeigen</a>
-            </div>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#4CAF50">&#9670;</span> A-Z</h4>
+            <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">
+              <img src="/images/7-days-to-die-server-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
+              <img src="/images/ark-survival-ascended-server-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">
+              <img src="/images/conan-exiles-server-hosten.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Conan Exiles Server mieten – Setup &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">
+              <img src="/images/cs2-server-mieten-guide-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</span>
+            </a>
+            <a href="/artikel/dayz-server-mieten-2026.html" class="mega-item">
+              <img src="/images/dayz-server-mieten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+            </a>
+            <a href="/artikel/enshrouded-server-hosting-2026.html" class="mega-item">
+              <img src="/images/enshrouded-server-hosting-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Enshrouded Server – Hosting-Guide &amp; Setup für Koop 2026</span>
+            </a>
+            <a href="/artikel/farming-simulator-25-server-mieten-2026.html" class="mega-item">
+              <img src="/images/farming-simulator-25-server-mieten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Farming Simulator 25 Server mieten – Multiplayer-Guide 2026</span>
+            </a>
+            <a href="/artikel/grounded-server-hosting.html" class="mega-item">
+              <img src="/images/grounded-server-hosting.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Grounded Server hosten – Kosten, Setup &amp; Anbieter 2026</span>
+            </a>
+            <a href="/artikel/icarus-server-hosting.html" class="mega-item">
+              <img src="/images/icarus-server-hosting.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Icarus Server hosten – Dedicated Server für Koop 2026</span>
+            </a>
+            <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
+              <img src="/images/minecraft-server-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Server mieten oder selbst hosten? Der ultimative Vergleich 2026</span>
+            </a>
+            <a href="/artikel/nightingale-server-hosting.html" class="mega-item">
+              <img src="/images/nightingale-server-hosting.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nightingale Server hosten – Realm-Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
+              <img src="/images/palworld-server-hosting-guide-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Palworld Server mieten oder selbst hosten? Der komplette Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/project-zomboid-server-hosting-2026.html" class="mega-item">
+              <img src="/images/project-zomboid-server-hosting-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Project Zomboid Server – Hosting &amp; Setup für Multiplayer 2026</span>
+            </a>
+            <a href="/artikel/rust-server-mieten-guide-2026.html" class="mega-item">
+              <img src="/images/rust-server-mieten-guide-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Rust Server mieten – Kosten, Setup, Mods &amp; Anbieter 2026</span>
+            </a>
+            <a href="/artikel/satisfactory-server-mieten-oder-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/satisfactory-server-mieten-oder-selbst-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Satisfactory Server mieten oder selbst hosten? Der Guide 2026</span>
+            </a>
+            <a href="/artikel/scum-server-mieten.html" class="mega-item">
+              <img src="/images/scum-server-mieten.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">SCUM Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+            </a>
+            <a href="/artikel/smalland-server-hosting.html" class="mega-item">
+              <img src="/images/smalland-server-hosting.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Smalland Server mieten – Guide für den Koop-Server 2026</span>
+            </a>
           </div>
-        </div>
+          <div class="mega-column">
+            <h4><span style="color:#4CAF50">&#9670;</span> Neueste</h4>
+            <a href="/artikel/sons-of-the-forest-server.html" class="mega-item">
+              <img src="/images/sons-of-the-forest-server.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Sons of the Forest Server hosten – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/space-engineers-server.html" class="mega-item">
+              <img src="/images/space-engineers-server.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Space Engineers Server mieten oder selbst hosten 2026</span>
+            </a>
+            <a href="/artikel/terraria-server-hosten-2026.html" class="mega-item">
+              <img src="/images/terraria-server-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Terraria Server hosten – Komplettanleitung für Multiplayer 2026</span>
+            </a>
+            <a href="/artikel/the-forest-server-hosting.html" class="mega-item">
+              <img src="/images/the-forest-server-hosting.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">The Forest Server hosten – Koop-Guide 2026</span>
+            </a>
+            <a href="/artikel/v-rising-server-mieten-2026.html" class="mega-item">
+              <img src="/images/v-rising-server-mieten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">V Rising Server mieten oder selbst hosten? Guide 2026</span>
+            </a>
+            <a href="/artikel/factorio-server-hosting-2026.html" class="mega-item">
+              <img src="/images/factorio-server-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Factorio Server mieten oder selbst hosten? Der komplette Dedicated Server Guide 2026</span>
+            </a>
+            <a href="/artikel/minecraft-server-mods-plugins-guide-2026.html" class="mega-item">
+              <img src="/images/minecraft-server-mods-plugins-guide-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Server mit Mods und Plugins – Der ultimative Modding-Guide 2026</span>
+            </a>
+            <a href="/artikel/ddos-schutz-gameserver-2026.html" class="mega-item">
+              <img src="/images/ddos-schutz-gameserver-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DDoS-Schutz für Gameserver – Anbieter &amp; Konfiguration 2026</span>
+            </a>
+            <a href="/artikel/minecraft-bedrock-vs-java-server-2026.html" class="mega-item">
+              <img src="/images/minecraft-bedrock-vs-java-server-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Bedrock vs. Java Server – Unterschiede &amp; Hosting 2026</span>
+            </a>
+            <a href="/artikel/raft-server-mieten-2026.html" class="mega-item">
+              <img src="/images/raft-server-mieten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Raft Server mieten – Dedicated Server Guide &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/palworld-server-mods-guide-2026.html" class="mega-item">
+              <img src="/images/palworld-server-mods-guide-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Palworld Mods &amp; Dedicated Server Guide 2026 – BepInEx, server.ini, Admin-Tools</span>
+            </a>
+            <a href="/artikel/pterodactyl-panel-installieren-2026.html" class="mega-item">
+              <img src="/images/pterodactyl-panel-installieren-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Pterodactyl Panel installieren – Gameserver-Management auf VPS 2026</span>
+            </a>
+            <a href="/artikel/dont-starve-together-server-hosten-2026.html" class="mega-item">
+              <img src="/images/dont-starve-together-server-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Don&#x27;t Starve Together Server hosten – Dedicated Server Setup &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/fivem-server-mieten-2026.html" class="mega-item">
+              <img src="/images/fivem-server-mieten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">FiveM (GTA V) Server mieten – Roleplay-Server Hosting Guide 2026</span>
+            </a>
+            <a href="/artikel/gaming-pc-finanzieren.html" class="mega-item">
+              <img src="/images/gaming-pc-finanzieren.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gaming-PC finanzieren – ETF-Entnahme oder Ratenkredit?</span>
+            </a>
+            <a href="/artikel/valheim-server-vps-mieten-2026.html" class="mega-item">
+              <img src="/images/valheim-server-vps-mieten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026</span>
+            </a>
+            <a href="/artikel/gameserver-mieten-guide.html" class="mega-item">
+              <img src="/images/gameserver-mieten-guide.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gameserver mieten 2025 – Der ultimative Guide</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/gaming/">Alle Gaming-Artikel</a></div>
+        </div></div>
       </li>
       <li class="nav-dropdown">
         <a href="/webhosting/">🌐 Webhosting</a>
-        <div class="nav-dropdown-menu">
-          <div class="mega-grid">
-            <div class="mega-column">
-              <h4><span style="color:#2196F3">◆</span> Beliebt</h4>
-              <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="mega-item">
-                <img src="/images/cloud-hosting-vs-shared-hosting.png" alt="" loading="lazy">
-                <span class="mega-title">Cloud Hosting vs. Shared Hosting – Vergleich 2026</span>
-              </a>
-              <a href="/artikel/cloudflare-tunnel-einrichten.html" class="mega-item">
-                <img src="/images/cloudflare-tunnel-einrichten.png" alt="" loading="lazy">
-                <span class="mega-title">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</span>
-              </a>
-              <a href="/artikel/docker-wordpress-hosten.html" class="mega-item">
-                <img src="/images/docker-wordpress-hosten.png" alt="" loading="lazy">
-                <span class="mega-title">WordPress mit Docker hosten – Modernes Setup 2026</span>
-              </a>
-              <a href="/artikel/domain-kaufen-einrichten-2026.html" class="mega-item">
-                <img src="/images/domain-kaufen-einrichten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Domain kaufen und einrichten – Schritt-für-Schritt 2026</span>
-              </a>
-            </div>
-            <div class="mega-column">
-              <h4><span style="color:#2196F3">◆</span> Anleitungen</h4>
-              <a href="/artikel/email-server-selbst-hosten-2026.html" class="mega-item">
-                <img src="/images/email-server-selbst-hosten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</span>
-              </a>
-              <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html" class="mega-item">
-                <img src="/images/hetzner-cloud-vs-dediziert-vergleich-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Hetzner Cloud vs. Dedizierter Server – Vergleich 2026</span>
-              </a>
-              <a href="/artikel/mysql-mariadb-optimierung.html" class="mega-item">
-                <img src="/images/mysql-mariadb-optimierung.png" alt="" loading="lazy">
-                <span class="mega-title">MySQL &amp; MariaDB optimieren – Performance-Guide 2026</span>
-              </a>
-              <a href="/artikel/netcup-vps-erfahrungen-2026.html" class="mega-item">
-                <img src="/images/netcup-vps-erfahrungen-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Netcup VPS Erfahrungen 2026 – Test, Preise &amp; Bewertung</span>
-              </a>
-            </div>
-            <div class="mega-column">
-              <h4><span style="color:#2196F3">◆</span> Vergleiche</h4>
-              <a href="/artikel/nextcloud-server-einrichten.html" class="mega-item">
-                <img src="/images/nextcloud-server-einrichten.png" alt="" loading="lazy">
-                <span class="mega-title">Nextcloud Server einrichten – Cloud-Speicher selbst hosten 202</span>
-              </a>
-              <a href="/artikel/plesk-vs-cpanel-vergleich.html" class="mega-item">
-                <img src="/images/plesk-vs-cpanel-vergleich.png" alt="" loading="lazy">
-                <span class="mega-title">Plesk vs. cPanel – Der große Hosting-Panel-Vergleich 2026</span>
-              </a>
-              <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
-                <img src="/images/ssl-zertifikat-lets-encrypt-2026.png" alt="" loading="lazy">
-                <span class="mega-title">SSL-Zertifikat mit Let's Encrypt einrichten – Anleitung 2026</span>
-              </a>
-              <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
-                <img src="/images/webhosting-anbieter-vergleich-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Die 5 besten Webhosting-Anbieter 2026 im Vergleich</span>
-              </a>
-            </div>
-            <div class="mega-column">
-              <h4><span style="color:#2196F3">◆</span> Setup</h4>
-              <a href="/artikel/webseite-sicherheit-2026.html" class="mega-item">
-                <img src="/images/webseite-sicherheit-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Webseite sichern – Security-Checkliste für deine Website 2026</span>
-              </a>
-              <a href="/artikel/website-online-bringen-guide-2026.html" class="mega-item">
-                <img src="/images/website-online-bringen-guide-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Webseite online bringen – Der Komplettguide von A bis Z 2026</span>
-              </a>
-              <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
-                <img src="/images/wordpress-hosting-vergleich-2026.png" alt="" loading="lazy">
-                <span class="mega-title">WordPress Hosting Vergleich 2026 – Die besten Anbieter</span>
-              </a>
-              <a href="/artikel/webhosting-vserver-vergleich.html" class="mega-item">
-                <img src="/images/webhosting-vserver-vergleich.png" alt="" loading="lazy">
-                <span class="mega-title">Webhosting vs. VServer – Was passt zu dir?</span>
-              </a>
-            </div>
-            <div class="mega-view-all">
-              <a href="/webhosting/">→ Alle 16 Webhosting‑Artikel anzeigen</a>
-            </div>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#2196F3">&#9670;</span> A-Z</h4>
+            <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="mega-item">
+              <img src="/images/cloud-hosting-vs-shared-hosting.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloud Hosting vs. Shared Hosting – Vergleich 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-tunnel-einrichten.html" class="mega-item">
+              <img src="/images/cloudflare-tunnel-einrichten.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</span>
+            </a>
+            <a href="/artikel/docker-wordpress-hosten.html" class="mega-item">
+              <img src="/images/docker-wordpress-hosten.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WordPress mit Docker hosten – Modernes Setup 2026</span>
+            </a>
+            <a href="/artikel/domain-kaufen-einrichten-2026.html" class="mega-item">
+              <img src="/images/domain-kaufen-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Domain kaufen und einrichten – Schritt-für-Schritt 2026</span>
+            </a>
+            <a href="/artikel/email-server-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/email-server-selbst-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</span>
+            </a>
+            <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html" class="mega-item">
+              <img src="/images/hetzner-cloud-vs-dediziert-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Hetzner Cloud vs. Dedizierter Server – Vergleich 2026</span>
+            </a>
+            <a href="/artikel/mysql-mariadb-optimierung.html" class="mega-item">
+              <img src="/images/mysql-mariadb-optimierung.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">MySQL &amp; MariaDB optimieren – Performance-Guide 2026</span>
+            </a>
+            <a href="/artikel/netcup-vps-erfahrungen-2026.html" class="mega-item">
+              <img src="/images/netcup-vps-erfahrungen-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Netcup VPS Erfahrungen 2026 – Test, Preise &amp; Bewertung</span>
+            </a>
+            <a href="/artikel/nextcloud-server-einrichten.html" class="mega-item">
+              <img src="/images/nextcloud-server-einrichten.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nextcloud Server einrichten – Cloud-Speicher selbst hosten 2026</span>
+            </a>
           </div>
-        </div>
+          <div class="mega-column">
+            <h4><span style="color:#2196F3">&#9670;</span> Neueste</h4>
+            <a href="/artikel/plesk-vs-cpanel-vergleich.html" class="mega-item">
+              <img src="/images/plesk-vs-cpanel-vergleich.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Plesk vs. cPanel – Der große Hosting-Panel-Vergleich 2026</span>
+            </a>
+            <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
+              <img src="/images/ssl-zertifikat-lets-encrypt-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">SSL-Zertifikat mit Let&#x27;s Encrypt einrichten – Anleitung 2026</span>
+            </a>
+            <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
+              <img src="/images/webhosting-anbieter-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Die 5 besten Webhosting-Anbieter 2026 im Vergleich</span>
+            </a>
+            <a href="/artikel/webseite-sicherheit-2026.html" class="mega-item">
+              <img src="/images/webseite-sicherheit-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webseite sichern – Security-Checkliste für deine Website 2026</span>
+            </a>
+            <a href="/artikel/website-online-bringen-guide-2026.html" class="mega-item">
+              <img src="/images/website-online-bringen-guide-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webseite online bringen – Der Komplettguide von A bis Z 2026</span>
+            </a>
+            <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
+              <img src="/images/wordpress-hosting-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WordPress Hosting Vergleich 2026 – Die besten Anbieter</span>
+            </a>
+            <a href="/artikel/caddy-web-server-einrichten-2026.html" class="mega-item">
+              <img src="/images/caddy-web-server-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Caddy Web Server einrichten – Moderner Reverse Proxy mit Auto-HTTPS 2026</span>
+            </a>
+            <a href="/artikel/hugo-astro-static-site-vergleich-2026.html" class="mega-item">
+              <img src="/images/hugo-astro-static-site-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Hugo vs. Astro – Static Site Generator Hosting Vergleich 2026</span>
+            </a>
+            <a href="/artikel/webhosting-vserver-vergleich.html" class="mega-item">
+              <img src="/images/webhosting-vserver-vergleich.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webhosting vs. VServer – Was passt zu dir?</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/webhosting/">Alle Webhosting-Artikel</a></div>
+        </div></div>
       </li>
       <li class="nav-dropdown">
         <a href="/devops/">⚙️ DevOps</a>
-        <div class="nav-dropdown-menu">
-          <div class="mega-grid">
-            <div class="mega-column">
-              <h4><span style="color:#FF9800">◆</span> Beliebt</h4>
-              <a href="/artikel/ansible-automation-guide.html" class="mega-item">
-                <img src="/images/ansible-automation-guide.png" alt="" loading="lazy">
-                <span class="mega-title">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</span>
-              </a>
-              <a href="/artikel/backup-strategien-vps-server-2026.html" class="mega-item">
-                <img src="/images/backup-strategien-vps-server-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Backup-Strategien für VPS und Server – Der Guide 2026</span>
-              </a>
-              <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="mega-item">
-                <img src="/images/docker-vs-podman-vergleich-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</span>
-              </a>
-              <a href="/artikel/elk-stack-log-management.html" class="mega-item">
-                <img src="/images/elk-stack-log-management.png" alt="" loading="lazy">
-                <span class="mega-title">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</span>
-              </a>
-              <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="mega-item">
-                <img src="/images/github-actions-ci-cd-pipeline-2026.png" alt="" loading="lazy">
-                <span class="mega-title">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</span>
-              </a>
-            </div>
-            <div class="mega-column">
-              <h4><span style="color:#FF9800">◆</span> Anleitungen</h4>
-              <a href="/artikel/gitops-argocd-einrichten.html" class="mega-item">
-                <img src="/images/gitops-argocd-einrichten.png" alt="" loading="lazy">
-                <span class="mega-title">GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</span>
-              </a>
-              <a href="/artikel/k3s-kubernetes-vps-2026.html" class="mega-item">
-                <img src="/images/k3s-kubernetes-vps-2026.png" alt="" loading="lazy">
-                <span class="mega-title">K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</span>
-              </a>
-              <a href="/artikel/linux-server-harden.html" class="mega-item">
-                <img src="/images/linux-server-harden.png" alt="" loading="lazy">
-                <span class="mega-title">Linux Server härten – Security-Baseline 2026</span>
-              </a>
-              <a href="/artikel/n8n-automation-server.html" class="mega-item">
-                <img src="/images/n8n-automation-server.png" alt="" loading="lazy">
-                <span class="mega-title">n8n Automation Server hosten – Workflow-Automatisierung 2026</span>
-              </a>
-              <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" class="mega-item">
-                <img src="/images/nginx-reverse-proxy-einrichten-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Nginx Reverse Proxy konfigurieren – Einsteiger-Guide 2026</span>
-              </a>
-            </div>
-            <div class="mega-column">
-              <h4><span style="color:#FF9800">◆</span> Vergleiche</h4>
-              <a href="/artikel/postgresql-vps-optimierung.html" class="mega-item">
-                <img src="/images/postgresql-vps-optimierung.png" alt="" loading="lazy">
-                <span class="mega-title">PostgreSQL auf dem VPS optimieren – Tuning-Guide 2026</span>
-              </a>
-              <a href="/artikel/prometheus-grafana-monitoring-2026.html" class="mega-item">
-                <img src="/images/prometheus-grafana-monitoring-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Server Monitoring mit Prometheus &amp; Grafana – Setup 2026</span>
-              </a>
-              <a href="/artikel/terraform-infrastructure-as-code-2026.html" class="mega-item">
-                <img src="/images/terraform-infrastructure-as-code-2026.png" alt="" loading="lazy">
-                <span class="mega-title">Terraform Infrastructure as Code – Einführung &amp; Beispiele </span>
-              </a>
-              <a href="/artikel/traefik-reverse-proxy.html" class="mega-item">
-                <img src="/images/traefik-reverse-proxy.png" alt="" loading="lazy">
-                <span class="mega-title">Traefik Reverse Proxy einrichten – Moderner Docker-Proxy 2026</span>
-              </a>
-              <a href="/artikel/wireguard-vpn-server.html" class="mega-item">
-                <img src="/images/wireguard-vpn-server.png" alt="" loading="lazy">
-                <span class="mega-title">WireGuard VPN Server einrichten – Schnell &amp; Sicher 2026</span>
-              </a>
-            </div>
-            <div class="mega-column">
-              <h4><span style="color:#FF9800">◆</span> Setup</h4>
-              <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">
-                <img src="/images/docker-compose-vps-guide.png" alt="" loading="lazy">
-                <span class="mega-title">Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse</span>
-              </a>
-              <a href="/artikel/vps-absichern-2026.html" class="mega-item">
-                <img src="/images/vps-absichern-2026.png" alt="" loading="lazy">
-                <span class="mega-title">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</span>
-              </a>
-              <a href="/artikel/devops-tools-2024.html" class="mega-item">
-                <img src="/images/devops-tools-2024.png" alt="" loading="lazy">
-                <span class="mega-title">DevOps-Tools 2024 – Die 10 wichtigsten Tools im Überblick</span>
-              </a>
-            </div>
-            <div class="mega-view-all">
-              <a href="/devops/">→ Alle 18 DevOps‑Artikel anzeigen</a>
-            </div>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#FF9800">&#9670;</span> A-Z</h4>
+            <a href="/artikel/ansible-automation-guide.html" class="mega-item">
+              <img src="/images/ansible-automation-guide.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</span>
+            </a>
+            <a href="/artikel/backup-strategien-vps-server-2026.html" class="mega-item">
+              <img src="/images/backup-strategien-vps-server-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Backup-Strategien für VPS und Server – Der Guide 2026</span>
+            </a>
+            <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="mega-item">
+              <img src="/images/docker-vs-podman-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</span>
+            </a>
+            <a href="/artikel/elk-stack-log-management.html" class="mega-item">
+              <img src="/images/elk-stack-log-management.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</span>
+            </a>
+            <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="mega-item">
+              <img src="/images/github-actions-ci-cd-pipeline-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</span>
+            </a>
+            <a href="/artikel/gitops-argocd-einrichten.html" class="mega-item">
+              <img src="/images/gitops-argocd-einrichten.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</span>
+            </a>
+            <a href="/artikel/k3s-kubernetes-vps-2026.html" class="mega-item">
+              <img src="/images/k3s-kubernetes-vps-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/linux-server-harden.html" class="mega-item">
+              <img src="/images/linux-server-harden.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Linux Server härten – Security-Baseline 2026</span>
+            </a>
+            <a href="/artikel/n8n-automation-server.html" class="mega-item">
+              <img src="/images/n8n-automation-server.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">n8n Automation Server hosten – Workflow-Automatisierung 2026</span>
+            </a>
+            <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" class="mega-item">
+              <img src="/images/nginx-reverse-proxy-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nginx Reverse Proxy konfigurieren – Einsteiger-Guide 2026</span>
+            </a>
+            <a href="/artikel/postgresql-vps-optimierung.html" class="mega-item">
+              <img src="/images/postgresql-vps-optimierung.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">PostgreSQL auf dem VPS optimieren – Tuning-Guide 2026</span>
+            </a>
+            <a href="/artikel/prometheus-grafana-monitoring-2026.html" class="mega-item">
+              <img src="/images/prometheus-grafana-monitoring-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Server Monitoring mit Prometheus &amp; Grafana – Setup 2026</span>
+            </a>
+            <a href="/artikel/terraform-infrastructure-as-code-2026.html" class="mega-item">
+              <img src="/images/terraform-infrastructure-as-code-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Terraform Infrastructure as Code – Einführung &amp; Beispiele 2026</span>
+            </a>
+            <a href="/artikel/traefik-reverse-proxy.html" class="mega-item">
+              <img src="/images/traefik-reverse-proxy.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Traefik Reverse Proxy einrichten – Moderner Docker-Proxy 2026</span>
+            </a>
+            <a href="/artikel/wireguard-vpn-server.html" class="mega-item">
+              <img src="/images/wireguard-vpn-server.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WireGuard VPN Server einrichten – Schnell &amp; Sicher 2026</span>
+            </a>
+            <a href="/artikel/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.html" class="mega-item">
+              <img src="/images/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">OpenRouter API vs. eigene GPU – Kostenvergleich 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-pages-vercel-netlify-vergleich-2026.html" class="mega-item">
+              <img src="/images/cloudflare-pages-vercel-netlify-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare Pages vs Vercel vs Netlify – Static Hosting Vergleich 2026</span>
+            </a>
+            <a href="/artikel/gaestebeitrag-finanz-junkie-server-kosten-investor-guide.html" class="mega-item">
+              <img src="/images/server-kosten-investor-guide.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Server mieten oder kaufen: Die versteckten Kosten der Digitalisierung – Ein Investor-Guide | Gastbeitrag</span>
+            </a>
+            <a href="/artikel/gitlab-ci-cd-pipeline-guide-2026.html" class="mega-item">
+              <img src="/images/gitlab-ci-cd-pipeline-guide-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitLab CI/CD Pipeline einrichten – Schritt-für-Schritt Guide 2026</span>
+            </a>
+            <a href="/artikel/minio-object-storage-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/minio-object-storage-selbst-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">MinIO Object Storage selbst hosten 2026 – S3-kompatibel auf dem VPS</span>
+            </a>
+            <a href="/artikel/proxmox-heimserver-einrichten-2026.html" class="mega-item">
+              <img src="/images/proxmox-heimserver-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Proxmox Heimserver einrichten 2026 – Virtualisierung zuhause Schritt für Schritt</span>
+            </a>
+            <a href="/artikel/vps-mieten-vergleich-2026.html" class="mega-item">
+              <img src="/images/vps-mieten-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS mieten 2026: Die besten Anbieter, Preise &amp; Tipps für Entwickler</span>
+            </a>
+            <a href="/artikel/quantisierte-modelle-gguf-awq-gptq-exl2-bitsandbytes-2026.html" class="mega-item">
+              <img src="/images/quantisierte-modelle-gguf-awq-gptq-exl2-bitsandbytes-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Quantisierte Modelle: GGUF, AWQ, GPTQ, EXL2, Bitsandbytes – Was ist besser? 2026</span>
+            </a>
           </div>
-        </div>
+          <div class="mega-column">
+            <h4><span style="color:#FF9800">&#9670;</span> Neueste</h4>
+            <a href="/artikel/text-generation-webui-oobabooga-einrichten-2026.html" class="mega-item">
+              <img src="/images/text-generation-webui-oobabooga-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Text Generation WebUI (oobabooga) einrichten – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/dedizierter-server-vs-vps-2026.html" class="mega-item">
+              <img src="/images/dedizierter-server-vs-vps-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Dedizierter Server vs. VPS – Der große Vergleich 2026</span>
+            </a>
+            <a href="/artikel/helm-charts-kubernetes-guide-2026.html" class="mega-item">
+              <img src="/images/helm-charts-kubernetes-guide-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Helm Charts – Kubernetes Package Manager Einführung &amp; Praxis 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-waf-einrichten-2026.html" class="mega-item">
+              <img src="/images/cloudflare-waf-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare WAF einrichten – DDoS-Schutz &amp;amp; Bot-Filter 2026</span>
+            </a>
+            <a href="/artikel/discord-bot-vps-hosten-2026.html" class="mega-item">
+              <img src="/images/discord-bot-vps-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Discord Bot auf VPS hosten – Komplettanleitung 2026</span>
+            </a>
+            <a href="/artikel/jitsi-meet-server-vps-2026.html" class="mega-item">
+              <img src="/images/jitsi-meet-server-vps-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Jitsi Meet Server selbst hosten – Videokonferenzen auf VPS 2026</span>
+            </a>
+            <a href="/artikel/plausible-analytics-vps-2026.html" class="mega-item">
+              <img src="/images/plausible-analytics-vps-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Plausible Analytics – Selbstgehostetes Web-Analytics auf VPS 2026</span>
+            </a>
+            <a href="/artikel/portainer-docker-management-vps-2026.html" class="mega-item">
+              <img src="/images/portainer-docker-management-vps-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Portainer – Docker Management UI auf VPS einrichten 2026</span>
+            </a>
+            <a href="/artikel/ghost-cms-hosting-vps-2026.html" class="mega-item">
+              <img src="/images/ghost-cms-hosting-vps-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ghost CMS Hosting auf VPS 2026 – Blog-Software installieren &amp; betreiben</span>
+            </a>
+            <a href="/artikel/lemp-stack-vps-einrichten-2026.html" class="mega-item">
+              <img src="/images/lemp-stack-vps-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LEMP Stack auf VPS einrichten 2026 – Anleitung &amp;amp; Setup</span>
+            </a>
+            <a href="/artikel/redis-cache-vps-einrichten-2026.html" class="mega-item">
+              <img src="/images/uptime-kuma-monitoring-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Redis Cache auf VPS einrichten und optimieren 2026</span>
+            </a>
+            <a href="/artikel/teamspeak-server-mieten-2026.html" class="mega-item">
+              <img src="/images/teamspeak-server-mieten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">TeamSpeak 3 Server mieten 2026 – Sprachserver für Gamer</span>
+            </a>
+            <a href="/artikel/uptime-kuma-monitoring-einrichten-2026.html" class="mega-item">
+              <img src="/images/uptime-kuma-monitoring-einrichten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Uptime Kuma einrichten – Status Pages &amp;amp; Server-Monitoring 2026</span>
+            </a>
+            <a href="/artikel/vaultwarden-passwort-manager-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/vaultwarden-passwort-manager-selbst-hosten-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Vaultwarden Passwort-Manager selbst hosten – Sicherer als die Cloud 2026</span>
+            </a>
+            <a href="/artikel/contabo-vps-erfahrungen-2026.html" class="mega-item">
+              <img src="/images/contabo-vps-erfahrungen-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Contabo VPS Erfahrungen 2026 – Test, Preise &amp; Setup-Guide</span>
+            </a>
+            <a href="/artikel/gitea-git-server-vps-2026.html" class="mega-item">
+              <img src="/images/gitea-git-server-vps-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gitea – Selfhosted Git-Server auf VPS installieren &amp;amp; betreiben 2026</span>
+            </a>
+            <a href="/artikel/jenkins-ci-cd-pipeline-vps-2026.html" class="mega-item">
+              <img src="/images/jenkins-ci-cd-pipeline-vps-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Jenkins CI/CD Pipeline auf dem VPS – Automatisierte Builds &amp;amp; Deployments 2026</span>
+            </a>
+            <a href="/artikel/vps-anbieter-vergleich-2026.html" class="mega-item">
+              <img src="/images/vps-anbieter-vergleich-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS-Anbieter Vergleich 2026 – Hetzner, Netcup, Contabo, IONOS im Test</span>
+            </a>
+            <a href="/artikel/webseite-geschwindigkeit-optimieren-2026.html" class="mega-item">
+              <img src="/images/webseite-geschwindigkeit-optimieren-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Website-Geschwindigkeit optimieren – PageSpeed-Guide 2026</span>
+            </a>
+            <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">
+              <img src="/images/docker-compose-vps-guide.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben</span>
+            </a>
+            <a href="/artikel/vps-absichern-2026.html" class="mega-item">
+              <img src="/images/vps-absichern-2026.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</span>
+            </a>
+            <a href="/artikel/devops-tools-2024.html" class="mega-item">
+              <img src="/images/devops-tools-2024.png" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DevOps-Tools 2024 – Die 10 wichtigsten Tools im Überblick</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/devops/">Alle DevOps-Artikel</a></div>
+        </div></div>
       </li>
-      <li><a href="/about.html">Über uns</a></li>
-      <li><a href="/impressum.html">Impressum</a></li>
+      <li><a href="/about.html">&#220;ber</a></li>
     </ul>
   </div>
 </nav>
-
-<main class="container article-page">
-  <article>
-    <div class="article-header">
-      <div class="card-meta">
-        <span class="card-tag devops">DevOps</span>
-        <span>2. Juni 2026</span>
-        <span>· 10 Min Lesezeit</span>
-      </div>
-      <h1>VPS absichern 2026: SSH, Firewall, Fail2ban und automatische Updates für Einsteiger</h1>
-      <p style="color:var(--text-secondary);font-size:1.1rem">Dein erster eigener Server ist online? Dann ist jetzt der richtige Moment für eine solide Grundabsicherung: mit Schlüssel-Login, Firewall-Regeln, Fail2ban, Updates, Backups und einfachen Kontrollen.</p>
+  <nav class="breadcrumbs"><a href="https://hostazar.com/">hostazar</a><span class="sep"> &rsaquo; </span><a href="https://hostazar.com/devops/">DevOps</a><span class="sep"> &rsaquo; </span><span class="current">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates | hostazar.com</span></nav>
+<main class="article-page">
+  <div class="container">
+    <div class="article-meta-top">
+      <span class="card-tag devops">DevOps</span>
+      <span>10 Min Lesezeit</span>
     </div>
 
-    <div class="hero-image-wrap" style="margin:1.5rem 0;border-radius:12px;overflow:hidden;">
-      <img src="../images/vps-absichern-2026.png" alt="VPS absichern 2026 mit SSH Firewall Fail2ban und automatischen Updates" class="hero-image" style="width:100%;height:auto;display:block;">
+  <a href="/artikel/ansible-automation-guide.html" class="card-img-link">
+    <div class="card-img"><img src="/images/ansible-automation-guide.png" alt="Ansible Automation – Grundlagen &amp; Praxis-Guide 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>15. June 2026</span>
+      <span>3 Min</span>
     </div>
-
-    <div class="adsense-placeholder">
-      <p><strong>— Anzeige —</strong></p>
-      <p>Google AdSense Platzhalter</p>
+    <h3><a href="/artikel/ansible-automation-guide.html">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</a></h3>
+    <p class="card-excerpt">nsible Automation: Grundlagen &amp; Praxis-Guide 2026  In der modernen IT-Landschaft ist manuelle Serververwaltung ein Relikt der Vergangenheit. Wer heute skali.</p>
+    <div class="card-footer">
+      <a href="/artikel/ansible-automation-guide.html" class="read-more">Weiterlesen &rarr;</a>
     </div>
+  </div>
 
-    <div id="breadcrumbs"></div>
-    <div class="article-content">
-      <p>Ein VPS ist schnell gebucht, in wenigen Minuten installiert und oft günstiger als ein klassisches Webhosting-Paket. Gleichzeitig bekommst du damit die Verantwortung für ein öffentlich erreichbares Linux-System. Bots scannen dauerhaft nach offenen SSH-Zugängen, schwachen Passwörtern, alten WordPress-Versionen und falsch konfigurierten Diensten. Die gute Nachricht: Für einen Einsteiger-Server brauchst du kein Security-Team, sondern einen klaren Ablauf. Dieser Guide zeigt, wie du deinen <strong>VPS 2026 absichern</strong> kannst, ohne dich in Spezialthemen zu verlieren.</p>
 
-      <p>Die Beispiele orientieren sich an Debian und Ubuntu, funktionieren aber sinngemäß auch auf vielen anderen Distributionen. Ziel ist eine robuste Baseline: sichere Anmeldung, minimale Angriffsfläche, automatische Sicherheitsupdates, Schutz vor Brute-Force-Versuchen, sinnvolle Benutzerrechte und ein Backup-Konzept. Arbeite die Schritte am besten direkt nach der Serverinstallation ab, bevor du Webserver, Datenbank oder Anwendungen produktiv freigibst.</p>
-
-      <h2>1. Vor dem ersten Login: Zugangsdaten und Rettungsweg prüfen</h2>
-      <p>Notiere dir zuerst, wie du im Notfall wieder auf den Server kommst. Viele Provider bieten eine Web-Konsole, einen Rescue-Modus oder Snapshots an. Diese Funktionen sind wichtig, falls du dich mit einer Firewall-Regel oder einer fehlerhaften SSH-Konfiguration aussperrst. Prüfe außerdem, ob dein Server eine feste IPv4-Adresse, IPv6 und eine Hostname-Konfiguration besitzt. Ein sauber gesetzter Hostname hilft später bei Logs, Monitoring und Zertifikaten.</p>
-
-      <p>Nach dem ersten Login als <code>root</code> solltest du das System aktualisieren. Unter Debian oder Ubuntu reicht zunächst <code>apt update && apt upgrade</code>. Starte danach neu, wenn Kernel- oder systemnahe Pakete aktualisiert wurden. Erst wenn das Basissystem aktuell ist, legst du Benutzer, Firewall und Dienste an. So vermeidest du, dass du eine veraltete Standardinstallation absicherst, die schon beim Start bekannte Lücken enthält.</p>
-
-      <h2>2. Eigenen Admin-Benutzer anlegen</h2>
-      <p>Dauerhaft als <code>root</code> zu arbeiten ist bequem, aber riskant. Lege einen normalen Benutzer an und gib ihm nur bei Bedarf Administratorrechte über <code>sudo</code>. Beispiel: <code>adduser adminname</code> und anschließend <code>usermod -aG sudo adminname</code>. Melde dich in einem zweiten Terminalfenster mit diesem Benutzer an und teste <code>sudo whoami</code>. Erst wenn das klappt, solltest du den direkten Root-Login abschalten.</p>
-
-      <p>Nutze für den Admin-Benutzer ein langes, einzigartiges Passwort, selbst wenn du später nur noch SSH-Schlüssel zulässt. Ein Passwortmanager ist hier Pflicht. Wer Server beruflich oder für Kunden betreibt, sollte zusätzlich dokumentieren, wer Zugriff hat und wann Schlüssel ausgetauscht werden. Sicherheit ist nicht nur Technik, sondern auch ein nachvollziehbarer Prozess.</p>
-
-      <h2>3. SSH härten: Schlüssel statt Passwort</h2>
-      <p>SSH ist der wichtigste Zugang zu deinem VPS und deshalb das Hauptziel automatisierter Angriffe. Erstelle lokal ein modernes Schlüsselpaar, zum Beispiel mit <code>ssh-keygen -t ed25519 -a 100</code>. Kopiere den öffentlichen Schlüssel mit <code>ssh-copy-id adminname@deine-server-ip</code> auf den Server. Danach testest du den Login in einer neuen Sitzung. Wichtig: Schließe dein bestehendes Root-Fenster erst, wenn der neue Login wirklich funktioniert.</p>
-
-      <p>Öffne anschließend <code>/etc/ssh/sshd_config</code> oder eine passende Datei unter <code>/etc/ssh/sshd_config.d/</code>. Für Einsteiger sind diese Einstellungen besonders relevant: <code>PermitRootLogin no</code>, <code>PasswordAuthentication no</code>, <code>PubkeyAuthentication yes</code> und optional <code>MaxAuthTries 3</code>. Ein anderer Port als 22 reduziert Lograuschen, ist aber kein Ersatz für echte Sicherheit. Wenn du den Port änderst, passe vorher die Firewall an. Danach prüfst du die Konfiguration mit <code>sshd -t</code> und lädst den Dienst neu.</p>
-
-      <div class="amazon-affiliate" style="margin:25px 0;padding:15px;background:#f3e5f5;border:1px solid #9C27B0;border-radius:8px;text-align:center"><p><a href="https://www.amazon.de/s?k=Linux+Server+Sicherheit+Buch&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">📚 Linux-Server-Sicherheitsbücher bei Amazon ansehen*</a></p></div>
-
-      <h2>4. Firewall mit UFW: Nur erlauben, was wirklich gebraucht wird</h2>
-      <p>Eine Firewall ist die Türliste deines Servers. Für viele Einsteiger ist UFW die einfachste Wahl, weil sie iptables oder nftables verständlich kapselt. Installiere UFW, erlaube zuerst deinen SSH-Zugang und aktiviere die Firewall erst danach. Bei Standard-SSH wäre das <code>ufw allow OpenSSH</code>. Wenn du einen eigenen Port nutzt, erlaubst du ihn explizit, zum Beispiel <code>ufw allow 2222/tcp</code>. Anschließend aktivierst du mit <code>ufw enable</code> und kontrollierst mit <code>ufw status verbose</code>.</p>
-
-      <p>Für einen typischen Webserver öffnest du später nur <code>80/tcp</code> und <code>443/tcp</code>. Datenbanken wie MySQL, PostgreSQL oder Redis sollten nicht öffentlich erreichbar sein, außer du hast einen sehr guten Grund und zusätzliche Schutzmaßnahmen wie VPN, private Netzwerke oder IP-Whitelisting. Die beste Firewall-Regel ist oft die, die einen Dienst gar nicht erst nach außen sichtbar macht.</p>
-
-      <h2>5. Fail2ban gegen Brute-Force und Log-Spam</h2>
-      <p>Fail2ban liest Logdateien und sperrt IP-Adressen, die wiederholt verdächtige Muster auslösen. Das ist besonders nützlich für SSH, kann aber auch Webserver, Maildienste oder Anwendungen schützen. Installiere Fail2ban und erstelle eine lokale Konfigurationsdatei, statt die Standarddateien direkt zu bearbeiten. Für SSH reichen zu Beginn Werte wie <code>enabled = true</code>, <code>maxretry = 5</code>, <code>findtime = 10m</code> und <code>bantime = 1h</code>. Danach startest du den Dienst neu und prüfst mit <code>fail2ban-client status sshd</code>, ob die Jail aktiv ist.</p>
-
-      <p>Fail2ban ersetzt keine starken Passwörter und keine SSH-Schlüssel. Es ist ein zusätzlicher Schutz, der automatisierte Angriffe bremst und Logdateien übersichtlicher macht. Achte darauf, deine eigene IP nicht versehentlich zu sperren. Wer häufig von wechselnden Netzen arbeitet, sollte die Ban-Zeiten moderat halten oder einen zweiten Zugang über die Provider-Konsole bereithalten.</p>
-
-      <h2>6. Automatische Sicherheitsupdates aktivieren</h2>
-      <p>Viele Server werden nicht durch spektakuläre Zero-Days kompromittiert, sondern durch bekannte Schwachstellen, die längst gepatcht sind. Automatische Sicherheitsupdates schließen diese Lücke. Unter Ubuntu und Debian ist <code>unattended-upgrades</code> der Standardweg. Aktiviere Sicherheitsupdates, konfiguriere automatische Bereinigung alter Pakete und überlege, ob Reboots automatisch erfolgen dürfen. Für kleine private Server kann ein geplanter Reboot nachts sinnvoll sein; für geschäftskritische Systeme solltest du Wartungsfenster definieren.</p>
-
-      <p>Wichtig ist die Kontrolle: Automatisierung bedeutet nicht blindes Vertrauen. Prüfe regelmäßig <code>/var/log/unattended-upgrades/</code>, beobachte fehlgeschlagene Updates und abonniere Sicherheitsmeldungen deiner Distribution. Wenn du Docker nutzt, denke auch an Container-Images. Ein aktueller Host hilft wenig, wenn eine Anwendung in einem zwei Jahre alten Image läuft.</p>
-
-      <h2>7. Dienste minimieren und Ports überprüfen</h2>
-      <p>Jeder laufende Dienst ist potenziell eine Angriffsfläche. Prüfe nach der Grundinstallation mit Werkzeugen wie <code>ss -tulpn</code>, welche Ports lauschen. Alles, was du nicht brauchst, wird deaktiviert oder deinstalliert. Typische Kandidaten sind ungenutzte Maildienste, alte Test-Webserver oder Datenbankdienste, die versehentlich auf allen Interfaces lauschen. Dokumentiere kurz, welcher Dienst welchen Port nutzt und warum er öffentlich erreichbar sein muss.</p>
-
-      <p>Wenn du mehrere Projekte betreibst, trenne sie möglichst sauber. Eigene Linux-Benutzer, getrennte Verzeichnisse, systemd-Services und restriktive Dateirechte verhindern, dass ein Fehler in einer Anwendung sofort den ganzen Server betrifft. Für Webprojekte gilt: Schreibrechte nur dort, wo sie wirklich erforderlich sind, Upload-Verzeichnisse nicht ausführbar machen und sensible Konfigurationsdateien niemals im Webroot ablegen.</p>
-
-      <h2>8. Backups und Snapshots: Sicherheit endet nicht bei der Firewall</h2>
-      <p>Ein abgesicherter VPS kann trotzdem ausfallen: Fehlkonfiguration, defekte Updates, gelöschte Daten oder ein kompromittiertes CMS. Deshalb gehören Backups zur Sicherheitsstrategie. Die 3-2-1-Regel ist ein guter Start: drei Kopien, zwei unterschiedliche Speichermedien oder Orte, eine Kopie extern. Provider-Snapshots sind praktisch, aber sie ersetzen keine unabhängigen Backups. Wenn dein Anbieterkonto kompromittiert wird, können Snapshots ebenfalls gelöscht werden.</p>
-
-      <p>Für Einsteiger sind BorgBackup, Restic oder einfache verschlüsselte rsync-Backups beliebt. Entscheidend ist nicht das Tool, sondern der getestete Restore. Plane regelmäßig eine Wiederherstellung auf einem Testsystem. Nur so weißt du, ob Datenbank-Dumps, Konfigurationsdateien, SSH-Schlüssel, Webroot und Cronjobs vollständig gesichert sind. Ein Backup, das nie zurückgespielt wurde, ist nur eine Hoffnung.</p>
-
-      <div class="amazon-affiliate" style="margin:25px 0;padding:15px;background:#f3e5f5;border:1px solid #9C27B0;border-radius:8px;text-align:center"><p><a href="https://www.amazon.de/s?k=Hardware+Security+Key+FIDO2&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">🔐 FIDO2-Sicherheitsschlüssel für Admin-Konten bei Amazon suchen*</a></p></div>
-
-      <h2>9. Monitoring, Logs und einfache Alarmierung</h2>
-      <p>Du musst nicht sofort eine große Observability-Plattform betreiben. Schon einfache Checks helfen: Erreichbarkeit per Ping oder HTTP, Speicherplatz, CPU-Last, RAM, ablaufende TLS-Zertifikate und fehlgeschlagene Dienste. Tools wie Netdata, Uptime Kuma oder ein externer Uptime-Monitor reichen für viele kleine VPS-Projekte. Wichtig ist, dass du eine Nachricht bekommst, bevor die Festplatte voll ist oder ein Dienst tagelang nicht läuft.</p>
-
-      <p>Logs sind deine Blackbox. Lerne die wichtigsten Orte kennen: <code>/var/log/auth.log</code> oder <code>journalctl -u ssh</code> für SSH, Webserver-Logs für HTTP-Fehler und <code>journalctl -p warning</code> für systemweite Warnungen. Prüfe Logs nicht nur nach einem Vorfall, sondern routinemäßig. Auffällige Login-Versuche, häufige 404-Scans oder wiederkehrende Dienstabstürze zeigen früh, wo du nachhärten solltest.</p>
-
-      <h2>10. Updates für Anwendungen, CMS und Container</h2>
-      <p>Viele VPS werden nicht über SSH angegriffen, sondern über Anwendungen. WordPress, Nextcloud, Adminer, phpMyAdmin, alte Node-Abhängigkeiten oder verwaiste Docker-Container sind häufige Einfallstore. Halte Anwendungen aktuell, entferne ungenutzte Plugins und setze starke Admin-Passwörter plus Zwei-Faktor-Authentifizierung ein. Öffentliche Admin-Oberflächen sollten, wenn möglich, zusätzlich per VPN, Basic Auth oder IP-Regel geschützt werden.</p>
-
-      <p>Bei Docker solltest du nicht nur <code>docker compose pull</code> ausführen, sondern Release Notes lesen und Volumes sichern. Automatische Container-Updates können bequem sein, bergen aber das Risiko inkompatibler Versionen. Für kleine Projekte ist ein wöchentlicher Patch-Termin oft der beste Kompromiss: Backups prüfen, Images aktualisieren, Container neu starten, Logs ansehen.</p>
-
-      <h2>Praktische Checkliste für deinen sicheren VPS</h2>
-      <ul>
-        <li>System direkt nach Installation aktualisiert und neu gestartet</li>
-        <li>Eigener sudo-Benutzer angelegt, Root-Login deaktiviert</li>
-        <li>SSH-Schlüssel aktiv, Passwort-Login ausgeschaltet</li>
-        <li>UFW-Firewall aktiv, nur SSH, HTTP und HTTPS geöffnet</li>
-        <li>Fail2ban für SSH eingerichtet und getestet</li>
-        <li>Automatische Sicherheitsupdates aktiviert</li>
-        <li>Unnötige Dienste deaktiviert und offene Ports kontrolliert</li>
-        <li>Externe, verschlüsselte Backups eingerichtet und Restore getestet</li>
-        <li>Monitoring für Uptime, Speicherplatz und Zertifikate aktiv</li>
-        <li>Anwendungen, CMS, Plugins und Container regelmäßig gepatcht</li>
-      </ul>
-
-      <h2>Fazit: Ein sicherer VPS entsteht durch Routine</h2>
-      <p>VPS-Sicherheit ist kein einmaliger Haken auf einer To-do-Liste. Die Grundabsicherung aus SSH-Schlüsseln, Firewall, Fail2ban und automatischen Updates bringt dich sehr weit, aber dauerhaft sicher bleibt dein Server nur durch Routine. Plane feste Wartungszeiten, lies Logs, teste Backups und entferne alles, was du nicht mehr brauchst. Je kleiner und verständlicher dein Setup ist, desto einfacher bleibt die Absicherung.</p>
-
-      <p>Für Einsteiger lohnt es sich, mit einem einzelnen Server bewusst simpel zu starten. Wenn dein Projekt wächst, kannst du später VPN-Zugänge, zentrale Logs, Konfigurationsmanagement, Geheimnisverwaltung und Härtungsprofile ergänzen. Die wichtigste Entscheidung triffst du aber heute: Lass deinen VPS nicht im Auslieferungszustand online, sondern gib ihm eine sichere Basis.</p>
-
-      <div class="amazon-affiliate" style="margin:25px 0;padding:15px;background:#f3e5f5;border:1px solid #9C27B0;border-radius:8px;text-align:center"><p><a href="https://www.amazon.de/s?k=Server+Rack+USV+Netzwerk+Sicherheit&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">🖥️ Server-, USV- und Netzwerk-Sicherheitszubehör bei Amazon entdecken*</a></p></div>
+<section class="related-section">
+  <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>
+  <div class="related-grid">
+    <article class="blog-card">
+  <a href="/artikel/ansible-automation-guide.html" class="card-img-link">
+    <div class="card-img"><img src="/images/ansible-automation-guide.png" alt="Ansible Automation – Grundlagen &amp; Praxis-Guide 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>15. June 2026</span>
+      <span>3 Min</span>
     </div>
-
-    <div class="adsense-placeholder">
-      <p><strong>— Anzeige —</strong></p>
-      <p>Google AdSense Platzhalter (Ende des Artikels)</p>
+    <h3><a href="/artikel/ansible-automation-guide.html">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</a></h3>
+    <p class="card-excerpt">nsible Automation: Grundlagen &amp; Praxis-Guide 2026  In der modernen IT-Landschaft ist manuelle Serververwaltung ein Relikt der Vergangenheit. Wer heute skali.</p>
+    <div class="card-footer">
+      <a href="/artikel/ansible-automation-guide.html" class="read-more">Weiterlesen &rarr;</a>
     </div>
-  </article>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/backup-strategien-vps-server-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/backup-strategien-vps-server-2026.png" alt="Backup-Strategien für VPS und Server – Der Guide 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>15. June 2026</span>
+      <span>9 Min</span>
+    </div>
+    <h3><a href="/artikel/backup-strategien-vps-server-2026.html">Backup-Strategien für VPS und Server – Der Guide 2026</a></h3>
+    <p class="card-excerpt">Backup-Strategie für VPS – Vollständiger Guide 2026. 3-2-1-Regel, Tools wie Borg, Restic, Duplicati. Inkrementelle Backups, Offsite-Restore.</p>
+    <div class="card-footer">
+      <a href="/artikel/backup-strategien-vps-server-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/docker-vs-podman-vergleich-2026.png" alt="Docker vs. Podman – Container-Laufzeiten im Vergleich 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>15. June 2026</span>
+      <span>9 Min</span>
+    </div>
+    <h3><a href="/artikel/docker-vs-podman-vergleich-2026.html">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</a></h3>
+    <p class="card-excerpt">Docker vs. Podman: Ausführlicher Vergleich der Container-Laufzeiten. Performance, Sicherheit, Kompatibilität &amp; Praxisbeispiele für 2026.</p>
+    <div class="card-footer">
+      <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/elk-stack-log-management.html" class="card-img-link">
+    <div class="card-img"><img src="/images/elk-stack-log-management.png" alt="ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>15. June 2026</span>
+      <span>3 Min</span>
+    </div>
+    <h3><a href="/artikel/elk-stack-log-management.html">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</a></h3>
+    <p class="card-excerpt">LK Stack: Effizientes Log-Management mit Elasticsearch &amp; Kibana im Jahr 2026  In der modernen IT-Landschaft, die von Microservices, Kubernetes-Clustern und .</p>
+    <div class="card-footer">
+      <a href="/artikel/elk-stack-log-management.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/github-actions-ci-cd-pipeline-2026.png" alt="GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>15. June 2026</span>
+      <span>10 Min</span>
+    </div>
+    <h3><a href="/artikel/github-actions-ci-cd-pipeline-2026.html">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</a></h3>
+    <p class="card-excerpt">GitHub Actions CI/CD Pipeline einrichten – Schritt-für-Schritt Tutorial. Automatische Builds, Tests &amp; Deployments mit GitHub Actions 2026.</p>
+    <div class="card-footer">
+      <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/gitops-argocd-einrichten.html" class="card-img-link">
+    <div class="card-img"><img src="/images/gitops-argocd-einrichten.png" alt="GitOps mit ArgoCD – Kubernetes Deployment Guide 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>15. June 2026</span>
+      <span>3 Min</span>
+    </div>
+    <h3><a href="/artikel/gitops-argocd-einrichten.html">GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</a></h3>
+    <p class="card-excerpt">itOps mit ArgoCD – Der ultimative Kubernetes Deployment Guide 2026  In der modernen Cloud-Native-Welt ist die Geschwindigkeit der Softwarebereitstellung ent.</p>
+    <div class="card-footer">
+      <a href="/artikel/gitops-argocd-einrichten.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+  </div>
+</section>
+  </div>
 </main>
 
 <footer class="footer">
   <div class="container">
     <div class="footer-grid">
       <div>
-        <h4>hosta<span style="color:var(--accent)">zar</span></h4>
-        <p style="color:var(--text-muted);font-size:0.9rem">Dein Hosting- & Server-Portal mit Guides, Vergleichen und Tutorials.</p>
+        <h4>hostazar.com</h4>
+        <p style="color:var(--text-muted);font-size:.85rem;max-width:300px">
+          Unabh&#228;ngige Hosting-Reviews, Gameserver-Guides und DevOps-Tutorials. Transparent, testbench-basiert, werbefrei.
+        </p>
       </div>
-      <div>
-        <h4>Kategorien</h4>
-        <ul>
-          <li><a href="/#gaming">🎮 Gaming</a></li>
-          <li><a href="/#webhosting">🌐 Webhosting</a></li>
-          <li><a href="/#devops">⚙️ DevOps</a></li>
-        </ul>
+      <div class="footer-links-columns"><h5>Gaming</h5>
+        <a href="/artikel/7-days-to-die-server-hosten-2026.html">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</a>
+        <a href="/artikel/ark-survival-ascended-server-hosten-2026.html">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2026</a>
+        <a href="/artikel/conan-exiles-server-hosten.html">Conan Exiles Server mieten – Setup &amp; Kosten 2026</a>
+        <a href="/artikel/cs2-server-mieten-guide-2026.html">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</a>
+        <a href="/artikel/dayz-server-mieten-2026.html">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</a>
+        <a href="/gaming/" style="color:var(--accent)">Alle &rarr;</a>
       </div>
-      <div>
-        <h4>Rechtliches</h4>
-        <ul>
-          <li><a href="/about.html">Über uns</a></li>
-          <li><a href="/impressum.html">Impressum</a></li>
-        </ul>
+      <div class="footer-links-columns"><h5>Webhosting</h5>
+        <a href="/artikel/cloud-hosting-vs-shared-hosting.html">Cloud Hosting vs. Shared Hosting – Vergleich 2026</a>
+        <a href="/artikel/cloudflare-tunnel-einrichten.html">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</a>
+        <a href="/artikel/docker-wordpress-hosten.html">WordPress mit Docker hosten – Modernes Setup 2026</a>
+        <a href="/artikel/domain-kaufen-einrichten-2026.html">Domain kaufen und einrichten – Schritt-für-Schritt 2026</a>
+        <a href="/artikel/email-server-selbst-hosten-2026.html">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</a>
+        <a href="/webhosting/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>DevOps</h5>
+        <a href="/artikel/ansible-automation-guide.html">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</a>
+        <a href="/artikel/backup-strategien-vps-server-2026.html">Backup-Strategien für VPS und Server – Der Guide 2026</a>
+        <a href="/artikel/docker-vs-podman-vergleich-2026.html">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</a>
+        <a href="/artikel/elk-stack-log-management.html">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</a>
+        <a href="/artikel/github-actions-ci-cd-pipeline-2026.html">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</a>
+        <a href="/devops/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>KI &amp; LLM</h5>
+        <a href="/artikel/llm-lokal-hosten-2026.html">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</a>
+        <a href="/artikel/llama-cpp-cpu-vs-gpu-performance-2026.html">llama.cpp Performance 2026: CPU vs GPU – Tokens/s, BLAS-Backends &amp; Hardware-Vergleich</a>
+        <a href="/artikel/comfyui-auf-gpu-hosten.html">ComfyUI auf GPU hosten – Bild-KI Workflows 2026 mit Flux, SDXL &amp; SD3</a>
+        <a href="/artikel/ki-server-sicherheit-llm-api-absichern-2026.html">KI-Server-Sicherheit: LLM API absichern, Rate-Limiting &amp; Monitoring 2026</a>
+        <a href="/artikel/ollama-llm-server-vps-2026.html">Ollama LLM Server auf VPS hosten 2026 – Lokale KI-Modelle selbst betreiben</a>
+        <a href="/ki-llm/" style="color:var(--accent)">Alle &rarr;</a>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>&copy; 2025 hostazar.com – Alle Rechte vorbehalten.</span>
-      <span>Made with ❤️ für die Hosting-Community</span>
+      <span>&copy; 2026 hostazar.com</span>
+      <span>
+        <a href="/impressum.html">Impressum</a> &middot;
+        <a href="/datenschutz.html">Datenschutz</a>
+      </span>
     </div>
-    <p class="affiliate-note">* Bei den mit Sternchen gekennzeichneten Links handelt es sich um Affiliate-Links. Wenn du über diese Links einkaufst, erhalten wir eine kleine Provision – für dich entstehen keine Mehrkosten. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.</p>
+    <div class="affiliate-note">
+      * Affiliate-Links: Wir erhalten ggf. eine Provision beim Kauf. Das kostet dich keinen Cent mehr.
+    </div>
   </div>
 </footer>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  if (typeof hostazarApp !== 'undefined') {
-    hostazarApp.init({
-      gridId: 'related-articles',
-      relatedConfig: {
-        containerId: 'related-articles',
-        category: 'devops',
-        excludeSlug: 'vps-absichern-2026',
-        count: 3
-      },
-      breadcrumbs: [
-        { url: '/devops/', label: 'DevOps' },
-        { label: 'VPS absichern 2026: SSH, Firewall, Fail2ban & Updates' }
-      ]
-    });
-  }
-});
-</script>
+<div class="cookie-banner" id="cookieBanner">
+  <div class="cookie-inner">
+    <p>Wir nutzen Cookies f&#252;r Analyse und AdSense. <a href="/datenschutz.html">Mehr erfahren</a></p>
+    <button class="cookie-btn" id="cookieBtn">Akzeptieren</button>
+  </div>
+</div>
+<script src="/data/script.js" defer></script>
 </body>
 </html>
