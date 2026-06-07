@@ -46,7 +46,7 @@
     "@type": "Organization",
     "name": "hostazar.com"
   },
-  "wordCount": 2318
+  "wordCount": 1955
 }
   </script>
   <script type="application/ld+json">
@@ -519,74 +519,22 @@
       <span>11 Min Lesezeit</span>
     </div>
 
+  <a href="/artikel/llm-lokal-hosten-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/llm-lokal-hosten-2026.png" alt="LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag ki-llm" style="background:#9C27B022;color:#9C27B0">KI &amp; LLM</span>
+      <span>07. July 2026</span>
+      <span>14 Min</span>
+    </div>
+    <h3><a href="/artikel/llm-lokal-hosten-2026.html">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</a></h3>
+    <p class="card-excerpt">LLM lokal hosten 2026: ✓ Hardware-Auswahl ✓ GPU-Vergleich (RTX 4090, RTX 5090, A6000) ✓ Ollama, vLLM &amp; Docker ✓ Modell-Wahl ✓ OpenAI-kompatible API ✓ Schritt-für-Schritt-Anleitung.</p>
+    <div class="card-footer">
+      <a href="/artikel/llm-lokal-hosten-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
 
-      <h2>NVIDIA Jetson für KI am Edge – Einleitung</h2>
-      <p>Große Sprachmodelle (LLMs) wie Llama 3, Mistral oder Phi-4 laufen längst nicht mehr nur in der Cloud. <strong>2026 ist das Jahr, in dem leistungsstarke KI direkt auf eingebetteter Hardware zum Einsatz kommt</strong> – in Robotern, autonomen Fahrzeugen, Fertigungsstraßen und Überwachungssystemen. Die treibende Kraft dahinter: <strong>NVIDIA Jetson</strong>, eine Familie von Embedded-AI-Computern, die speziell für Edge-Inferenz entwickelt wurde.</p>
-      <p>Doch was taugen die kleinen Kraftpakete wirklich für LLMs? Welches Modell läuft auf welchem Jetson-Modul? Wie richtest du llama.cpp oder Ollama auf einem Jetson Orin ein? Und vor allem: Lohnt sich der Umstieg von der Cloud-API auf lokale Edge-Hardware? Dieser Artikel gibt dir eine technisch fundierte, praxisnahe Antwort – inklusive Benchmark-Daten, Vergleichstabellen und Schritt-für-Schritt-Anleitung.</p>
-
-      <h2>Was ist NVIDIA Jetson? Die Plattform im Überblick</h2>
-      <p>NVIDIA Jetson ist eine Reihe von <strong>Embedded-System-on-Modules (SoMs)</strong>, die CPU, GPU, Speicher und KI-Beschleuniger in einem kompakten, energieeffizienten Formfaktor vereinen. Anders als ein klassischer VPS oder ein Desktop-PC ist ein Jetson-Modul für den Dauereinsatz unter rauen Bedingungen ausgelegt: keine Lüfter, geringe Abwärme, hohe Stoß- und Vibrationsfestigkeit – ideal für Robotik und Industrieautomation.</p>
-      <p>Die Architektur basiert auf NVIDIA <strong>Ampere-Architektur-GPUs</strong> mit Tensor Cores, die speziell für Matrix-Multiplikationen – dem Herzstück neuronaler Netze – optimiert sind. Dazu kommen leistungsstarke ARM-CPUs (Cortex-A78AE) und ein dedizierter Deep-Learning-Beschleuniger (DLA) für Vision-Aufgaben. Das Betriebssystem ist in der Regel Ubuntu-basiert (JetPack SDK), sodass Entwickler eine vertraute Linux-Umgebung vorfinden.</p>
-
-      <h2>Die Jetson-Familie 2026: Ein Vergleich</h2>
-      <p>NVIDIA bietet mehrere Module an, die sich in Rechenleistung, Speicher und Preis unterscheiden. Für LLM-Inferenz sind 2026 vor allem drei Serien relevant:</p>
-
-      <div class="highlight-box">
-        <table style="width:100%; border-collapse: collapse; font-size:0.9rem;">
-          <thead>
-            <tr style="background:#1a3a5c; color:#fff;">
-              <th style="padding:10px 8px; text-align:left;">Merkmal</th>
-              <th style="padding:10px 8px; text-align:left;">Jetson Orin Nano Super</th>
-              <th style="padding:10px 8px; text-align:left;">Jetson Orin NX 16GB</th>
-              <th style="padding:10px 8px; text-align:left;">Jetson AGX Orin 64GB</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="border-bottom:1px solid #2a4a6c;">
-              <td style="padding:8px;"><strong>AI-Leistung</strong></td>
-              <td style="padding:8px;">67 TOPS</td>
-              <td style="padding:8px;">157 TOPS</td>
-              <td style="padding:8px;">275 TOPS</td>
-            </tr>
-            <tr style="border-bottom:1px solid #2a4a6c;">
-              <td style="padding:8px;"><strong>GPU</strong></td>
-              <td style="padding:8px;">Ampere 1024 CUDA Cores<br>32 Tensor Cores</td>
-              <td style="padding:8px;">Ampere 2048 CUDA Cores<br>64 Tensor Cores</td>
-              <td style="padding:8px;">Ampere 2048 CUDA Cores<br>64 Tensor Cores</td>
-            </tr>
-            <tr style="border-bottom:1px solid #2a4a6c;">
-              <td style="padding:8px;"><strong>CPU</strong></td>
-              <td style="padding:8px;">6× Cortex-A78AE v8.2 64-Bit<br>1,5 MB L2 + 4 MB L3</td>
-              <td style="padding:8px;">8× Cortex-A78AE v8.2 64-Bit<br>2 MB L2 + 4 MB L3</td>
-              <td style="padding:8px;">12× Cortex-A78AE v8.2 64-Bit<br>3 MB L2 + 6 MB L3</td>
-            </tr>
-            <tr style="border-bottom:1px solid #2a4a6c;">
-              <td style="padding:8px;"><strong>RAM</strong></td>
-              <td style="padding:8px;">8 GB LPDDR5<br>68 GB/s</td>
-              <td style="padding:8px;">16 GB LPDDR5<br>102 GB/s</td>
-              <td style="padding:8px;">64 GB LPDDR5<br>204 GB/s</td>
-            </tr>
-            <tr style="border-bottom:1px solid #2a4a6c;">
-              <td style="padding:8px;"><strong>Stromaufnahme</strong></td>
-              <td style="padding:8px;">7–25 W</td>
-              <td style="padding:8px;">10–25 W</td>
-              <td style="padding:8px;">15–60 W</td>
-            </tr>
-            <tr style="border-bottom:1px solid #2a4a6c;">
-              <td style="padding:8px;"><strong>Max. LLM-Größe (Q4)</strong></td>
-              <td style="padding:8px;">~3–7B Parameter</td>
-              <td style="padding:8px;">~7–13B Parameter</td>
-              <td style="padding:8px;">~30–70B Parameter</td>
-            </tr>
-            <tr>
-              <td style="padding:8px;"><strong>Preis (ab)</strong></td>
-              <td style="padding:8px;">ca. 250 $ (Kit)</td>
-              <td style="padding:8px;">ca. 700 $ (Modul)</td>
-              <td style="padding:8px;">ca. 1.600 $ (Kit)</td>
-            </tr>
-          </tbody>
-        </table>
-      
 
 <section class="related-section">
   <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>

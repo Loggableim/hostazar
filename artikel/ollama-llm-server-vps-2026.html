@@ -46,7 +46,7 @@
     "@type": "Organization",
     "name": "hostazar.com"
   },
-  "wordCount": 2689
+  "wordCount": 3564
 }
   </script>
   <script type="application/ld+json">
@@ -519,150 +519,22 @@
       <span>13 Min Lesezeit</span>
     </div>
 
-      <h2>Ollama LLM Server auf VPS hosten 2026 – Einleitung</h2>
-      <p>Künstliche Intelligenz ist 2026 nicht mehr aus dem Entwickler-Alltag wegzudenken – doch nicht jeder möchte seine sensiblen Prompts, Kundendaten oder internen Prototypen an externe API-Anbieter wie OpenAI, Anthropic oder Google schicken. Genau hier kommt <strong>Ollama</strong> ins Spiel: Mit dem Open-Source-Tool betreibst du leistungsstarke Large Language Models wie <strong>Llama 3.3</strong>, <strong>Mistral</strong>, <strong>Phi-3</strong>, <strong>Gemma 2</strong> oder <strong>Qwen 2.5</strong> komplett lokal auf deinem eigenen Server. In Kombination mit einem passenden <a href="/artikel/vps-mieten-vergleich-2026.html">VPS</a> oder <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html">dedizierten Server</a> baust du dir so eine private, datenschutzfreundliche und vor allem kostengünstige KI-Infrastruktur auf. In diesem umfassenden Guide zeigen wir dir Schritt für Schritt, wie du einen Ollama LLM Server auf einem Linux-VPS installierst, Modelle wechselst, eine OpenAI-kompatible API bereitstellst und mit Open WebUI ein komfortables Chat-Frontend einrichtest.</p>
+  <a href="/artikel/llm-lokal-hosten-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/llm-lokal-hosten-2026.png" alt="LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag ki-llm" style="background:#9C27B022;color:#9C27B0">KI &amp; LLM</span>
+      <span>07. July 2026</span>
+      <span>14 Min</span>
+    </div>
+    <h3><a href="/artikel/llm-lokal-hosten-2026.html">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</a></h3>
+    <p class="card-excerpt">LLM lokal hosten 2026: ✓ Hardware-Auswahl ✓ GPU-Vergleich (RTX 4090, RTX 5090, A6000) ✓ Ollama, vLLM &amp; Docker ✓ Modell-Wahl ✓ OpenAI-kompatible API ✓ Schritt-für-Schritt-Anleitung.</p>
+    <div class="card-footer">
+      <a href="/artikel/llm-lokal-hosten-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
 
-      <h2>Was ist Ollama?</h2>
-      <p>Ollama ist ein quelloffenes Framework, das die Bereitstellung, Verwaltung und Inferenz von Large Language Models (LLMs) auf lokalen Maschinen drastisch vereinfacht. Ursprünglich inspiriert von Docker, verpackt Ollama ein vollständiges LLM – inklusive Gewichten, Konfiguration und System-Prompt – in ein einziges, portables Image. Du lädst ein Modell mit einem einzigen Befehl (<code>ollama pull llama3.3</code>) und startest es ohne CUDA-Setup, ohne manuelle Abhängigkeiten und ohne Cloud-Account.</p>
-      <p>Die wichtigsten Vorteile auf einen Blick:</p>
-      <ul>
-        <li><strong>Datenschutz:</strong> Sämtliche Daten verlassen deinen Server nicht. Ideal für DSGVO-konforme Workflows.</li>
-        <li><strong>Kostentransparenz:</strong> Einmalige Hardware- bzw. VPS-Kosten statt laufender Token-Gebühren.</li>
-        <li><strong>OpenAI-kompatible API:</strong> Bestehende Tools, IDEs und Agenten lassen sich mit minimalem Aufwand umstellen.</li>
-        <li><strong>Modellvielfalt:</strong> Über 100 vortrainierte Modelle aus dem Ollama-Hub, darunter Llama 3.3, Mistral 7B, Mixtral 8x22B, Phi-3 Medium, Gemma 2 27B und Qwen 2.5 Coder.</li>
-        <li><strong>Modelfiles (Modelfile):</strong> Eigene Fine-Tunes, System-Prompts und Parameter lassen sich reproduzierbar definieren.</li>
-      </ul>
-
-      <h2>Hardware-Anforderungen: GPU, CPU und RAM im Überblick</h2>
-      <p>Bevor du einen VPS mietest, musst du die Ressourcenanforderungen deines Wunschmodells kennen. Ollama kann zwar prinzipiell auf reinen <strong>CPU-VPS</strong> laufen, GPU-Beschleunigung bringt jedoch Faktor 5–20 an Geschwindigkeit. Die folgende Übersicht hilft dir bei der Wahl:</p>
-      <h3>CPU-Variante (kostengünstig)</h3>
-      <p>Für kleine Modelle wie Phi-3 Mini (3,8B), Llama 3.2 3B oder Qwen 2.5 7B reicht ein moderner Multi-Core-Prozessor. Empfohlen werden mindestens <strong>8 vCPU-Kerne</strong> (z. B. AMD EPYC oder Intel Xeon der 4. Generation) sowie <strong>16 GB RAM</strong>. Pro 1B Parameter benötigst du ungefähr 1 GB RAM bei Q4-Quantisierung. CPU-Inferenz eignet sich gut für gelegentliche Code-Hilfe, Zusammenfassungen und kleinere Chat-Sessions.</p>
-      <h3>GPU-Variante (High-Performance)</h3>
-      <p>Für 13B–70B Modelle wie Llama 3.3 70B oder Mixtral 8x22B brauchst du dedizierten <strong>VRAM</strong>. Eine NVIDIA RTX 4090 liefert 24 GB, eine A100 40/80 GB reicht für die ganz großen Modelle. Achte darauf, dass der Anbieter <strong>PCIe-Passthrough</strong> oder direkt angebundene GPUs anbietet. Hetzner, OVHcloud, Lambda Labs und RunPod sind hier die gängigsten Optionen.</p>
-      <h3>Speicher und SSD</h3>
-      <p>Modelle sind groß: Llama 3.3 70B in Q4_0 belegt etwa 40 GB. Eine schnelle <strong>NVMe-SSD</strong> mit mindestens 200 GB freiem Speicher ist Pflicht, sonst dauert das Laden der Gewichte quälend lange.</p>
-
-      <h2>Installation auf einem Linux VPS</h2>
-      <p>Die Installation von Ollama ist auf modernen Distributionen in unter fünf Minuten erledigt. Wir nutzen exemplarisch <strong>Ubuntu 24.04 LTS</strong>, da es den aktuellen NVIDIA-Treiber 555+ und alle nötigen Bibliotheken mitbringt. Solltest du mehrere Container parallel betreiben wollen, lohnt sich ein Blick auf unseren <a href="/artikel/docker-compose-vps-guide.html">Docker-Compose-VPS-Guide</a>.</p>
-      <h3>Schritt 1: System aktualisieren</h3>
-      <p>Beginne mit einem vollständigen Update und installiere die Basis-Tools:</p>
-      <pre><code>sudo apt update &amp;&amp; sudo apt upgrade -y
-sudo apt install -y curl wget git htop nvme-cli</code></pre>
-      <h3>Schritt 2: NVIDIA-Treiber und CUDA installieren (GPU-VPS)</h3>
-      <p>Auf einem GPU-Server installierst du den proprietären NVIDIA-Treiber sowie das CUDA-Toolkit. Ollama erkennt die GPU automatisch, sobald <code>nvidia-smi</code> funktioniert:</p>
-      <pre><code>sudo apt install -y nvidia-driver-555
-sudo apt install -y nvidia-cuda-toolkit
-sudo reboot</code></pre>
-      <h3>Schritt 3: Ollama installieren</h3>
-      <p>Das offizielle Installationsskript richtet den Systemdienst <code>ollama.service</code> ein, der auf Port <code>11434</code> lauscht:</p>
-      <pre><code>curl -fsSL https://ollama.com/install.sh | sh
-sudo systemctl enable --now ollama
-ollama --version</code></pre>
-      <h3>Schritt 4: Ollama als extern erreichbarer Dienst konfigurieren</h3>
-      <p>Standardmäßig bindet Ollama nur auf <code>127.0.0.1</code>. Damit du von anderen Geräten oder WebUIs darauf zugreifen kannst, editierst du den Systemdienst:</p>
-      <pre><code>sudo systemctl edit ollama
-# In den Editor einfügen:
-[Service]
-Environment="OLLAMA_HOST=0.0.0.0:11434"
-sudo systemctl daemon-reload &amp;&amp; sudo systemctl restart ollama</code></pre>
-      <h3>Schritt 5: Firewall und Sicherheit</h3>
-      <p>Wichtig: Öffne den Port 11434 niemals ungeschützt im Internet. Nutze stattdessen einen Reverse Proxy (Nginx, Caddy oder Traefik) mit <strong>Let's Encrypt</strong> und Authentifizierung, oder greife ausschließlich über ein <a href="/artikel/wireguard-vpn-server.html">WireGuard-VPN</a> zu. Eine umfassende Grundkonfiguration findest du in unserem Artikel <a href="/artikel/linux-server-harden.html">Linux-Server härten</a>.</p>
-
-      <h2>Modelle laden und wechseln: Llama 3.3, Mistral, Phi-3, Gemma 2, Qwen</h2>
-      <p>Der Modell-Hub von Ollama (<code>ollama.com/library</code>) listet hunderte vortrainierte Modelle mit unterschiedlichen Quantisierungsstufen. Mit dem Befehl <code>ollama pull</code> lädst du sie lokal, mit <code>ollama run</code> startest du direkt einen interaktiven Chat:</p>
-      <h3>Beliebte Modelle 2026 im Schnellüberblick</h3>
-      <ul>
-        <li><strong>Llama 3.3 70B (Q4_K_M):</strong> ~40 GB, vergleichbar mit GPT-4o bei logischem Denken, ideal für Code-Review und lange Kontexte.</li>
-        <li><strong>Mistral 7B / Mixtral 8x22B:</strong> Effizienter Mix-of-Experts, perfekt für deutschsprachige Chatbots.</li>
-        <li><strong>Phi-3 Medium (14B):</strong> Microsofts kompaktes Powerhouse, extrem stark in Mathematik und Logik.</li>
-        <li><strong>Gemma 2 27B:</strong> Googles offene Modellreihe, sehr gute Allrounder-Qualität.</li>
-        <li><strong>Qwen 2.5 Coder 32B:</strong> Speziell auf Programmierung trainiert, schlägt in Benchmarks teilweise Llama 3.1 70B.</li>
-        <li><strong>DeepSeek R1 Distill:</strong> Reasoning-Modell mit Chain-of-Thought, perfekt für komplexe Analyseaufgaben.</li>
-      </ul>
-      <h3>Modell-Tag angeben</h3>
-      <p>Mit Tags steuerst du die Quantisierung direkt beim Pull:</p>
-      <pre><code>ollama pull llama3.3:70b-instruct-q4_K_M
-ollama pull mistral:7b-instruct-q5_K_M
-ollama pull phi3:14b-medium-4k-instruct-q4_0
-ollama pull gemma2:27b-instruct-q5_0
-ollama pull qwen2.5-coder:32b-instruct-q4_K_M</code></pre>
-      <h3>Zwischen Modellen wechseln</h3>
-      <p>Beim Aufruf von <code>ollama run</code> wird das jeweilige Modell in den Speicher geladen und automatisch wieder freigegeben, sobald der Chat endet. So kannst du mehrere Modelle parallel installiert haben und je nach Aufgabe das passende wählen.</p>
-      <h3>Eigene Modelle mit Modelfile</h3>
-      <p>Über ein <code>Modelfile</code> definierst du eigene System-Prompts, Temperatur und Parameter:</p>
-      <pre><code>FROM llama3.3:70b-instruct-q4_K_M
-SYSTEM "Du bist ein deutschsprachiger DevOps-Assistent."
-PARAMETER temperature 0.4
-PARAMETER num_ctx 8192</code></pre>
-      <p>Anschließend baust du es mit <code>ollama create devops-assistent -f Modelfile</code> und nutzt es mit <code>ollama run devops-assistent</code>.</p>
-
-      <h2>OpenAI-kompatible API nutzen</h2>
-      <p>Ein Killer-Feature von Ollama ist die native <strong>OpenAI-kompatible REST-API</strong>. Du kannst jeden Client, der heute gegen <code>api.openai.com</code> spricht, mit minimalen Anpassungen auf deinen lokalen Server umlenken. Der Endpunkt lautet:</p>
-      <pre><code>POST http://dein-server:11434/v1/chat/completions
-{
-  "model": "llama3.3",
-  "messages": [{"role": "user", "content": "Erkläre mir Quantisierung in 3 Sätzen."}]
-}</code></pre>
-      <p>Setze in deinem Tool lediglich <code>OPENAI_BASE_URL</code> auf <code>http://dein-server:11434/v1</code> – schon funktionieren Continue.dev, Open WebUI, LangChain, LlamaIndex, Flowise und viele andere ohne Code-Änderung. Für die <strong>Streaming-Ausgabe</strong> setzt du <code>"stream": true</code>; Ollama sendet die Tokens dann per Server-Sent-Events.</p>
-
-      <h2>WebUI: Open WebUI und Ollama Web installieren</h2>
-      <p>Eine Kommandozeile ist nett, für den Alltag brauchst du aber ein komfortables Chat-Frontend. <strong>Open WebUI</strong> (ehemals Ollama WebUI) ist der populärste Begleiter und bringt Chat-Verlauf, Rollenverwaltung, RAG (Retrieval Augmented Generation) und Bildgenerierung mit.</p>
-      <h3>Installation via Docker</h3>
-      <p>Mit einem einzigen <code>docker run</code>-Befehl startest du Open WebUI auf Port 8080:</p>
-      <pre><code>docker run -d --network=host \
-  -v open-webui-data:/app/backend/data \
-  --name open-webui \
-  ghcr.io/open-webui/open-webui:main</code></pre>
-      <p>Rufe anschließend <code>http://dein-server:8080</code> auf, lege einen Admin-Account an und verbinde Open WebUI in den Einstellungen mit <code>http://localhost:11434</code> – schon kannst du chatten, Dateien hochladen und eigene <strong>Modelfiles</strong> über die UI verwalten. Für mehr Komfort hinter einem Reverse-Proxy empfehlen wir unseren <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html">Nginx-Reverse-Proxy-Guide</a>.</p>
-
-      <h2>Performance und Quantisierung: Q4_K_M, Q5_K_M, Q8</h2>
-      <p>Quantisierung komprimiert die Modellgewichte von 16-Bit-Floating-Point auf niedrigere Bitbreiten und reduziert damit VRAM-Verbrauch und Inferenzzeit – auf Kosten minimaler Genauigkeit. Die K-Suffixe stehen für die vom <strong>k-quants</strong>-Verfahren verwendete optimierte Block-Quantisierung. In der Praxis haben sich folgende Stufen bewährt:</p>
-      <ul>
-        <li><strong>Q4_K_M:</strong> Bester Kompromiss aus Qualität und Größe. Verliert weniger als 1 % Perplexity gegenüber FP16, halbiert aber den Speicherbedarf. Standardempfehlung für die meisten Use-Cases.</li>
-        <li><strong>Q5_K_M:</strong> Nur marginal größer, aber subjektiv spürbar bessere Kohärenz bei längeren Texten. Empfehlung, wenn du 10–20 % mehr VRAM übrig hast.</li>
-        <li><strong>Q8_0:</strong> Fast verlustfrei, aber doppelt so groß wie Q4. Sinnvoll für kleine Modelle bis 13B auf 24-GB-Karten.</li>
-        <li><strong>IQ-Serien (Importance Quantization):</strong> Neuere 2026er-Stufe, kompakter als Q4 bei vergleichbarer Qualität, z. B. <code>Q4_K_S</code> vs. <code>IQ4_XS</code>.</li>
-      </ul>
-      <p>Ein einfacher Benchmark mit <code>ollama run llama3.3 --verbose</code> zeigt dir Tokens-pro-Sekunde, Kontextlänge und Speicherverbrauch in Echtzeit. Werte über <strong>20 tokens/s</strong> gelten auf GPU als flüssig, auf CPU sind 3–8 tokens/s für ein 7B-Modell normal.</p>
-
-      <h2>Kostenvergleich: Ollama VPS vs. ChatGPT API vs. Hetzner GPU Cloud</h2>
-      <p>Wann lohnt sich Self-Hosting wirklich? Wir vergleichen drei Szenarien für ca. <strong>10 Millionen verarbeitete Tokens pro Monat</strong>:</p>
-      <ul>
-        <li><strong>OpenAI GPT-4o (API):</strong> ~150 $ pro Monat bei gemischter 1:3-Verteilung Input/Output (Stand Q1 2026). Skaliert linear, keine Vorabkosten.</li>
-        <li><strong>Hetzner GPU Cloud (z. B. H100):</strong> Rund <strong>2,50 € pro Stunde</strong> für eine A100. Bei 24/7-Betrieb wären das ~1.800 €/Monat, lässt sich aber auf 8 Stunden/Tag begrenzen (~250 €). Eignet sich für Spitzenlasten, nicht für Dauerbetrieb.</li>
-        <li><strong>CPU-VPS (z. B. netcup/Hetzner):</strong> Ein <strong>AX162-Server</strong> mit AMD EPYC, 64 GB RAM und 1 TB NVMe kostet ca. <strong>40–60 €/Monat</strong> und hostet dauerhaft ein 13B- oder quantisiertes 30B-Modell.</li>
-        <li><strong>Dedizierte GPU-Maschine:</strong> Eine eigene RTX 4090 in einem Miet-Server (z. B. Hetzner Auction) liegt bei <strong>120–180 €/Monat</strong> und amortisiert sich ab ca. 25 % API-Auslastung.</li>
-      </ul>
-      <p>Fazit: <strong>Bei weniger als 5 Millionen Tokens/Monat ist die API günstiger</strong>, darüber wird Self-Hosting wirtschaftlich attraktiv – und du gewinnst volle Datenhoheit.</p>
-
-      <h2>Skalierung mit mehreren GPUs</h2>
-      <p>Wenn ein einzelnes Modell nicht in den VRAM einer Karte passt, splittet Ollama die <strong>Layer</strong> automatisch über mehrere GPUs. Du kannst dies explizit über die Umgebungsvariable <code>OLLAMA_NUM_GPU</code> oder die <code>num_gpu</code>-Direktive im Modelfile steuern:</p>
-      <pre><code>PARAMETER num_gpu 2
-PARAMETER num_parallel 4</code></pre>
-      <p>Für produktive Setups empfehlen wir, Ollama hinter einem <strong>Load-Balancer</strong> (z. B. Traefik) zu betreiben und mehrere Instanzen auf unterschiedlichen Ports lauschen zu lassen. Mit <code>num_parallel</code> bedienst du mehrere gleichzeitige Anfragen pro Modell und nutzt so die <strong>Multi-User-Fähigkeit</strong> optimal aus. Auf einem 2× A100-Node kannst du so problemlos 20–40 gleichzeitige Chat-Sessions bedienen.</p>
-
-      <h2>FAQ – Häufige Fragen zum Ollama LLM Server</h2>
-      <h3>1. Welcher VPS eignet sich am besten für Ollama?</h3>
-      <p>Für kleine Modelle reicht ein CPU-VPS mit 8+ vCPU und 16 GB RAM (z. B. netcup, Hetzner CX-Lineup). Für 13B–70B-Modelle brauchst du einen dedizierten Server oder GPU-Cloud-Instanz mit NVIDIA-GPU und mindestens 24 GB VRAM.</p>
-      <h3>2. Ist Ollama kostenlos?</h3>
-      <p>Ja, Ollama selbst ist Open Source (MIT-Lizenz). Du zahlst ausschließlich für deine Hardware bzw. deinen VPS. Die Modelle unterliegen den jeweiligen Lizenzen der Anbieter (z. B. Llama-Community-Lizenz, Apache 2.0 für Qwen).</p>
-      <h3>3. Funktioniert Ollama auch auf einem Raspberry Pi oder Mini-PC?</h3>
-      <p>Ja, mit Einschränkungen. Auf einem Raspberry Pi 5 (8 GB) lassen sich Phi-3 Mini oder Llama 3.2 1B in Q4 mit etwa 1–2 tokens/s betreiben. Für ernsthafte Arbeit empfehlen wir mindestens einen <strong>Mini-PC mit 32 GB RAM</strong> (z. B. Intel NUC, Beelink) und externe GPU via USB4/Thunderbolt.</p>
-      <h3>4. Wie sicher ist die OpenAI-kompatible API?</h3>
-      <p>Die eingebaute API hat standardmäßig keine Authentifizierung. Setze daher zwingend einen Reverse-Proxy mit Basic-Auth oder JWT davor, oder nutze WireGuard/Tailscale als privates Netz. Niemals Port 11434 direkt im Internet freigeben.</p>
-      <h3>5. Welches Modell eignet sich am besten für deutsche Sprache?</h3>
-      <p>Mistral 7B, Llama 3.3 70B, Qwen 2.5 und die deutschen Fine-Tunes von LeoLM (german-llama) liefern die natürlichsten deutschen Texte. Für rein geschäftliche Texte reicht Phi-3 Medium völlig aus.</p>
-      <h3>6. Kann ich Ollama mit Docker betreiben?</h3>
-      <p>Absolut. Das offizielle Image <code>ollama/ollama</code> unterstützt GPU-Passthrough mit <code>--gpus all</code>. Für ein kombiniertes Setup mit Open WebUI empfiehlt sich ein docker-compose-Setup – siehe unser entsprechender Guide.</p>
-      <h3>7. Wie viel Strom verbraucht ein 24/7-Ollama-Server?</h3>
-      <p>Eine RTX 4090 zieht unter Volllast ca. 350 W. Bei 24/7-Betrieb wären das ~290 kWh/Monat, also rund 90 € Stromkosten. Eine effizientere L40S oder A4000 senkt die Kosten auf 50–60 €.</p>
-      <h3>8. Wie update ich Ollama und die Modelle?</h3>
-      <p>Ollama aktualisierst du mit <code>curl -fsSL https://ollama.com/install.sh | sh</code>. Modelle ziehst du mit <code>ollama pull</code> neu – die alten Versionen werden automatisch ersetzt. Ein Cronjob mit <code>ollama prune</code> räumt nicht mehr benötigte Layer auf.</p>
-
-      <h2>Fazit</h2>
-      <p>Mit <strong>Ollama</strong> ist der Betrieb eigener KI-Modelle auf einem VPS 2026 so einfach geworden wie nie zuvor. Innerhalb weniger Minuten baust du dir eine private, datenschutzkonforme und jederzeit skalierbare LLM-Infrastruktur auf, die in puncto Antwortqualität mit kommerziellen APIs mithalten kann. Egal ob du mit <strong>Llama 3.3 70B</strong> Code-Reviews automatisierst, mit <strong>Qwen 2.5 Coder</strong> eine interne IDE unterstützt oder mit <strong>Phi-3</strong> smarte Chatbots baust – die Kombination aus Ollama, Open WebUI und einem soliden Linux-VPS bildet das Fundament für jede moderne KI-Anwendung. Wer Wert auf Datenhoheit legt und die API-Kosten langfristig in den Griff bekommen will, kommt an Self-Hosting mit Ollama nicht vorbei.</p>
-
-    
 
 <section class="related-section">
   <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>

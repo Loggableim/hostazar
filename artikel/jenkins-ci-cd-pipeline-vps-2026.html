@@ -46,7 +46,7 @@
     "@type": "Organization",
     "name": "hostazar.com"
   },
-  "wordCount": 2490
+  "wordCount": 2160
 }
   </script>
   <script type="application/ld+json">
@@ -519,134 +519,22 @@
       <span>12 Min Lesezeit</span>
     </div>
 
+  <a href="/artikel/ansible-automation-guide.html" class="card-img-link">
+    <div class="card-img"><img src="/images/ansible-automation-guide.png" alt="Ansible Automation – Grundlagen &amp; Praxis-Guide 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>15. June 2026</span>
+      <span>3 Min</span>
+    </div>
+    <h3><a href="/artikel/ansible-automation-guide.html">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</a></h3>
+    <p class="card-excerpt">nsible Automation: Grundlagen &amp; Praxis-Guide 2026  In der modernen IT-Landschaft ist manuelle Serververwaltung ein Relikt der Vergangenheit. Wer heute skali.</p>
+    <div class="card-footer">
+      <a href="/artikel/ansible-automation-guide.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
 
-      <h2>Was ist Jenkins?</h2>
-      <p>Jenkins ist ein in Java geschriebener Open-Source-Automatisierungsserver, der 2011 aus dem Hudson-Projekt hervorgegangen ist. Mit über 1.800 verfügbaren Plugins und einer riesigen Community zählt Jenkins seit über einem Jahrzehnt zu den am weitesten verbreiteten CI/CD-Tools weltweit. Das Herzstück von Jenkins sind sogenannte <strong>Pipelines</strong>: Workflows, die Build-, Test- und Deployment-Schritte in einer definierten Abfolge ausführen. Ob eine einfache Node.js-App, eine komplexe Microservices-Architektur oder ein eingebettetes System – Jenkins lässt sich dank seiner Plugin-Architektur für nahezu jede Technologie konfigurieren.</p>
-      <p>Der große Vorteil von Jenkins gegenüber Cloud-nativen CI/CD-Diensten: Du hostest Jenkins auf <strong>deiner eigenen Infrastruktur</strong>. Das bedeutet volle Kontrolle über die Ausführungsumgebung, keine Limits durch Minutenkontingente und keine Vendor-Lock-in-Effekte. Du entscheidest, welche Ressourcen deine Builds bekommen, wann sie laufen und wie lange sie archiviert werden.</p>
-
-      <h2>Warum Jenkins auf dem VPS betreiben?</h2>
-      <p>Ein VPS (Virtual Private Server) bietet die ideale Plattform für Jenkins. Im Vergleich zu Cloud-Managed-Services wie GitHub Actions oder GitLab CI hast du folgende Vorteile:</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Kriterium</th>
-            <th>Jenkins auf VPS</th>
-            <th>Cloud CI/CD (GitHub Actions / GitLab CI)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Kosten</td><td>Fixe VPS-Miete (ab ~4 €/Monat)</td><td>Oft Pay-per-Use, teils teure Minutes</td></tr>
-          <tr><td>Kontrolle</td><td>Vollständig</td><td>Eingeschränkt</td></tr>
-          <tr><td>Hardware</td><td>Selbst wählbar (CPU, RAM, SSD)</td><td>Vorgegeben</td></tr>
-          <tr><td>Plugins &amp; Erweiterbarkeit</td><td>Unbegrenzt</td><td>Nur angebotene Integrationen</td></tr>
-          <tr><td>Datenhoheit</td><td>100 % eigene Daten</td><td>Daten verlassen das Unternehmen</td></tr>
-          <tr><td>Wartung</td><td>Eigenverantwortlich</td><td>Anbieter übernimmt</td></tr>
-        </tbody>
-      </table>
-      <p>Für Teams und Einzelentwickler, die maximale Flexibilität benötigen und ohnehin einen VPS für ihre Projekte betreiben, ist Jenkins die kosteneffizienteste und mächtigste Lösung.</p>
-
-      <h2>Installation von Jenkins auf Ubuntu/Debian VPS</h2>
-      <p>Die Installation von Jenkins auf einem Ubuntu 22.04 LTS oder Debian 12 VPS ist dank offizieller Paket-Repositories unkompliziert. Voraussetzung ist eine Java Runtime Environment (JRE) ab Version 11 – Jenkins selbst ist eine Java-Anwendung.</p>
-
-      <pre><code># System aktualisieren
-sudo apt update && sudo apt upgrade -y
-
-# Java 17 (OpenJDK) installieren
-sudo apt install openjdk-17-jdk -y
-
-# Jenkins Repository hinzufügen
-curl -fsSL https://pkg.jenkins.io/debian/jenkins.io-2023.key \
-  | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
-echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
-  https://pkg.jenkins.io/debian binary/ \
-  | sudo tee /etc/apt/sources.list.d/jenkins.list
-
-# Jenkins installieren
-sudo apt update
-sudo apt install jenkins -y
-
-# Jenkins starten und beim Booten automatisch starten
-sudo systemctl enable --now jenkins
-
-# Status prüfen
-sudo systemctl status jenkins</code></pre>
-
-      <p>Nach der Installation erreichst du Jenkins über <code>http://DEINE_VPS_IP:8080</code>. Das initiale Admin-Passwort findest du mit:</p>
-      <pre><code>sudo cat /var/lib/jenkins/secrets/initialAdminPassword</code></pre>
-      <p>Der Setup-Assistent führt dich durch die Installation der empfohlenen Plugins und die Erstellung des ersten Admin-Benutzers. Wähle unbedingt die <strong>„Empfohlene Plugins installieren“</strong>-Option – darunter sind essenzielle Plugins wie Git, Pipeline und Credentials Binding.</p>
-
-      <h2>Erste Pipeline konfigurieren: Jenkinsfile</h2>
-      <p>Das Herz jeder Jenkins-Pipeline ist das <strong>Jenkinsfile</strong> – eine Textdatei, die deinen gesamten CI/CD-Workflow als Code definiert (Pipeline as Code). Es gibt zwei Syntax-Varianten:</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Merkmal</th>
-            <th>Deklarative Pipeline</th>
-            <th>Scripted Pipeline</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Syntax</td><td>Einfach, strukturiert (<code>pipeline { agent any … }</code>)</td><td>Flexibel, Groovy-basiert (<code>node { … }</code>)</td></tr>
-          <tr><td>Einstieg</td><td>Leicht, ideal für Einsteiger</td><td>Erfordert Groovy-Kenntnisse</td></tr>
-          <tr><td>Stages</td><td>Explizite <code>stage</code>-Blöcke</td><td>Frei definierbar</td></tr>
-          <tr><td>Parallelisierung</td><td>Eingebaute <code>parallel</code>-Direktive</td><td>Manuelle Implementierung</td></tr>
-          <tr><td>Empfehlung</td><td>Bevorzugt für die meisten Projekte</td><td>Für komplexe, dynamische Workflows</td></tr>
-        </tbody>
-      </table>
-      <p>Für den Einstieg empfehle ich die <strong>deklarative Syntax</strong>. Hier ein minimales Jenkinsfile für ein Node.js-Projekt:</p>
-
-      <pre><code>pipeline {
-    agent any
-
-    stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'main',
-                    url: 'https://github.com/deinuser/dein-repo.git'
-            }
-        }
-        stage('Install Dependencies') {
-            steps {
-                sh 'npm ci'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh 'npm test'
-            }
-        }
-        stage('Build') {
-            steps {
-                sh 'npm run build'
-            }
-        }
-        stage('Deploy') {
-            steps {
-                sh '''
-                    scp -r dist/* deploy@server:/var/www/myapp/
-                '''
-            }
-        }
-    }
-}</code></pre>
-
-      <p>Speichere dieses Jenkinsfile im <strong>Root deines Git-Repositories</strong>. Jenkins erkennt es automatisch, wenn du eine Pipeline mit der Quelle „Pipeline script from SCM“ anlegst. So ist der Workflow versioniert und liegt direkt neben dem Quellcode.</p>
-
-      <div class="highlight-box" style="background:var(--card-bg);border:1px solid #ffb74d;border-radius:8px;padding:15px;margin:20px 0">
-        <p><strong>💡 Tipp:</strong> Nutze die <code>post</code>-Sektion in deklarativen Pipelines, um Aktionen nach einem Build auszuführen – zum Beispiel Benachrichtigungen per E-Mail oder Slack zu versenden:</p>
-        <pre><code>post {
-    success {
-        emailext to: 'team@example.com',
-                 subject: "Build erfolgreich: ${env.BUILD_NUMBER}",
-                 body: "Der Build war erfolgreich."
-    }
-    failure {
-        slackSend channel: '#ci-cd',
-                  color: 'danger',
-                  message: "Build ${env.BUILD_NUMBER} fehlgeschlagen!"
-    }
-}</code></pre>
-      
 
 <section class="related-section">
   <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>

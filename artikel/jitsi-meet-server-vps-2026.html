@@ -46,7 +46,7 @@
     "@type": "Organization",
     "name": "hostazar.com"
   },
-  "wordCount": 2780
+  "wordCount": 2108
 }
   </script>
   <script type="application/ld+json">
@@ -519,46 +519,22 @@
       <span>13 Min Lesezeit</span>
     </div>
 
-      <h2>Jitsi Meet – Die Open-Source-Videokonferenz-Lösung für deinen VPS</h2>
-      <p><strong>Jitsi Meet</strong> ist eine der führenden Open-Source-Videokonferenz-Lösungen und erlaubt es dir, deine eigene, vollständig kontrollierte Meeting-Plattform auf dem eigenen Server zu betreiben. Anders als Zoom, Microsoft Teams oder Google Meet läuft Jitsi Meet auf deiner Infrastruktur – ohne dass Daten Drittanbieter passieren. Das macht die Lösung besonders attraktiv für datenschutzbewusste Unternehmen, Bildungseinrichtungen, Vereine und alle, die DSGVO-konforme Videokonferenzen benötigen.</p>
-      <p>Das Projekt wird von 8×8 (ehemals Atlassian) aktiv weiterentwickelt und ist auf GitHub unter der Apache-Lizenz 2.0 verfügbar. Jitsi Meet besteht aus mehreren Komponenten: dem <strong>Jitsi Videobridge</strong> (JVB) für die Video-Router-Funktion, dem <strong>Jitsi Conference Focus</strong> (Jicofo) als Session-Manager, einem <strong>Prosody XMPP-Server</strong> für die Signalisierung und einer modernen Web-Oberfläche auf React-Basis.</p>
-      <p>In dieser Anleitung zeigen wir dir, wie du Jitsi Meet auf einem VPS mit Docker und dem offiziellen <strong>Jitsi-Meet-Docker-Stack</strong> installierst. Du erfährst, wie du Authentifizierung (Token/Passwort) einrichtest, SSL-Zertifikate via Let's Encrypt automatisierst, TURN/STUN-Server für NAT-Traversal konfigurierst und deine Instanz für 10–50 gleichzeitige Teilnehmer skalierst.</p>
-      <h2>Hardware-Anforderungen: Welcher VPS für Jitsi Meet?</h2>
-      <p>Bevor du startest, solltest du sicherstellen, dass dein VPS ausreichend dimensioniert ist. Jitsi Meet ist kein Leichtgewicht – insbesondere die Videobridge-Komponente benötigt ausreichend CPU und RAM, sobald mehrere Teilnehmer gleichzeitig Kameras eingeschaltet haben.</p>
-      <p>Hier eine grobe Orientierung für verschiedene Teilnehmergrößen:</p>
-      <ul>
-        <li><strong>10 Teilnehmer:</strong> 2 vCPUs, 4 GB RAM, 20 GB SSD – ausreichend für kleine Teams und interne Besprechungen ohne Aufzeichnung</li>
-        <li><strong>25 Teilnehmer:</strong> 4 vCPUs, 8 GB RAM, 40 GB SSD – empfohlen für den Regelbetrieb mit gelegentlichen Aufzeichnungen</li>
-        <li><strong>50 Teilnehmer:</strong> 6–8 vCPUs, 16 GB RAM, 80 GB SSD – mit aktiviertem TURN-Server und Aufzeichnungen</li>
-      </ul>
-      <p>Besonders wichtig ist eine <strong>gute Netzwerkanbindung</strong>: Pro Videostream solltest du mit etwa 1–2 Mbit/s Upstream rechnen. Bei 5 gleichzeitigen Videostreams in einer 10-Personen-Konferenz sind das etwa 5–10 Mbit/s – bei 50 Teilnehmern entsprechend mehr. Ein VPS mit 1 Gbit/s Anbindung und ausreichendem Traffic-Volumen ist empfehlenswert. Gute Anbieter für Jitsi-Meet-Hosting sind unter anderem <strong>Hetzner</strong> (CX22 / CX32) und <strong>Netcup</strong> (VPS 1000 / VPS 2000), die beide ein hervorragendes Preis-Leistungs-Verhältnis bieten.</p>
-      <h2>Jitsi Meet Docker-Stack installieren – Schritt für Schritt</h2>
-      <p>Der schnellste Weg zu einer produktionsreifen Jitsi-Meet-Instanz führt über den offiziellen Docker-Stack. Das Team hinter Jitsi pflegt ein <code>docker-compose.yml</code>-Setup, das alle benötigten Dienste auf einmal startet: Prosody, Jicofo, JVB, die Web-Oberfläche und optional einen TURN/STUN-Server (Coturn) sowie Jigasi (SIP-Gateway) und Jibri (Aufzeichnung).</p>
-      <h3>1. Repository klonen und Konfiguration anpassen</h3>
-      <p>Zunächst klonst du das offizielle Docker-Repository und kopierst die Umgebungsvariablen-Datei:</p>
-      <pre>git clone https://github.com/jitsi/docker-jitsi-meet.git /opt/jitsi-meet
-cd /opt/jitsi-meet
-cp env.example .env</pre>
-      <p>In der <code>.env</code>-Datei nimmst du die wichtigsten Einstellungen vor. Mindestens musst du <code>CONFIG</code>-Verzeichnis, die Domain und die HTTP/HTTPS-Ports setzen. Die Datei ist gut dokumentiert – alle relevanten Optionen sind mit Kommentaren versehen. Besonders wichtig sind folgende Variablen:</p>
-      <pre># Domain (muss per A-Record auf deinen Server zeigen)
-JITSI_DOMAIN=meet.deine-domain.de
+  <a href="/artikel/ansible-automation-guide.html" class="card-img-link">
+    <div class="card-img"><img src="/images/ansible-automation-guide.png" alt="Ansible Automation – Grundlagen &amp; Praxis-Guide 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>15. June 2026</span>
+      <span>3 Min</span>
+    </div>
+    <h3><a href="/artikel/ansible-automation-guide.html">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</a></h3>
+    <p class="card-excerpt">nsible Automation: Grundlagen &amp; Praxis-Guide 2026  In der modernen IT-Landschaft ist manuelle Serververwaltung ein Relikt der Vergangenheit. Wer heute skali.</p>
+    <div class="card-footer">
+      <a href="/artikel/ansible-automation-guide.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
 
-# HTTP/HTTPS Ports
-HTTP_PORT=80
-HTTPS_PORT=443
-
-# Konfigurationspfad (wird automatisch erstellt)
-CONFIG=~/.jitsi-meet-cfg</pre>
-      <h3>2. Verzeichnisse erstellen und Container starten</h3>
-      <p>Bevor du den Stack startest, müssen einige Verzeichnisse angelegt werden. Das Setup-Skript erledigt das automatisch:</p>
-      <pre>./gen-passwords.sh
-mkdir -p ~/.jitsi-meet-cfg/{web/transcripts,web/letsencrypt,transcripts,prosody,jicofo,jvb,jigasi,jibri}</pre>
-      <p>Jetzt kannst du den Stack starten:</p>
-      <pre>docker compose up -d</pre>
-      <p>Beim ersten Start kümmert sich der integrierte Let's-Encrypt-Client automatisch um ein gültiges TLS-Zertifikat – sofern deine Domain bereits korrekt auf den Server zeigt und die Ports 80 und 443 erreichbar sind. Nach wenigen Minuten erreichst du deine Jitsi-Meet-Instanz unter <code>https://meet.deine-domain.de</code>.</p>
-      <h3>3. Erster Test und grundlegende Konfiguration</h3>
-      <p>Öffne die URL in deinem Browser. Du solltest die Jitsi-Meet-Oberfläche sehen und sofort einen Raum erstellen können. Standardmäßig ist der Zugriff ohne Authentifizierung möglich – das ist praktisch für Ad-hoc-Meetings, aber nicht für den produktiven Einsatz geeignet. Im nächsten Abschnitt zeigen wir dir, wie du die Authentifizierung aktivierst.</p>
-      <div class="adsense-placeholder"><p><strong>— Anzeige —</strong></p><p>Google AdSense Platzhalter (Mitte)</p>
 
 <section class="related-section">
   <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>

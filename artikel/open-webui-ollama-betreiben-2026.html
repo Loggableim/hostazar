@@ -46,7 +46,7 @@
     "@type": "Organization",
     "name": "hostazar.com"
   },
-  "wordCount": 3059
+  "wordCount": 3806
 }
   </script>
   <script type="application/ld+json">
@@ -519,212 +519,22 @@
       <span>15 Min Lesezeit</span>
     </div>
 
+  <a href="/artikel/llm-lokal-hosten-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/llm-lokal-hosten-2026.png" alt="LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag ki-llm" style="background:#9C27B022;color:#9C27B0">KI &amp; LLM</span>
+      <span>07. July 2026</span>
+      <span>14 Min</span>
+    </div>
+    <h3><a href="/artikel/llm-lokal-hosten-2026.html">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</a></h3>
+    <p class="card-excerpt">LLM lokal hosten 2026: ✓ Hardware-Auswahl ✓ GPU-Vergleich (RTX 4090, RTX 5090, A6000) ✓ Ollama, vLLM &amp; Docker ✓ Modell-Wahl ✓ OpenAI-kompatible API ✓ Schritt-für-Schritt-Anleitung.</p>
+    <div class="card-footer">
+      <a href="/artikel/llm-lokal-hosten-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
 
-      <h2>Einleitung: Warum Open WebUI + Ollama die bessere Alternative zu ChatGPT ist</h2>
-      <p>ChatGPT hat die Welt im Sturm erobert – aber der Hype bringt auch Schattenseiten mit sich: Deine Daten wandern auf US-Server, die monatliche Abo-Gebühr für ChatGPT Plus liegt bei 20 US-Dollar (knapp 22 € im Monat), und bei hohem Traffic bremst OpenAI die Antwortgeschwindigkeit bewusst aus. Hinzu kommt, dass GPT-4o und o1 in der EU teils nur eingeschränkt verfügbar sind oder bestimmte Features (Advanced Voice, Memory) regionsabhängig deaktiviert wurden. Wer seine sensiblen Daten nicht in fremde Hände geben oder auf die volle Kontrolle über das verwendete Modell nicht verzichten möchte, braucht eine Alternative – und die heißt <strong>Open WebUI in Kombination mit Ollama</strong>.</p>
-      <p>Open WebUI ist eine vollständig selbst gehostete Chat-Oberfläche, die bewusst an ChatGPTs Look-and-Feel angelehnt ist – mit Namenskonvention wie "Neuer Chat", Dunkelmodus, Markdown-Support, Code-Highlighting und einem sauber getrennten Chat-Verlauf pro Benutzer. Im Hintergrund läuft Ollama als LLM-Runtime, die lokale Sprachmodelle wie Llama 3, Mistral, Qwen 2.5, DeepSeek oder Phi-4 verwaltet. Das Besondere: Beide Komponenten laufen auf deinem eigenen VPS, deinem Homeserver oder sogar deinem Gaming-PC – ohne Internetverbindung, ohne Datenabfluss und ohne monatliche Lizenzkosten.</p>
-      <p>Dieser Guide führt dich Schritt für Schritt durch die Installation und optimale Konfiguration beider Systeme – vom Setup der Docker-Umgebung über die Ollama-Integration bis hin zum Multi-User-Betrieb und dem Aufsetzen von RAG-Pipelines (Retrieval-Augmented Generation) für deine eigenen Dokumente.</p>
-
-      <h2>Was ist Open WebUI?</h2>
-      <p>Open WebUI (früher bekannt als Ollama WebUI) ist ein Open-Source-Chat-Interface, das speziell für den Betrieb mit lokalen Large Language Models entwickelt wurde. Es ist in TypeScript mit Svelte (Frontend) und Python mit FastAPI (Backend) geschrieben und bietet gegenüber der puren Ollama-Kommandozeile eine ganze Reihe von Vorteilen:</p>
-      <ul>
-        <li><strong>ChatGPT-ähnliche Oberfläche:</strong> Thread-basierte Chats, Markdown-Rendering, Syntax-Highlighting für über 50 Sprachen, Datei-Uploads per Drag &amp; Drop</li>
-        <li><strong>Multi-User-Support:</strong> Registrierung, Login, Benutzerverwaltung mit Admin-Rollen, Workspace-Isolation pro Team oder Abteilung</li>
-        <li><strong>RAG-Pipelines:</strong> Eigene PDFs, Word-Dokumente oder Textdateien hochladen und per Vektor-Suche in Chats einbinden</li>
-        <li><strong>Modell-Wechsel:</strong> Mehrere Modelle parallel verwalten und im Chat per Dropdown umschalten – sogar mit parallelen Chats in verschiedenen Modellen gleichzeitig</li>
-        <li><strong>Plugin-System:</strong> Erweiterbar über Tools und Actions (Web Search, Code Execution, Image Generation)</li>
-        <li><strong>Mobile PWA:</strong> Als Progressive Web App auf dem Smartphone installierbar – inklusive Push-Benachrichtigungen</li>
-      </ul>
-      <p>Das Projekt wird aktiv auf GitHub entwickelt (github.com/open-webui/open-webui) und hat inzwischen mehr als 60.000 Stars. Die Community ist groß, die Release-Frequenz hoch – Updates erscheinen im Schnitt alle zwei bis vier Wochen. Lizenziert unter MIT, also frei für kommerzielle und private Nutzung ohne Einschränkungen.</p>
-
-      <h2>Voraussetzungen – Was du brauchst</h2>
-      <p>Bevor es losgeht, ein Überblick über die benötigten Komponenten. Die Wahl des Hosts richtet sich maßgeblich nach den Modellen, die du ausführen möchtest:</p>
-      <ul>
-        <li><strong>Server oder VPS</strong> – mindestens 8 GB RAM für kleinere Modelle (Llama 3 8B, Mistral 7B), ab 32 GB RAM für Llama 3 70B / DeepSeek V3. Empfehlung: dedizierter AWS-VPS oder Hetzner Cloud (CX32/CX52). GPU-Unterstützung (NVIDIA CUDA) empfohlen, aber nicht zwingend erforderlich – CPU-Inferenz funktioniert, ist aber deutlich langsamer.</li>
-        <li><strong>Docker &amp; Docker Compose</strong> – Open WebUI und Ollama laufen als Container. Docker Compose (V2) ist der empfohlene Weg für das Setup.</li>
-        <li><strong>ca. 20 GB freier Speicher</strong> pro Modell – Llama 3 8B benötigt rund 16 GB, DeepSeek R1:Disti 32B rund 20 GB.</li>
-        <li><strong>Optional: NVIDIA GPU</strong> – mit CUDA 12.4+ und nvidia-container-toolkit. Beschleunigt die Token-Generierung um den Faktor 3–10.</li>
-      </ul>
-      <p>Betriebssystem: Ubuntu 22.04/24.04 LTS wird empfohlen (höchste Kompatibilität mit NVIDIA-Treibern und Docker), aber auch Debian 12, Arch Linux, macOS (Apple Silicon) und Windows via WSL2 sind unterstützt.</p>
-
-      <h2>Schritt 1: Docker &amp; Docker Compose installieren</h2>
-      <p>Falls Docker noch nicht auf deinem Server läuft, installierst du es mit einer Handvoll Befehlen. Auf Ubuntu 24.04 LTS sieht der Standard-Weg so aus:</p>
-      <pre><code># System aktualisieren
-sudo apt update &amp;&amp; sudo apt upgrade -y
-
-# Docker-Paketquellen hinzufügen
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-
-# Docker-Dienst starten
-sudo systemctl enable --now docker
-
-# Docker Compose (Plugin) prüfen
-docker compose version</code></pre>
-      <p>Das nvidia-container-toolkit (für GPU-Nutzung) installierst du im Anschluss:</p>
-      <pre><code># NVIDIA Container Toolkit
-curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
-curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-sudo apt update &amp;&amp; sudo apt install -y nvidia-container-toolkit
-sudo nvidia-ctk runtime configure --runtime=docker
-sudo systemctl restart docker</code></pre>
-
-      <h2>Schritt 2: Ollama mit Docker Compose starten</h2>
-      <p>Der einfachste Weg zu einem sauberen Setup führt über eine gemeinsame Docker-Compose-Datei. Erstelle ein neues Verzeichnis und darin die Datei <code>docker-compose.yml</code>:</p>
-      <pre><code>version: '3.8'
-services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    restart: unless-stopped
-    ports:
-      - "11434:11434"
-    volumes:
-      - ./ollama_data:/root/.ollama
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:main
-    container_name: open-webui
-    restart: unless-stopped
-    ports:
-      - "3000:8080"
-    environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
-      - WEBUI_AUTH=true
-      - WEBUI_NAME=Mein KI-Assistent
-      - DEFAULT_MODELS=llama3:latest
-      - ENABLE_SIGNUP=false
-    volumes:
-      - ./open-webui_data:/app/backend/data
-    depends_on:
-      - ollama
-    extra_hosts:
-      - "host.docker.internal:host-gateway"</code></pre>
-      <p>Dann startest du die Container:</p>
-      <pre><code>docker compose up -d</code></pre>
-      <p>Die Open WebUI ist jetzt unter <code>http://DEINE_SERVER_IP:3000</code> erreichbar. Der Admin-Account wird beim ersten Aufruf angelegt – nachdem du <code>ENABLE_SIGNUP=false</code> gesetzt hast, ist die Registrierung geschlossen und nur du als Admin kannst neue Benutzer anlegen.</p>
-
-      <h2>Schritt 3: Modelle mit Ollama herunterladen</h2>
-      <p>Jetzt kommt der spannende Teil: Du holst dir die passenden Modelle auf deinen Server. Ollama verwaltet Modelle über eine einfache Kommandozeile – wahlweise direkt im Container oder via API:</p>
-      <pre><code># Im Container
-docker exec -it ollama ollama pull llama3:latest
-docker exec -it ollama ollama pull deepseek-r1:7b
-docker exec -it ollama ollama pull mistral:latest
-docker exec -it ollama ollama pull qwen2.5:7b
-
-# Verfügbare Modelle anzeigen
-docker exec -it ollama ollama list</code></pre>
-      <p>Alternativ kannst du Modelle auch direkt über die Open-WebUI-Oberfläche laden: Gehe zu Einstellungen → Modelle → "Modell aus Ollama-Bibliothek hinzufügen". Die Oberfläche listet alle verfügbaren Modelle aus dem Ollama-Katalog auf und lädt sie auf Knopfdruck herunter.</p>
-      <p>Welches Modell für dich das richtige ist, hängt von deiner Hardware und deinem Einsatzzweck ab. Eine kleine Orientierungshilfe:</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Modell</th>
-            <th>Größe</th>
-            <th>RAM (Minimum)</th>
-            <th>Stärke</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Llama 3.1 8B</td><td>16 GB</td><td>8 GB</td><td>Bester Allrounder – Deutsch, Code, Reasoning</td></tr>
-          <tr><td>Mistral 7B</td><td>14 GB</td><td>8 GB</td><td>Schnell, effizient, stark in Englisch &amp; Code</td></tr>
-          <tr><td>Qwen 2.5 7B</td><td>16 GB</td><td>8 GB</td><td>Stark in Mathe &amp; logischem Denken</td></tr>
-          <tr><td>DeepSeek R1:Disti Qwen 32B</td><td>20 GB</td><td>24 GB</td><td>Reasoning-Modell mit Chain-of-Thought</td></tr>
-          <tr><td>Phi-4 14B</td><td>16 GB</td><td>16 GB</td><td>Microsofts kleines Modell überrascht stark</td></tr>
-          <tr><td>Llama 3.1 70B</td><td>140 GB</td><td>48 GB</td><td>GPT-4-Niveau – braucht GPU oder große CPU-RAM-Menge</td></tr>
-        </tbody>
-      </table>
-
-      <h2>Schritt 4: Open WebUI einrichten &amp; konfigurieren</h2>
-      <p>Nach dem ersten Login als Admin erwarten dich einige wichtige Konfigurationen, die den Betrieb erst richtig rund machen:</p>
-      <p><strong>Benutzerverwaltung aktivieren:</strong> Gehe zu Admin-Panel → Benutzer. Hier siehst du alle registrierten Accounts. Du kannst neue Benutzer manuell anlegen, Passwörter zurücksetzen oder Zugriffsrechte entziehen. Für Teams empfiehlt sich die Integration mit OIDC (Keycloak, Authelia, Authentik) oder LDAP – beides wird nativ von Open WebUI unterstützt.</p>
-      <p><strong>RAG konfigurieren:</strong> Unter Admin-Panel → RAG stellst du die Chunk-Größe (Standard: 1000 Zeichen) und den Overlap (200 Zeichen) ein. Als Embedding-Modell kannst du entweder ein lokales Ollama-Modell nutzen (z. B. <code>nomic-embed-text</code>) oder einen externen API-Provider. Die Vektordatenbank wird automatisch von Open WebUI mit ChromaDB verwaltet – keine manuelle Einrichtung nötig.</p>
-      <p><strong>Modell-Presets:</strong> Definiere Standard-Parameter pro Modell – Temperatur (0.7 für kreativ, 0.1 für faktenbasierte Antworten), Max-Tokens (2048 als Standard), System-Prompt (z. B. "Du bist ein hilfreicher deutscher Assistent") und Context-Length (8192, 16384 oder 32768 Tokens je nach Modell).</p>
-      <p><strong>Web-Suche:</strong> Open WebUI kann bei Bedarf das Web durchsuchen, um aktuelle Informationen in die Antwort einzubinden. Aktiviere unter Admin-Panel → Tools die Web-Suche und konfiguriere einen Search-API-Key (Google Custom Search, SearXNG oder Bing Search API).</p>
-
-      <h2>Schritt 5: Multi-User-Modus für Teams und Familien</h2>
-      <p>Einer der größten Vorteile von Open WebUI gegenüber der simplen Ollama-CLI ist der integrierte Multi-User-Modus. Du kannst beliebig viele Benutzer anlegen, die jeweils eigene Chat-Verläufe, Workspaces und Modellberechtigungen haben:</p>
-      <ul>
-        <li><strong>Admin-Rolle:</strong> Volle Kontrolle – Benutzer verwalten, Systemeinstellungen, alle Chats einsehen, Modelle hinzufügen/löschen</li>
-        <li><strong>User-Rolle:</strong> Eigene Chats, hochgeladene Dokumente, Modellauswahl – kein Zugriff auf Admin-Bereich oder fremde Chats</li>
-        <li><strong>Read-Only-Rolle:</strong> Nur Chat-Verlauf einsehbar, keine neuen Chats startbar – nützlich für externe Gäste oder Viewer</li>
-      </ul>
-      <p>Für Unternehmen mit vielen Benutzern empfiehlt sich die Anbindung an einen OIDC-Provider (z. B. Keycloak oder Authelia). Die Konfiguration erfolgt über Environment-Variablen in der docker-compose.yml:</p>
-      <pre><code>environment:
-  - WEBUI_AUTH=true
-  - ENABLE_SIGNUP=false
-  - OAUTH_PROVIDER=google  # oder: microsoft, github, oidc
-  - OAUTH_CLIENT_ID=xxxxxxxx
-  - OAUTH_CLIENT_SECRET=yyyyyyyy</code></pre>
-      <p>Nach dem Neustart können sich Benutzer per Single-Sign-On (SSO) anmelden – und du hast die volle Kontrolle darüber, wer auf deine KI-Instanz zugreifen darf.</p>
-
-      <h2>RAG-Pipelines: Eigene Dokumente in die KI einbinden</h2>
-      <p>Die Killer-Funktion von Open WebUI ist die eingebaute RAG-Pipeline. Anders als ChatGPT, das nur auf seinem Trainingswissen basiert (Stand: Mai 2026), kannst du bei Open WebUI eigene Dokumente hochladen und im Chat als Wissensbasis nutzen. Der Ablauf im Hintergrund:</p>
-      <ol>
-        <li><strong>Upload:</strong> Du lädst PDF, DOCX, TXT (oder sogar ganze Ordner) über die Oberfläche hoch. Die maximale Dateigröße lässt sich im Admin-Panel konfigurieren (Standard: 100 MB).</li>
-        <li><strong>Chunking &amp; Embedding:</strong> Die Datei wird in semantische Abschnitte zerlegt (Chunk-Größe einstellbar) und jedes Chunk wird mit einem Embedding-Modell (z. B. nomic-embed-text) in numerische Vektoren umgewandelt.</li>
-        <li><strong>Vektor-Speicher:</strong> Die Embeddings landen in einer lokalen ChromaDB-Datenbank. Pro Workspace kann es einen eigenen Vektorindex geben, sodass Teams nur auf ihre eigenen Dokumente zugreifen.</li>
-        <li><strong>Retrieval:</strong> Bei jeder Chat-Nachricht wird automatisch der Vektorindex durchsucht, die 3–5 relevantesten Chunks ausgewählt und als Kontext an das Modell übergeben.</li>
-      </ol>
-      <p>Das Ergebnis: Dein lokales LLM kann plötzlich Fragen zu deinen internen Dokumenten beantworten – ohne dass du die Dokumente jemals an einen externen Server senden musst. Perfekt für Handbücher, Verträge, wissenschaftliche Paper oder interne Wikis.</p>
-
-      <h2>Open WebUI vs. ChatGPT – Der Vergleich</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Feature</th>
-            <th>Open WebUI + Ollama</th>
-            <th>ChatGPT (Plus)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Kosten</td><td>✅ Kostenlos (nur Serverkosten)</td><td>❌ 22 €/Monat (Plus)</td></tr>
-          <tr><td>Datenschutz</td><td>✅ Volle Datenkontrolle, lokal</td><td>❌ Daten auf US-Servern</td></tr>
-          <tr><td>Modellauswahl</td><td>✅ 100+ Modelle frei wählbar</td><td>❌ Nur OpenAI-Modelle</td></tr>
-          <tr><td>Offline-Betrieb</td><td>✅ Ja, kein Internet nötig</td><td>❌ Immer Online-Zwang</td></tr>
-          <tr><td>RAG für eigene Docs</td><td>✅ Integriert, lokal</td><td>⚠️ Nur via GPTs (API-Zugriff)</td></tr>
-          <tr><td>Multi-User</td><td>✅ Ja, inkl. SSO &amp; LDAP</td><td>⚠️ Teams ab 25 €/Monat/User</td></tr>
-          <tr><td>GPU-Beschleunigung</td><td>✅ NVIDIA, AMD, Apple Silicon</td><td>✅ Cloud-seitig</td></tr>
-          <tr><td>Plugin-System</td><td>✅ Open Source, erweiterbar</td><td>⚠️ Eingeschränkt (GPTs, Actions)</td></tr>
-          <tr><td>Responsive PWA</td><td>✅ Ja, mobil nutzbar</td><td>✅ Ja</td></tr>
-          <tr><td>Setup-Aufwand</td><td>⚠️ 15–30 Minuten Einrichtung</td><td>✅ Sofort nutzbar</td></tr>
-          <tr><td>Sprachqualität (Deutsch)</td><td>⚠️ Modellabhängig (Llama 3 ist exzellent)</td><td>✅ GPT-4o State-of-the-Art</td></tr>
-        </tbody>
-      </table>
-      <p>Die Tabelle zeigt es deutlich: Open WebUI + Ollama ist ChatGPT in den meisten praktisch relevanten Kategorien überlegen – besonders bei Datenschutz, Kostenkontrolle und Flexibilität. Der einzige echte Nachteil ist der initiale Setup-Aufwand und die (modellabhängige) Sprachqualität. Mit Llama 3.1 70B oder DeepSeek V3 ziehst du aber auch hier gleich.</p>
-
-      <h2>Hardware-Empfehlung: Der richtige Server für dein KI-Setup</h2>
-      <p>Je nachdem, welche Modelle du betreiben willst, unterscheidet sich die benötigte Hardware massiv. Hier eine grobe Einordnung, welcher Server für welches Szenario die richtige Wahl ist:</p>
-      <ul>
-        <li><strong>Einsteiger (Llama 3 8B, Mistral 7B):</strong> Ein VPS mit 8 GB RAM und 4 vCPUs reicht aus – z. B. Hetzner CX22 (ca. 5,89 €/Monat) oder Netcup VPS 1000 (ca. 12 €/Monat). CPU-Inferenz liefert hier 5–15 Tokens pro Sekunde.</li>
-        <li><strong>Fortgeschritten (DeepSeek 32B, Qwen 32B):</strong> 16–24 GB RAM, 8 vCPUs – Hetzner CX52 (ca. 18 €/Monat) oder ein günstiger Dedicated Server mit Ryzen 5. Mit GPU (RTX 3060 12 GB) erreichst du 30–60 Tokens/s.</li>
-        <li><strong>Pro (Llama 3 70B, Mixtral 8x22B):</strong> Dedizierter Server mit 64+ GB RAM und NVIDIA RTX 4090 (24 GB) oder besser A6000 (48 GB). Server-Miete ab ca. 150 €/Monat bei Hetzner oder Contabo.</li>
-      </ul>
-      <p>Ein wichtiger Tipp für den Einstieg: Starte mit einem kleinen Modell wie Llama 3 8B oder Qwen 2.5 7B auf einem günstigen VPS (8–16 GB RAM). Wenn du merkst, dass die Antwortqualität für deine Anwendungsfälle reicht, hast du kaum Investitionskosten gehabt. Für erste Tests reicht sogar ein Raspberry Pi 5 mit 8 GB RAM – darauf läuft Phi-4 oder Qwen 2.5 7B in 4-Bit-Quantisierung (über Ollama: <code>qwen2.5:7b-q4_K_M</code>) flüssig genug für den gelegentlichen Gebrauch.</p>
-
-      <h2>Sicherheitshinweise für den Produktivbetrieb</h2>
-      <p>Wenn Open WebUI über das Internet erreichbar sein soll (z. B. für dein Team), gibt es ein paar wichtige Sicherheitsvorkehrungen zu beachten:</p>
-      <ul>
-        <li><strong>Reverse Proxy mit SSL:</strong> Setze Nginx oder Caddy als Reverse Proxy vor Open WebUI, der automatisch Let's Encrypt-Zertifikate ausstellt. Beispiel-Nginx-Config gibt es im offiziellen Wiki.</li>
-        <li><strong>Firewall:</strong> Port 3000 und Port 11434 nur aus dem internen Netz (Docker-Netzwerk oder Tailscale/Wireguard) erreichbar machen. Niemals Port 11434 direkt ins Internet freigeben!</li>
-        <li><strong>Authentifizierung erzwingen:</strong> Setze <code>WEBUI_AUTH=true</code> und <code>ENABLE_SIGNUP=false</code>. Nur manuell angelegte Benutzer erhalten Zugriff.</li>
-        <li><strong>Regelmäßige Updates:</strong> Open WebUI und Ollama erscheinen im Wochenrhythmus. Führe regelmäßig <code>docker compose pull &amp;&amp; docker compose up -d</code> aus, um Sicherheitslücken zu schließen.</li>
-        <li><strong>Raten-Limiting:</strong> Mit einem vorgeschalteten Nginx lässt sich die Anzahl der Requests pro Minute pro IP begrenzen – wichtig, um API-Missbrauch zu verhindern.</li>
-      </ul>
-
-      <h2>Fazit</h2>
-      <p>Open WebUI und Ollama bilden das derzeit beste Open-Source-Duo, um einen eigenen KI-Assistenten auf dem Server zu betreiben. Die Installation via Docker Compose ist in 15 Minuten erledigt, die laufenden Kosten beschränken sich auf die Server-Miete – kein monatliches Abo, keine Datenflucht ins Ausland und volle Kontrolle über die verwendeten Modelle. Der Multi-User-Modus macht die Lösung teamtauglich, die integrierten RAG-Pipelines verwandeln deinen Server in eine lokale Wissensdatenbank mit KI-Suche.</p>
-      <p>Für den Einstieg reicht ein <strong>VPS mit 8 GB RAM und 4 vCPUs</strong> – etwa die <a href="https://www.hetzner.com/de/cloud" target="_blank" rel="nofollow">Hetzner Cloud CX22 (ab 5,89 €/Monat)</a> oder ein <a href="https://www.netcup.de/vserver/" target="_blank" rel="nofollow">Netcup VPS 1000 (ab 11,99 €/Monat)</a>. Wenn du größere Modelle wie Llama 3 70B betreiben möchtest, empfehlen wir einen <strong>Dedicated Server mit NVIDIA-GPU</strong> – die Investition amortisiert sich nach wenigen Monaten gegenüber einem ChatGPT-Team-Abo schnell.</p>
-      <p>Wer einen Schritt weitergehen möchte: Open WebUI unterstützt mittlerweile auch <strong>Image Generation via ComfyUI</strong>, <strong>Speech-to-Text (Whisper)</strong> und <strong>Text-to-Speech (TTS)</strong>. Dein selbst gehosteter KI-Assistent kann dann nicht nur Texte schreiben, sondern auch Bilder generieren, Dokumente transkribieren und per Sprache antworten – komplett lokal und datenschutzkonform. Das ist mehr, als ChatGPT Plus aktuell bieten kann.</p>
-
-    
 
 <section class="related-section">
   <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>

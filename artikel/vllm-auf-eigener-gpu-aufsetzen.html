@@ -46,7 +46,7 @@
     "@type": "Organization",
     "name": "hostazar.com"
   },
-  "wordCount": 2999
+  "wordCount": 2093
 }
   </script>
   <script type="application/ld+json">
@@ -519,76 +519,22 @@
       <span>14 Min Lesezeit</span>
     </div>
 
+  <a href="/artikel/llm-lokal-hosten-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/llm-lokal-hosten-2026.png" alt="LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag ki-llm" style="background:#9C27B022;color:#9C27B0">KI &amp; LLM</span>
+      <span>07. July 2026</span>
+      <span>14 Min</span>
+    </div>
+    <h3><a href="/artikel/llm-lokal-hosten-2026.html">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</a></h3>
+    <p class="card-excerpt">LLM lokal hosten 2026: ✓ Hardware-Auswahl ✓ GPU-Vergleich (RTX 4090, RTX 5090, A6000) ✓ Ollama, vLLM &amp; Docker ✓ Modell-Wahl ✓ OpenAI-kompatible API ✓ Schritt-für-Schritt-Anleitung.</p>
+    <div class="card-footer">
+      <a href="/artikel/llm-lokal-hosten-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
 
-      <h2>vLLM auf eigener GPU aufsetzen – Einleitung</h2>
-      <p>Large Language Models wie <strong>Llama 3.3 70B</strong>, <strong>Mixtral 8x22B</strong> oder <strong>Qwen 2.5 72B</strong> sind 2026 die treibende Kraft hinter zahllosen KI-Anwendungen – von Chatbots über Code-Assistenten bis hin zu Retrieval-Augmented-Generation-Systemen. Doch mit zunehmender Modellgröße wird die Inferenz zum Engpass: Selbst eine NVIDIA RTX 4090 mit 24 GB VRAM kommt bei einem 70B-Modell ohne Optimierung schnell an ihre Grenzen. Hier setzt <strong>vLLM</strong> an – ein hochoptimiertes Open-Source-Inference-Framework, das speziell für <strong>Production-Ready LLM Serving</strong> auf eigener GPU entwickelt wurde.</p>
-      <p>In diesem Guide zeigen wir dir, wie du vLLM auf deinem GPU-Server installierst, konfigurierst und für den produktiven Betrieb optimierst. Du erfährst, wie <strong>PagedAttention</strong> den VRAM-Verbrauch drastisch reduziert, wie <strong>Continuous Batching</strong> den Durchsatz maximiert und wie du mit <strong>Multi-LoRA</strong> Dutzende feinabgestimmte Modelle parallel bereitstellst – alles hinter einer OpenAI-kompatiblen REST-API. Inklusive Vergleichstabelle, Docker-Setup, Kubernetes-Deployment und Monitoring.</p>
-
-      <h2>Was ist vLLM und warum brauchst du es?</h2>
-      <p>vLLM ist ein von der UC Berkeley entwickeltes Open-Source-Inference-Framework (Apache 2.0), das speziell für die effiziente Ausführung großer Sprachmodelle auf GPUs optimiert wurde. Im Kern löst vLLM das zentrale Problem des LLM-Servings: Die <strong>KV-Cache-Verwaltung</strong>. Bei herkömmlichen Ansätzen wird der Attention-Key-Value-Cache jeder Anfrage als zusammenhängender Speicherblock im VRAM abgelegt – ein ineffizientes Verfahren, das zu massiver Speicherverschwendung (bis zu 60–80 %) führt und damit die Anzahl gleichzeitiger Anfragen drastisch begrenzt.</p>
-      <p>Die wichtigsten Features und Vorteile von vLLM:</p>
-      <ul>
-        <li><strong>PagedAttention:</strong> Der KV-Cache wird in kleine, nicht-zusammenhängende Blöcke (Pages) aufgeteilt – analog zum Paging-Betriebssystem-Prinzip. Ergebnis: nahezu 100 % VRAM-Auslastung und bis zu <strong>2–4× höherer Durchsatz</strong> gegenüber Standard-Implementierungen.</li>
-        <li><strong>Continuous Batching:</strong> Anders als bei statischem Batching werden Anfragen dynamisch im laufenden Betrieb zur Batch-Verarbeitung hinzugefügt oder entfernt – sobald eine Anfrage fertig inferiert wird, rückt die nächste nach. Das maximiert die GPU-Auslastung und senkt die Latenz pro Request.</li>
-        <li><strong>OpenAI-kompatible API:</strong> Der vLLM-Server stellt eine REST-API bereit, die 1:1 zum <code>chat/completions</code>- und <code>completions</code>-Endpunkt von OpenAI kompatibel ist. Bestehende Tools, Libraries und Agenten (LangChain, LlamaIndex, Continue.dev, Open WebUI) können ohne Code-Änderung angebunden werden.</li>
-        <li><strong>Multi-LoRA:</strong> Dutzende oder hunderte feinabgestimmte LoRA-Adapter können parallel geladen und dynamisch je nach Anfrage ausgewählt werden – ohne Modell-Switching oder redundante VRAM-Belegung.</li>
-        <li><strong>Tensor Parallel & Pipeline Parallel:</strong> Große Modelle lassen sich transparent über mehrere GPUs und sogar mehrere Nodes verteilen.</li>
-      </ul>
-      <p>Zum Vergleich: Während <a href="/artikel/ollama-llm-server-vps-2026.html">Ollama</a> eher auf einfache, lokale Nutzung ausgelegt ist, zielt vLLM auf <strong>produktiven Multi-User-Betrieb</strong> mit hohem Durchsatz ab – der ideale Unterbau für SaaS-KI-Dienste, Unternehmenslösungen oder KI-gestützte Developer-Tools auf eigener GPU-Infrastruktur.</p>
-
-      <h2>Hardware-Anforderungen: Welche GPU für welches Modell?</h2>
-      <p>Die Wahl der richtigen GPU ist der entscheidende Faktor für die Performance deines vLLM-Setups. Die folgende Tabelle zeigt die GPU-Empfehlungen für die gängigsten Modellgrößen:</p>
-
-      <div class="vllm-compare">
-      <table>
-        <thead>
-          <tr>
-            <th>Modell</th>
-            <th>Parameter</th>
-            <th>Min. VRAM (Q4)</th>
-            <th>Empfohlene GPU</th>
-            <th>Max. Tokens/s</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Llama 3.2 3B / Phi-3 Mini</td>
-            <td>3–4B</td>
-            <td>4 GB</td>
-            <td>RTX 3060 / A10</td>
-            <td>~180</td>
-          </tr>
-          <tr>
-            <td>Mistral 7B / Llama 3.1 8B</td>
-            <td>7–8B</td>
-            <td>8 GB</td>
-            <td>RTX 4070 / A10</td>
-            <td>~120</td>
-          </tr>
-          <tr>
-            <td>Qwen 2.5 14B / Phi-3 Medium</td>
-            <td>14B</td>
-            <td>14 GB</td>
-            <td>RTX 4080 / A100 40GB</td>
-            <td>~80</td>
-          </tr>
-          <tr>
-            <td>Llama 3.3 70B / Mixtral 8x22B</td>
-            <td>70B</td>
-            <td>40 GB</td>
-            <td>A100 80GB / 2× RTX 4090</td>
-            <td>~45</td>
-          </tr>
-          <tr>
-            <td>Qwen 2.5 72B / DeepSeek V3</td>
-            <td>72B+</td>
-            <td>48 GB</td>
-            <td>A100 80GB / H100</td>
-            <td>~35</td>
-          </tr>
-        </tbody>
-      </table>
-      
 
 <section class="related-section">
   <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>

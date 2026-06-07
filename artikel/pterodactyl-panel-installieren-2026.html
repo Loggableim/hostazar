@@ -46,7 +46,7 @@
     "@type": "Organization",
     "name": "hostazar.com"
   },
-  "wordCount": 2733
+  "wordCount": 3454
 }
   </script>
   <script type="application/ld+json">
@@ -519,157 +519,22 @@
       <span>13 Min Lesezeit</span>
     </div>
 
-      <h2>Was ist Pterodactyl? – Panel und Wings Daemon erklärt</h2>
-      <p>Pterodactyl ist ein quelloffenes, modernes Gameserver-Management-Panel, das speziell dafür entwickelt wurde, das Verwalten von Dutzenden Gameservern so komfortabel wie möglich zu machen. Wer schon einmal versucht hat, einen Minecraft-, CS2- oder Valheim-Server manuell über die Kommandozeile zu betreiben, weiß, wie schnell unzählige Screen-Sessions, Docker-Container und Konfigurationsdateien entstehen. Genau hier setzt <strong>Pterodactyl</strong> an: Es bündelt Server-Erstellung, Live-Konsole, Datei-Manager, Backup-Planung und Benutzerverwaltung in einer schlanken Weboberfläche.</p>
-      <p>Architektonisch besteht Pterodactyl aus zwei klar getrennten Komponenten. Das eigentliche <strong>Panel</strong> ist eine PHP-8.2-Webanwendung, die du über deinen Browser erreichst. Hier legst du Nodes an, verwaltest Benutzer, definierst Server-Slots und konfigurierst Spiele-Templates, sogenannte „Eggs". Das Panel selbst führt keine Spiele aus – es ist reine Steuerungslogik und spricht per sicherer HTTPS-API mit den eigentlichen Compute-Knoten.</p>
-      <p>Die zweite Hälfte bildet der <strong>Wings Daemon</strong>. Wings läuft auf dem Server, auf dem am Ende die Gameserver-Prozesse starten sollen. Es nimmt Befehle vom Panel entgegen, erstellt Docker-Container mit der jeweils passenden Spielebibliothek, allokiert RAM und CPU und streamt die Konsolenausgabe live zurück ins Web-UI. Durch die strikte Container-Isolation kannst du auf einer physischen Maschine dutzende Minecraft- oder CS2-Instanzen parallel betreiben, ohne dass sie sich gegenseitig in die Quere kommen.</p>
+  <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/7-days-to-die-server-hosten-2026.png" alt="7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag gaming" style="background:#4CAF5022;color:#4CAF50">Gaming</span>
+      <span>15. June 2026</span>
+      <span>9 Min</span>
+    </div>
+    <h3><a href="/artikel/7-days-to-die-server-hosten-2026.html">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</a></h3>
+    <p class="card-excerpt">7 Days to Die Server hosten 2026: Vollständiger Guide mit Kosten, Anleitung, Mods und Tabelle. Setze deinen eigenen Zombie-Survival-Server auf.</p>
+    <div class="card-footer">
+      <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
 
-      <h2>Vorteile gegenüber dem manuellen Gameserver-Setup</h2>
-      <p>Natürlich kannst du deine Gameserver auch weiterhin klassisch per Hand, systemd-Service oder Docker-Compose betreiben. Gerade für eine kleine Community ist das oft ausreichend. Sobald jedoch mehrere Spiele, mehrere Admins oder eine wachsende Spielerzahl ins Spiel kommen, zeigen sich die Stärken von <strong>Pterodactyl</strong> deutlich:</p>
-      <ul>
-        <li><strong>Zentrale Weboberfläche:</strong> Ein Login, alle Server, alle Konsolen, alle Dateien – auch bequem per Smartphone bedienbar.</li>
-        <li><strong>Granulare Ressourcenlimits:</strong> Pro Server lassen sich RAM, CPU-Shares, Disk-I/O, Bandbreite und gleichzeitig erlaubte Verbindungen festlegen.</li>
-        <li><strong>Isolation durch Docker:</strong> Jeder Gameserver läuft in seinem eigenen Container mit eigenem User – ein kompromittierter Valheim-Server kann nicht den Minecraft-Server daneben abschießen.</li>
-        <li><strong>Skalierbarkeit über Nodes:</strong> Du kannst beliebig viele Wings-Nodes hinzufügen und so deine Infrastruktur horizontal erweitern, ohne das Panel zu migrieren.</li>
-        <li><strong>Rechte- und Rollensystem:</strong> Du kannst Sub-Accounts anlegen, ihnen einzelne Server zuweisen und fein granuliert steuern, wer starten, stoppen oder Dateien ändern darf.</li>
-        <li><strong>Ökosystem:</strong> Es existieren hunderte Community-Eggs, Themes, Plugins und Addons – von Modpack-Servern bis Discord-Bots.</li>
-      </ul>
-      <p>Im Vergleich zu Hosted-Hosting-Diensten zahlst du nur deinen VPS, behältst die volle Kontrolle über deine Daten und bist nicht an Mindestvertragslaufzeiten gebunden. Gerade in Deutschland, Österreich und der Schweiz ist das ein großer Vorteil, wenn der Server aus rechtlichen oder Performance-Gründen in einem lokalen Rechenzentrum wie Hetzner, Netcup oder IONOS stehen soll.</p>
-
-      <h2>Systemanforderungen für das Pterodactyl Panel</h2>
-      <p>Das Panel selbst ist leichtgewichtig, der Wings-Daemon richtet sich nach der Anzahl und Größe der Gameserver. Für den Einstieg empfehlen wir folgende Minimal- und Empfohlen-Konfiguration für einen Allrounder:</p>
-      <h3>Minimum (1–5 kleine Server, z. B. Minecraft bis 10 Spieler):</h3>
-      <ul>
-        <li>CPU: 2 vCPUs (AMD EPYC oder Intel Xeon)</li>
-        <li>RAM: 4 GB dediziert (Panel + Wings + 1–2 Gameserver)</li>
-        <li>Storage: 50 GB NVMe SSD</li>
-        <li>Betriebssystem: Ubuntu 22.04 LTS oder 24.04 LTS</li>
-      </ul>
-      <h3>Empfohlen (5–15 Spiele, gemischte Last):</h3>
-      <ul>
-        <li>CPU: 4–6 vCP</li>
-        <li>RAM: 16 GB ECC</li>
-        <li>Storage: 200 GB NVMe SSD, idealerweise mit zusätzlicher HDD für Backups</li>
-        <li>Netzwerk: 1 GBit/s Anbindung, unbegrenzter Traffic</li>
-      </ul>
-      <p>Achte darauf, dass dein VPS KVM-Virtualisierung unterstützt, da Wings auf Docker-Container setzt. OpenVZ/LXC funktioniert technisch nur mit eingeschränkten Rechten und führt häufig zu Problemen mit der Container-Isolation. Wer mehrere Nodes betreiben will, kann das Panel und die Wings-Daemons auch auf unterschiedlichen Maschinen installieren – Panel auf einem kleinen VPS, Wings auf einem größeren CPU-optimierten Server.</p>
-
-      <h2>Vorbereitung: Ubuntu, Docker, MariaDB, PHP 8.2, Nginx</h2>
-      <p>Bevor wir Pterodactyl installieren, bringen wir das System auf einen sauberen Stand. Wir nutzen Ubuntu 24.04 LTS als Basis, da es bis 2029 Sicherheitsupdates erhält und alle benötigten Pakete in aktuellen Versionen bereitstellt.</p>
-      <h3>1. System-Update und Grundpakete</h3>
-      <p><code>apt update &amp;&amp; apt upgrade -y</code><br><code>apt install -y curl wget git unzip software-properties-common apt-transport-https ca-certificates gnupg ufw</code></p>
-      <h3>2. Docker Engine installieren</h3>
-      <p>Wings setzt zwingend Docker voraus. Wir installieren die offizielle Docker-Engine:</p>
-      <p><code>curl -fsSL https://get.docker.com | sh</code><br><code>systemctl enable --now docker</code></p>
-      <h3>3. MariaDB als Datenbank-Backend</h3>
-      <p>Pterodactyl nutzt standardmäßig MySQL/MariaDB. Wir installieren MariaDB 10.11:</p>
-      <p><code>apt install -y mariadb-server</code><br><code>systemctl enable --now mariadb</code><br><code>mysql_secure_installation</code></p>
-      <p>Lege im MySQL-Shell eine eigene Datenbank und einen Benutzer für das Panel an:</p>
-      <p><code>CREATE DATABASE panel;</code><br><code>CREATE USER 'pterodactyl'@'127.0.0.1' IDENTIFIED BY 'STRONG-PASSWORD';</code><br><code>GRANT ALL PRIVILEGES ON panel.* TO 'pterodactyl'@'127.0.0.1';</code><br><code>FLUSH PRIVILEGES;</code></p>
-      <h3>4. PHP 8.2 und Nginx</h3>
-      <p>Pterodactyl benötigt PHP 8.2 mit den Modulen cli, fpm, mysql, gd, xml, curl, mbstring, bcmath, zip:</p>
-      <p><code>apt install -y php8.2 php8.2-{cli,fpm,mysql,gd,xml,curl,mbstring,bcmath,zip}</code></p>
-      <p>Als Webserver dient Nginx (oder alternativ Apache). Wir installieren Nginx und PHP-FPM:</p>
-      <p><code>apt install -y nginx</code><br><code>systemctl enable --now nginx</code></p>
-      <h3>5. Composer global installieren</h3>
-      <p>Pterodactyl nutzt Composer für das PHP-Dependency-Management:</p>
-      <p><code>curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer</code></p>
-
-      <h2>Panel Installation – Schritt für Schritt</h2>
-      <p>Nachdem alle Voraussetzungen installiert sind, geht es an das eigentliche Panel. Wir laden die aktuelle Release-Version herunter und entpacken sie nach <code>/var/www/pterodactyl</code>:</p>
-      <p><code>cd /var/www</code><br><code>git clone https://github.com/pterodactyl/panel.git</code><br><code>cd panel</code><br><code>git checkout v1.11.6 # oder aktuellste stabile Version</code></p>
-      <p>Composer-Install mit Production-Optimierung:</p>
-      <p><code>composer install --no-dev --optimize-autoloader</code></p>
-      <p>Kopiere die Beispiel-Umgebungsdatei, generiere den App-Key und setze die Datenbankverbindung:</p>
-      <p><code>cp .env.example .env</code><br><code>php artisan key:generate --force</code><br><code>php artisan p:environment:setup</code><br><code>php artisan p:environment:database</code></p>
-      <p>Jetzt die Datenbankmigrationen und der erste Admin-User:</p>
-      <p><code>php artisan migrate --seed --force</code><br><code>php artisan p:user:make</code></p>
-      <p>Setze die Dateiberechtigungen korrekt, damit der Nginx-Worker Schreiben darf:</p>
-      <p><code>chown -R www-data:www-data /var/www/pterodactyl/*</code><br><code>chmod -R 755 storage bootstrap/cache</code></p>
-
-      <h2>Wings Daemon Setup auf dem Node-Server</h2>
-      <p>Wings kann auf demselben VPS wie das Panel laufen oder auf einer separaten Maschine. Wir behandeln hier den „alles-auf-einem-Server"-Fall. Wings liegt als einzelne Binary vor und benötigt Docker:</p>
-      <p><code>curl -L -o /usr/local/bin/wings https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_amd64</code><br><code>chmod +x /usr/local/bin/wings</code></p>
-      <p>Lege das Konfigurationsverzeichnis an:</p>
-      <p><code>mkdir -p /etc/pterodactyl</code></p>
-      <p>Im Web-Panel erstellst du unter <em>Nodes</em> einen neuen Node. Beim Anlegen erhältst du einen YAML-Konfigurationsblock, den du per Copy &amp; Paste in <code>/etc/pterodactyl/config.yml</code> einfügst. Aktiviere und starte Wings anschließend:</p>
-      <p><code>systemctl enable --now wings</code><br><code>systemctl status wings</code></p>
-      <p>Wenn alles grün leuchtet, ist die Panel-zu-Wings-Verbindung verschlüsselt und authentifiziert. Wings lauscht standardmäßig auf Port 8080 (Daemon-API) und 2022 (SFTP für Datei-Manager).</p>
-
-      <h2>SSL mit Let's Encrypt absichern</h2>
-      <p>Ein Gameserver-Panel mit Klartext-Login ist ein No-Go. Pterodactyl liefert standardmäßig keinen Webserver mit TLS mit, deshalb richten wir Let's Encrypt ein. Voraussetzung ist eine Domain, die auf die IP deines Servers zeigt (z. B. <code>panel.example.com</code>). Installiere Certbot und das Nginx-Plugin:</p>
-      <p><code>apt install -y certbot python3-certbot-nginx</code></p>
-      <p>Lege einen Nginx-vHost für Pterodactyl an und starte die Zertifikatsanforderung:</p>
-      <p><code>certbot --nginx -d panel.example.com</code></p>
-      <p>Certbot erstellt automatisch einen Cronjob, der das Zertifikat alle 60 Tage erneuert. Prüfe mit <code>certbot renew --dry-run</code>, ob die Erneuerung reibungslos funktioniert. Ab sofort erreichst du dein Panel unter <code>https://panel.example.com</code> mit gültigem grünen Schloss.</p>
-
-      <h2>Server-Erstellung: Minecraft, CS2, Valheim &amp; Co.</h2>
-      <p>Der größte Spaß beginnt, sobald du im Panel deine ersten Gameserver anlegst. Vorgefertigte <em>Eggs</em> findest du in der <a href="https://github.com/parkervcp/eggs" target="_blank" rel="nofollow">Pterodactyl Egg-Sammlung</a>. Drei populäre Beispiele:</p>
-      <h3>Minecraft Java &amp; Bedrock</h3>
-      <p>Wähle das <em>Minecraft Vanilla</em>-Egg oder eines der Paper-/Purpur-/Fabric-Eggs. Lege einen neuen Server an, vergebe 4 GB RAM und konfiguriere <code>server.properties</code> im Dateimanager. Pterodactyl startet den Server in einem Container, in dem das Java-JDK und die Server-JAR bereits enthalten sind.</p>
-      <h3>Counter-Strike 2 (CS2)</h3>
-      <p>Für CS2 wird das offizielle Valve Dedicated-Server-Egg benötigt. Lege unter <em>Server</em> einen neuen Eintrag an, vergebe mindestens 8 GB RAM, lade deine <code>gamemode_competitive.cfg</code> per Datei-Manager hoch und starte. Über den <em>Startup</em>-Tab kannst du Startparameter wie <code>+game_type 0 +game_mode 1</code> hinterlegen.</p>
-      <h3>Valheim, Palworld, 7 Days to Die</h3>
-      <p>Survival-Coop-Spiele laufen ebenfalls mit eigenen Eggs. Pterodactyl richtet automatisch persistente Speicherpfade ein, sodass Welt-Saves und Konfigurationen einen Neustart überleben. Pro Server definierst du ein separates <em>Allocation</em> (Port), das Wings auf dem Node freischaltet.</p>
-      <p>Die <em>Console</em> im Web-Panel streamt die Spiellogs in Echtzeit. Über die <em>File Manager</em>-Sektion kannst du direkt im Browser Welten bearbeiten, Mods hochladen oder Backups einspielen.</p>
-
-      <h2>Node verbinden – mehrere Standorte koppeln</h2>
-      <p>Eine der größten Stärken von Pterodactyl ist die Multi-Node-Architektur. Du kannst beliebig viele Wings-Installationen an ein Panel hängen. Das ist ideal, um Gameserver geografisch näher an deine Spieler zu bringen – z. B. ein Node in Frankfurt für Europa, einer in Helsinki für Osteuropa und einer in den USA für Übersee.</p>
-      <p>Die Kopplung funktioniert über einen API-Token, den du im Panel unter <em>Nodes &rarr; Configuration &rarr; Deployment Keys</em> erzeugst. Auf dem zweiten Wings-Host führst du <code>wings --debug</code> aus, kopierst die <code>config.yml</code> und startest den Daemon. Pterodactyl erkennt die zweite Maschine automatisch und routet neue Server-Deployments auf den Node mit den freien Ressourcen.</p>
-
-      <h2>Sicherheit und Firewall – Härtung des Setups</h2>
-      <p>Ein offenes Pterodactyl-Panel ist ein attraktives Ziel für Angreifer. Mit diesen <strong>Best Practices</strong> ziehst du die Zügel an:</p>
-      <ul>
-        <li><strong>UFW-Firewall:</strong> Erlaube nur SSH (22/tcp), HTTP (80/tcp) und HTTPS (443/tcp) sowie den Wings-API-Port (8080/tcp) – letzteren am besten per WireGuard-VPN, wenn du Nodes hinzufügst. <code>ufw allow OpenSSH &amp;&amp; ufw allow 80,443/tcp &amp;&amp; ufw enable</code></li>
-        <li><strong>Fail2ban:</strong> Schützt den SSH-Login gegen Brute-Force. Standardmäßig auf Ubuntu 22.04/24.04 in den Repositories.</li>
-        <li><strong>2FA erzwingen:</strong> Im Panel-User-Profil lässt sich TOTP-basierte Zwei-Faktor-Authentifizierung aktivieren. Aktiviere sie für jeden Admin-Account.</li>
-        <li><strong>ReCaptcha:</strong> Auf dem Login-Screen aktivieren, um Bot-Traffic zu blockieren.</li>
-        <li><strong>Regelmäßige Updates:</strong> <code>apt update &amp;&amp; apt upgrade</code> mindestens wöchentlich, Wings-Binary monatlich aktualisieren.</li>
-        <li><strong>Eigener Panel-User:</strong> Niemals als <code>root</code> in Pterodactyl anmelden, sondern einen dedizierten Linux-Account nutzen, der Sudo darf.</li>
-      </ul>
-      <p>Empfehlenswert ist zudem der Betrieb hinter einem <strong>Cloudflare Reverse Proxy</strong> mit aktiviertem DDoS-Schutz und Bot-Filter. Pterodactyl verträgt sich problemlos mit Cloudflares HTTP/3 und TLS-Termination.</p>
-
-      <h2>Backup-Strategien für Pterodactyl-Server</h2>
-      <p>Backups sind das A und O. Pterodactyl bietet zwei Mechanismen, die du kombinieren solltest:</p>
-      <ol>
-        <li><strong>Integrierte Server-Backups:</strong> Über <em>Server &rarr; Backups</em> erstellst du on-demand oder zeitgesteuert komprimierte <code>.tar.gz</code>-Archive, die du lokal auf dem Node oder per S3-kompatibler Storage (MinIO, Backblaze B2, Wasabi) ablegen kannst.</li>
-        <li><strong>Host-Level-Snapshots:</strong> Auf deinem Hoster (z. B. Hetzner Cloud Volumes) kannst du zusätzlich wöchentliche Snapshots der gesamten VM ziehen. So bist du selbst bei Ransomware oder versehentlichem Löschen abgesichert.</li>
-      </ol>
-      <p>Als Faustregel gilt: 3-2-1-Strategie – drei Kopien, auf zwei unterschiedlichen Medientypen, eine Kopie off-site. Setze für kritische Community-Server zusätzlich einen stündlichen Rsync-Job auf einen zweiten, räumlich getrennten VPS auf.</p>
-
-      <h2>Häufige Fehler und Troubleshooting</h2>
-      <p>Auch wenn Pterodactyl sehr robust ist, gibt es typische Stolperfallen, die du kennen solltest:</p>
-      <ul>
-        <li><strong>„Permission denied" beim Container-Start:</strong> Wings benötigt Zugriff auf das Docker-Socket. Lösung: <code>usermod -aG docker wings</code> und Wings neu starten.</li>
-        <li><strong>Server startet, ist aber nicht erreichbar:</strong> Prüfe, ob die <em>Allocation</em> (Port) korrekt zugewiesen ist und in der Firewall (UFW, Cloudflare) freigeschaltet wurde.</li>
-        <li><strong>Hohe Load bei Minecraft-Servern:</strong> Reduziere die <em>View Distance</em> in <code>server.properties</code>, wechsle auf die Paper-Engine und nutze Aikars Flags im Startparameter.</li>
-        <li><strong>Panel-Login funktioniert nach Update nicht:</strong> Nach Composer-Update immer <code>php artisan view:clear &amp;&amp; php artisan config:clear</code> ausführen.</li>
-        <li><strong>Wings verliert Verbindung zum Panel:</strong> Token widerrufen, neuen Deploy-Key erzeugen, <code>wings --debug</code> zeigt die TLS-Handshake-Fehler in Echtzeit.</li>
-        <li><strong>Out-of-Memory-Kills:</strong> Linux-OOM-Killer beendet Gameserver, wenn der Host-RAM überschritten wird. Plane pro Server 1 GB Puffer zum allokierten Wert ein.</li>
-      </ul>
-
-      <h2>Erweiterungen: Addons, Themes und Community-Eggs</h2>
-      <p>Der Funktionsumfang von Pterodactyl lässt sich mit diversen Erweiterungen ausbauen. Zu den beliebtesten zählen:</p>
-      <ul>
-        <li><strong>Blueprint:</strong> Framework für eigene Addons direkt im Panel – perfekt für eigene Statistiken, Discord-Webhooks oder Billing-Integration.</li>
-        <li><strong>Themes:</strong> Visuelle Anpassungen wie das beliebte <em>NebulaDark</em> oder <em>Dracula</em>-Theme lassen sich mit wenigen Klicks in <code>public/themes/</code> einspielen.</li>
-        <li><strong>Eggs:</strong> Über 1.500 Community-Eggs decken nahezu jedes Spiel ab: ARK, Rust, Project Zomboid, Satisfactory, Minecraft-Modpacks, Discord-Bots und sogar Mumble-Server.</li>
-        <li><strong>Subuser-Verwaltung:</strong> Plugins wie <em>Subdomain Manager</em> oder <em>Plan</em> (Statistiken) binden Pterodactyl in größere Hosting-Plattformen ein.</li>
-        <li><strong>Discord-Bot-Integration:</strong> Über Webhooks informiert das Panel automatisch über Server-Crashes, Backups oder Wartungsfenster.</li>
-      </ul>
-      <p>Wenn du mehrere Server kommerziell vermietest, lohnt sich ein Blick auf das Zusatzmodul <strong>Pterodactyl-Billing</strong> (von Phantom oder WISP), das Bestellungen, Rechnungen und Suspendierung vollautomatisch abwickelt.</p>
-
-      <h2>Hardware-Empfehlungen für Gameserver-Hosts</h2>
-      <p>Damit dein Pterodactyl-Setup dauerhaft performant läuft, lohnt sich der Blick in qualitativ hochwertige Komponenten – vor allem die Storage- und Stromversorgung entscheidet über Stabilität:</p>
-      <div class="affiliate-box">
-        <p><strong>Empfohlene Hardware für deinen Gameserver-Host</strong></p>
-        <ul style="margin: 0.5rem 0; padding-left: 1.2rem;">
-          <li><a href="https://www.amazon.de/s?k=nvme+ssd+1tb+gaming+server&tag=nova079-20" target="_blank" rel="nofollow sponsored">NVMe SSD 1 TB für Gameserver (schnelle Ladezeiten)</a></li>
-          <li><a href="https://www.amazon.de/s?k=usv+unterbrechungsfreie+stromversorgung+server&tag=nova079-20" target="_blank" rel="nofollow sponsored">USV / UPS gegen Stromausfälle</a></li>
-          <li><a href="https://www.amazon.de/s?k=ddr4+32gb+ecc+server+ram&tag=nova079-20" target="_blank" rel="nofollow sponsored">32 GB DDR4 ECC-RAM für große Node-Server</a></li>
-        </ul>
-        <p style="margin-top:8px;font-size:0.75rem">* Affiliate-Links. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.</p>
-      
 
 <section class="related-section">
   <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>

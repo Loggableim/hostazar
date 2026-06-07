@@ -46,7 +46,7 @@
     "@type": "Organization",
     "name": "hostazar.com"
   },
-  "wordCount": 2620
+  "wordCount": 3429
 }
   </script>
   <script type="application/ld+json">
@@ -519,121 +519,22 @@
       <span>13 Min Lesezeit</span>
     </div>
 
-      <h2>Was ist Uptime Kuma? Das selbstgehostete Monitoring-Tool im Überblick</h2>
-      <p><strong>Uptime Kuma</strong> ist ein modernes, quelloffenes Monitoring- und Status-Page-Tool, das vollständig auf deinem eigenen Server läuft. Entwickelt wurde das Projekt von Louis (louislam) und ist auf GitHub unter MIT-Lizenz verfügbar. Im Kern überwacht <strong>Uptime Kuma</strong> HTTP-Endpunkte, TCP-Ports, Ping-Ziele, DNS-Einträge, SSL-Zertifikatslaufzeiten und vieles mehr – und benachrichtigt dich umgehend, sobald ein Dienst ausfällt oder seine Performance spürbar nachlässt. Anders als kommerzielle SaaS-Lösungen wie UptimeRobot oder Statuspage.com behältst du bei <strong>Uptime Kuma</strong> die volle Datenhoheit: Sämtliche Monitoring-Daten, Statusverläufe und Benachrichtigungs-Logs liegen auf deiner eigenen Infrastruktur.</p>
-      <p>Das Tool bringt eine moderne Weboberfläche mit, die sich nahtlos in Docker-Setups integrieren lässt. Die Installation dauert mit Docker Compose in der Regel weniger als fünf Minuten. Du erhältst direkt eine hübsche Status-Page, die du öffentlich teilen oder intern im Team nutzen kannst. Besonders beeindruckend ist die schiere Vielfalt an Benachrichtigungskanälen: Über 90 Integrationen werden out-of-the-box unterstützt – darunter Telegram, Discord, Slack, Microsoft Teams, E-Mail, Webhooks, Pushover, Gotify, Matrix und sogar Sprachanrufe via Twilio.</p>
-      <h2>Uptime Kuma vs. UptimeRobot und Prometheus – Wo liegen die Unterschiede?</h2>
-      <p>Wer sich mit Monitoring beschäftigt, kennt UptimeRobot als bekanntesten Cloud-Dienst. Der gravierendste Unterschied: <strong>Uptime Kuma</strong> ist self-hosted, UptimeRobot läuft auf fremden Servern. Das hat weitreichende Konsequenzen für Datenschutz, DSGVO-Konformität und Kostenstruktur. UptimeRobot limitiert im kostenlosen Plan auf 50 Monitore mit 5-Minuten-Intervall und zeigt Werbung. <strong>Uptime Kuma</strong> kennt keine künstlichen Limits – du kannst beliebig viele Monitore anlegen, im 60-Sekunden-Takt prüfen und behältst die volle Kontrolle.</p>
-      <p>Im Vergleich zu <strong>Prometheus</strong> + Grafana verhält es sich ähnlich, allerdings mit anderer Zielsetzung. Prometheus ist eine Metrik- und Zeitreihendatenbank, ideal für tiefgreifende Infrastruktur-Telemetrie mit PromQL-Abfragen. <strong>Uptime Kuma</strong> ist bewusst einsteigerfreundlich, sofort einsatzbereit und konzentriert sich auf das Wesentliche: „Funktioniert mein Dienst gerade – ja oder nein?“. Wer beides braucht, kann <strong>Uptime Kuma</strong> sogar per Prometheus-Exporter-Monitor an sein bestehendes Setup anbinden.</p>
-      <p>Zusammengefasst die wichtigsten Vorteile von <strong>Uptime Kuma</strong>:</p>
-      <ul>
-        <li>100 % Open Source (MIT-Lizenz) und kostenlos – keine Lizenzkosten pro Monitor</li>
-        <li>Self-Hosted: volle Datenkontrolle, DSGVO-konform, keine externen Abhängigkeiten</li>
-        <li>Über 90 Benachrichtigungskanäle out-of-the-box</li>
-        <li>Schicke, anpassbare Status-Pages mit Custom-Domain-Support</li>
-        <li>Ressourcenschonend: läuft bereits auf einem Raspberry Pi 4 flüssig</li>
-        <li>Docker-Image offiziell gepflegt, einfache Updates per Watchtower</li>
-      </ul>
-      <h2>Docker-Installation von Uptime Kuma – Schritt für Schritt</h2>
-      <p>Die schnellste und empfohlene Methode, <strong>Uptime Kuma</strong> zu installieren, ist der Einsatz von Docker. Damit bist du in wenigen Minuten produktiv und kannst Updates komfortabel per Image-Pull einspielen. Lege zunächst ein dediziertes Verzeichnis an:</p>
-      <h3> 1. Verzeichnis anlegen und docker-compose.yml erstellen
-Erstelle einen neuen Ordner für deine Instanz und wechsle hinein:
-`mkdir -p /opt/uptime-kuma &amp;&amp; cd /opt/uptime-kuma`
-Anschließend legst du die Datei <code>docker-compose.yml</code> mit folgendem Inhalt an:
-<pre>
-version: "3.8"
-services:
-  uptime-kuma:
-    image: louislam/uptime-kuma:1
-    container_name: uptime-kuma
-    restart: unless-stopped
-    ports:
-      - "3001:3001"
-    volumes:
-      - ./data:/app/data
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-</pre>
-Der eingebundene Docker-Socket erlaubt es Uptime Kuma, andere Container direkt zu überwachen (Docker-Monitor).</h3>
-      <h3> 2. Container starten
-Starte das Setup mit einem einfachen Befehl:
-`docker compose up -d`
-Anschließend erreichst du die Weboberfläche unter <code>http://dein-server:3001</code>. Beim ersten Aufruf legst du einen Admin-Account an – dieses Passwort wird lokal gehasht gespeichert.</h3>
-      <h3> 3. Persistenz und Backups
-Das Volume <code>./data</code> enthält die SQLite-Datenbank mit allen Monitor-Konfigurationen, Status-Historien und Benachrichtigungs-Logs. Empfehlenswert ist ein regelmäßiges Backup per Cronjob:
-`0 3 * * * tar -czf /backup/uptime-kuma-$(date +\%F).tar.gz /opt/uptime-kuma/data`</h3>
-      <h2>Monitor-Typen in Uptime Kuma: HTTP, TCP, Ping, DNS und Push</h2>
-      <p>Ein Highlight von <strong>Uptime Kuma</strong> ist die Vielzahl an Monitortypen, die du pro Dienst konfigurieren kannst. Über 15 verschiedene Typen stehen zur Verfügung, die gängigsten stellen wir dir hier vor:</p>
-      <p><strong>HTTP(s)-Monitor:</strong> Das Arbeitstier für Webseiten und APIs. Du gibst eine URL ein, legst das Prüfintervall fest (Minimum 20 Sekunden, empfohlen 60 Sekunden) und definierst, welcher HTTP-Statuscode als „up“ gilt (z. B. 200-299). Optional kannst du einen JSON-Pfad (z. B. <code>$.status</code> mit erwartetem Wert <code>ok</code>) prüfen, Keyword-Match aktivieren oder die TLS-Zertifikatslaufzeit überwachen.</p>
-      <p><strong>TCP-Port-Monitor:</strong> Prüft, ob ein bestimmter Port auf einem Host erreichbar ist – ideal für Datenbanken (3306, 5432), Mailserver (25, 587) oder Game-Server (25565, 27015). Funktioniert auch für Dienste ohne HTTP-Frontend.</p>
-      <p><strong>Ping-ICMP-Monitor:</strong> Klassische Erreichbarkeitsprüfung per ICMP-Echo. Sinnvoll, um die grundsätzliche Netzwerkverbindung zu einem Host zu validieren. Hinweis: In Docker-Containern benötigt man dafür die Capability <code>NET_RAW</code>.</p>
-      <p><strong>DNS-Monitor:</strong> Überwacht die korrekte Auflösung eines DNS-Records. Du kannst den erwarteten Record-Typ (A, AAAA, MX, TXT, CNAME) und den Zielwert hinterlegen. Ändert sich der Record, wird der Monitor rot.</p>
-      <p><strong>Push-Monitor:</strong> Ermöglicht es externen Skripten oder Cronjobs, regelmäßig einen HTTP-Request an deine <strong>Uptime Kuma</strong>-Instanz zu schicken. Bleibt der Heartbeat aus, gilt der Dienst als ausgefallen. Perfekt für Backup-Jobs, Datenbankreplikationen oder asynchrone Batch-Prozesse, die sich nicht direkt pingen lassen.</p>
-      <p><strong>Weitere Typen:</strong> MQTT, RabbitMQ, Microsoft SQL Server, MySQL, PostgreSQL, Redis, MongoDB, gRPC, Steam Game Server und sogar ein Docker-Container-Monitor, der den Status eines Containers via Docker-Socket prüft.</p>
-      <h2>Status-Page erstellen und mit eigener Domain veröffentlichen</h2>
-      <p>Eine der gefragtesten Funktionen von <strong>Uptime Kuma</strong> ist die eingebaute Status-Page. Du kannst beliebig viele davon anlegen und öffentlich zugänglich machen – ohne dass Besucher dein Admin-Backend sehen. Lege im Hauptmenü eine neue „Status Page“ an, vergib einen Slug (z. B. <code>status</code>) und füge die gewünschten Monitore hinzu, die dort erscheinen sollen. Optional aktivierst du die Authentifizierung, damit nicht jeder die Roh-Statusdaten einsehen kann.</p>
-      <p>Wer es professioneller mag, hängt die Status-Page über einen Reverse Proxy mit eigener Subdomain (z. B. <code>status.deinedomain.de</code>) per CNAME-Record davor. Die Konfiguration in Traefik oder Nginx Proxy Manager ist in der jeweiligen Service-Konfiguration schnell erledigt. So wirkst du gegenüber Kunden deutlich seriöser, falls du SaaS-Produkte oder Webshops betreibst.</p>
-      <h2>Benachrichtigungen einrichten: Telegram, Discord, E-Mail und Slack</h2>
-      <p>Sinnvolles Monitoring steht und fällt mit den richtigen Alarmen. <strong>Uptime Kuma</strong> glänzt mit über 90 Benachrichtigungskanälen. Die wichtigsten Schritt-für-Schritt:</p>
-      <p><strong>Telegram-Bot einrichten:</strong> Schreibe @BotFather auf Telegram, erstelle einen neuen Bot und kopiere das Token. Starte einen Chat mit deinem Bot und hole dir deine Chat-ID via <code>https://api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code>. In Uptime Kuma unter „Settings → Notifications → Telegram“ trägst du beides ein – fertig. Du erhältst ab sofort Push-Nachrichten auf dein Smartphone, sobald ein Monitor ausfällt oder sich erholt.</p>
-      <p><strong>Discord-Webhook:</strong> In deinem Discord-Server unter „Servereinstellungen → Integrationen → Webhooks“ einen neuen Webhook anlegen, URL kopieren. In <strong>Uptime Kuma</strong> als „Discord“-Benachrichtigung einfügen – der Bot-Name und das Avatar lassen sich optional anpassen.</p>
-      <p><strong>Slack:</strong> Funktioniert über die offizielle Slack-App „Uptime Kuma“ im Slack App Directory. Nach der Installation verknüpfst du deinen Workspace und autorisierst den Kanal.</p>
-      <p><strong>E-Mail (SMTP):</strong> Trage SMTP-Host, Port, Benutzername, Passwort und Absender unter „E-Mail (SMTP)“ ein. Empfehlenswert ist ein Relay-Dienst wie Mailgun, Amazon SES oder der SMTP-Server deines Hosters. Für lokale Setups eignet sich auch eine Gmail-App-Passwort-Konfiguration – wenngleich Google die App-Passwörter zunehmend einschränkt.</p>
-      <p><strong>Best Practice:</strong> Kombiniere kritische Alarme (z. B. Produktions-Ausfall) mit Telegram + Discord, weniger kritische Events nur per E-Mail. So verhinderst du Alert-Fatigue. Außerdem: Aktiviere die „Retry-Logik“ in <strong>Uptime Kuma</strong>, damit kurze Netzwerk-Hänger keine unnötigen Benachrichtigungen auslösen.</p>
-      <h2>Reverse Proxy mit Traefik: HTTPS und eigene Domain</h2>
-      <p>Für den produktiven Einsatz solltest du <strong>Uptime Kuma</strong> unbedingt hinter einem Reverse Proxy mit gültigem TLS-Zertifikat betreiben. Traefik ist dafür die ideale Wahl, da es sich automatisch um Let's-Encrypt-Zertifikate kümmert. Eine minimalistische docker-compose-Definition für Traefik v3 sieht so aus:</p>
-      <pre>
-labels:
-  - "traefik.enable=true"
-  - "traefik.http.routers.uptime.rule=Host(`status.deinedomain.de`)"
-  - "traefik.http.routers.uptime.entrypoints=websecure"
-  - "traefik.http.routers.uptime.tls.certresolver=letsencrypt"
-  - "traefik.http.services.uptime.loadbalancer.server.port=3001"
-</pre>
-      <p>Traefik erkennt die Labels automatisch, holt das Zertifikat per ACME-Challenge ab und erzwingt HTTPS. Voraussetzung ist, dass deine Domain per A-Record auf den Server zeigt. Alternativ funktioniert natürlich auch Nginx Proxy Manager mit grafischer Oberfläche – der eingebaute Let's-Encrypt-Support erledigt den Rest.</p>
-      <h2>2FA, Wartung und Updates von Uptime Kuma</h2>
-      <p>Sicherheit sollte auch beim Monitoring-Tool nicht zu kurz kommen. <strong>Uptime Kuma</strong> bietet seit Version 1.23 eine optionale Zwei-Faktor-Authentifizierung per TOTP (kompatibel mit Google Authenticator, Authy, Bitwarden etc.). Aktiviere sie in den Benutzereinstellungen, um dein Admin-Konto zusätzlich abzusichern. Empfehlung: Kombiniere 2FA mit Fail2ban auf dem Host, falls deine Instanz direkt im Internet erreichbar ist.</p>
-      <p>Updates sind in Docker-Umgebungen ein Einzeiler:</p>
-      <h3> 1. Image aktualisieren
-`docker compose pull &amp;&amp; docker compose up -d`</h3>
-      <h3> 2. Watchtower für Automatisierung
-Mit dem schlanken Container <code>containrrr/watchtower</code> aktualisieren sich deine Images automatisch:
-<pre>
-watchtower:
-  image: containrrr/watchtower
-  restart: unless-stopped
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
-  command: --interval 86400
-</pre></h3>
-      <p>Wartungsfenster („Maintenance") lassen sich pro Monitor aktivieren: Während geplanter Wartungsarbeiten werden keine Alarme ausgelöst. Das verhindert nächtliche Pager-Alarme bei geplanten Deployments.</p>
-      <h2>Vergleich mit Alternativen: UptimeRobot, Better Stack, Prometheus</h2>
-      <p>Um die Entscheidung zu erleichtern, hier eine kompakte Gegenüberstellung der populärsten Monitoring-Lösungen 2026:</p>
-      <p><strong>Uptime Kuma:</strong> Self-hosted, kostenlos, viele Benachrichtigungen, ideal für kleine bis mittelgroße Setups. Nachteil: keine Multi-User-Mandantenfähigkeit, keine integrierten SLA-Reports.</p>
-      <p><strong>UptimeRobot:</strong> Cloud-basiert, kostenlos für 50 Monitore (5-Min-Intervall), sehr einsteigerfreundlich. Nachteil: Daten auf US-Servern (DSGVO bedenklich), kostenpflichtige Pläne ab 7 USD/Monat für SMS-Alerts und kürzere Intervalle.</p>
-      <p><strong>Better Stack (ehemals Better Uptime):</strong> Premium-Anbieter mit Status-Page, On-Call-Scheduling, Postmortem-Tools. Zielgruppe sind Teams und Enterprise-Kunden. Preise ab 25 USD/Monat.</p>
-      <p><strong>Prometheus + Grafana:</strong> Industriestandard für Infrastruktur-Monitoring, mächtige Abfragen via PromQL, perfekt für Kubernetes-Umgebungen. Nachteil: hoher initialer Lernaufwand, keine vorgefertigten Status-Pages.</p>
-      <p><strong>Healthchecks.io:</strong> Spezialisiert auf Cronjob-Monitoring (Push-basiert). Kostenlos für 20 Jobs, ideal als Ergänzung zu <strong>Uptime Kuma</strong>.</p>
-      <p>Für die meisten Selbsthoster und kleinen bis mittleren Teams ist <strong>Uptime Kuma</strong> 2026 die beste Wahl, wenn man Wert auf Datensouveränität, einfache Bedienung und einen riesigen Funktionsumfang legt – alles ohne monatliche Lizenzkosten.</p>
-      <h2>Best Practices für dein Uptime Kuma Setup</h2>
-      <p>Damit dein <strong>Uptime Kuma</strong> dauerhaft zuverlässig läuft, haben wir die wichtigsten Empfehlungen aus der Community zusammengetragen:</p>
-      <ul>
-        <li>Setze <strong>Uptime Kuma</strong> niemals auf demselben Server auf, den du überwachst. Läuft der Host aus, kann das Tool dich nicht warnen. Nutze einen zweiten VPS, einen kleinen Heimserver oder einen Raspberry Pi als Standort.</li>
-        <li>Lege sinnvolle Prüfintervalle fest: 60 Sekunden für geschäftskritische Endpunkte, 5 Minuten für unkritische Dienste. Zu kurze Intervalle belasten deine Bandbreite und die Zielserver.</li>
-        <li>Konfiguriere mehrere Benachrichtigungswege (Telegram + Discord + E-Mail) für Redundanz – fällt ein Kanal aus, erreichen dich die anderen.</li>
-        <li>Sichere das <code>data</code>-Verzeichnis regelmäßig extern. Eine 3-2-1-Backup-Strategie (3 Kopien, 2 Medien, 1 Offsite) bewahrt dich vor Datenverlust.</li>
-        <li>Aktiviere 2FA und platziere das Tool hinter einem Reverse Proxy mit HTTPS. Direkter Port-3001-Zugriff aus dem Internet ist fahrlässig.</li>
-        <li>Nutze Status-Pages als Marketing-Instrument: Öffentliche Status-Pages schaffen Vertrauen bei Kunden und reduzieren Support-Tickets.</li>
-        <li>Integriere das Monitoring in deine Runbooks: Wer reagiert wann auf welchen Alert? Klare Eskalationspfade vermeiden Chaos im Ernstfall.</li>
-      </ul>
-      <h2>Hardware-Tipps für Selbsthoster: USV und Raspberry Pi</h2>
-      <p>Wer <strong>Uptime Kuma</strong> im Heimnetz betreiben möchte, findet im Raspberry Pi 5 einen sparsamen und ausreichend performanten Mini-Server. Mit 4 GB RAM und einer schnellen microSD-Karte (oder besser: USB-SSD) bewältigt das Tool problemlos mehrere Hundert Monitore. Empfehlenswert ist der offizielle Raspberry Pi 5 mit aktivem Kühler sowie ein hochwertiges Netzteil mit 27 W.</p>
-      <p>Damit dein Monitoring auch bei Stromausfällen weiterläuft, ist eine kleine <strong>USV (unterbrechungsfreie Stromversorgung)</strong> empfehlenswert. Selbst einfache Geräte mit 600 VA reichen aus, um den Pi und deinen Router für 20–40 Minuten am Leben zu halten – genug Zeit, um Benachrichtigungen zu versenden und kontrolliert herunterzufahren. Empfehlenswert sind Modelle mit USB-Anschluss, damit <code>apcupsd</code> oder <code>apcupsd-ng</code> den Shutdown automatisieren kann.</p>
-      <h2>Fazit: Uptime Kuma ist 2026 die erste Wahl für Self-Hosting-Monitoring</h2>
-      <p><strong>Uptime Kuma</strong> hat sich binnen weniger Jahre zum De-facto-Standard für selbstgehostetes Monitoring entwickelt – und das aus gutem Grund. Die Kombination aus einfacher Docker-Installation, riesiger Feature-Liste, 90+ Benachrichtigungskanälen und 100 % Open Source sucht ihresgleichen. Wer 2026 Webseiten, APIs, Game-Server oder interne Dienste überwachen will, bekommt hier ein Werkzeug, das kommerziellen Lösungen in nichts nachsteht – und dabei komplett unter eigener Kontrolle bleibt.</p>
-      <p>Mit der in diesem Guide gezeigten Konfiguration bist du in unter 30 Minuten einsatzbereit. Kombiniere das Setup mit Traefik für HTTPS, 2FA für Sicherheit und einer kleinen USV gegen Stromausfälle – schon hast du eine Monitoring-Lösung auf Enterprise-Niveau, die nichts kostet außer ein paar Watt Strom. Probier es aus, du wirst begeistert sein, wie viel Kontrolle und Sicherheit ein einziges Docker-Container-Image zurückbringen kann.</p>
-      <p>Mehr zum Thema Monitoring findest du in unserem ausführlichen <a href="/artikel/prometheus-grafana-monitoring-2026.html">Prometheus &amp; Grafana-Guide</a> – ideal, wenn du tiefer in Metriken eintauchen willst. Für Linux-Grundlagen empfehlen wir unseren <a href="/artikel/linux-server-harden.html">Linux-Server-härten-Artikel</a>.</p>
+  <a href="/artikel/ansible-automation-guide.html" class="card-img-link">
+    <div class="card-img"><img src="/images/ansible-automation-guide.png" alt="Ansible Automation – Grundlagen &amp; Praxis-Guide 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>15. June 2026</span>
+      <span>3 Min</span>
+    </div>
+    <h3><a href="/artikel/ansible-automation-guide.html">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</a></h3>
+    <p class="card-excerpt">nsible Automation: Grundlagen &amp; Praxis-Guide 2026  In der modernen IT-Landschaft ist manuelle Serververwaltung ein Relikt der Vergangenheit. Wer heute skali.</p>
+    <div class="card-footer">
+      <a href="/artikel/ansible-automation-guide.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
 
-    
 
 <section class="related-section">
   <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>

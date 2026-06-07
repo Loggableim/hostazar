@@ -46,7 +46,7 @@
     "@type": "Organization",
     "name": "hostazar.com"
   },
-  "wordCount": 2289
+  "wordCount": 2109
 }
   </script>
   <script type="application/ld+json">
@@ -519,35 +519,22 @@
       <span>11 Min Lesezeit</span>
     </div>
 
+  <a href="/artikel/llm-lokal-hosten-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/llm-lokal-hosten-2026.png" alt="LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag ki-llm" style="background:#9C27B022;color:#9C27B0">KI &amp; LLM</span>
+      <span>07. July 2026</span>
+      <span>14 Min</span>
+    </div>
+    <h3><a href="/artikel/llm-lokal-hosten-2026.html">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</a></h3>
+    <p class="card-excerpt">LLM lokal hosten 2026: ✓ Hardware-Auswahl ✓ GPU-Vergleich (RTX 4090, RTX 5090, A6000) ✓ Ollama, vLLM &amp; Docker ✓ Modell-Wahl ✓ OpenAI-kompatible API ✓ Schritt-für-Schritt-Anleitung.</p>
+    <div class="card-footer">
+      <a href="/artikel/llm-lokal-hosten-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
 
-      <h2>RunPod Serverless vs Dedicated GPU – die entscheidende Frage</h2>
-      <p><strong>RunPod</strong> hat sich 2026 als eine der führenden GPU-Cloud-Plattformen für KI-Workloads etabliert. Mit über 30 globalen Rechenzentren, einem breiten GPU-Portfolio von der RTX 4090 bis zur H200 und innovativen Abrechnungsmodellen bietet RunPod für nahezu jedes KI-Projekt die passende Infrastruktur. Doch die Wahl zwischen <strong>Serverless GPU</strong> (per-Sekunde-Abrechnung, automatische Skalierung) und <strong>Dedicated GPU (Pods)</strong> (fest gebuchte Instanzen mit voller Kontrolle) ist nicht trivial – sie entscheidet maßgeblich über deine monatlichen Kosten, die Latenz deiner Anwendung und den administrativen Aufwand.</p>
-      <p>In diesem Artikel vergleichen wir beide Ansätze anhand von <strong>Kosten, Latenz, Skalierung und Kontrolle</strong>. Du erfährst, ab welchem Nutzungsvolumen Serverless günstiger ist, wann ein dedizierter Pod die bessere Wahl ist und wie du die Community Cloud von der Secure Cloud unterscheidest. Unser Ziel: Dir eine fundierte Entscheidungsgrundlage für dein nächstes KI-Projekt zu geben.</p>
-
-      <h2>Was ist RunPod? Ein kurzer Überblick</h2>
-      <p>RunPod ist eine Cloud-Plattform, die sich auf <strong>GPU-Compute für KI-Workloads</strong> spezialisiert hat. Im Gegensatz zu Hyperscalern wie AWS, GCP oder Azure setzt RunPod auf eine schlanke, entwicklerfreundliche Oberfläche und bietet zwei grundlegende Betriebsmodi:</p>
-      <ul>
-        <li><strong>Pods (Dedicated GPU):</strong> Feste GPU-Instanzen, die du stunden- oder sekundengenau mietest. Du hast vollen Root-Zugriff, kannst eigene Docker-Container deployen, SSH-Tunnel einrichten und die Umgebung nach Belieben konfigurieren. Ideal für Training, Fine-Tuning, Entwicklung und langlebige Services.</li>
-        <li><strong>Serverless GPU:</strong> Ein vollständig verwalteter Inference-Service. Du definierst ein Container-Image mit deinem Modell, wählst einen GPU-Typ aus und RunPod skaliert die Worker automatisch basierend auf dem Anfragevolumen. Du zahlst <strong>nur für die tatsächliche Inferenzzeit</strong> – keine Kosten für Leerlauf.</li>
-      </ul>
-      <p>Hinzu kommt die Unterscheidung zwischen <strong>Community Cloud</strong> (geteilte Infrastruktur, günstiger, aber potenziell geringere Performance-Konsistenz) und <strong>Secure Cloud</strong> (isolierte, garantierte Ressourcen, höhere Preise).</p>
-
-      <h2>Serverless GPU – Perfekte Skalierung, keine Verschwendung</h2>
-      <p>Der Serverless-Modus von RunPod ist primär für <strong>Inference-Workloads</strong> konzipiert. Du deployst ein inference-optimiertes Container-Image (z. B. mit vLLM, TGI, oder llama.cpp), und RunPod kümmert sich um den Rest:</p>
-      <ul>
-        <li><strong>Autoscaling:</strong> Bei steigenden Anfragen startet die Plattform automatisch zusätzliche Worker. Bei sinkender Last werden sie heruntergefahren. Du definierst Min/Max-Worker und die Skalierungslogik.</li>
-        <li><strong>Per-Sekunde-Abrechnung:</strong> Anders als bei Pods zahlst du nur, wenn dein Worker tatsächlich eine Inference ausführt. Die Zeit zwischen Requests (Idle) wird nicht berechnet. Das macht Serverless extrem kosteneffizient für unregelmäßige Lastprofile.</li>
-        <li><strong>Cold Starts:</strong> Der erste Request nach einer Idle-Phase kann 2–10 Sekunden länger dauern, da das Modell neu geladen werden muss. Für latenzkritische Anwendungen ist das ein wichtiger Faktor.</li>
-        <li><strong>Flex Worker vs. Reserved Worker:</strong> Du kannst günstigere Flex Worker (werden bei hoher Auslastung unterbrochen) oder teurere Reserved Worker (garantierte Verfügbarkeit) wählen. Der Preisunterschied liegt bei etwa 25 %.</li>
-      </ul>
-      <p>Die Serverless-Preise liegen je nach GPU-Typ zwischen <strong>$0,29/Std (RTX 4090 Flex)</strong> und <strong>$8,64/Std (B200 Reserved)</strong> – allerdings nur für die tatsächliche Inferenzzeit. Effektiv zahlst du bei einer durchschnittlichen Auslastung von 20 % also nur 20 % des Stundensatzes.</p>
-
-      <div class="highlight-box">
-        <h3>💰 Serverless – Kostenbeispiel</h3>
-        <p><strong>Szenario:</strong> Du betreibst einen Llama-3.3-70B-Chatbot über die Serverless API auf einer H200.</p>
-        <p><strong>Preis pro Inferenz-Sekunde:</strong> ~$0,0012 (bei $4,39/Std reserviert, 3600 Sekunden). Bei 10.000 Anfragen pro Tag mit je 2 Sekunden Inferenzzeit zahlst du etwa <strong>$24/Tag = ~$720/Monat</strong>.</p>
-        <p>Würdest du dieselbe H200 als Pod rund um die Uhr mieten, wären das <strong>$4,39 × 24 × 30 = $3.160/Monat</strong> – mehr als das Vierfache. Serverless spart hier massiv, solange die Auslastung unter 30 % liegt.</p>
-      
 
 <section class="related-section">
   <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>

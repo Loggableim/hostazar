@@ -46,7 +46,7 @@
     "@type": "Organization",
     "name": "hostazar.com"
   },
-  "wordCount": 2112
+  "wordCount": 1769
 }
   </script>
   <script type="application/ld+json">
@@ -519,77 +519,22 @@
       <span>10 Min Lesezeit</span>
     </div>
 
+  <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="card-img-link">
+    <div class="card-img"><img src="/images/cloud-hosting-vs-shared-hosting.png" alt="Cloud Hosting vs. Shared Hosting – Vergleich 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag webhosting" style="background:#2196F322;color:#2196F3">Webhosting</span>
+      <span>15. June 2026</span>
+      <span>3 Min</span>
+    </div>
+    <h3><a href="/artikel/cloud-hosting-vs-shared-hosting.html">Cloud Hosting vs. Shared Hosting – Vergleich 2026</a></h3>
+    <p class="card-excerpt">loud Hosting vs. Shared Hosting – Der ultimative Vergleich 2026  Wer heute eine Website startet oder ein bestehendes Projekt skaliert, steht vor einer entsc.</p>
+    <div class="card-footer">
+      <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
 
-      <h2>Was ist der Caddy Web Server?</h2>
-      <p>Der <strong>Caddy Web Server</strong> (oft auch nur „Caddy” genannt) ist ein moderner, in Go geschriebener Webserver, der vor allem durch eine Besonderheit bekannt geworden ist: <strong>Automatisches HTTPS</strong> out of the box. Während Konkurrenzprodukte wie Nginx oder Apache meist manuelle SSL-Konfiguration erfordern, holt Caddy automatisch gültige Let's Encrypt-Zertifikate für jede Domain – und verlängert sie auch selbstständig.</p>
-      <p>Doch Caddy kann weit mehr als nur HTTPS. Dank des innovativen <strong>Caddyfile</strong>-Formats lassen sich Reverse-Proxy-Regeln, Static-File-Hosting, PHP-FPM-Weiterleitungen und sogar komplexe Middleware-Ketten in wenigen Zeilen konfigurieren. Das macht Caddy zur idealen Wahl für DevOps-Teams, die eine unkomplizierte, aber leistungsstarke Lösung für ihre Infrastruktur suchen.</p>
-      <p>In diesem Guide zeigen wir Ihnen, wie Sie Caddy 2026 auf Ihrem VPS oder Server einrichten, konfigurieren und in Betrieb nehmen.</p>
-
-      <h2>Caddy vs. Nginx vs. Traefik – Ein Vergleich</h2>
-      <p>Bevor wir ins Setup einsteigen, werfen wir einen Blick auf die Unterschiede zwischen den drei populärsten Reverse-Proxys im DevOps-Umfeld:</p>
-
-      <div style="overflow-x:auto;">
-      <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:0.95rem;">
-        <thead>
-          <tr style="background:var(--bg-card);border-bottom:2px solid var(--accent);">
-            <th style="padding:12px;text-align:left;border:1px solid var(--border);">Eigenschaft</th>
-            <th style="padding:12px;text-align:left;border:1px solid var(--border);background:rgba(255,152,0,0.15);">Caddy</th>
-            <th style="padding:12px;text-align:left;border:1px solid var(--border);">Nginx</th>
-            <th style="padding:12px;text-align:left;border:1px solid var(--border);">Traefik</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:10px;border:1px solid var(--border);font-weight:600;">Sprache</td>
-            <td style="padding:10px;border:1px solid var(--border);">Go</td>
-            <td style="padding:10px;border:1px solid var(--border);">C</td>
-            <td style="padding:10px;border:1px solid var(--border);">Go</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:10px;border:1px solid var(--border);font-weight:600;">Auto-HTTPS</td>
-            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">✅ Ja (Standard)</td>
-            <td style="padding:10px;border:1px solid var(--border);">⚠️ Manuell (Certbot)</td>
-            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">✅ Ja (Standard)</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:10px;border:1px solid var(--border);font-weight:600;">Konfiguration</td>
-            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">Caddyfile (sehr einfach)</td>
-            <td style="padding:10px;border:1px solid var(--border);">nginx.conf (mittel)</td>
-            <td style="padding:10px;border:1px solid var(--border);">YAML / Labels (mittel)</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:10px;border:1px solid var(--border);font-weight:600;">Docker-Integration</td>
-            <td style="padding:10px;border:1px solid var(--border);">⚠️ Über Labels (manuell)</td>
-            <td style="padding:10px;border:1px solid var(--border);">⚠️ Manuelle Konfiguration</td>
-            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">✅ Automatisch (Default)</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:10px;border:1px solid var(--border);font-weight:600;">Performance</td>
-            <td style="padding:10px;border:1px solid var(--border);">Sehr gut (Go)</td>
-            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">Hervorragend (C)</td>
-            <td style="padding:10px;border:1px solid var(--border);">Sehr gut (Go)</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:10px;border:1px solid var(--border);font-weight:600;">Plugins</td>
-            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">✅ Module (einfach)</td>
-            <td style="padding:10px;border:1px solid var(--border);">⚠️ Third-Party Module</td>
-            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">✅ Middleware</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:10px;border:1px solid var(--border);font-weight:600;">HTTP/2 &amp; HTTP/3</td>
-            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">✅ Ja (beide)</td>
-            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">✅ Ja (beide)</td>
-            <td style="padding:10px;border:1px solid var(--border);color:#4CAF50;">✅ Ja (beide)</td>
-          </tr>
-          <tr>
-            <td style="padding:10px;border:1px solid var(--border);font-weight:600;">Einsatzgebiet</td>
-            <td style="padding:10px;border:1px solid var(--border);">Allrounder, Static Sites, Reverse Proxy</td>
-            <td style="padding:10px;border:1px solid var(--border);">Traditioneller Webserver, Load Balancer</td>
-            <td style="padding:10px;border:1px solid var(--border);">Cloud-Native, Microservices, Docker</td>
-          </tr>
-        </tbody>
-      </table>
-      
 
 <section class="related-section">
   <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>

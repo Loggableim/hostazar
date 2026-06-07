@@ -46,7 +46,7 @@
     "@type": "Organization",
     "name": "hostazar.com"
   },
-  "wordCount": 2505
+  "wordCount": 1992
 }
   </script>
   <script type="application/ld+json">
@@ -519,86 +519,22 @@
       <span>12 Min Lesezeit</span>
     </div>
 
+  <a href="/artikel/llm-lokal-hosten-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/llm-lokal-hosten-2026.png" alt="LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag ki-llm" style="background:#9C27B022;color:#9C27B0">KI &amp; LLM</span>
+      <span>07. July 2026</span>
+      <span>14 Min</span>
+    </div>
+    <h3><a href="/artikel/llm-lokal-hosten-2026.html">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</a></h3>
+    <p class="card-excerpt">LLM lokal hosten 2026: ✓ Hardware-Auswahl ✓ GPU-Vergleich (RTX 4090, RTX 5090, A6000) ✓ Ollama, vLLM &amp; Docker ✓ Modell-Wahl ✓ OpenAI-kompatible API ✓ Schritt-für-Schritt-Anleitung.</p>
+    <div class="card-footer">
+      <a href="/artikel/llm-lokal-hosten-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
 
-      <h2>DeepSeek R1 / V3 lokal hosten – Einleitung</h2>
-      <p>DeepSeek hat die KI-Welt 2025/2026 nachhaltig aufgemischt: Mit <strong>DeepSeek V3</strong> (671B MoE) und <strong>DeepSeek R1</strong> (671B MoE, reasoning-optimiert) stehen zwei der leistungsfähigsten Open-Weight-Modelle überhaupt zur Verfügung – beide in der Lage, mit GPT-4o und Claude 4 in vielen Benchmarks mitzuhalten. Der Clou: Anders als bei den US-Anbietern kannst du diese Modelle <strong>komplett lokal auf eigener Hardware</strong> betreiben. Keine API-Kosten, kein Datentransfer ins Ausland, volle Kontrolle.</p>
-      <p>Doch die 671 Milliarden Parameter haben es in sich: Selbst in Quantisierung benötigst du <strong>ernsthafte Hardware</strong>. Eine einzelne RTX 4090 (24 GB VRAM) reicht gerade für die 4-Bit-Quantisierung, während die volle FP16-Version mehrere H100-GPUs voraussetzt. In diesem Guide zeigen wir dir, welche Hardware für DeepSeek R1 und V3 nötig ist, wie die <strong>Mixture-of-Experts (MoE)-Architektur</strong> funktioniert, und wie du die Modelle mit <strong>Ollama</strong>, <strong>vLLM</strong> und <strong>SGLang</strong> in Betrieb nimmst.</p>
-
-      <h2>DeepSeek R1 vs. V3 – Architektur und Unterschiede</h2>
-      <p>Beide Modelle basieren auf der gleichen <strong>Transformer-MoE-Architektur</strong> mit 671B Gesamtparametern, aktivieren aber pro Token nur 37B Parameter (sogenannte <strong>sparse activation</strong>). Der entscheidende Unterschied liegt im Training:</p>
-      <ul>
-        <li><strong>DeepSeek V3:</strong> Das Basismodell – trainiert auf 14,8 Billionen Tokens, optimiert für allgemeine Textgenerierung, Chat, Code und Übersetzung. Bietet eine Kontextlänge von 128K Tokens und Multi-Token-Prediction (MTP) für schnellere Inferenz.</li>
-        <li><strong>DeepSeek R1:</strong> Aufbauend auf V3, aber speziell mit <strong>Reinforcement Learning</strong> und Chain-of-Thought (CoT) optimiert. Die <strong>Reasoning-Version</strong> denkt Schritt für Schritt, liefert nachvollziehbare Logik-Ketten und erreicht Spitzenwerte in Mathematik (AIME 2025: 79,8 %) und Coding (Codeforces: 96,3. Perzentil).</li>
-      </ul>
-      <p>Für den Alltag bedeutet das: <strong>V3</strong> ist schneller und direkt – ideal für Chat, Content-Generierung und schnelle Antworten. <strong>R1</strong> glänzt bei komplexen Analyseaufgaben, Mathe, Debugging und Architektur-Entscheidungen, braucht aber durch den Reasoning-Overhead etwa 2–3× längere Antwortzeiten.</p>
-
-      <h2>Hardware-Anforderungen – GPU, VRAM und RAM im Vergleich</h2>
-      <p>Hier kommt die ernüchternde Realität: DeepSeek R1/V3 sind mit 671B Parametern <strong>massive Modelle</strong>. Die folgende Tabelle zeigt, welche Hardware für welche Quantisierungsstufe nötig ist:</p>
-
-      <div class="cmp-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Quantisierung</th>
-              <th>VRAM (GPU)</th>
-              <th>RAM (CPU Offload)</th>
-              <th>Empfohlene GPU</th>
-              <th>Tokens/s (ca.)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>FP16</strong> (voll)</td>
-              <td>~1.200 GB</td>
-              <td>–</td>
-              <td>8× H100 80GB / 16× A100 80GB</td>
-              <td>80–120</td>
-            </tr>
-            <tr>
-              <td><strong>Q8_0</strong></td>
-              <td>~350 GB</td>
-              <td>–</td>
-              <td>4× H100 / 4× A6000 48GB</td>
-              <td>40–60</td>
-            </tr>
-            <tr>
-              <td><strong>Q6_K</strong></td>
-              <td>~265 GB</td>
-              <td>–</td>
-              <td>3× H100 / 4× RTX 6000 Ada</td>
-              <td>30–50</td>
-            </tr>
-            <tr>
-              <td><strong>Q4_K_M</strong></td>
-              <td>~180 GB</td>
-              <td>32 GB</td>
-              <td>2× H100 / 4× RTX 4090</td>
-              <td>20–40</td>
-            </tr>
-            <tr>
-              <td><strong>Q3_K_M</strong></td>
-              <td>~130 GB</td>
-              <td>64 GB</td>
-              <td>2× RTX 4090 24GB / 1× A100 80GB</td>
-              <td>12–25</td>
-            </tr>
-            <tr>
-              <td><strong>Q2_K</strong></td>
-              <td>~90 GB</td>
-              <td>96 GB</td>
-              <td>1× A100 80GB / 2× RTX 3090</td>
-              <td>8–15</td>
-            </tr>
-            <tr>
-              <td><strong>IQ2_XXS</strong></td>
-              <td>~65 GB</td>
-              <td>64 GB</td>
-              <td>1× A100 80GB / 1× RTX 4090 + Offload</td>
-              <td>3–8</td>
-            </tr>
-          </tbody>
-        </table>
-      
 
 <section class="related-section">
   <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>

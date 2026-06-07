@@ -46,7 +46,7 @@
     "@type": "Organization",
     "name": "hostazar.com"
   },
-  "wordCount": 2493
+  "wordCount": 3031
 }
   </script>
   <script type="application/ld+json">
@@ -519,249 +519,22 @@
       <span>12 Min Lesezeit</span>
     </div>
 
-      <p><strong>Large Language Models (LLMs)</strong> wie Llama 3.3, Mistral oder Qwen 2.5 in Docker-Containern zu betreiben, ist 2026 zum Standard geworden. Container vereinfachen das Deployment, isolieren Abhängigkeiten und ermöglichen reproduzierbare Setups – sei es auf einem einzelnen GPU-VPS, einem dedizierten Server im Rechenzentrum oder einer Multi-Node-Kubernetes-Umgebung.</p>
+  <a href="/artikel/llm-lokal-hosten-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/llm-lokal-hosten-2026.png" alt="LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag ki-llm" style="background:#9C27B022;color:#9C27B0">KI &amp; LLM</span>
+      <span>07. July 2026</span>
+      <span>14 Min</span>
+    </div>
+    <h3><a href="/artikel/llm-lokal-hosten-2026.html">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</a></h3>
+    <p class="card-excerpt">LLM lokal hosten 2026: ✓ Hardware-Auswahl ✓ GPU-Vergleich (RTX 4090, RTX 5090, A6000) ✓ Ollama, vLLM &amp; Docker ✓ Modell-Wahl ✓ OpenAI-kompatible API ✓ Schritt-für-Schritt-Anleitung.</p>
+    <div class="card-footer">
+      <a href="/artikel/llm-lokal-hosten-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
 
-      <p>Doch LLM-Inference stellt besondere Anforderungen an Container: GPUs müssen durchgereicht werden, Modelle wiegen 10–80 GB, der Speicherbedarf ist enorm und die Netzwerklatenz zwischen Container und GPU-Treiber darf nicht zum Flaschenhals werden. In diesem Guide zeigen wir dir die bewährten Praktiken für Docker-Container mit LLM-Inference – von der Basis mit dem <strong>NVIDIA Container Toolkit</strong> über <strong>Ollama</strong> und <strong>vLLM</strong> bis zum vollständigen Docker-Compose-Setup mit <strong>Open WebUI</strong> und einer Datenbank.</p>
-
-      <h2>Warum Docker für LLM-Inference?</h2>
-      <p>Container bieten für KI-Workloads entscheidende Vorteile: Du kapselst CUDA-Treiber, Python-Runtime und Modell-Dateien in einem Image, das auf jedem Docker-Host mit NVIDIA-GPU identisch läuft. Versionierung, Rollbacks und parallele Instanzen verschiedener Modelle werden trivial. Statt auf dem Hostsystem eine komplexe CUDA-Umgebung mit mehreren Python-Versionen und Konflikten zu pflegen, deklarierst du alles im Dockerfile oder Compose-Service.</p>
-
-      <p>Hinzu kommt die <strong>Ressourcenisolierung</strong>: Mit Docker limitierst du CPU, RAM und GPU-Speicher pro Container. Ein fehlerhaftes Modell kann dadurch nicht den gesamten Server lahmlegen. Für Teams, die mehrere Modelle parallel betreiben oder eine LLM-Infrastruktur mit CI/CD aufbauen, ist Docker der logische nächste Schritt nach dem manuellen Setup. Für eine grundlegende Einführung in Docker Compose empfehlen wir unseren <a href="/artikel/docker-compose-vps-guide.html">Docker-Compose-VPS-Guide</a>.</p>
-
-      <h2>NVIDIA Container Toolkit – die Basis für GPU-Passthrough</h2>
-      <p>Damit ein Docker-Container auf die GPU zugreifen kann, reicht ein einfaches <code>--gpus all</code> nicht mehr aus – zumindest nicht, wenn du eine saubere, zukunftssichere Konfiguration möchtest. Das <strong>NVIDIA Container Toolkit</strong> (ehemals nvidia-docker2) ist der offizielle Weg, um CUDA-fähige Container zu betreiben. Es stellt das NVIDIA-Runtime-Environment für Docker bereit und sorgt dafür, dass die GPU-Treiber, CUDA-Bibliotheken und der Container-Kernel-Modul-Zugriff korrekt gekapselt werden.</p>
-
-      <h3>Installation des NVIDIA Container Toolkits</h3>
-      <p>Die Installation erfolgt auf Ubuntu 24.04 LTS in wenigen Schritten:</p>
-      <pre><code>curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | \
-  sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
-
-curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
-  sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-
-sudo apt update &amp;&amp; sudo apt install -y nvidia-container-toolkit
-sudo nvidia-ctk runtime configure --runtime=docker
-sudo systemctl restart docker</code></pre>
-      <p>Nach einem Neustart von Docker prüfst du die GPU-Erreichbarkeit mit einem ersten CUDA-Container:</p>
-      <pre><code>docker run --rm --gpus all nvidia/cuda:12.6-base-ubuntu24.04 nvidia-smi</code></pre>
-      <p>Wenn <code>nvidia-smi</code> die GPU anzeigt, ist der GPU-Passthrough einsatzbereit. Ab Docker 25+ und neueren Versionen des Toolkits ist die NVIDIA-Container-Runtime automatisch als Default-Runtime konfigurierbar – du musst dann nicht bei jedem Container <code>--gpus all</code> angeben.</p>
-
-      <h2>Ollama im Docker-Container</h2>
-      <p>Ollama bietet ein offizielles Docker-Image, das NVIDIA-GPUs out of the box unterstützt. Der Start ist denkbar einfach:</p>
-      <pre><code>docker run -d --gpus all \
-  -v ollama_data:/root/.ollama \
-  -p 11434:11434 \
-  --name ollama \
-  ollama/ollama</code></pre>
-      <p>Das Volume <code>ollama_data</code> speichert heruntergeladene Modelle dauerhaft. Nach dem Start lädst du ein Modell in den Container:</p>
-      <pre><code>docker exec ollama ollama pull llama3.3:70b-instruct-q4_K_M</code></pre>
-      <p>Für Produktivumgebungen solltest du die Ollama-Umgebungsvariablen <code>OLLAMA_NUM_PARALLEL</code> (Anzahl paralleler Requests), <code>OLLAMA_MAX_LOADED_MODELS</code> und <code>OLLAMA_KEEP_ALIVE</code> setzen, um das Verhalten an deine Hardware anzupassen. Ein vollständiger Aufruf mit Konfiguration:</p>
-      <pre><code>docker run -d --gpus all \
-  -v ollama_data:/root/.ollama \
-  -p 11434:11434 \
-  -e OLLAMA_NUM_PARALLEL=4 \
-  -e OLLAMA_MAX_LOADED_MODELS=2 \
-  -e OLLAMA_KEEP_ALIVE=5m \
-  --memory="64g" \
-  --memory-swap="64g" \
-  --shm-size=8g \
-  --name ollama \
-  --restart unless-stopped \
-  ollama/ollama</code></pre>
-      <p>Die vollständige Anleitung zum Betrieb von Ollama auf einem VPS findest du in unserem Artikel <a href="/artikel/ollama-llm-server-vps-2026.html">Ollama LLM Server auf VPS hosten</a>.</p>
-
-      <h2>vLLM: High-Performance-Inference für produktive Setups</h2>
-      <p>Während Ollama auf Einfachheit und schnelle Experimente ausgelegt ist, zielt <strong>vLLM</strong> auf maximale Inferenz-Performance in Produktionsumgebungen. vLLM implementiert PagedAttention, continuous batching und optimierte CUDA-Kernel, die den GPU-Durchsatz um ein Vielfaches steigern können. Besonders bei vielen parallelen Requests – zum Beispiel in einer Chat-API mit mehreren Nutzern – glänzt vLLM.</p>
-
-      <p>Der offizielle vLLM-Docker-Container wird über das NVIDIA CUDA-Base-Image bereitgestellt und unterstützt ebenfalls GPU-Passthrough:</p>
-      <pre><code>docker run -d --gpus all \
-  -v /models:/models \
-  -p 8000:8000 \
-  --name vllm \
-  vllm/vllm-openai:latest \
-  --model /models/Meta-Llama-3.3-70B-Instruct-Q4_K_M \
-  --tensor-parallel-size 2 \
-  --gpu-memory-utilization 0.9 \
-  --max-model-len 8192 \
-  --enforce-eager</code></pre>
-      <p>Mit <code>--tensor-parallel-size 2</code> verteilst du das Modell auf zwei GPUs. Der Parameter <code>--gpu-memory-utilization 0.9</code> reserviert 90 % des VRAMs für das Modell – der Rest bleibt für KV-Cache und Overhead. vLLM startet automatisch eine OpenAI-kompatible API auf Port 8000, sodass du sie mit Open WebUI, Continue.dev oder LangChain verbinden kannst.</p>
-
-      <h3>Ollama vs. vLLM vs. TGI – Vergleichstabelle</h3>
-      <p>Welche Inference-Engine du wählst, hängt von deinem Use-Case ab. Die folgende Tabelle fasst die wichtigsten Unterschiede zusammen:</p>
-      <table class="vergleichstabelle">
-        <thead>
-          <tr>
-            <th>Kriterium</th>
-            <th>Ollama</th>
-            <th>vLLM</th>
-            <th>Text Generation Inference (TGI)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Einrichtung</td>
-            <td>Sehr einfach (ein Befehl)</td>
-            <td>Mittel (Konfiguration nötig)</td>
-            <td>Mittel (Hugging Face Integration)</td>
-          </tr>
-          <tr>
-            <td>GPU-Unterstützung</td>
-            <td>Ja (automatisch)</td>
-            <td>Ja (Multi-GPU, Tensor Parallel)</td>
-            <td>Ja (Flash Attention 2)</td>
-          </tr>
-          <tr>
-            <td>Continuous Batching</td>
-            <td>Nein (sequentiell)</td>
-            <td>Ja (sehr effizient)</td>
-            <td>Ja (optimiert)</td>
-          </tr>
-          <tr>
-            <td>OpenAI-kompatible API</td>
-            <td>Ja (nativ)</td>
-            <td>Ja (nativ)</td>
-            <td>Ja (nativ)</td>
-          </tr>
-          <tr>
-            <td>Modellformat</td>
-            <td>Ollama-eigenes / GGUF</td>
-            <td>SafeTensors / GPTQ / AWQ</td>
-            <td>SafeTensors (Hugging Face)</td>
-          </tr>
-          <tr>
-            <td>Quantisierungsformate</td>
-            <td>GGUF (Q4–Q8, IQ)</td>
-            <td>GPTQ, AWQ, FP8</td>
-            <td>GPTQ, AWQ, bitsandbytes</td>
-          </tr>
-          <tr>
-            <td>Multi-User-Tauglichkeit</td>
-            <td>Bedingt (num_parallel)</td>
-            <td>Hervorragend</td>
-            <td>Hervorragend</td>
-          </tr>
-          <tr>
-            <td>Ressourcenbedarf (Basis)</td>
-            <td>Gering (~500 MB RAM)</td>
-            <td>Mittel (~2 GB RAM)</td>
-            <td>Mittel (~1,5 GB RAM)</td>
-          </tr>
-          <tr>
-            <td>Idealer Use-Case</td>
-            <td>Einzeluser, Entwicklung, Basteln</td>
-            <td>API-Produktion, Multi-User</td>
-            <td>Hugging-Face-Integration, Finetuning</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h2>Docker Compose: Multi-Container-Setup mit LLM + Open WebUI + DB</h2>
-      <p>Ein vollständiges LLM-Inference-Setup besteht oft aus mehreren Komponenten: der Inference-Engine (Ollama oder vLLM), einem Chat-Frontend (Open WebUI) und optional einer Datenbank für Chat-Verläufe und Nutzerdaten. Mit Docker Compose definierst du alle Dienste in einer einzigen YAML-Datei und startest sie mit einem Befehl.</p>
-
-      <h3>Beispiel: Ollama + Open WebUI + PostgreSQL</h3>
-      <pre><code>services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    restart: unless-stopped
-    volumes:
-      - ollama_data:/root/.ollama
-    ports:
-      - "11434:11434"
-    environment:
-      - OLLAMA_NUM_PARALLEL=4
-      - OLLAMA_KEEP_ALIVE=5m
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-    networks:
-      - llm-net
-
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:main
-    container_name: open-webui
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-    volumes:
-      - open-webui_data:/app/backend/data
-    environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
-      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
-    depends_on:
-      - ollama
-    networks:
-      - llm-net
-
-  postgres:
-    image: postgres:16-alpine
-    container_name: llm-db
-    restart: unless-stopped
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: webui
-      POSTGRES_USER: webui
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    networks:
-      - llm-net
-
-volumes:
-  ollama_data:
-  open-webui_data:
-  postgres_data:
-
-networks:
-  llm-net:
-    driver: bridge</code></pre>
-      <p>Dieses Setup trennt die Dienste sauber: Ollama läuft mit GPU-Passthrough, Open WebUI verbindet sich über das interne Docker-Netzwerk (<code>llm-net</code>) und PostgreSQL speichert die Chat-Verläufe. Die Zugangsdaten landen in einer <code>.env</code>-Datei, nicht in der Compose-Datei selbst. Für den produktiven Betrieb empfehlen wir zusätzlich einen Reverse Proxy (Traefik oder Nginx) vor Open WebUI, wie in unserem <a href="/artikel/docker-compose-vps-guide.html">Docker-Compose-VPS-Guide</a> beschrieben.</p>
-
-      <h2>Ressourcenlimits und GPU-Monitoring</h2>
-      <p>LLM-Container sind ressourcenhungrig. Ohne Limits kann ein einzelner Container den gesamten Server blockieren. Setze daher immer explizite <strong>CPU- und RAM-Grenzen</strong> in der Compose-Datei:</p>
-      <pre><code>deploy:
-  resources:
-    limits:
-      cpus: '8'
-      memory: 64G
-    reservations:
-      cpus: '4'
-      memory: 32G
-      devices:
-        - driver: nvidia
-          count: 1
-          capabilities: [gpu]</code></pre>
-      <p>Für das GPU-Monitoring empfiehlt sich <strong>dcgm-exporter</strong> (NVIDIA Data Center GPU Manager) in einem separaten Container. Er exportiert Metriken wie GPU-Auslastung, Temperatur, VRAM-Verbrauch und Power Draw, die du mit Prometheus und Grafana visualisieren kannst. Eine einfachere Alternative ist <code>nvidia-smi</code> im Host-System mit regemäßigem Logging via Cronjob.</p>
-
-      <p>Auch der Speicherplatz wächst schnell: Ein einziges 70B-Modell in Q4 belegt ~40 GB, mehrere Modelle plus Docker-Images und Build-Cache können 200–500 GB füllen. Richte daher eine regelmäßige Bereinigung mit <code>docker system prune -f</code> und <code>ollama prune</code> ein. Für passende SSDs und Server-Hardware findest du Empfehlungen <a href="https://www.amazon.de/s?k=NVMe+SSD+Server&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">bei Amazon*</a>.</p>
-
-      <h2>Sicherheit: GPU-Container absichern</h2>
-      <p>Container mit GPU-Zugriff haben ein erweitertes Privilegienprofil. Der Zugriff auf <code>/dev/nvidia*</code> und <code>/dev/dri*</code> gibt dem Container theoretisch direkten Hardware-Zugriff. Beachte daher folgende Sicherheitsmaßnahmen:</p>
-      <ul>
-        <li><strong>Kein --privileged:</strong> Für GPU-Passthrough ist <code>--privileged</code> nicht nötig. Nutze stattdessen explizite Device-Reservations wie im Compose-Beispiel oben.</li>
-        <li><strong>Read-Only Root Filesystem:</strong> Wenn das Modell auf einem externen Volume liegt, kannst du den Container-RO-FS mit <code>--read-only</code> aktivieren.</li>
-        <li><strong>Keine öffentlichen Ports:</strong> Inference-APIs (Port 11434, 8000) niemals direkt exposen. Setze einen Reverse Proxy mit Authentifizierung davor oder nutze ein VPN (<a href="/artikel/wireguard-vpn-server.html">WireGuard</a>).</li>
-        <li><strong>Regelmäßige Updates:</strong> Halte Docker Engine, NVIDIA-Treiber und das Container Toolkit aktuell. Sicherheitslücken wie CVE-2024-在半 (Container Escape via GPU) wurden mehrfach in NVIDIA-Treibern gefunden.</li>
-        <li><strong>User Namespaces:</strong> Aktiviere <code>userns-remap</code> in der Docker-Daemon-Konfiguration, um Container-Prozesse mit eingeschränkten Rechten laufen zu lassen.</li>
-      </ul>
-
-      <h2>Best Practices für das Docker-Image</h2>
-      <p>Wie bei jedem Docker-Workload gilt: Das Image sollte so klein und sicher wie möglich sein. Für LLM-Inference bedeutet das konkret:</p>
-      <ul>
-        <li><strong>CUDA-Base-Image statt vollständigem OS:</strong> Starte von <code>nvidia/cuda:12.6-runtime-ubuntu24.04</code> statt <code>ubuntu:24.04</code> – das spart 2–3 GB Image-Größe und enthält bereits die optimierten CUDA-Bibliotheken.</li>
-        <li><strong>Multi-Stage-Builds:</strong> Baue Abhängigkeiten in einer Build-Stage mit vollständigem CUDA-Devel-Image und kopiere nur die Binary und Laufzeitbibliotheken in das finale Runtime-Image.</li>
-        <li><strong>Modell nicht im Image:</strong> Lade Modelle zur Laufzeit oder mounte sie als Volume. Ein Image mit 40-GB-Modell-Gewichten ist impractical für CI/CD und Deployment-Pipelines.</li>
-        <li><strong>Healthcheck integrieren:</strong> Definiere einen Docker-Healthcheck, der regelmäßig die API erreichbarkeit prüft. Bei Ollama: <code>HEALTHCHECK CMD ollama ps || exit 1</code>.</li>
-        <li><strong>Non-Root-User:</strong> Auch wenn CUDA-Container oft als Root laufen – viele Images wie das offizielle vLLM-Image unterstützen bereits den <code>vllm</code>-User. Passe die Berechtigungen für die Modell-Volumes entsprechend an.</li>
-      </ul>
-
-      <div class="highlight-box">
-        <p><strong>🚀 Praxis-Tipp:</strong> Starte mit Ollama im Docker-Container für erste Experimente. Sobald du mehrere Nutzer bedienen oder eine Produktions-API bereitstellen möchtest, migriere zu vLLM. Lege für jedes Setup ein eigenes Projektverzeichnis mit <code>compose.yml</code>, <code>.env</code> und einem kurzen <code>README.md</code> an – so behältst du auch nach Monaten den Überblick.</p>
-      
 
 <section class="related-section">
   <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>
