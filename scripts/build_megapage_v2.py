@@ -358,8 +358,31 @@ def render_blog_card(a, color_map=None):
 # ── Related Articles ─────────────────────────────────────────────────────────
 
 def render_related(current_slug, category, n=6):
-    pool = [a for a in CAT_GROUPS.get(category, []) if a['slug'] != current_slug]
-    pool = pool[:n]
+    """Find related articles: same category first, then cross-category by tag overlap."""
+    current = next((a for a in ARTIKEL if a['slug'] == current_slug), None)
+    current_tags = set(t.lower() for t in (current.get('tags') or []))
+    
+    # Score all other articles
+    scored = []
+    for a in ARTIKEL:
+        if a['slug'] == current_slug:
+            continue
+        score = 0
+        # Same category bonus
+        if a.get('category') == category:
+            score += 3
+        # Tag overlap
+        a_tags = set(t.lower() for t in (a.get('tags') or []))
+        overlap = current_tags & a_tags
+        score += len(overlap) * 2
+        # Prefer newer articles
+        if a.get('date', '') > '2026-06-01':
+            score += 1
+        scored.append((score, a))
+    
+    scored.sort(key=lambda x: (-x[0], x[1].get('date', '')), reverse=False)
+    pool = [a for _, a in scored[:n]]
+    
     if not pool:
         return ''
     cards = '\n'.join(render_blog_card(a) for a in pool)
