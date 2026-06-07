@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenRouter API vs. eigene GPU – Kostenvergleich 2026 | hostazar.com</title>
+  <meta name="description" content="OpenRouter API-Kosten vs. GPU selbst hosten: Break-Even-Analyse, Vergleichstabelle und Rechner. Ab wie vielen Tokens pro Tag lohnt sich Eigenhosting? Alle Preise 2026.">
+  <meta name="keywords" content="OpenRouter Kosten, GPU selbst hosten, LLM API Kostenvergleich, KI Modelle hosten, Break-Even Analyse, GPU Mieten, OpenRouter vs Self-Hosted LLM, DeepSeek V3 API Preis, LLM Kosten 2026, GPU Stromkosten">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hostazar.com/artikel/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.html">
+  <link rel="stylesheet" href="/css/style.css">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hostazar.com/artikel/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.html">
+  <meta property="og:title" content="OpenRouter API vs. eigene GPU – Kostenvergleich 2026">
+  <meta property="og:description" content="OpenRouter API-Kosten vs. GPU selbst hosten: Break-Even-Analyse, Vergleichstabelle und Rechner. Ab wie vielen Tokens pro Tag lohnt sich Eigenhosting? Alle Preise 2026.">
+  <meta property="og:image" content="https://hostazar.com/images/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.png">
+  <meta property="og:locale" content="de_DE">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="OpenRouter API vs. eigene GPU – Kostenvergleich 2026">
+  <meta name="twitter:description" content="OpenRouter API vs. eigene GPU: Break-Even-Analyse ab wann sich Eigenhosting lohnt. Mit Vergleichstabelle und Rechner.">
+
+  <!-- Article JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "OpenRouter API vs. eigene GPU – Kostenvergleich 2026",
+    "url": "https://hostazar.com/artikel/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.html",
+    "datePublished": "2026-06-15",
+    "dateModified": "2026-06-15",
+    "author": { "@type": "Organization", "name": "hostazar.com" },
+    "publisher": { "@type": "Organization", "name": "hostazar.com" },
+    "description": "OpenRouter API-Kosten vs. GPU selbst hosten: Break-Even-Analyse, Vergleichstabelle und Rechner. Ab wie vielen Tokens pro Tag lohnt sich Eigenhosting? Alle Preise 2026.",
+    "image": "https://hostazar.com/images/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.png",
+    "mainEntityOfPage": { "@id": "https://hostazar.com/artikel/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.html" },
+    "wordCount": 1750,
+    "articleSection": "KI & LLM",
+    "inLanguage": "de"
+  }
+  </script>
+  <script src="/data/script.js" defer></script>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9094916118868532"
+    crossorigin="anonymous"></script>
+
+  <style>
+    .price-table { overflow-x: auto; margin: 2rem 0; }
+    .price-table table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .price-table th { background: #1a3a5c; color: #fff; padding: 12px 8px; text-align: left; }
+    .price-table td { padding: 10px 8px; border-bottom: 1px solid #2a4a6c; }
+    .price-table tr:hover td { background: rgba(74, 144, 226, 0.1); }
+    .break-even { color: #4CAF50; font-weight: bold; }
+    .break-even-negative { color: #f44336; }
+    .highlight-box { background: linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 100%); border: 1px solid #2a5a8c; border-radius: 8px; padding: 1.2rem; margin: 1.5rem 0; }
+    .highlight-box h4 { margin: 0 0 0.5rem 0; color: #FFD700; }
+    .highlight-box ul { margin: 0.3rem 0; }
+    .calculator-box { background: #0a1520; border: 2px solid #4CAF50; border-radius: 12px; padding: 1.5rem; margin: 2rem 0; }
+    .calculator-box h3 { color: #4CAF50; margin: 0 0 0.5rem 0; }
+    .calc-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #1a3a5c; }
+    .calc-row:last-child { border-bottom: none; }
+    .calc-label { color: #aaa; }
+    .calc-value { font-weight: bold; color: #fff; }
+    .calc-result { font-size: 1.3rem; color: #FFD700; font-weight: bold; text-align: center; padding: 12px; background: #1a3a5c; border-radius: 8px; margin-top: 12px; }
+    .verdict-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 2rem 0; }
+    .verdict-card { background: linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 100%); border: 1px solid #2a5a8c; border-radius: 8px; padding: 1.2rem; }
+    .verdict-card h3 { margin: 0 0 0.5rem 0; color: #4CAF50; font-size: 1rem; }
+    .verdict-card .icon-large { font-size: 2rem; margin-bottom: 0.5rem; }
+    .faq-item { border-bottom: 1px solid #2a4a6c; padding: 1rem 0; }
+    .faq-item h4 { margin: 0 0 0.3rem 0; color: #64b5f6; }
+    .table-note { font-size: 0.85rem; color: #888; margin-top: 0.5rem; }
+  </style>
+
+<meta property="og:site_name" content="Hostazar — VPS & DevOps Portal" />
+<meta name="twitter:image" content="https://hostazar.com/images/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.png" />
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">hosta<span>zar</span></a>
+    <ul class="nav-links">
+      <li><a href="/">Startseite</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">🎮 Gaming</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Beliebt</h4>
+              <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
+                <img src="/images/ark-survival-ascended-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">ARK Survival Ascended Server hosten</span>
+              </a>
+              <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
+                <img src="/images/minecraft-server-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Minecraft Server Vergleich 2026</span>
+              </a>
+              <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
+                <img src="/images/palworld-server-hosting-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Palworld Server Hosting Guide</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Gaming</h4>
+              <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">Conan Exiles Server mieten</a>
+              <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">CS2 Server mieten</a>
+              <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">7 Days to Die Server hosten</a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Webhosting & DevOps</h4>
+              <a href="/artikel/caddy-web-server-einrichten-2026.html" class="mega-item">Caddy Web Server einrichten</a>
+              <a href="/artikel/vps-server-mieten-vergleich-2026.html" class="mega-item">VPS Server mieten Vergleich 2026</a>
+              <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">Docker Compose auf VPS</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">🌐 Webhosting</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Guides</h4>
+              <a href="/artikel/cloudflare-tunnel-einrichten.html" class="mega-item">Cloudflare Tunnel</a>
+              <a href="/artikel/plesk-vs-cpanel-vs-hestia-vergleich-2026.html" class="mega-item">Plesk vs cPanel vs Hestia</a>
+              <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">Webhosting Vergleich 2026</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/">⚙️ DevOps</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Server & Tools</h4>
+              <a href="/artikel/ansible-automation-guide.html" class="mega-item">Ansible Automation</a>
+              <a href="/artikel/linux-server-harden-2026.html" class="mega-item">Linux Server Härten</a>
+              <a href="/artikel/docker-compose-produktion-2026.html" class="mega-item">Docker Compose Produktion</a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> KI & LLM</h4>
+              <a href="/artikel/ollama-llm-server-vps-2026.html" class="mega-item">Ollama auf VPS hosten</a>
+              <a href="/artikel/free-llm-benchmark-2026.html" class="mega-item">Free LLM Benchmark 2026</a>
+              <a href="/artikel/vast-ai-gpu-mieten-2026.html" class="mega-item">Vast.ai GPU mieten</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li><a href="/about.html">Über uns</a></li>
+      <li><a href="/impressum.html">Impressum</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="container article-page">
+  <article>
+    <div class="article-header">
+      <div class="card-meta">
+        <span class="card-tag devops" style="background:rgba(156,39,176,0.2);color:#ce93d8">KI &amp; LLM</span>
+        <span>15. Juni 2026</span>
+        <span>⏱ 10 Min Lesezeit</span>
+      </div>
+    </div>
+    <div class="hero-image-wrap" style="margin:1.5rem 0;border-radius:12px;overflow:hidden;">
+      <img src="../images/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.png" alt="OpenRouter API vs. eigene GPU – Kostenvergleich 2026 | hostazar.com" class="hero-image" style="width:100%;height:auto;display:block;">
+    </div>
+    <h1>OpenRouter API vs. eigene GPU – Kostenvergleich 2026</h1>
+    <div class="adsense-placeholder"><p><strong>&mdash; Anzeige &mdash;</strong></p><p>Google AdSense Platzhalter</p></div>
+    <div id="breadcrumbs"></div>
+    <div class="article-content">
+
+      <!-- Intro -->
+      <p>Wer 2026 KI-Modelle produktiv einsetzt, steht früher oder später vor der Frage: <strong>Ab wann lohnt es sich, die GPU selbst zu kaufen und zu Hause oder im Rechenzentrum zu betreiben – statt bequem per API (z.&thinsp;B. über OpenRouter) zu bezahlen?</strong></p>
+      <p>OpenRouter bietet Zugriff auf über 200 Modelle – von DeepSeek V3 über Claude Sonnet 4 bis zu Llama 3.3 70B – mit Pay-per-Use-Abrechnung. Keine Investition, kein Strom, keine Kühlung. Die Kehrseite: Bei hohem Volumen können die API-Kosten schnell explodieren. Eine eigene GPU hingegen kostet einmalig Geld für die Hardware, aber die laufenden Kosten sind überraschend niedrig.</p>
+      <p>Dieser Artikel zeigt dir eine detaillierte <strong>Break-Even-Analyse</strong> für 2026: welches Modell auf welcher GPU, zu welchen Kosten und ab wie vielen Tokens pro Tag sich Eigenhosting lohnt. Inklusive Vergleichstabelle, Rechner und klarer Kaufempfehlung.</p>
+
+      <!-- Overview Cards -->
+      <div class="verdict-grid">
+        <div class="verdict-card">
+          <div class="icon-large">📊</div>
+          <h3>Verglichene Szenarien</h3>
+          <p>OpenRouter API (5 Modelle) vs. Selbsthosting auf <strong>RTX 4090</strong>, <strong>RTX 3090</strong>, <strong>Hetzner A100</strong> und <strong>eigener GPU zuhause</strong>.</p>
+        </div>
+        <div class="verdict-card">
+          <div class="icon-large">⚡</div>
+          <h3>Wichtigster Faktor</h3>
+          <p>Deine <strong>tägliche Token-Menge</strong> und <strong>welches Modell</strong> du brauchst. Für kleine bis mittlere Volumen ist OpenRouter meist günstiger.</p>
+        </div>
+        <div class="verdict-card">
+          <div class="icon-large">💰</div>
+          <h3>Schnell-Fazit</h3>
+          <p>Break-Even meist bei <strong>5–15 Mio. Output-Tokens/Tag</strong> (70B Modelle). Wer Top-Modelle wie Claude Sonnet 4 braucht, erreicht den Break-Even schon bei <strong>~1 Mio. Tokens/Tag</strong>.</p>
+        </div>
+      </div>
+
+      <h2>1. OpenRouter API – aktuelle Preise 2026</h2>
+      <p>OpenRouter fungiert als Aggregator: Du zahlst je nach Modell einen Aufschlag auf den Original-Anbieterpreis – dafür bekommst du eine <strong>einheitliche OpenAI-kompatible API</strong>, Failover zwischen Anbietern und hostest keine eigene Infrastruktur. Die Preise liegen Stand Juni 2026 in etwa in diesen Regionen:</p>
+
+      <div class="price-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Modell (API-Name auf OpenRouter)</th>
+              <th>Input / 1M Tokens</th>
+              <th>Output / 1M Tokens</th>
+              <th>Kontext</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>DeepSeek V3 (DeepSeek)</strong></td>
+              <td>$0,50 (≈0,46 €)</td>
+              <td>$2,00 (≈1,84 €)</td>
+              <td>128K</td>
+            </tr>
+            <tr>
+              <td><strong>DeepSeek R1</strong></td>
+              <td>$0,55 (≈0,51 €)</td>
+              <td>$2,19 (≈2,01 €)</td>
+              <td>128K / CoT</td>
+            </tr>
+            <tr>
+              <td><strong>Claude Sonnet 4 (Anthropic)</strong></td>
+              <td>$15,00 (≈13,80 €)</td>
+              <td>$75,00 (≈69,00 €)</td>
+              <td>200K</td>
+            </tr>
+            <tr>
+              <td><strong>Claude Haiku 3.5 (Anthropic)</strong></td>
+              <td>$1,00 (≈0,92 €)</td>
+              <td>$5,00 (≈4,60 €)</td>
+              <td>200K</td>
+            </tr>
+            <tr>
+              <td><strong>GPT-4o mini (OpenAI)</strong></td>
+              <td>$0,15 (≈0,14 €)</td>
+              <td>$0,60 (≈0,55 €)</td>
+              <td>128K</td>
+            </tr>
+            <tr>
+              <td><strong>Llama 3.3 70B (Meta / OpenRouter)</strong></td>
+              <td>$0,59 (≈0,54 €)</td>
+              <td>$0,79 (≈0,73 €)</td>
+              <td>128K</td>
+            </tr>
+            <tr>
+              <td><strong>Qwen 2.5 72B (Alibaba Cloud)</strong></td>
+              <td>$0,90 (≈0,83 €)</td>
+              <td>$0,90 (≈0,83 €)</td>
+              <td>128K</td>
+            </tr>
+            <tr>
+              <td><strong>Mistral Large 2 (Mistral AI)</strong></td>
+              <td>$2,00 (≈1,84 €)</td>
+              <td>$6,00 (≈5,52 €)</td>
+              <td>128K</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">* Preise in USD basierend auf OpenRouter-Preisliste Juni 2026. €-Umrechnung zu ca. 0,92 €/$.</p>
+
+      <h2>2. Selbst hosten – GPU-Kosten im Detail</h2>
+      <p>Selbsthosten bedeutet: Du kaufst oder least eine GPU, installierst ein Inference-Framework (z.&thinsp;B. Ollama, vLLM, llama.cpp oder Text Generation WebUI) und betreibst das Modell lokal. Die Kosten setzen sich aus <strong>drei Komponenten</strong> zusammen:</p>
+
+      <ul>
+        <li><strong>Hardware-Amortisation</strong> – Kaufpreis der GPU, verteilt auf die Nutzungsdauer.</li>
+        <li><strong>Stromkosten</strong> – Stromverbrauch der GPU + restlicher PC/Server.</li>
+        <li><strong>Sonstige Kosten</strong> – ggf. Server-Miete (Hetzner, Contabo), Kühlung, Wartung.</li>
+      </ul>
+
+      <h3>GPU-Anschaffungskosten 2026</h3>
+      <div class="price-table">
+        <table>
+          <thead>
+            <tr>
+              <th>GPU-Modell</th>
+              <th>VRAM</th>
+              <th>Kaufpreis (€)</th>
+              <th>Leistungsaufnahme</th>
+              <th>Tokens/s (70B @ Q4_K_M)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>RTX 3090 (gebraucht)</strong></td>
+              <td>24 GB</td>
+              <td>800–1.100 €</td>
+              <td>350 W</td>
+              <td>3–4 t/s</td>
+            </tr>
+            <tr>
+              <td><strong>RTX 4090</strong></td>
+              <td>24 GB</td>
+              <td>1.400–1.800 €</td>
+              <td>450 W</td>
+              <td>6–8 t/s</td>
+            </tr>
+            <tr>
+              <td><strong>RTX 5090 (Prognose)</strong></td>
+              <td>32 GB</td>
+              <td>2.200–2.800 €</td>
+              <td>575 W</td>
+              <td>10–14 t/s</td>
+            </tr>
+            <tr>
+              <td><strong>A100 80 GB (gebraucht)</strong></td>
+              <td>80 GB</td>
+              <td>7.000–10.000 €</td>
+              <td>400 W</td>
+              <td>20–25 t/s</td>
+            </tr>
+            <tr>
+              <td><strong>H100 80 GB</strong></td>
+              <td>80 GB</td>
+              <td>20.000–30.000 €</td>
+              <td>700 W</td>
+              <td>35–45 t/s</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Mietpreise (Cloud GPU / Dedicated Server)</h3>
+      <p>Du kannst GPUs auch mieten – entweder stundenweise (Hetzner, Vast.ai, RunPod) oder als dedizierten Server. Das senkt die Anfangsinvestition, erhöht aber die monatlichen Betriebskosten:</p>
+
+      <div class="price-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Anbieter</th>
+              <th>GPU</th>
+              <th>Kosten / h</th>
+              <th>Kosten / Monat (24/7)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Hetzner Cloud GPU</strong></td>
+              <td>A100 80 GB</td>
+              <td>1,29 €</td>
+              <td>~930 €</td>
+            </tr>
+            <tr>
+              <td><strong>Hetzner Cloud GPU</strong></td>
+              <td>L40S 48 GB</td>
+              <td>0,89 €</td>
+              <td>~640 €</td>
+            </tr>
+            <tr>
+              <td><strong>Contabo Cloud GPU</strong></td>
+              <td>RTX 3090 (Single)</td>
+              <td>~0,08 €</td>
+              <td>~59,99 €</td>
+            </tr>
+            <tr>
+              <td><strong>Vast.ai (Durchschnitt)</strong></td>
+              <td>RTX 4090</td>
+              <td>0,29–0,45 €</td>
+              <td>~210–330 €</td>
+            </tr>
+            <tr>
+              <td><strong>Vast.ai (Durchschnitt)</strong></td>
+              <td>A100 80 GB</td>
+              <td>1,10–1,80 €</td>
+              <td>~790–1.300 €</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>3. Break-Even-Analyse: Ab wann lohnt sich Eigenhosting?</h2>
+      <p>Wir vergleichen die Kosten pro Million Output-Tokens (die teurere Komponente) für verschiedene Szenarien. Die Annahmen: <strong>3 Jahre Nutzungsdauer</strong>, <strong>8h aktive Inference pro Tag</strong>, deutscher Haushaltsstrompreis 2026 von <strong>0,35 €/kWh</strong>.</p>
+
+      <h3>Kosten pro 1 Million Output-Tokens</h3>
+      <div class="price-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Szenario</th>
+              <th>Modell (70B)</th>
+              <th>Kosten / 1M Out-Tokens</th>
+              <th>Break-Even vs. OpenRouter*</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>OpenRouter – DeepSeek V3</strong></td>
+              <td>API (extern)</td>
+              <td>1,84 €</td>
+              <td class="break-even">– (Referenz)</td>
+            </tr>
+            <tr>
+              <td><strong>OpenRouter – Llama 3.3 70B</strong></td>
+              <td>API (extern)</td>
+              <td>0,73 €</td>
+              <td class="break-even-negative">– (Referenz)</td>
+            </tr>
+            <tr>
+              <td><strong>OpenRouter – Claude Sonnet 4</strong></td>
+              <td>API (extern)</td>
+              <td>69,00 €</td>
+              <td class="break-even-negative">– (Referenz)</td>
+            </tr>
+            <tr>
+              <td><strong>RTX 3090 @ home</strong></td>
+              <td>Llama 3.3 70B (Q4)</td>
+              <td>6,85 €</td>
+              <td class="break-even-negative">❌ Nie günstiger als API</td>
+            </tr>
+            <tr>
+              <td><strong>RTX 4090 @ home</strong></td>
+              <td>Qwen 2.5 72B (Q4)</td>
+              <td>4,40 €</td>
+              <td class="break-even-negative">❌ Nur günstiger als Claude Sonnet 4</td>
+            </tr>
+            <tr>
+              <td><strong>RTX 5090 @ home (Prognose)</strong></td>
+              <td>Llama 3.3 70B (Q4)</td>
+              <td>2,55 €</td>
+              <td class="break-even-negative">❌ Nur günstiger als Claude Sonnet 4</td>
+            </tr>
+            <tr>
+              <td><strong>Hetzner A100 (gemietet)</strong></td>
+              <td>Llama 3.3 70B (Q4)</td>
+              <td>16,30 €</td>
+              <td class="break-even-negative">❌ Teurer als alle APIs außer Claude</td>
+            </tr>
+            <tr>
+              <td><strong>2× RTX 4090 @ home</strong></td>
+              <td>Mistral Large 2 (Q4)</td>
+              <td>3,20 €</td>
+              <td class="break-even-negative">❌ Nur günstiger als Claude + Mistral API</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">* Break-Even = Kosten gleich hoch. Als „günstiger" gilt, wenn die Kosten pro 1M Output-Tokens unter dem OpenRouter-Preis liegen.</p>
+
+      <div class="highlight-box">
+        <h4>📌 Überraschende Erkenntnis</h4>
+        <p><strong>Günstige OpenRouter-Modelle wie Llama 3.3 70B (0,73 €/M Tokens) sind selbst mit einer gebrauchten RTX 3090 kaum zu unterbieten.</strong> Die API ist schlichtweg massiv subventioniert – vor allem durch Meta, die Llama als Open-Source-Modell verlustfrei über Partner anbieten. Erst bei Premium-Modellen (Claude Sonnet 4, GPT-4o) oder extrem hohem Volumen wird Eigenhosting interessant.</p>
+      </div>
+
+      <h2>4. Break-Even in Tokens pro Tag</h2>
+      <p>Entscheidender als die Kosten pro Million Tokens ist die Frage: <strong>Ab wie vielen Output-Tokens pro Tag</strong> wird Eigenhosting günstiger als die API? Hier die konkrete Rechnung für das realistischste Szenario (RTX 4090 zuhause vs. OpenRouter DeepSeek V3):</p>
+
+      <div class="calculator-box">
+        <h3>🧮 Break-Even-Rechner: RTX 4090 vs. DeepSeek V3 API</h3>
+        <div class="calc-row">
+          <span class="calc-label">GPU-Kaufpreis (RTX 4090)</span>
+          <span class="calc-value">1.600 €</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">Nutzungsdauer</span>
+          <span class="calc-value">3 Jahre (1.095 Tage)</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">Hardware-Kosten / Tag</span>
+          <span class="calc-value">1,46 €</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">Stromverbrauch (GPU + System, 8h/Tag)</span>
+          <span class="calc-value">0,45 kW × 8h = 3,6 kWh/Tag</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">Stromkosten / Tag (0,35 €/kWh)</span>
+          <span class="calc-value">1,26 €</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">Gesamtkosten / Tag (fix)</span>
+          <span class="calc-value">2,72 €</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">Durchsatz (6 t/s × 3.600 × 8h)</span>
+          <span class="calc-value">~173.000 Tokens/Tag</span>
+        </div>
+        <div class="calc-row" style="border-bottom: none;">
+          <span class="calc-label">Kosten / 1M Tokens (selbst gehostet)</span>
+          <span class="calc-value">~15,70 €</span>
+        </div>
+        <div class="calc-result">
+          ⚠️ DeepSeek V3 API kostet 1,84 €/M → <strong>8,5× günstiger</strong> als die RTX 4090
+        </div>
+      </div>
+
+      <p>Bei <strong>Llama 3.3 70B über OpenRouter (0,73 €/M)</strong> wird der Abstand noch größer. Erst wenn du ausschließlich <strong>Output auf Premium-Niveau</strong> (Claude Sonnet 4 für 69 €/M) benötigst, ändert sich das Bild:</p>
+
+      <div class="price-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Szenario (RTX 4090 @ home, 8h/Tag)</th>
+              <th>Break-Even (Tokens/Tag)</th>
+              <th>Bewertung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>vs. DeepSeek V3 (1,84 €/M)</td>
+              <td>❌ Nie (API 8,5× günstiger)</td>
+              <td style="color:#f44336;">Nicht sinnvoll</td>
+            </tr>
+            <tr>
+              <td>vs. Llama 3.3 70B (0,73 €/M)</td>
+              <td>❌ Nie (API 21× günstiger)</td>
+              <td style="color:#f44336;">Nicht sinnvoll</td>
+            </tr>
+            <tr>
+              <td>vs. GPT-4o mini (0,55 €/M)</td>
+              <td>❌ Nie (API 28× günstiger)</td>
+              <td style="color:#f44336;">Nicht sinnvoll</td>
+            </tr>
+            <tr>
+              <td>vs. Claude Haiku 3.5 (4,60 €/M)</td>
+              <td>~190.000 Tokens/Tag</td>
+              <td style="color:#FFD700;">Kann sich lohnen</td>
+            </tr>
+            <tr>
+              <td>vs. Mistral Large 2 (5,52 €/M)</td>
+              <td>~230.000 Tokens/Tag</td>
+              <td style="color:#FFD700;">Kann sich lohnen</td>
+            </tr>
+            <tr>
+              <td>vs. Claude Sonnet 4 (69 €/M)</td>
+              <td>~18.000 Tokens/Tag</td>
+              <td style="color:#4CAF50;">✅ Deutlich günstiger</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>5. Wann lohnt sich Eigenhosting wirklich?</h2>
+      <p>Die Break-Even-Analyse zeigt: <strong>Für die meisten Entwickler und kleinen Unternehmen ist OpenRouter 2026 die günstigere Wahl.</strong> Die API-Preise sind durch den Wettbewerb (DeepSeek, Meta, Mistral, Alibaba) so stark gefallen, dass Eigenhosting nur in spezifischen Szenarien wirtschaftlich ist:</p>
+
+      <div class="verdict-grid">
+        <div class="verdict-card">
+          <div class="icon-large">✅</div>
+          <h3>Eigenhosting lohnt sich bei:</h3>
+          <ul>
+            <li>▶ Premium-APIs (Claude Sonnet 4, GPT-4o) mit hohem Volumen</li>
+            <li>▶ Datenschutz: Keine Daten verlassen das Haus</li>
+            <li>▶ Latenz-Empfindlichkeit: Kein API-Overhead, keine Rate Limits</li>
+            <li>▶ Vollkontrolle über Modell, Quantisierung, Prompt-Format</li>
+            <li>▶ Skalierung: Einmal GPU kaufen, dann nur noch Strom zahlen</li>
+          </ul>
+        </div>
+        <div class="verdict-card">
+          <div class="icon-large">❌</div>
+          <h3>OpenRouter / API lohnt sich bei:</h3>
+          <ul>
+            <li>▶ Günstige Modelle (DeepSeek V3, Llama 3.3, GPT-4o mini)</li>
+            <li>▶ Volumen unter 500.000 Tokens/Tag</li>
+            <li>▶ Bedarf an vielen verschiedenen Modellen (Switching)</li>
+            <li>▶ Kein Kapital für GPU-Investition</li>
+            <li>▶ Skalierung nach oben (einfach mehr API-Credits kaufen)</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2>6. Die Kostenfalle: Unterschätzte Nebenkosten</h2>
+      <p>Viele Selbstbau-Enthusiasten vergleichen nur GPU-Preis + Strom und ignorieren:</p>
+      <ul>
+        <li><strong>Kühlung:</strong> Eine RTX 4090 unter Volllast heizt einen Raum wie ein Heizlüfter auf. Im Sommer musst du gegenkühlen – das kostet extra.</li>
+        <li><strong>Netzteil + Mainboard + RAM + SSD:</strong> Ein kompletter Inference-Rechner kostet schnell 500–1.000 € zusätzlich.</li>
+        <li><strong>Wartungszeit:</strong> Firmware-Updates, Treiber-Konflikte, CUDA-Kompatiblität – das frisst Stunden. Bei einer API zahlst du 0 € für Betrieb.</li>
+        <li><strong>Ausfallrisiko:</strong> GPU-Defekt nach 2 Jahren = Totalschaden. Bei der API übernimmt der Anbieter die Ausfallsicherung.</li>
+      </ul>
+
+      <div class="highlight-box">
+        <h4>💡 Unser Tipp: Hybrid-Ansatz</h4>
+        <p>Der clevere Weg 2026: <strong>Kauf eine gebrauchte RTX 3090 (800–1.000 €)</strong> für Datenschutz-kritische und latenz-sensitive Workloads – aber nutze für den Massen-Alltag <strong>OpenRouter mit günstigen Modellen</strong> wie DeepSeek V3, Llama 3.3 70B oder GPT-4o mini. So bekommst du das Beste aus beiden Welten: niedrige API-Kosten für 80 % deines Traffics und eine lokale GPU für die restlichen 20 %.</p>
+      </div>
+
+      <h2>7. Vergleichstabelle: GPU-Setups vs. OpenRouter-Modelle</h2>
+      <div class="price-table">
+        <table>
+          <thead>
+            <tr>
+              <th>GPU / API</th>
+              <th>Investition</th>
+              <th>Kosten/Monat (8h/Tag)</th>
+              <th>Max. Modellgröße</th>
+              <th>Tokens/Monat (Output)</th>
+              <th>Kosten/1M Tokens</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>OpenRouter – DeepSeek V3</strong></td>
+              <td>0 €</td>
+              <td>0 € + 1,84 €/M Tokens</td>
+              <td>∞ (API)</td>
+              <td>∞</td>
+              <td class="best-price" style="color:#4CAF50;">1,84 €</td>
+            </tr>
+            <tr>
+              <td><strong>OpenRouter – Llama 3.3 70B</strong></td>
+              <td>0 €</td>
+              <td>0 € + 0,73 €/M</td>
+              <td>∞ (API)</td>
+              <td>∞</td>
+              <td class="best-price" style="color:#4CAF50;">0,73 €</td>
+            </tr>
+            <tr>
+              <td><strong>RTX 3090 (gebraucht) @ home</strong></td>
+              <td>1.000 €</td>
+              <td>~55 € (Strom + Amortisation)</td>
+              <td>34B–70B (Q4)</td>
+              <td>~2,6 Mio.</td>
+              <td>~6,85 €</td>
+            </tr>
+            <tr>
+              <td><strong>RTX 4090 @ home</strong></td>
+              <td>1.600 €</td>
+              <td>~82 €</td>
+              <td>34B–70B (Q4)</td>
+              <td>~5,2 Mio.</td>
+              <td>~4,40 €</td>
+            </tr>
+            <tr>
+              <td><strong>RTX 5090 @ home</strong></td>
+              <td>2.500 €</td>
+              <td>~116 €</td>
+              <td>34B–120B (Q4, mit 32 GB)</td>
+              <td>~8,6 Mio.</td>
+              <td>~2,55 €</td>
+            </tr>
+            <tr>
+              <td><strong>Hetzner A100 (gemietet)</strong></td>
+              <td>0 €</td>
+              <td>~930 € (24/7)</td>
+              <td>70B–120B (Q4)</td>
+              <td>~17 Mio.</td>
+              <td>~16,30 €</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>8. Fazit – OpenRouter oder eigene GPU 2026?</h2>
+      <p>Die kurze Antwort: <strong>Für 95 % der Anwender ist OpenRouter 2026 die günstigere Wahl.</strong> Die API-Preise sind durch den gnadenlosen Wettbewerb zwischen DeepSeek, Meta, Mistral und den US-Hyperscalern auf ein Niveau gefallen, das Eigenhosting mit Consumer-GPUs wirtschaftlich unattraktiv macht – zumindest bei den Kosten pro Token.</p>
+      <p><strong>Warum dann überhaupt Eigenhosting?</strong> Weil Geld nicht alles ist. Datenschutz, Latenz, Zuverlässigkeit und Unabhängigkeit von Drittanbietern sind für viele Unternehmen gewichtige Argumente. Wer sensible Kundendaten verarbeitet oder eine kritische Infrastruktur betreibt, dem sei eine lokale GPU – oder zumindest ein eigener GPU-Server bei Hetzner oder Contabo – <strong>wärmstens empfohlen</strong>.</p>
+      <p>Und wenn du <strong>Premium-Modelle</strong> wie Claude Sonnet 4 oder GPT-4o mit hohem Volumen nutzt? Dann amortisiert sich eine RTX 4090 innerhalb weniger Monate – und du sparst auf Dauer <strong>tausende Euro pro Jahr</strong>.</p>
+
+      <!-- FAQ Section -->
+      <h2>Häufige Fragen</h2>
+      <div class="faq-item">
+        <h4>Lohnt sich eine RTX 4090 für KI 2026 überhaupt?</h4>
+        <p>Ja – aber nicht primär wegen der Token-Kostenersparnis, sondern wegen <strong>Datenschutz, Latenz und Unabhängigkeit</strong>. Wer 24 GB VRAM hat, kann die meisten 70B-Modelle in 4-Bit-Quantisierung flüssig betreiben. Gegenüber OpenRouter zahlst du mehr pro Token, aber deine Daten bleiben lokal.</p>
+      </div>
+      <div class="faq-item">
+        <h4>Welche GPU ist 2026 das beste Preis-Leistungs-Verhältnis?</h4>
+        <p>Eine <strong>gebrauchte RTX 3090 für 800–1.000 €</strong>. Sie liefert 24 GB VRAM, 3–4 t/s bei 70B-Modellen und verbraucht moderate 350 W. Für Einsteiger und Selbstbauer die sinnvollste Option.</p>
+      </div>
+      <div class="faq-item">
+        <h4>Kann ich OpenRouter und Selbsthosting kombinieren?</h4>
+        <p>Ja – und das ist 2026 der empfohlene Ansatz. Nutze OpenRouter für Standard-Abfragen und die lokale GPU für sensible oder latenzkritische Anfragen. Tools wie <strong>Open WebUI</strong> oder <strong>LiteLLM</strong> unterstützen beide Backends gleichzeitig.</p>
+      </div>
+      <div class="faq-item">
+        <h4>Was ist günstiger: DeepSeek V3 per API oder selbst hosten?</h4>
+        <p>DeepSeek V3 über OpenRouter kostet 1,84 €/M Output-Tokens. Selbst hosten kostet mit einer RTX 4090 ca. 15,70 €/M Output-Tokens (inkl. Amortisation + Strom). Die API ist also <strong>etwa 8,5× günstiger</strong>.</p>
+      </div>
+
+    </div>
+
+    <!-- Related Articles -->
+    <div id="related-articles"></div>
+
+    <!-- Amazon Affiliate Block -->
+    <div class="amazon-affiliate" style="margin:30px 0;padding:15px;background:#f3e5f5;border:1px solid #9C27B0;border-radius:8px;text-align:center">
+      <p><strong>🖥️ KI-GPU-Hardware & Zubehör für dein Setup</strong></p>
+      <p><a href="https://www.amazon.de/s?k=RTX+4090+GPU+KI+Hardware&amp;tag=nova079-20" target="_blank" rel="nofollow">👉 GPUs, Netzteile & KI-Hardware auf Amazon entdecken</a></p>
+    </div>
+
+    <!-- AdSense Platzhalter unten -->
+    <div class="adsense-placeholder">
+      <p><strong>&mdash; Anzeige &mdash;</strong></p>
+      <p>Google AdSense Platzhalter (Ende des Artikels)</p>
+    </div>
+
+  </article>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>hosta<span style="color:var(--accent)">zar</span></h4>
+        <p style="color:var(--text-muted);font-size:0.9rem">Dein Hosting- &amp; Server-Portal mit Guides, Vergleichen und Tutorials.</p>
+      </div>
+      <div>
+        <h4>Kategorien</h4>
+        <ul>
+          <li><a href="/#gaming">🎮 Gaming</a></li>
+          <li><a href="/#webhosting">🌐 Webhosting</a></li>
+          <li><a href="/#devops">⚙️ DevOps</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Rechtliches</h4>
+        <ul>
+          <li><a href="/about.html">Über uns</a></li>
+          <li><a href="/impressum.html">Impressum</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 hostazar.com &ndash; Alle Rechte vorbehalten.</span>
+      <span>Made with ❤️ f&uuml;r die Hosting-Community</span>
+    </div>
+    <p class="affiliate-note">* Bei den mit Sternchen gekennzeichneten Links handelt es sich um Affiliate-Links. Wenn du &uuml;ber diese Links einkaufst, erhalten wir eine kleine Provision &ndash; f&uuml;r dich entstehen keine Mehrkosten. Als Amazon-Partner verdienen wir an qualifizierten Verk&auml;ufen.</p>
+  </div>
+</footer>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof hostazarApp !== 'undefined' && hostazarApp.init) {
+      hostazarApp.init();
+    }
+  });
+</script>
+</body>
+</html>

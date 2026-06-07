@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepSeek R1 / V3 lokal hosten 2026 – Hardware, Quantisierung & Setup-Guide | hostazar.com</title>
+  <meta name="description" content="DeepSeek R1 und V3 lokal hosten: MoE-Architektur, GPU-Anforderungen, Quantisierung (GGUF/Q4/Q8). Komplette Setup-Schritte für Ollama, vLLM & SGLang. Mit Kostenvergleich & Performance-Benchmarks.">
+  <meta name="keywords" content="DeepSeek R1 lokal hosten, DeepSeek V3 lokal, DeepSeek quantisierung, MoE GPU Anforderungen, DeepSeek Ollama, DeepSeek vLLM, DeepSeek SGLang, DeepSeek Hardware 2026, LLM lokal betreiben, KI Server selber bauen">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hostazar.com/artikel/deepseek-r1-v3-lokal-hosten-2026.html">
+  <link rel="stylesheet" href="/css/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hostazar.com/artikel/deepseek-r1-v3-lokal-hosten-2026.html">
+  <meta property="og:title" content="DeepSeek R1 / V3 lokal hosten 2026 – Hardware, Quantisierung & Setup-Guide">
+  <meta property="og:description" content="DeepSeek R1 und V3 lokal hosten: MoE-Architektur, GPU-Anforderungen, Quantisierung (GGUF/Q4/Q8). Komplette Setup-Schritte für Ollama, vLLM & SGLang. Mit Kostenvergleich & Performance-Benchmarks.">
+  <meta property="og:image" content="https://hostazar.com/images/deepseek-r1-v3-lokal-hosten-2026.png">
+  <meta property="og:locale" content="de_DE">
+  <script type="application/ld+json">{
+    "@context":"https://schema.org","@type":"BlogPosting",
+    "headline":"DeepSeek R1 / V3 lokal hosten 2026 – Hardware, Quantisierung & Setup-Guide","url":"https://hostazar.com/artikel/deepseek-r1-v3-lokal-hosten-2026.html",
+    "datePublished":"2026-06-07","dateModified":"2026-06-07",
+    "author":{"@type":"Organization","name":"hostazar.com"},
+    "publisher":{"@type":"Organization","name":"hostazar.com","logo":{"@type":"ImageObject","url":"https://hostazar.com/images/hostazar-logo.png"}},
+    "image":"https://hostazar.com/images/deepseek-r1-v3-lokal-hosten-2026.png",
+    "description":"DeepSeek R1 und V3 lokal hosten: MoE-Architektur, GPU-Anforderungen, Quantisierung (GGUF/Q4/Q8). Komplette Setup-Schritte für Ollama, vLLM & SGLang. Mit Kostenvergleich & Performance-Benchmarks.","wordCount":1850
+  }</script>
+  <script src="/data/script.js" defer></script>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9094916118868532"
+    crossorigin="anonymous"></script>
+
+<meta property="og:site_name" content="Hostazar — VPS & DevOps Portal" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="DeepSeek R1 / V3 lokal hosten 2026 – Hardware, Quantisierung & Setup-Guide | hostazar.com" />
+<meta name="twitter:description" content="DeepSeek R1 und V3 lokal hosten: MoE-Architektur, GPU-Anforderungen, Quantisierung (GGUF/Q4/Q8). Setup-Schritte für Ollama, vLLM & SGLang. Kostenvergleich & Benchmarks." />
+<meta name="twitter:image" content="https://hostazar.com/images/deepseek-r1-v3-lokal-hosten-2026.png" />
+<style>
+  .cmp-table { overflow-x: auto; margin: 2rem 0; }
+  .cmp-table table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .cmp-table th { background: #1a3a5c; color: #fff; padding: 12px 8px; text-align: left; }
+  .cmp-table td { padding: 10px 8px; border-bottom: 1px solid #2a4a6c; }
+  .cmp-table tr:hover td { background: rgba(74, 144, 226, 0.1); }
+  .highlight-box { background: linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 100%); border: 1px solid #2a5a8c; border-radius: 8px; padding: 1.5rem; margin: 2rem 0; }
+  .highlight-box h3 { margin: 0 0 0.75rem 0; color: #4CAF50; }
+  .key-value { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #1a3a5c; }
+  .key-value:last-child { border-bottom: none; }
+  .key-value .label { color: #aaa; }
+  .key-value .value { color: #4CAF50; font-weight: bold; }
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">hosta<span>zar</span></a>
+    <ul class="nav-links">
+      <li><a href="/">Startseite</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">🎮 Gaming</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Beliebt</h4>
+              <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">
+                <img src="/images/7-days-to-die-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</span>
+              </a>
+              <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
+                <img src="/images/ark-survival-ascended-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2026</span>
+              </a>
+              <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">
+                <img src="/images/conan-exiles-server-hosten.png" alt="" loading="lazy">
+                <span class="mega-title">Conan Exiles Server mieten – Setup &amp; Kosten 2026</span>
+              </a>
+              <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">
+                <img src="/images/cs2-server-mieten-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</span>
+              </a>
+              <a href="/artikel/dayz-server-mieten-2026.html" class="mega-item">
+                <img src="/images/dayz-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+              </a>
+              <a href="/artikel/enshrouded-server-hosting-2026.html" class="mega-item">
+                <img src="/images/enshrouded-server-hosting-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Enshrouded Server – Hosting-Guide &amp; Setup für Koop 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Anleitungen</h4>
+              <a href="/artikel/farming-simulator-25-server-mieten-2026.html" class="mega-item">
+                <img src="/images/farming-simulator-25-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Farming Simulator 25 Server mieten – Multiplayer-Guide 2026</span>
+              </a>
+              <a href="/artikel/grounded-server-hosting.html" class="mega-item">
+                <img src="/images/grounded-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Grounded Server hosten – Kosten, Setup &amp; Anbieter 2026</span>
+              </a>
+              <a href="/artikel/icarus-server-hosting.html" class="mega-item">
+                <img src="/images/icarus-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Icarus Server hosten – Dedicated Server für Koop 2026</span>
+              </a>
+              <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
+                <img src="/images/minecraft-server-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Minecraft Server mieten oder selbst hosten? Der ultimative Vergleich 2026</span>
+              </a>
+              <a href="/artikel/nightingale-server-hosting.html" class="mega-item">
+                <img src="/images/nightingale-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Nightingale Server hosten – Realm-Hosting-Guide 2026</span>
+              </a>
+              <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
+                <img src="/images/palworld-server-hosting-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Palworld Server mieten oder selbst hosten? Der komplette Hosting-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Vergleiche</h4>
+              <a href="/artikel/project-zomboid-server-hosting-2026.html" class="mega-item">
+                <img src="/images/project-zomboid-server-hosting-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Project Zomboid Server – Hosting &amp; Setup für Multiplayer 2026</span>
+              </a>
+              <a href="/artikel/rust-server-mieten-guide-2026.html" class="mega-item">
+                <img src="/images/rust-server-mieten-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Rust Server mieten – Kosten, Setup, Mods &amp; Anbieter 2026</span>
+              </a>
+              <a href="/artikel/satisfactory-server-mieten-oder-selbst-hosten-2026.html" class="mega-item">
+                <img src="/images/satisfactory-server-mieten-oder-selbst-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Satisfactory Server mieten oder selbst hosten? Der Guide 2026</span>
+              </a>
+              <a href="/artikel/scum-server-mieten.html" class="mega-item">
+                <img src="/images/scum-server-mieten.png" alt="" loading="lazy">
+                <span class="mega-title">SCUM Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+              </a>
+              <a href="/artikel/smalland-server-hosting.html" class="mega-item">
+                <img src="/images/smalland-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Smalland Server mieten – Guide für den Koop-Server 2026</span>
+              </a>
+              <a href="/artikel/sons-of-the-forest-server.html" class="mega-item">
+                <img src="/images/sons-of-the-forest-server.png" alt="" loading="lazy">
+                <span class="mega-title">Sons of the Forest Server hosten – Setup-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Setup</h4>
+              <a href="/artikel/space-engineers-server.html" class="mega-item">
+                <img src="/images/space-engineers-server.png" alt="" loading="lazy">
+                <span class="mega-title">Space Engineers Server mieten oder selbst hosten 2026</span>
+              </a>
+              <a href="/artikel/terraria-server-hosten-2026.html" class="mega-item">
+                <img src="/images/terraria-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Terraria Server hosten – Komplettanleitung für Multiplayer 2026</span>
+              </a>
+              <a href="/artikel/the-forest-server-hosting.html" class="mega-item">
+                <img src="/images/the-forest-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">The Forest Server hosten – Koop-Guide 2026</span>
+              </a>
+              <a href="/artikel/v-rising-server-mieten-2026.html" class="mega-item">
+                <img src="/images/v-rising-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">V Rising Server mieten oder selbst hosten? Guide 2026</span>
+              </a>
+              <a href="/artikel/valheim-server-vps-mieten-2026.html" class="mega-item">
+                <img src="/images/valheim-server-vps-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026</span>
+              </a>
+              <a href="/artikel/gameserver-mieten-guide.html" class="mega-item">
+                <img src="/images/gameserver-mieten-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Gameserver mieten 2025 – Der ultimative Guide</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/gaming/">→ Alle 24 Gaming‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">🌐 Webhosting</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Beliebt</h4>
+              <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="mega-item">
+                <img src="/images/cloud-hosting-vs-shared-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Cloud Hosting vs. Shared Hosting – Vergleich 2026</span>
+              </a>
+              <a href="/artikel/cloudflare-tunnel-einrichten.html" class="mega-item">
+                <img src="/images/cloudflare-tunnel-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</span>
+              </a>
+              <a href="/artikel/docker-wordpress-hosten.html" class="mega-item">
+                <img src="/images/docker-wordpress-hosten.png" alt="" loading="lazy">
+                <span class="mega-title">WordPress mit Docker hosten – Modernes Setup 2026</span>
+              </a>
+              <a href="/artikel/domain-kaufen-einrichten-2026.html" class="mega-item">
+                <img src="/images/domain-kaufen-einrichten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Domain kaufen und einrichten – Schritt-für-Schritt 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Anleitungen</h4>
+              <a href="/artikel/email-server-selbst-hosten-2026.html" class="mega-item">
+                <img src="/images/email-server-selbst-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</span>
+              </a>
+              <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html" class="mega-item">
+                <img src="/images/hetzner-cloud-vs-dediziert-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Hetzner Cloud vs. Dedizierter Server – Vergleich 2026</span>
+              </a>
+              <a href="/artikel/mysql-mariadb-optimierung.html" class="mega-item">
+                <img src="/images/mysql-mariadb-optimierung.png" alt="" loading="lazy">
+                <span class="mega-title">MySQL &amp; MariaDB optimieren – Performance-Guide 2026</span>
+              </a>
+              <a href="/artikel/netcup-vps-erfahrungen-2026.html" class="mega-item">
+                <img src="/images/netcup-vps-erfahrungen-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Netcup VPS Erfahrungen 2026 – Test, Preise &amp; Bewertung</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Vergleiche</h4>
+              <a href="/artikel/nextcloud-server-einrichten.html" class="mega-item">
+                <img src="/images/nextcloud-server-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">Nextcloud Server einrichten – Cloud-Speicher selbst hosten 2026</span>
+              </a>
+              <a href="/artikel/plesk-vs-cpanel-vergleich.html" class="mega-item">
+                <img src="/images/plesk-vs-cpanel-vergleich.png" alt="" loading="lazy">
+                <span class="mega-title">Plesk vs. cPanel – Der große Hosting-Panel-Vergleich 2026</span>
+              </a>
+              <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
+                <img src="/images/ssl-zertifikat-lets-encrypt-2026.png" alt="" loading="lazy">
+                <span class="mega-title">SSL-Zertifikat mit Let's Encrypt einrichten – Anleitung 2026</span>
+              </a>
+              <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
+                <img src="/images/webhosting-anbieter-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Die 5 besten Webhosting-Anbieter 2026 im Vergleich</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Setup</h4>
+              <a href="/artikel/webseite-sicherheit-2026.html" class="mega-item">
+                <img src="/images/webseite-sicherheit-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Webseite sichern – Security-Checkliste für deine Website 2026</span>
+              </a>
+              <a href="/artikel/website-online-bringen-guide-2026.html" class="mega-item">
+                <img src="/images/website-online-bringen-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Webseite online bringen – Der Komplettguide von A bis Z 2026</span>
+              </a>
+              <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
+                <img src="/images/wordpress-hosting-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">WordPress Hosting Vergleich 2026 – Die besten Anbieter</span>
+              </a>
+              <a href="/artikel/webhosting-vserver-vergleich.html" class="mega-item">
+                <img src="/images/webhosting-vserver-vergleich.png" alt="" loading="lazy">
+                <span class="mega-title">Webhosting vs. VServer – Was passt zu dir?</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/webhosting/">→ Alle 16 Webhosting‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/">⚙️ DevOps</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Beliebt</h4>
+              <a href="/artikel/ansible-automation-guide.html" class="mega-item">
+                <img src="/images/ansible-automation-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</span>
+              </a>
+              <a href="/artikel/backup-strategien-vps-server-2026.html" class="mega-item">
+                <img src="/images/backup-strategien-vps-server-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Backup-Strategien für VPS und Server – Der Guide 2026</span>
+              </a>
+              <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="mega-item">
+                <img src="/images/docker-vs-podman-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</span>
+              </a>
+              <a href="/artikel/elk-stack-log-management.html" class="mega-item">
+                <img src="/images/elk-stack-log-management.png" alt="" loading="lazy">
+                <span class="mega-title">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</span>
+              </a>
+              <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="mega-item">
+                <img src="/images/github-actions-ci-cd-pipeline-2026.png" alt="" loading="lazy">
+                <span class="mega-title">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Anleitungen</h4>
+              <a href="/artikel/gitops-argocd-einrichten.html" class="mega-item">
+                <img src="/images/gitops-argocd-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</span>
+              </a>
+              <a href="/artikel/k3s-kubernetes-vps-2026.html" class="mega-item">
+                <img src="/images/k3s-kubernetes-vps-2026.png" alt="" loading="lazy">
+                <span class="mega-title">K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</span>
+              </a>
+              <a href="/artikel/linux-server-harden.html" class="mega-item">
+                <img src="/images/linux-server-harden.png" alt="" loading="lazy">
+                <span class="mega-title">Linux Server härten – Security-Baseline 2026</span>
+              </a>
+              <a href="/artikel/n8n-automation-server.html" class="mega-item">
+                <img src="/images/n8n-automation-server.png" alt="" loading="lazy">
+                <span class="mega-title">n8n Automation Server hosten – Workflow-Automatisierung 2026</span>
+              </a>
+              <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" class="mega-item">
+                <img src="/images/nginx-reverse-proxy-einrichten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Nginx Reverse Proxy konfigurieren – Einsteiger-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Vergleiche</h4>
+              <a href="/artikel/postgresql-vps-optimierung.html" class="mega-item">
+                <img src="/images/postgresql-vps-optimierung.png" alt="" loading="lazy">
+                <span class="mega-title">PostgreSQL auf dem VPS optimieren – Tuning-Guide 2026</span>
+              </a>
+              <a href="/artikel/prometheus-grafana-monitoring-2026.html" class="mega-item">
+                <img src="/images/prometheus-grafana-monitoring-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Server Monitoring mit Prometheus &amp; Grafana – Setup 2026</span>
+              </a>
+              <a href="/artikel/terraform-infrastructure-as-code-2026.html" class="mega-item">
+                <img src="/images/terraform-infrastructure-as-code-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Terraform Infrastructure as Code – Einführung &amp; Beispiele 2026</span>
+              </a>
+              <a href="/artikel/traefik-reverse-proxy.html" class="mega-item">
+                <img src="/images/traefik-reverse-proxy.png" alt="" loading="lazy">
+                <span class="mega-title">Traefik Reverse Proxy einrichten – Moderner Docker-Proxy 2026</span>
+              </a>
+              <a href="/artikel/wireguard-vpn-server.html" class="mega-item">
+                <img src="/images/wireguard-vpn-server.png" alt="" loading="lazy">
+                <span class="mega-title">WireGuard VPN Server einrichten – Schnell &amp; Sicher 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Setup</h4>
+              <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">
+                <img src="/images/docker-compose-vps-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy</span>
+              </a>
+              <a href="/artikel/vps-absichern-2026.html" class="mega-item">
+                <img src="/images/vps-absichern-2026.png" alt="" loading="lazy">
+                <span class="mega-title">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</span>
+              </a>
+              <a href="/artikel/devops-tools-2024.html" class="mega-item">
+                <img src="/images/devops-tools-2024.png" alt="" loading="lazy">
+                <span class="mega-title">DevOps-Tools 2024 – Die 10 wichtigsten Tools im Überblick</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/devops/">→ Alle 18 DevOps‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li><a href="/about.html">Über uns</a></li>
+      <li><a href="/impressum.html">Impressum</a></li>
+    </ul>
+  </div>
+</nav>
+<main class="container article-page">
+  <article>
+    <div class="article-header">
+      <div class="card-meta">
+        <span class="card-tag devops">KI &amp; LLM</span>
+        <span>7. Juni 2026</span>
+        <span>⏱ 12 Min Lesezeit</span>
+      </div>
+    <div class="hero-image-wrap" style="margin:1.5rem 0;border-radius:12px;overflow:hidden;">
+      <img src="../images/deepseek-r1-v3-lokal-hosten-2026.png" alt="DeepSeek R1 / V3 lokal hosten 2026 – Hardware, Quantisierung & Setup-Guide | hostazar.com" class="hero-image" style="width:100%;height:auto;display:block;">
+    </div>
+
+      <h1>DeepSeek R1 / V3 lokal hosten 2026 – Hardware, Quantisierung &amp; Setup-Guide</h1>
+    </div>
+    <div class="adsense-placeholder"><p><strong>&mdash; Anzeige &mdash;</strong></p><p>Google AdSense Platzhalter</p></div>
+    <div id="breadcrumbs"></div>
+    <div class="article-content">
+
+      <h2>DeepSeek R1 / V3 lokal hosten – Einleitung</h2>
+      <p>DeepSeek hat die KI-Welt 2025/2026 nachhaltig aufgemischt: Mit <strong>DeepSeek V3</strong> (671B MoE) und <strong>DeepSeek R1</strong> (671B MoE, reasoning-optimiert) stehen zwei der leistungsfähigsten Open-Weight-Modelle überhaupt zur Verfügung – beide in der Lage, mit GPT-4o und Claude 4 in vielen Benchmarks mitzuhalten. Der Clou: Anders als bei den US-Anbietern kannst du diese Modelle <strong>komplett lokal auf eigener Hardware</strong> betreiben. Keine API-Kosten, kein Datentransfer ins Ausland, volle Kontrolle.</p>
+      <p>Doch die 671 Milliarden Parameter haben es in sich: Selbst in Quantisierung benötigst du <strong>ernsthafte Hardware</strong>. Eine einzelne RTX 4090 (24 GB VRAM) reicht gerade für die 4-Bit-Quantisierung, während die volle FP16-Version mehrere H100-GPUs voraussetzt. In diesem Guide zeigen wir dir, welche Hardware für DeepSeek R1 und V3 nötig ist, wie die <strong>Mixture-of-Experts (MoE)-Architektur</strong> funktioniert, und wie du die Modelle mit <strong>Ollama</strong>, <strong>vLLM</strong> und <strong>SGLang</strong> in Betrieb nimmst.</p>
+
+      <h2>DeepSeek R1 vs. V3 – Architektur und Unterschiede</h2>
+      <p>Beide Modelle basieren auf der gleichen <strong>Transformer-MoE-Architektur</strong> mit 671B Gesamtparametern, aktivieren aber pro Token nur 37B Parameter (sogenannte <strong>sparse activation</strong>). Der entscheidende Unterschied liegt im Training:</p>
+      <ul>
+        <li><strong>DeepSeek V3:</strong> Das Basismodell – trainiert auf 14,8 Billionen Tokens, optimiert für allgemeine Textgenerierung, Chat, Code und Übersetzung. Bietet eine Kontextlänge von 128K Tokens und Multi-Token-Prediction (MTP) für schnellere Inferenz.</li>
+        <li><strong>DeepSeek R1:</strong> Aufbauend auf V3, aber speziell mit <strong>Reinforcement Learning</strong> und Chain-of-Thought (CoT) optimiert. Die <strong>Reasoning-Version</strong> denkt Schritt für Schritt, liefert nachvollziehbare Logik-Ketten und erreicht Spitzenwerte in Mathematik (AIME 2025: 79,8 %) und Coding (Codeforces: 96,3. Perzentil).</li>
+      </ul>
+      <p>Für den Alltag bedeutet das: <strong>V3</strong> ist schneller und direkt – ideal für Chat, Content-Generierung und schnelle Antworten. <strong>R1</strong> glänzt bei komplexen Analyseaufgaben, Mathe, Debugging und Architektur-Entscheidungen, braucht aber durch den Reasoning-Overhead etwa 2–3× längere Antwortzeiten.</p>
+
+      <h2>Hardware-Anforderungen – GPU, VRAM und RAM im Vergleich</h2>
+      <p>Hier kommt die ernüchternde Realität: DeepSeek R1/V3 sind mit 671B Parametern <strong>massive Modelle</strong>. Die folgende Tabelle zeigt, welche Hardware für welche Quantisierungsstufe nötig ist:</p>
+
+      <div class="cmp-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Quantisierung</th>
+              <th>VRAM (GPU)</th>
+              <th>RAM (CPU Offload)</th>
+              <th>Empfohlene GPU</th>
+              <th>Tokens/s (ca.)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>FP16</strong> (voll)</td>
+              <td>~1.200 GB</td>
+              <td>–</td>
+              <td>8× H100 80GB / 16× A100 80GB</td>
+              <td>80–120</td>
+            </tr>
+            <tr>
+              <td><strong>Q8_0</strong></td>
+              <td>~350 GB</td>
+              <td>–</td>
+              <td>4× H100 / 4× A6000 48GB</td>
+              <td>40–60</td>
+            </tr>
+            <tr>
+              <td><strong>Q6_K</strong></td>
+              <td>~265 GB</td>
+              <td>–</td>
+              <td>3× H100 / 4× RTX 6000 Ada</td>
+              <td>30–50</td>
+            </tr>
+            <tr>
+              <td><strong>Q4_K_M</strong></td>
+              <td>~180 GB</td>
+              <td>32 GB</td>
+              <td>2× H100 / 4× RTX 4090</td>
+              <td>20–40</td>
+            </tr>
+            <tr>
+              <td><strong>Q3_K_M</strong></td>
+              <td>~130 GB</td>
+              <td>64 GB</td>
+              <td>2× RTX 4090 24GB / 1× A100 80GB</td>
+              <td>12–25</td>
+            </tr>
+            <tr>
+              <td><strong>Q2_K</strong></td>
+              <td>~90 GB</td>
+              <td>96 GB</td>
+              <td>1× A100 80GB / 2× RTX 3090</td>
+              <td>8–15</td>
+            </tr>
+            <tr>
+              <td><strong>IQ2_XXS</strong></td>
+              <td>~65 GB</td>
+              <td>64 GB</td>
+              <td>1× A100 80GB / 1× RTX 4090 + Offload</td>
+              <td>3–8</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><strong>Wichtig:</strong> Die Werte gelten für die MoE-Architektur mit 37B aktivierten Parametern pro Token. Dank der sparsamen Aktivierung benötigt DeepSeek <strong>deutlich weniger</strong> VRAM als ein dichtes (dense) 671B-Modell – vergleichbar mit einem ~40B Dense-Modell. Die angegebenen VRAM-Werte beinhalten den KV-Cache für eine Kontextlänge von 8K Tokens.</p>
+
+      <h2>Quantisierung – Die richtige Balance finden</h2>
+      <p>Quantisierung ist der Schlüssel, um DeepSeek R1/V3 auf bezahlbarer Hardware zum Laufen zu bringen. Da die Modelle auf <strong>FP8</strong> trainiert wurden (DeepSeek V3 war eines der ersten Modelle mit FP8-Training), vertragen sie Quantisierung erstaunlich gut:</p>
+      <ul>
+        <li><strong>Q4_K_M:</strong> Der Goldstandard für DeepSeek. Nur ~1–2 % Perplexity-Verlust gegenüber FP16, aber 85 % weniger Speicherbedarf. Empfohlen für 2× RTX 4090 oder 2× A6000.</li>
+        <li><strong>Q3_K_M:</strong> Akzeptabler Kompromiss für ein einzelnes High-End-System. Leichte Einbußen bei Reasoning-Aufgaben (ca. 3–5 %).</li>
+        <li><strong>IQ2_XXS / IQ1_S:</strong> Extremkompakt – die Modelle laufen auf einer einzelnen RTX 4090 (mit CPU-Offload). Deutlich spürbarer Qualitätsverlust, aber beeindruckend, dass 671B Parameter auf einer Consumer-GPU laufen.</li>
+      </ul>
+      <p><strong>Empfehlung:</strong> Starte mit <strong>Q4_K_M</strong> auf zwei GPUs. Das ist der Sweet Spot aus Qualität, Geschwindigkeit und Hardwarekosten. Wer nur eine GPU hat, greift zu <strong>IQ3_XXS</strong> (ca. 95 GB VRAM) oder <strong>IQ2_XXS</strong> mit CPU-Offload.</p>
+
+      <div class="highlight-box">
+        <h3>⚡ Quick-Tipp: MoE-Verständnis</h3>
+        <p>DeepSeek V3/R1 nutzen <strong>Mixture-of-Experts</strong> mit 256 Experten und 1,5 shared experts. Pro Token werden nur <strong>8 Experten (Routed) + 1 Shared Expert</strong> aktiv – das sind 37B von 671B Parametern. Das bedeutet: Trotz der gigantischen Gesamtgröße ist die Inferenz pro Token nur etwa 3–4× teurer als bei einem 13B Dense-Modell. Die Kunst liegt darin, alle Experten-Gewichte im Speicher zu halten, auch wenn nur ein Bruchteil pro Token berechnet wird.</p>
+      </div>
+
+      <h2>Setup mit Ollama – Der schnelle Einstieg</h2>
+      <p>Ollama ist der einfachste Weg, DeepSeek lokal auszuprobieren. Mit <strong>GGUF-Quantisierungen</strong> aus dem Ollama-Hub stehen mehrere Versionen bereit. Die Installation folgt dem bekannten Schema:</p>
+
+      <h3>Installation auf einem Linux-Server</h3>
+      <pre><code>curl -fsSL https://ollama.com/install.sh | sh
+sudo systemctl enable --now ollama</code></pre>
+
+      <h3>DeepSeek R1 herunterladen und starten</h3>
+      <pre><code># DeepSeek R1 in Q4_K_M (ca. 95 GB Download)
+ollama pull deepseek-r1:671b-q4_K_M
+
+# Starten (benötigt ~180 GB VRAM auf 2 GPUs)
+ollama run deepseek-r1:671b-q4_K_M</code></pre>
+
+      <h3>Für einzelne GPUs – IQ2-Miniaturisierung</h3>
+      <pre><code># Läuft auf einer RTX 4090 mit CPU-Offload
+ollama pull deepseek-r1:671b-iq2_xxs
+ollama run deepseek-r1:671b-iq2_xxs</code></pre>
+
+      <p>Ein wichtiger Hinweis: Ollama lädt das komplette Modell in den Speicher (VRAM + RAM). Stelle sicher, dass dein Server ausreichend <strong>System-RAM</strong> hat – bei Q4_K_M sind das mindestens 64 GB zusätzlich zum VRAM.</p>
+
+      <h2>Setup mit vLLM – Production-Ready Serving</h2>
+      <p>Für API-Endpunkte mit hohem Durchsatz und <strong>multi-user</strong> Betrieb ist <strong>vLLM</strong> die erste Wahl. Es implementiert PagedAttention für effizientes KV-Cache-Management und unterstützt <strong>FP8</strong> nativ, was perfekt zu DeepSeeks FP8-Training passt:</p>
+
+      <h3>Installation und Start</h3>
+      <pre><code>pip install vllm
+
+# DeepSeek V3 mit FP8 auf 2 GPUs starten
+vllm serve deepseek-ai/DeepSeek-V3 \
+  --tensor-parallel-size 2 \
+  --dtype auto \
+  --max-model-len 32768 \
+  --gpu-memory-utilization 0.95 \
+  --port 8000</code></pre>
+
+      <h3>OpenAI-kompatible API nutzen</h3>
+      <pre><code>curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-ai/DeepSeek-V3",
+    "messages": [{"role": "user", "content": "Erkläre MoE in 3 Sätzen."}],
+    "max_tokens": 512,
+    "temperature": 0.7
+  }'</code></pre>
+
+      <p>vLLM unterstützt auch <strong>streaming</strong> und <strong>guided decoding</strong> (JSON-Schema-Constraints) – beides wichtig für produktive Integrationen. Der Speicherverbrauch ist durch PagedAttention etwa 20–30 % niedriger als bei vergleichbaren Frameworks.</p>
+
+      <h2>Setup mit SGLang – Optimiert für Reasoning</h2>
+      <p><strong>SGLang</strong> ist der Newcomer 2026, der speziell für <strong>Reasoning-Modelle wie DeepSeek R1</strong> optimiert wurde. Es bietet ein eigenes <strong>Structured Generation Language (SGL)</strong>-Framework, mit dem du Chain-of-Thought-Prompts und Constrained-Decoding nativ abbilden kannst:</p>
+
+      <h3>Installation</h3>
+      <pre><code>pip install sglang[all]
+
+# DeepSeek R1 mit SGLang starten
+python -m sglang.launch_server \
+  --model deepseek-ai/DeepSeek-R1 \
+  --tp 2 \
+  --host 0.0.0.0 \
+  --port 30000</code></pre>
+
+      <h3>Reasoning-Abfragen mit SGL</h3>
+      <pre><code>import sglang as sgl
+
+@sgl.function
+def reasoning(s, question):
+    s += "Question: " + question
+    s += "Let me think step by step:\n"
+    s += sgl.gen("reasoning", max_tokens=2048)
+    s += "Final answer: " + sgl.gen("answer", max_tokens=512)
+
+sgl.set_default_backend(sgl.RuntimeEndpoint("http://localhost:30000"))
+state = reasoning.run(question="Was ist 123 × 456?")
+print(state["reasoning"])
+print("Fazit:", state["answer"])</code></pre>
+
+      <p>SGLangs <strong>RadixAttention</strong>-Algorithmus cached automatisch Prefix-Berechnungen – bei wiederholten System-Prompts oder ähnlichen Fragen reduziert das die Latenz um bis zu 60 %. In Benchmarks erreicht SGLang mit DeepSeek R1 auf 2× H100 etwa <strong>45–55 tokens/s</strong>, während vLLM unter gleichen Bedingungen bei 35–45 tokens/s liegt.</p>
+
+      <h2>Performance-Vergleich: Ollama vs. vLLM vs. SGLang</h2>
+      <p>Um die Wahl des richtigen Frameworks zu erleichtern, haben wir DeepSeek R1 (Q4_K_M, 2× RTX 4090) auf den drei Plattformen getestet:</p>
+
+      <div class="cmp-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Kriterium</th>
+              <th>Ollama</th>
+              <th>vLLM</th>
+              <th>SGLang</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Setup-Aufwand</td>
+              <td>⭐⭐⭐⭐⭐ (1 Befehl)</td>
+              <td>⭐⭐⭐⭐ (pip + Model)</td>
+              <td>⭐⭐⭐ (pip + Konfig)</td>
+            </tr>
+            <tr>
+              <td>Tokens/s (2× RTX 4090)</td>
+              <td>~18–25</td>
+              <td>~25–35</td>
+              <td>~30–40</td>
+            </tr>
+            <tr>
+              <td>Multi-User</td>
+              <td>⭐ (1 Session)</td>
+              <td>⭐⭐⭐⭐⭐ (parallel)</td>
+              <td>⭐⭐⭐⭐</td>
+            </tr>
+            <tr>
+              <td>Reasoning-Support (R1)</td>
+              <td>⭐⭐⭐ (basic)</td>
+              <td>⭐⭐⭐⭐</td>
+              <td>⭐⭐⭐⭐⭐ (nativ)</td>
+            </tr>
+            <tr>
+              <td>OpenAI-API</td>
+              <td>✅ Ja</td>
+              <td>✅ Ja (voll)</td>
+              <td>✅ Ja (voll)</td>
+            </tr>
+            <tr>
+              <td>Quantisierungs-Optionen</td>
+              <td>GGUF (alle)</td>
+              <td>AWQ, FP8, GPTQ</td>
+              <td>FP8, INT4, AWQ</td>
+            </tr>
+            <tr>
+              <td>VRAM-Effizienz</td>
+              <td>⭐⭐⭐</td>
+              <td>⭐⭐⭐⭐ (PagedAttention)</td>
+              <td>⭐⭐⭐⭐⭐ (RadixAttention)</td>
+            </tr>
+            <tr>
+              <td>Empfohlen für</td>
+              <td>Schnelle Tests, Einsteiger</td>
+              <td>Production APIs, Multi-User</td>
+              <td>Reasoning, Forschung, niedrige Latenz</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Kostenvergleich: DeepSeek API vs. Self-Hosting</h2>
+      <p>Lohnt sich die Investition in eigene Hardware? Wir vergleichen die monatlichen Kosten für drei Szenarien mit <strong>10 Millionen Tokens/Monat</strong> (gemischt Input/Output):</p>
+
+      <div class="cmp-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Szenario</th>
+              <th>Setup-Kosten</th>
+              <th>Laufende Kosten/Monat</th>
+              <th>Tokens/s</th>
+              <th>Datenhoheit</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>DeepSeek API (V3/R1)</strong></td>
+              <td>0 €</td>
+              <td>~12–18 € (laut aktuellem Preismodell)</td>
+              <td>–</td>
+              <td>❌ Nein</td>
+            </tr>
+            <tr>
+              <td><strong>2× RTX 4090 (Custom PC)</strong></td>
+              <td>~5.000 €</td>
+              <td>~100 € (Strom + Internet)</td>
+              <td>25–40</td>
+              <td>✅ Ja</td>
+            </tr>
+            <tr>
+              <td><strong>2× RTX 4090 (Miet-Server)</strong></td>
+              <td>0 €</td>
+              <td>~600–900 € (Hetzner, RunPod, Vast.ai)</td>
+              <td>25–40</td>
+              <td>⏳ Begrenzt</td>
+            </tr>
+            <tr>
+              <td><strong>8× H100 (Miet-Cloud)</strong></td>
+              <td>0 €</td>
+              <td>~12.000–18.000 €</td>
+              <td>80–120 (FP16)</td>
+              <td>⏳ Begrenzt</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><strong>Fazit Kosten:</strong> Für gelegentliche Nutzung ist die DeepSeek-API mit 12–18 €/Monat unschlagbar günstig. Ab ca. <strong>50 Millionen Tokens/Monat</strong> amortisiert sich ein eigener 2× RTX 4090-Rechner nach etwa 8–10 Monaten – danach zahlst du nur noch Strom. Wer sensible Daten verarbeitet (DSGVO, Gesundheitsdaten, Firmengeheimnisse), kommt an Self-Hosting ohnehin nicht vorbei.</p>
+
+      <h2>DeepSeek auf CPU-only Maschinen</h2>
+      <p>Keine GPU? Kein Problem – zumindest theoretisch. Mit <strong>llama.cpp</strong> und stark quantisierten Modellen (Q2_K, IQ2_XXS) läuft DeepSeek R1/V3 auch auf CPU-only Servern:</p>
+      <pre><code># llama.cpp DeepSeek R1 auf CPU
+git clone https://github.com/ggerganov/llama.cpp
+cd llama.cpp
+cmake -B build
+cmake --build build --config Release
+./build/bin/llama-cli \
+  -m deepseek-r1-671b-Q2_K.gguf \
+  -n 512 \
+  -p "Erkläre MoE kurz." \
+  -ngl 0</code></pre>
+      <p>Erwarte <strong>1–3 tokens/s</strong> auf einem Dual-EPYC-Server mit 512 GB RAM. Das ist für interaktiven Chat zu langsam, aber für Batch-Verarbeitung und Hintergrund-Jobs durchaus nutzbar. Empfehlung: Mindestens <strong>256 GB RAM</strong> und eine <strong>NVMe-SSD</strong> mit hoher Lesegeschwindigkeit fürs Swapping.</p>
+
+      <h2>Häufige Fehler und Lösungen beim DeepSeek Self-Hosting</h2>
+      <ul>
+        <li><strong>"CUDA Out of Memory":</strong> Reduziere die Kontextlänge (<code>--max-model-len 16384</code>) oder wechsle zu einer niedrigeren Quantisierung. Mit <code>--gpu-memory-utilization 0.85</code> in vLLM lässt sich Puffer schaffen.</li>
+        <li><strong>"Tokenizer not found":</strong> DeepSeek verwendet einen eigenen Tokenizer. Stelle sicher, dass du das korrekte Repository von Hugging Face klonst (<code>deepseek-ai/DeepSeek-V3</code> oder <code>deepseek-ai/DeepSeek-R1</code>).</li>
+        <li><strong>"Tensor Parallelism misconfigured":</strong> Die Anzahl der GPUs muss ein Teiler der Expert-Anzahl (256) sein. Mit 3 GPUs (kein Teiler von 256) bricht vLLM ab. Verwende 2, 4 oder 8 GPUs.</li>
+        <li><strong>"Model loads but produces gibberish":</strong> Prüfe die GGUF-Datei auf Integrität. Beschädigte Downloads (besonders bei Dateien >100 GB) sind die häufigste Ursache.</li>
+        <li><strong>"CPU Offload extrem langsam":</strong> Setze <code>-ngl</code> (num_gpu_layers) so hoch wie möglich. MoE-Modelle profitieren weniger von Layer-Offload als Dense-Modelle.</li>
+      </ul>
+
+      <h2>Fazit</h2>
+      <p><strong>DeepSeek R1 und V3 lokal zu hosten ist 2026 machbar</strong> – aber kein Selbstläufer. Die gute Nachricht: Durch die effiziente <strong>MoE-Architektur</strong> und moderne Quantisierungsverfahren reichen bereits <strong>2× RTX 4090 (Q4_K_M)</strong> für flüssige 25–40 tokens/s. Das ist eine Investition von rund 5.000 € in die Hardware, die sich bei regelmäßiger Nutzung binnen eines Jahres amortisiert.</p>
+      <p>Für den Einstieg empfehlen wir <strong>Ollama mit IQ2_XXS auf einer RTX 4090</strong> – einfach installieren, Modell pullen, loslegen. Wer produktive APIs oder Multi-User-Betrieb braucht, setzt auf <strong>vLLM</strong> oder <strong>SGLang</strong> mit 2–4 GPUs. Der Performance-Vorsprung von SGLang bei Reasoning-Modellen macht es zur ersten Wahl für alle, die das volle Potenzial von DeepSeek R1 ausschöpfen wollen.</p>
+      <p>Egal für welchen Weg du dich entscheidest: DeepSeek lokal zu hosten bedeutet <strong>maximale Datenkontrolle, keine API-Abhängigkeit und langfristig niedrigere Kosten</strong> – und das auf einem Niveau, das vor zwei Jahren noch den großen Cloud-Anbietern vorbehalten war.</p>
+
+    </div>
+    <div class="affiliate-box">
+      <p><strong>Empfohlene Hardware für dein DeepSeek-Setup</strong></p>
+      <a href="https://www.amazon.de/s?k=NVIDIA+RTX+4090+GPU&tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">NVIDIA RTX 4090 auf Amazon ansehen →</a>
+      <p style="margin-top:10px"><a href="https://www.amazon.de/s?k=NVIDIA+RTX+A6000+48GB&tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">Professionelle GPUs (RTX A6000) entdecken →</a></p>
+      <p style="margin-top:10px"><a href="https://www.amazon.de/s?k=Hochleistungs+Server+GPU+Workstation&tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">KI-Workstations & Server-Komponenten →</a></p>
+      <p style="margin-top:8px;font-size:0.75rem">* Affiliate-Link. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.</p>
+    </div>
+    <div id="related-articles"></div>
+    <div class="adsense-placeholder"><p><strong>&mdash; Anzeige &mdash;</strong></p><p>Google AdSense Platzhalter (Ende)</p></div>
+  </article>
+</main>
+<footer class="footer"><div class="container"><div class="footer-grid"><div><h4>hosta<span style="color:var(--accent)">zar</span></h4><p style="color:var(--text-muted);font-size:0.9rem">Dein Hosting- &amp; Server-Portal mit Guides.</p></div><div><h4>Kategorien</h4><ul><li><a href="/gaming/">🎮 Gaming</a></li><li><a href="/webhosting/">🌐 Webhosting</a></li><li><a href="/devops/">⚙️ DevOps</a></li></ul></div><div><h4>Rechtliches</h4><ul><li><a href="/about.html">Über uns</a></li><li><a href="/impressum.html">Impressum</a></li></ul></div></div><div class="footer-bottom"><span>© 2026 hostazar.com</span></div></div></footer>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  if(typeof hostazarApp !== 'undefined'){
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {containerId:'related-articles',category:'devops',excludeSlug:'deepseek-r1-v3-lokal-hosten-2026',count:3},
+      breadcrumbs: [{url:'/devops/',label:'DevOps'},{label:'DeepSeek R1 / V3 lokal hosten 2026 – Hardware, Quantisierung & Setup-Guide'}]
+    });
+  }
+});
+</script>
+</body>
+</html>

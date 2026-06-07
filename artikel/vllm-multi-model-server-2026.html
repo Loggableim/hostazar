@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KI-Server mit mehreren Modellen gleichzeitig betreiben – vLLM + Open WebUI 2026 | hostazar.com</title>
+  <meta name="description" content="vLLM Multi-Model-Server 2026: Mehrere LLMs parallel betreiben, GPU-Memory-Sharing, Model-Hot-Swapping & API-Routing. Inklusive Open-WebUI-Setup & Vergleichstabelle.">
+  <meta name="keywords" content="vLLM Multi Model Server, mehrere LLMs parallel betreiben, GPU Memory Sharing KI, Open WebUI vLLM, Model Hot Swapping, API Routing LLM, vLLM vs Ollama, KI Server selber hosten, Multi Model Serving, PagedAttention">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hostazar.com/artikel/vllm-multi-model-server-2026.html">
+  <link rel="stylesheet" href="/css/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hostazar.com/artikel/vllm-multi-model-server-2026.html">
+  <meta property="og:title" content="KI-Server mit mehreren Modellen gleichzeitig betreiben – vLLM + Open WebUI 2026">
+  <meta property="og:description" content="vLLM Multi-Model-Server 2026: Mehrere LLMs parallel betreiben, GPU-Memory-Sharing, Model-Hot-Swapping & API-Routing. Inklusive Open-WebUI-Setup & Vergleichstabelle.">
+  <meta property="og:image" content="https://hostazar.com/images/vllm-multi-model-server-2026.png">
+  <meta property="og:locale" content="de_DE">
+  <script type="application/ld+json">{
+    "@context":"https://schema.org","@type":"BlogPosting",
+    "headline":"KI-Server mit mehreren Modellen gleichzeitig betreiben – vLLM + Open WebUI 2026",
+    "url":"https://hostazar.com/artikel/vllm-multi-model-server-2026.html",
+    "datePublished":"2026-06-07","dateModified":"2026-06-07",
+    "author":{"@type":"Organization","name":"hostazar.com"},
+    "publisher":{"@type":"Organization","name":"hostazar.com","logo":{"@type":"ImageObject","url":"https://hostazar.com/images/hostazar-logo.png"}},
+    "image":"https://hostazar.com/images/vllm-multi-model-server-2026.png",
+    "description":"vLLM Multi-Model-Server 2026: Mehrere LLMs parallel betreiben, GPU-Memory-Sharing, Model-Hot-Swapping & API-Routing. Inklusive Open-WebUI-Setup & Vergleichstabelle.","wordCount":1850
+  }</script>
+  <script src="/data/script.js" defer></script>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9094916118868532"
+    crossorigin="anonymous"></script>
+
+<meta property="og:site_name" content="Hostazar — VPS & DevOps Portal" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="KI-Server mit mehreren Modellen gleichzeitig betreiben – vLLM + Open WebUI 2026 | hostazar.com" />
+<meta name="twitter:description" content="vLLM Multi-Model-Server 2026: Mehrere LLMs parallel betreiben, GPU-Memory-Sharing, Model-Hot-Swapping & API-Routing. Inklusive Open-WebUI-Setup & Vergleichstabelle." />
+<meta name="twitter:image" content="https://hostazar.com/images/vllm-multi-model-server-2026.png" />
+</head>
+<body>
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">hosta<span>zar</span></a>
+    <ul class="nav-links">
+      <li><a href="/">Startseite</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">🎮 Gaming</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Beliebt</h4>
+              <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">
+                <img src="/images/7-days-to-die-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</span>
+              </a>
+              <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
+                <img src="/images/ark-survival-ascended-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2</span>
+              </a>
+              <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">
+                <img src="/images/conan-exiles-server-hosten.png" alt="" loading="lazy">
+                <span class="mega-title">Conan Exiles Server mieten – Setup &amp; Kosten 2026</span>
+              </a>
+              <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">
+                <img src="/images/cs2-server-mieten-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</span>
+              </a>
+              <a href="/artikel/dayz-server-mieten-2026.html" class="mega-item">
+                <img src="/images/dayz-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+              </a>
+              <a href="/artikel/enshrouded-server-hosting-2026.html" class="mega-item">
+                <img src="/images/enshrouded-server-hosting-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Enshrouded Server – Hosting-Guide &amp; Setup für Koop 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Anleitungen</h4>
+              <a href="/artikel/farming-simulator-25-server-mieten-2026.html" class="mega-item">
+                <img src="/images/farming-simulator-25-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Farming Simulator 25 Server mieten – Multiplayer-Guide 2026</span>
+              </a>
+              <a href="/artikel/grounded-server-hosting.html" class="mega-item">
+                <img src="/images/grounded-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Grounded Server hosten – Kosten, Setup &amp; Anbieter 2026</span>
+              </a>
+              <a href="/artikel/icarus-server-hosting.html" class="mega-item">
+                <img src="/images/icarus-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Icarus Server hosten – Dedicated Server für Koop 2026</span>
+              </a>
+              <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
+                <img src="/images/minecraft-server-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Minecraft Server mieten oder selbst hosten? Der ultimative Ver</span>
+              </a>
+              <a href="/artikel/nightingale-server-hosting.html" class="mega-item">
+                <img src="/images/nightingale-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Nightingale Server hosten – Realm-Hosting-Guide 2026</span>
+              </a>
+              <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
+                <img src="/images/palworld-server-hosting-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Palworld Server mieten oder selbst hosten? Der komplette Hosti</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Vergleiche</h4>
+              <a href="/artikel/project-zomboid-server-hosting-2026.html" class="mega-item">
+                <img src="/images/project-zomboid-server-hosting-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Project Zomboid Server – Hosting &amp; Setup für Multiplayer 2</span>
+              </a>
+              <a href="/artikel/rust-server-mieten-guide-2026.html" class="mega-item">
+                <img src="/images/rust-server-mieten-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Rust Server mieten – Kosten, Setup, Mods &amp; Anbieter 2026</span>
+              </a>
+              <a href="/artikel/satisfactory-server-mieten-oder-selbst-hosten-2026.html" class="mega-item">
+                <img src="/images/satisfactory-server-mieten-oder-selbst-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Satisfactory Server mieten oder selbst hosten? Der Guide 2026</span>
+              </a>
+              <a href="/artikel/scum-server-mieten.html" class="mega-item">
+                <img src="/images/scum-server-mieten.png" alt="" loading="lazy">
+                <span class="mega-title">SCUM Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+              </a>
+              <a href="/artikel/smalland-server-hosting.html" class="mega-item">
+                <img src="/images/smalland-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Smalland Server mieten – Guide für den Koop-Server 2026</span>
+              </a>
+              <a href="/artikel/sons-of-the-forest-server.html" class="mega-item">
+                <img src="/images/sons-of-the-forest-server.png" alt="" loading="lazy">
+                <span class="mega-title">Sons of the Forest Server hosten – Setup-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Setup</h4>
+              <a href="/artikel/space-engineers-server.html" class="mega-item">
+                <img src="/images/space-engineers-server.png" alt="" loading="lazy">
+                <span class="mega-title">Space Engineers Server mieten oder selbst hosten 2026</span>
+              </a>
+              <a href="/artikel/terraria-server-hosten-2026.html" class="mega-item">
+                <img src="/images/terraria-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Terraria Server hosten – Komplettanleitung für Multiplayer 202</span>
+              </a>
+              <a href="/artikel/the-forest-server-hosting.html" class="mega-item">
+                <img src="/images/the-forest-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">The Forest Server hosten – Koop-Guide 2026</span>
+              </a>
+              <a href="/artikel/v-rising-server-mieten-2026.html" class="mega-item">
+                <img src="/images/v-rising-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">V Rising Server mieten oder selbst hosten? Guide 2026</span>
+              </a>
+              <a href="/artikel/valheim-server-vps-mieten-2026.html" class="mega-item">
+                <img src="/images/valheim-server-vps-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Perfo</span>
+              </a>
+              <a href="/artikel/gameserver-mieten-guide.html" class="mega-item">
+                <img src="/images/gameserver-mieten-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Gameserver mieten 2025 – Der ultimative Guide</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/gaming/">→ Alle 24 Gaming‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">🌐 Webhosting</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Beliebt</h4>
+              <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="mega-item">
+                <img src="/images/cloud-hosting-vs-shared-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Cloud Hosting vs. Shared Hosting – Vergleich 2026</span>
+              </a>
+              <a href="/artikel/cloudflare-tunnel-einrichten.html" class="mega-item">
+                <img src="/images/cloudflare-tunnel-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</span>
+              </a>
+              <a href="/artikel/docker-wordpress-hosten.html" class="mega-item">
+                <img src="/images/docker-wordpress-hosten.png" alt="" loading="lazy">
+                <span class="mega-title">WordPress mit Docker hosten – Modernes Setup 2026</span>
+              </a>
+              <a href="/artikel/domain-kaufen-einrichten-2026.html" class="mega-item">
+                <img src="/images/domain-kaufen-einrichten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Domain kaufen und einrichten – Schritt-für-Schritt 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Anleitungen</h4>
+              <a href="/artikel/email-server-selbst-hosten-2026.html" class="mega-item">
+                <img src="/images/email-server-selbst-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</span>
+              </a>
+              <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html" class="mega-item">
+                <img src="/images/hetzner-cloud-vs-dediziert-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Hetzner Cloud vs. Dedizierter Server – Vergleich 2026</span>
+              </a>
+              <a href="/artikel/mysql-mariadb-optimierung.html" class="mega-item">
+                <img src="/images/mysql-mariadb-optimierung.png" alt="" loading="lazy">
+                <span class="mega-title">MySQL &amp; MariaDB optimieren – Performance-Guide 2026</span>
+              </a>
+              <a href="/artikel/netcup-vps-erfahrungen-2026.html" class="mega-item">
+                <img src="/images/netcup-vps-erfahrungen-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Netcup VPS Erfahrungen 2026 – Test, Preise &amp; Bewertung</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Vergleiche</h4>
+              <a href="/artikel/nextcloud-server-einrichten.html" class="mega-item">
+                <img src="/images/nextcloud-server-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">Nextcloud Server einrichten – Cloud-Speicher selbst hosten 202</span>
+              </a>
+              <a href="/artikel/plesk-vs-cpanel-vergleich.html" class="mega-item">
+                <img src="/images/plesk-vs-cpanel-vergleich.png" alt="" loading="lazy">
+                <span class="mega-title">Plesk vs. cPanel – Der große Hosting-Panel-Vergleich 2026</span>
+              </a>
+              <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
+                <img src="/images/ssl-zertifikat-lets-encrypt-2026.png" alt="" loading="lazy">
+                <span class="mega-title">SSL-Zertifikat mit Let's Encrypt einrichten – Anleitung 2026</span>
+              </a>
+              <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
+                <img src="/images/webhosting-anbieter-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Die 5 besten Webhosting-Anbieter 2026 im Vergleich</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Setup</h4>
+              <a href="/artikel/webseite-sicherheit-2026.html" class="mega-item">
+                <img src="/images/webseite-sicherheit-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Webseite sichern – Security-Checkliste für deine Website 2026</span>
+              </a>
+              <a href="/artikel/website-online-bringen-guide-2026.html" class="mega-item">
+                <img src="/images/website-online-bringen-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Webseite online bringen – Der Komplettguide von A bis Z 2026</span>
+              </a>
+              <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
+                <img src="/images/wordpress-hosting-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">WordPress Hosting Vergleich 2026 – Die besten Anbieter</span>
+              </a>
+              <a href="/artikel/webhosting-vserver-vergleich.html" class="mega-item">
+                <img src="/images/webhosting-vserver-vergleich.png" alt="" loading="lazy">
+                <span class="mega-title">Webhosting vs. VServer – Was passt zu dir?</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/webhosting/">→ Alle 16 Webhosting‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/">⚙️ DevOps</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Beliebt</h4>
+              <a href="/artikel/ansible-automation-guide.html" class="mega-item">
+                <img src="/images/ansible-automation-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</span>
+              </a>
+              <a href="/artikel/backup-strategien-vps-server-2026.html" class="mega-item">
+                <img src="/images/backup-strategien-vps-server-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Backup-Strategien für VPS und Server – Der Guide 2026</span>
+              </a>
+              <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="mega-item">
+                <img src="/images/docker-vs-podman-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</span>
+              </a>
+              <a href="/artikel/elk-stack-log-management.html" class="mega-item">
+                <img src="/images/elk-stack-log-management.png" alt="" loading="lazy">
+                <span class="mega-title">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</span>
+              </a>
+              <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="mega-item">
+                <img src="/images/github-actions-ci-cd-pipeline-2026.png" alt="" loading="lazy">
+                <span class="mega-title">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Anleitungen</h4>
+              <a href="/artikel/gitops-argocd-einrichten.html" class="mega-item">
+                <img src="/images/gitops-argocd-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</span>
+              </a>
+              <a href="/artikel/k3s-kubernetes-vps-2026.html" class="mega-item">
+                <img src="/images/k3s-kubernetes-vps-2026.png" alt="" loading="lazy">
+                <span class="mega-title">K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</span>
+              </a>
+              <a href="/artikel/linux-server-harden.html" class="mega-item">
+                <img src="/images/linux-server-harden.png" alt="" loading="lazy">
+                <span class="mega-title">Linux Server härten – Security-Baseline 2026</span>
+              </a>
+              <a href="/artikel/n8n-automation-server.html" class="mega-item">
+                <img src="/images/n8n-automation-server.png" alt="" loading="lazy">
+                <span class="mega-title">n8n Automation Server hosten – Workflow-Automatisierung 2026</span>
+              </a>
+              <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" class="mega-item">
+                <img src="/images/nginx-reverse-proxy-einrichten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Nginx Reverse Proxy konfigurieren – Einsteiger-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Vergleiche</h4>
+              <a href="/artikel/ollama-llm-server-vps-2026.html" class="mega-item">
+                <img src="/images/ollama-llm-server-vps-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Ollama LLM Server auf VPS hosten – Lokale KI Modelle 2026</span>
+              </a>
+              <a href="/artikel/postgresql-vps-optimierung.html" class="mega-item">
+                <img src="/images/postgresql-vps-optimierung.png" alt="" loading="lazy">
+                <span class="mega-title">PostgreSQL auf dem VPS optimieren – Tuning-Guide 2026</span>
+              </a>
+              <a href="/artikel/prometheus-grafana-monitoring-2026.html" class="mega-item">
+                <img src="/images/prometheus-grafana-monitoring-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Server Monitoring mit Prometheus &amp; Grafana – Setup 2026</span>
+              </a>
+              <a href="/artikel/terraform-infrastructure-as-code-2026.html" class="mega-item">
+                <img src="/images/terraform-infrastructure-as-code-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Terraform Infrastructure as Code – Einführung &amp; Beispiele </span>
+              </a>
+              <a href="/artikel/traefik-reverse-proxy.html" class="mega-item">
+                <img src="/images/traefik-reverse-proxy.png" alt="" loading="lazy">
+                <span class="mega-title">Traefik Reverse Proxy einrichten – Moderner Docker-Proxy 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Setup</h4>
+              <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">
+                <img src="/images/docker-compose-vps-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse</span>
+              </a>
+              <a href="/artikel/vps-absichern-2026.html" class="mega-item">
+                <img src="/images/vps-absichern-2026.png" alt="" loading="lazy">
+                <span class="mega-title">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</span>
+              </a>
+              <a href="/artikel/free-llm-benchmark-2026.html" class="mega-item">
+                <img src="/images/free-llm-benchmark-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Free LLMs 2026 – Der ultimative Benchmark: 20 Modelle</span>
+              </a>
+              <a href="/artikel/wireguard-vpn-server.html" class="mega-item">
+                <img src="/images/wireguard-vpn-server.png" alt="" loading="lazy">
+                <span class="mega-title">WireGuard VPN Server einrichten – Schnell &amp; Sicher 2026</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/devops/">→ Alle 18 DevOps‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li><a href="/about.html">Über uns</a></li>
+      <li><a href="/impressum.html">Impressum</a></li>
+    </ul>
+  </div>
+</nav>
+<main class="container article-page">
+  <article>
+    <div class="article-header">
+      <div class="card-meta">
+        <span class="card-tag devops">DevOps</span>
+        <span>7. Juni 2026</span>
+        <span>⏱ 9 Min Lesezeit</span>
+      </div>
+    <div class="hero-image-wrap" style="margin:1.5rem 0;border-radius:12px;overflow:hidden;">
+      <img src="../images/vllm-multi-model-server-2026.png" alt="KI-Server mit mehreren Modellen gleichzeitig betreiben – vLLM + Open WebUI 2026 | hostazar.com" class="hero-image" style="width:100%;height:auto;display:block;">
+    </div>
+
+      <h1>KI-Server mit mehreren Modellen gleichzeitig betreiben – vLLM + Open WebUI 2026</h1>
+    </div>
+    <div class="adsense-placeholder"><p><strong>&mdash; Anzeige &mdash;</strong></p><p>Google AdSense Platzhalter</p></div>
+    <div id="breadcrumbs"></div>
+    <div class="article-content">
+      <h2>Multi-Model-Serving: Warum mehrere LLMs parallel?</h2>
+      <p>Ein einzelnes Large Language Model ist wie ein Schweizer Taschenmesser – es kann vieles, aber für spezialisierte Aufgaben gibt es oft die bessere Wahl. Im Jahr 2026 hat sich gezeigt, dass <strong>Multi-Model-Serving</strong> der effektivste Weg ist, eine KI-Infrastruktur für Teams und Multi-Use-Cases zu betreiben. Statt ein monolithisches Modell für alle Anfragen zu verwenden, betreibst du mehrere spezialisierte LLMs parallel: ein leichtes Modell für einfache Chat-Anfragen, ein rechenstarkes Reasoning-Modell für komplexe Code-Analysen, ein deutsches Finetune für datenschutzkritische Dokumente und ein Vision-Modell für Bildverarbeitung – alles auf einem einzigen GPU-Server.</p>
+      <p>Die Kombination aus <strong>vLLM</strong> als hochperformantem Inference-Server und <strong>Open WebUI</strong> als benutzerfreundlicher Oberfläche macht genau das möglich: mehrere Modelle gleichzeitig bereitstellen, GPU-Speicher dynamisch teilen und per API-Routing die Anfragen intelligent verteilen. Dieser Guide zeigt dir, wie du eine solche Multi-Model-KI-Infrastruktur auf deinem eigenen VPS oder dedizierten Server aufbaust.</p>
+
+      <div class="highlight-box" style="background:linear-gradient(135deg,#0d1b2a,#1a3a5c);border:1px solid #2a5a8c;border-radius:8px;padding:1.5rem;margin:2rem 0;">
+        <h3 style="color:#4CAF50;margin:0 0 0.5rem 0;">TL;DR – Das Wichtigste vorab</h3>
+        <ul style="margin:0;">
+          <li><strong>vLLM</strong> ist der aktuell schnellste Open-Source-Inference-Server (PagedAttention, Continuous Batching)</li>
+          <li><strong>GPU-Memory-Sharing</strong> erlaubt mehrere Modelle auf einer GPU – via vLLM nativer Multi-Lora- und Multi-Model-Unterstützung</li>
+          <li><strong>Model-Hot-Swapping</strong> ohne Server-Neustart über die vLLM-API</li>
+          <li><strong>Open WebUI</strong> bietet eine einheitliche Chat-Oberfläche für alle Modelle</li>
+          <li>Empfohlene Hardware: NVIDIA A100 (80 GB) oder 2× RTX 4090 für 3–4 Modelle parallel</li>
+        </ul>
+      </div>
+
+      <h2>Was ist vLLM? – Der schnellste Open-Source-Inference-Server</h2>
+      <p>vLLM ist ein von der UC Berkeley entwickeltes, quelloffenes Inferencing-Framework, das sich auf <strong>hohen Durchsatz</strong> und <strong>niedrige Latenz</strong> bei LLM-Inferenz spezialisiert hat. Das Herzstück ist der patentierte <strong>PagedAttention</strong>-Algorithmus: Statt den gesamten KV-Cache eines Requests als zusammenhängenden Speicherblock zu allozieren, teilt vLLM ihn in kleine Pages auf – genau wie ein Betriebssystem virtuellen Arbeitsspeicher verwaltet. Das Ergebnis ist eine drastische Reduzierung von Speicherfragmentierung und eine bis zu <strong>2–4× höhere Durchsatzrate</strong> gegenüber herkömmlichen Lösungen wie Hugging Face Transformers oder Text Generation Inference (TGI).</p>
+      <p>Seit Version 0.6.x unterstützt vLLM auch <strong>Multi-Model-Serving</strong> nativ: Du startest einen einzigen vLLM-Server, der mehrere Modelle gleichzeitig lädt und über separate API-Endpunkte bereitstellt. Jedes Modell bekommt einen reservierten oder dynamischen Anteil des GPU-Speichers – der Server verteilt die Ressourcen automatisch nach Bedarf.</p>
+
+      <h2>vLLM vs. Ollama – Wann setzt du welches Tool ein?</h2>
+      <p>In unserem vorherigen Guide haben wir <a href="/artikel/ollama-llm-server-vps-2026.html">Ollama als LLM-Server auf dem VPS</a> vorgestellt. Beide Tools sind exzellent, aber sie adressieren unterschiedliche Szenarien. Die folgende Vergleichstabelle hilft dir bei der Entscheidung:</p>
+
+      <div style="overflow-x:auto;margin:2rem 0;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+          <thead>
+            <tr style="background:#1a3a5c;color:#fff;">
+              <th style="padding:12px 8px;text-align:left;">Kriterium</th>
+              <th style="padding:12px 8px;text-align:left;">vLLM</th>
+              <th style="padding:12px 8px;text-align:left;">Ollama</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #2a4a6c;">
+              <td style="padding:10px 8px;font-weight:bold;">Durchsatz (Tokens/s)</td>
+              <td style="padding:10px 8px;color:#4CAF50;">★★★★★ Sehr hoch (PagedAttention)</td>
+              <td style="padding:10px 8px;">★★★☆☆ Gut (llama.cpp Backend)</td>
+            </tr>
+            <tr style="border-bottom:1px solid #2a4a6c;">
+              <td style="padding:10px 8px;font-weight:bold;">Multi-Model-Serving</td>
+              <td style="padding:10px 8px;color:#4CAF50;">★ Nativ ab v0.6 – mehrere Modelle parallel</td>
+              <td style="padding:10px 8px;">★ Nur sequenziell (ein Modell pro Server-Instanz)</td>
+            </tr>
+            <tr style="border-bottom:1px solid #2a4a6c;">
+              <td style="padding:10px 8px;font-weight:bold;">GPU-Memory-Sharing</td>
+              <td style="padding:10px 8px;color:#4CAF50;">★ Dynamisch, automatisches Memory-Pooling</td>
+              <td style="padding:10px 8px;">★ Manuell via Umgebungsvariablen</td>
+            </tr>
+            <tr style="border-bottom:1px solid #2a4a6c;">
+              <td style="padding:10px 8px;font-weight:bold;">Modell-Download</td>
+              <td style="padding:10px 8px;">★ Hugging Face Hub (curl/git lfs)</td>
+              <td style="padding:10px 8px;color:#4CAF50;">★ ollama pull – extrem einfach</td>
+            </tr>
+            <tr style="border-bottom:1px solid #2a4a6c;">
+              <td style="padding:10px 8px;font-weight:bold;">Einsteigerfreundlichkeit</td>
+              <td style="padding:10px 8px;">★★☆☆☆ Erfordert Python &amp; CUDA-Know-how</td>
+              <td style="padding:10px 8px;color:#4CAF50;">★★★★★ „Install &amp; loslegen“</td>
+            </tr>
+            <tr style="border-bottom:1px solid #2a4a6c;">
+              <td style="padding:10px 8px;font-weight:bold;">OpenAI-kompatible API</td>
+              <td style="padding:10px 8px;color:#4CAF50;">★ Voll kompatibel (v1/chat/completions)</td>
+              <td style="padding:10px 8px;color:#4CAF50;">★ Voll kompatibel</td>
+            </tr>
+            <tr style="border-bottom:1px solid #2a4a6c;">
+              <td style="padding:10px 8px;font-weight:bold;">Vision/Image-Verstehen</td>
+              <td style="padding:10px 8px;color:#4CAF50;">★ Ja (LlaVA, InternVL)</td>
+              <td style="padding:10px 8px;">★ Nur via LlaVA</td>
+            </tr>
+            <tr style="border-bottom:1px solid #2a4a6c;">
+              <td style="padding:10px 8px;font-weight:bold;">Continuous Batching</td>
+              <td style="padding:10px 8px;color:#4CAF50;">★ Ja – mehrere Requests parallel</td>
+              <td style="padding:10px 8px;">★ Ab Version 0.5</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 8px;font-weight:bold;">Ideales Einsatzszenario</td>
+              <td style="padding:10px 8px;color:#4CAF50;">Produktion, Teams, API-Endpunkte, Multi-Model</td>
+              <td style="padding:10px 8px;">Entwicklung, Einzelnutzer, schnelle Prototypen</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Die einfache Faustregel: <strong>Einzelnutzer oder schnelle Experimente → Ollama. Produktiver Multi-Model-Betrieb im Team → vLLM.</strong></p>
+
+      <h2>Hardware-Anforderungen: GPU-Memory-Sharing und Multi-Model-Betrieb</h2>
+      <p>Der größte Engpass beim Multi-Model-Serving ist der <strong>VRAM</strong>. Jedes LLM benötigt je nach Größe und Quantisierung zwischen 2 GB (Phi-3 Mini, Q4) und 70 GB (Llama 3.3 70B, FP16). Die Kunst liegt darin, mehrere Modelle so auf einer oder mehreren GPUs zu verteilen, dass sie sich den verfügbaren Speicher fair teilen.</p>
+      <p>vLLM unterstützt drei Strategien für Multi-GPU-Multi-Model:</p>
+      <ul>
+        <li><strong>Automatic GPU Selection:</strong> vLLM verteilt eingehende Requests automatisch auf verfügbare GPUs – Modelle teilen sich den Pool.</li>
+        <li><strong>Pipeline-Parallelism:</strong> Ein großes Modell wird über mehrere GPUs aufgeteilt (Layer-Sharding). Ideal für 70B+ Modelle auf 2–4 GPUs.</li>
+        <li><strong>Tensor-Parallelism:</strong> Noch feinere Verteilung für maximale Performance – jedes Tensor-Weight liegt auf mehreren GPUs.</li>
+      </ul>
+
+      <h3>Empfohlene Hardware-Konfigurationen</h3>
+      <div style="overflow-x:auto;margin:2rem 0;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+          <thead>
+            <tr style="background:#1a3a5c;color:#fff;">
+              <th style="padding:12px 8px;text-align:left;">Szenario</th>
+              <th style="padding:12px 8px;text-align:left;">GPU</th>
+              <th style="padding:12px 8px;text-align:left;">VRAM</th>
+              <th style="padding:12px 8px;text-align:left;">Modelle parallel</th>
+              <th style="padding:12px 8px;text-align:left;">Kosten (ca.)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #2a4a6c;">
+              <td style="padding:10px 8px;font-weight:bold;">Einsteiger</td>
+              <td style="padding:10px 8px;">RTX 3060 / 4060 Ti</td>
+              <td style="padding:10px 8px;">12 GB</td>
+              <td style="padding:10px 8px;">2–3 × 7B (Q4)</td>
+              <td style="padding:10px 8px;">60–80 €/Monat</td>
+            </tr>
+            <tr style="border-bottom:1px solid #2a4a6c;">
+              <td style="padding:10px 8px;font-weight:bold;">Standard</td>
+              <td style="padding:10px 8px;">RTX 4090</td>
+              <td style="padding:10px 8px;">24 GB</td>
+              <td style="padding:10px 8px;">4–6 × 7B oder 1× 70B (Q4)</td>
+              <td style="padding:10px 8px;">140–180 €/Monat</td>
+            </tr>
+            <tr style="border-bottom:1px solid #2a4a6c;">
+              <td style="padding:10px 8px;font-weight:bold;">Professional</td>
+              <td style="padding:10px 8px;">A100 40 GB / 2× RTX 4090</td>
+              <td style="padding:10px 8px;">40–48 GB</td>
+              <td style="padding:10px 8px;">2× 70B (Q4) oder 6–8 × 7B</td>
+              <td style="padding:10px 8px;">300–600 €/Monat</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 8px;font-weight:bold;">Enterprise</td>
+              <td style="padding:10px 8px;">2× A100 80 GB / H100</td>
+              <td style="padding:10px 8px;">80–160 GB</td>
+              <td style="padding:10px 8px;">4× 70B oder 10+ × 7B</td>
+              <td style="padding:10px 8px;">ab 1.200 €/Monat</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="highlight-box" style="background:linear-gradient(135deg,#0d1b2a,#1a3a5c);border:1px solid #2a5a8c;border-radius:8px;padding:1.5rem;margin:2rem 0;">
+        <h4 style="color:#FFD700;margin:0 0 0.5rem 0;">Tipp: GPU-Speicher clever verwalten</h4>
+        <p style="margin:0;">vLLM unterstützt <strong>—max-model-len</strong> und <strong>—gpu-memory-utilization</strong> (z. B. 0.85 für 85 %). Für Multi-Model-Betrieb startest du den Server mit <code>—enable-multimodal</code> und definierst pro Modell einen <code>model_config</code>-Eintrag mit eigener <code>max_num_batched_tokens</code>. So verhinderst du, dass ein einzelnes Modell den gesamten VRAM belegt.</p>
+      </div>
+
+      <h2>Installation und Konfiguration von vLLM auf dem VPS</h2>
+      <p>Wir gehen von einem frischen <strong>Ubuntu 24.04 LTS</strong> mit NVIDIA-Treibern und CUDA 12.4+ aus. Ist dein System noch nicht vorbereitet, lies zunächst unseren Guide <a href="/artikel/ollama-llm-server-vps-2026.html">Ollama LLM Server auf VPS hosten</a> für die grundlegende CUDA- und Treiber-Installation – die Schritte 1–3 sind identisch.</p>
+
+      <h3>Schritt 1: Python-Umgebung und vLLM installieren</h3>
+      <p>vLLM läuft als Python-Paket. Wir empfehlen eine frische Conda-Umgebung oder venv:</p>
+      <pre><code>sudo apt install -y python3-pip python3-venv git-lfs
+python3 -m venv /opt/vllm-env
+source /opt/vllm-env/bin/activate
+pip install --upgrade pip
+pip install vllm==0.6.3  # Aktuelle Stable-Version 2026</code></pre>
+
+      <h3>Schritt 2: Modelle herunterladen</h3>
+      <p>vLLM arbeitet mit Modellen vom Hugging Face Hub. Lade sie vorab mit huggingface-cli oder git lfs:</p>
+      <pre><code># Modelle in /opt/models/ organisieren
+mkdir -p /opt/models
+cd /opt/models
+
+# Kleines Chat-Modell (3.8B)
+git lfs clone https://huggingface.co/microsoft/Phi-3-mini-4k-instruct
+
+# Reasoning-Modell (7B)
+git lfs clone https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3
+
+# Code-Modell (14B, Q4 quantisiert)
+git lfs clone https://huggingface.co/Qwen/Qwen2.5-Coder-14B-Instruct
+
+# Deutsch-optimiertes Modell
+git lfs clone https://huggingface.co/LeoLM/leo-mistral-7b-de</code></pre>
+
+      <h3>Schritt 3: Multi-Model-Server starten</h3>
+      <p>Der entscheidende Schritt: Starte vLLM im Multi-Model-Modus mit einer Konfigurationsdatei. Erstelle <code>/opt/vllm-config.yaml</code>:</p>
+      <pre><code># /opt/vllm-config.yaml – Multi-Model-Serving Konfiguration
+models:
+  - model: /opt/models/Phi-3-mini-4k-instruct
+    name: phi3-mini
+    served_model_name: phi3-mini
+    tokenizer_mode: auto
+    max_model_len: 4096
+    gpu_memory_utilization: 0.25  # 25 % des VRAM
+    trust_remote_code: true
+
+  - model: /opt/models/Mistral-7B-Instruct-v0.3
+    name: mistral-7b
+    served_model_name: mistral-7b
+    max_model_len: 8192
+    gpu_memory_utilization: 0.45
+
+  - model: /opt/models/Qwen2.5-Coder-14B-Instruct
+    name: qwen-coder
+    served_model_name: qwen-coder
+    max_model_len: 8192
+    gpu_memory_utilization: 0.30
+
+  - model: /opt/models/leo-mistral-7b-de
+    name: leo-mistral
+    served_model_name: leo-mistral-de
+    max_model_len: 4096
+    gpu_memory_utilization: 0.20</code></pre>
+      <p>Starte den Server im Hintergrund:</p>
+      <pre><code>source /opt/vllm-env/bin/activate
+vllm serve --config /opt/vllm-config.yaml \
+  --api-key mein-geheimer-key \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --enable-multimodal</code></pre>
+      <p>vLLM startet nun alle vier Modelle parallel. Du erreichst sie unter:</p>
+      <pre><code># Jedes Modell via eigenem Endpunkt:
+POST http://dein-server:8000/v1/chat/completions
+{
+  "model": "phi3-mini",
+  "messages": [{"role": "user", "content": "Hallo!"}]
+}
+
+# Verfügbare Modelle auflisten:
+GET http://dein-server:8000/v1/models</code></pre>
+
+      <h3>Schritt 4: Autostart mit systemd</h3>
+      <p>Damit der Server nach einem Neustart automatisch läuft, erstelle eine systemd-Unit:</p>
+      <pre><code>sudo cat > /etc/systemd/system/vllm.service << 'EOF'
+[Unit]
+Description=vLLM Multi-Model Inference Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Environment="CUDA_VISIBLE_DEVICES=0"
+ExecStart=/bin/bash -c 'source /opt/vllm-env/bin/activate && vllm serve --config /opt/vllm-config.yaml --api-key mein-geheimer-key --host 0.0.0.0 --port 8000'
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now vllm</code></pre>
+
+      <h2>Open WebUI als einheitliches Frontend für alle Modelle</h2>
+      <p>Open WebUI ist die ideale grafische Oberfläche für deinen Multi-Model-Server. Es bietet Chat-Verlauf, RAG (Retrieval Augmented Generation), Rollenverwaltung und vor allem: eine <strong>einheitliche Modellauswahl</strong>. Der Nutzer kann per Dropdown zwischen allen verfügbaren Modellen wechseln, ohne die API-URL zu ändern.</p>
+      <p>Die Installation per Docker ist unkompliziert – wichtig ist die Netzwerkkonfiguration, damit Open WebUI auf den vLLM-Server zugreifen kann:</p>
+      <pre><code>docker run -d --network=host \
+  -v open-webui-data:/app/backend/data \
+  -e OPENAI_API_BASE_URL=http://localhost:8000/v1 \
+  -e OPENAI_API_KEY=mein-geheimer-key \
+  --name open-webui \
+  ghcr.io/open-webui/open-webui:main</code></pre>
+      <p>Rufe anschließend <code>http://dein-server:8080</code> auf. Nach der Admin-Registrierung siehst du in der Modellauswahl alle vier konfigurierten Modelle – <strong>Phi-3 Mini</strong> für schnelle Chats, <strong>Mistral 7B</strong> für Allround-Fragen, <strong>Qwen Coder</strong> für Programmieraufgaben und <strong>Leo-Mistral DE</strong> für deutschsprachige Dokumente – und kannst nahtlos zwischen ihnen wechseln, ohne dass die laufenden Sessions unterbrochen werden.</p>
+
+      <div class="highlight-box" style="background:linear-gradient(135deg,#0d1b2a,#1a3a5c);border:1px solid #2a5a8c;border-radius:8px;padding:1.5rem;margin:2rem 0;">
+        <h4 style="color:#FFD700;margin:0 0 0.5rem 0;">Profi-Tipp: Modell-Routing per Prompt-Präfix</h4>
+        <p style="margin:0;">Nutze Open WebUIs <strong>Modell-Routing-Funktion</strong>: Definiere Regeln, die automatisch das passende Modell auswählen – z. B. <code>/code</code> als Präfix leitet an Qwen Coder weiter, <code>/de</code> an Leo-Mistral. Das spart deinem Team jedes Mal die manuelle Modellauswahl und sorgt für konsistente Ergebnisse.</p>
+      </div>
+
+      <h2>Model-Hot-Swapping – Modelle wechseln ohne Neustart</h2>
+      <p>Eines der stärksten Features von vLLM im Multi-Model-Betrieb ist das <strong>Hot-Swapping</strong>: Du kannst neue Modelle laden und alte entladen, ohne den Server zu stoppen. Die API-Endpunkte dafür sind:</p>
+      <pre><code># Neues Modell laden (ohne Neustart)
+POST http://dein-server:8000/v1/models/load
+{
+  "model": "/opt/models/Llama-3.3-70B-Instruct",
+  "name": "llama-70b",
+  "gpu_memory_utilization": 0.50
+}
+
+# Modell entladen und Speicher freigeben
+POST http://dein-server:8000/v1/models/unload
+{
+  "model": "phi3-mini"
+}
+
+# Aktuell geladene Modelle prüfen
+GET http://dein-server:8000/v1/models</code></pre>
+      <p>Beim Entladen eines Modells wird dessen VRAM-Anteil sofort freigegeben und steht anderen Modellen zur Verfügung – in Echtzeit, ohne Downtime.</p>
+
+      <h2>API-Routing – Intelligente Verteilung der Anfragen</h2>
+      <p>Sobald du mehrere Modelle parallel betreibst, stellt sich die Frage: <strong>Welches Modell bekommt welche Anfrage?</strong> Hier kommen API-Gateway-Strategien ins Spiel. Drei praxisbewährte Ansätze:</p>
+      <h3>1. Client-seitiges Routing</h3>
+      <p>Der Client (oder Open WebUI) wählt das Modell explizit aus. Einfach, aber der Nutzer muss wissen, welches Modell für welche Aufgabe geeignet ist.</p>
+      <h3>2. Proxy-basiertes Routing mit OpenRouter oder LiteLLM</h3>
+      <p>Dienste wie <strong>LiteLLM</strong> oder <strong>OpenRouter</strong> können als zentraler Proxy zwischen deinen Clients und deinen vLLM-Modellen geschaltet werden. LiteLLM erlaubt z. B. ein <code>config.yaml</code> mit Routing-Regeln:</p>
+      <pre><code># litellm-config.yaml
+model_list:
+  - model_name: "schnell"       # Freitext-Alias
+    litellm_params:
+      model: "openai/phi3-mini"
+      api_base: "http://localhost:8000/v1"
+      api_key: "mein-geheimer-key"
+  - model_name: "profi"
+    litellm_params:
+      model: "openai/qwen-coder"
+      api_base: "http://localhost:8000/v1"
+  - model_name: "deutsch"
+    litellm_params:
+      model: "openai/leo-mistral-de"
+      api_base: "http://localhost:8000/v1"
+
+# Fallback-Regeln
+router_settings:
+  routing_strategy: "usage"      # oder "latency", "cooldown"
+  enable_loadbalancing: true
+  num_retries: 3</code></pre>
+      <p>Deine Clients rufen dann einfach <code>/v1/chat/completions</code> mit <code>"model": "schnell"</code> auf – LiteLLM routet automatisch. Fällt ein Modell aus, wird auf das nächste passende Fallback-Modell gewechselt.</p>
+      <h3>3. Content-basiertes Routing</h3>
+      <p>Fortgeschrittene Setups nutzen ein kleines <strong>Router-Modell</strong> (z. B. Phi-3 Mini), das den Prompt analysiert und entscheidet, welches spezialisierte Modell die Anfrage bekommt – Code-Fragen → Qwen Coder, Deutsch → Leo-Mistral, Mathematik → DeepSeek R1. Dieses Setup implementierst du mit einem einfachen Python-Skript vor deinem vLLM-Server:</p>
+      <pre><code>from openai import OpenAI
+
+client = OpenAI(base_url="http://localhost:8000/v1", api_key="...")
+
+def route_request(user_message: str) -> str:
+    """Klassifiziert die Anfrage und wählt das passende Modell."""
+    classifier_prompt = f"Klassifiziere die Anfrage als: 'code', 'chat', 'mathe' oder 'deutsch'. Antwort: Nur das Wort.\\n\\n{user_message}"
+    response = client.chat.completions.create(
+        model="phi3-mini",
+        messages=[{"role": "user", "content": classifier_prompt}],
+        max_tokens=10
+    )
+    category = response.choices[0].message.content.strip().lower()
+    model_map = {"code": "qwen-coder", "chat": "mistral-7b",
+                 "mathe": "deepseek-r1-7b", "deutsch": "leo-mistral-de"}
+    return model_map.get(category, "mistral-7b")</code></pre>
+
+      <h2>Monitoring und Logging des Multi-Model-Servers</h2>
+      <p>Ein Produktivsystem braucht Überwachung. vLLM liefert über den Endpunkt <code>/metrics</code> Prometheus-kompatible Metriken:</p>
+      <ul>
+        <li><strong>vllm:num_requests_running</strong> – Aktuell laufende Requests pro Modell</li>
+        <li><strong>vllm:gpu_cache_usage</strong> – GPU-Speicher-Auslastung in Pages</li>
+        <li><strong>vllm:avg_generation_throughput</strong> – Generierte Tokens pro Sekunde</li>
+        <li><strong>vllm:request_latency_seconds</strong> – Latenz pro Request (Histogramm)</li>
+      </ul>
+      <p>Diese Werte kannst du mit <a href="/artikel/prometheus-grafana-monitoring-2026.html">Prometheus und Grafana</a> visualisieren, um Engpässe frühzeitig zu erkennen. Ein Alarm bei <code>gpu_cache_usage > 0.90</code> warnt dich, bevor der Server Requests ablehnen muss. Nutze außerdem das Dashboard von Open WebUI, das in der Admin-Oberfläche eine detaillierte Nutzungsstatistik pro Modell anzeigt.</p>
+
+      <h2>Sicherheit: Reverse Proxy und Authentifizierung</h2>
+      <p>Wie bei jedem selbstgehosteten Server gilt: <strong>Setze niemals Port 8000 direkt ins Internet.</strong> Konfiguriere stattdessen einen Reverse Proxy – wir empfehlen <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html">Nginx</a> oder <a href="/artikel/traefik-reverse-proxy.html">Traefik</a> – mit Let's Encrypt und API-Key-Authentifizierung:</p>
+      <pre><code># Nginx-Konfiguration (Ausschnitt)
+server {
+    listen 443 ssl;
+    server_name ki.dein-server.de;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Authorization "Bearer mein-geheimer-key";
+        proxy_set_header Host $host;
+    }
+}</code></pre>
+      <p>Noch sicherer ist der Zugriff ausschließlich über <a href="/artikel/wireguard-vpn-server.html">WireGuard VPN</a> für dich und dein Team. So bleibt die gesamte Kommunikation verschlüsselt und von außen unsichtbar.</p>
+
+      <h2>Kostenvergleich: Multi-Model-Self-Hosting vs. Cloud-APIs</h2>
+      <p>Lohnt sich der Betrieb mehrerer Modelle auf eigener Hardware? Wir vergleichen die monatlichen Kosten für ein typisches Team-Setup (4 Modelle, ~15 Millionen Tokens/Monat, 3 Nutzer):</p>
+      <ul>
+        <li><strong>OpenAI (GPT-4o + o3-mini + GPT-4.1-nano):</strong> ~320 $/Monat bei gemischter Nutzung. Keine Vorabkosten, aber keine Datenhoheit und keine Modell-Auswahl bei Spezialmodellen.</li>
+        <li><strong>Anthropic Claude (Sonnet + Haiku):</strong> ~250 $/Monat. Exzellente Qualität, aber ebenfalls keine Datenkontrolle und nur zwei Modelle.</li>
+        <li><strong>vLLM Self-Hosting (RTX 4090, 24 GB):</strong> Einmalig ~2.000 € für die GPU (Miete: ~150 €/Monat) + ~40 € VPS mit CPU und 64 GB RAM + ~30 € Strom. Gesamt: <strong>~220 €/Monat</strong> für unbegrenzte Tokens, 4 Modelle und volle Datenhoheit.</li>
+        <li><strong>vLLM Dedicated (Hetzner, 2× A100 80 GB):</strong> ~1.500 €/Monat für Enterprise-Teams mit hohem Durchsatz und bis zu 10 Modellen parallel.</li>
+      </ul>
+      <p>Fazit: <strong>Ab etwa 3 aktiven Nutzern und 10 Millionen Tokens/Monat ist Self-Hosting mit vLLM die wirtschaftlichere Wahl</strong> – und du behältst die Kontrolle über deine Daten und Modellauswahl.</p>
+
+      <h2>FAQ – Häufige Fragen zum Multi-Model-Server mit vLLM</h2>
+      <h3>1. Kann ich Ollama-Modelle auch in vLLM verwenden?</h3>
+      <p>vLLM lädt Modelle direkt vom Hugging Face Hub oder aus lokalen Verzeichnissen. Ollama-Modelle (GGUF-Format) sind nicht direkt kompatibel – du musst die Hugging Face-Version des gleichen Modells herunterladen. Alternativ betreibst du beide Server parallel: Ollama für schnelle Experimente, vLLM für den Produktivbetrieb.</p>
+      <h3>2. Wie viele Modelle laufen auf einer RTX 4090?</h3>
+      <p>Mit 24 GB VRAM und Q4-Quantisierung passen 5–6 Modelle der Größe 7B (je ~4–5 GB) oder 2 Modelle der Größe 13–14B (je ~8–10 GB). Ein 70B-Modell in Q4 (~40 GB) passt nicht auf eine einzelne Karte – dann brauchst du Tensor-Parallelism über mehrere GPUs.</p>
+      <h3>3. Was passiert, wenn ein Modell den gesamten VRAM belegt?</h3>
+      <p>vLLM alloziert Speicher entsprechend der <code>gpu_memory_utilization</code> pro Modell. Überschreitet ein Request diese Grenze, wird er mit einem <code>503 Service Unavailable</code> abgewiesen, statt den Server zum Absturz zu bringen. Überwache die Metrik <code>vllm:gpu_cache_usage</code>, um frühzeitig zu skalieren.</p>
+      <h3>4. Unterstützt vLLM Vision- und Multimodal-Modelle?</h3>
+      <p>Ja – seit Version 0.6 unterstützt vLLM Multimodal-Modelle wie LlaVA-NeXT, InternVL2 und Qwen2-VL. Du musst die Modelle wie gewohnt laden und aktivierst multimodale Inferenz über den Serve-Flag <code>—enable-multimodal</code>. Open WebUI zeigt Bilder dann direkt im Chat an.</p>
+      <h3>5. Wie update ich die Modelle auf neuere Versionen?</h3>
+      <p>Neue Modellversionen lädst du mit <code>git pull</code> im jeweiligen Modellverzeichnis oder via Hugging Face Hub. Nach dem Update entlädt du das alte Modell via API (<code>/v1/models/unload</code>) und lädst es neu (<code>/v1/models/load</code>) – kein Server-Neustart nötig.</p>
+      <h3>6. Kann ich vLLM mit Docker betreiben?</h3>
+      <p>Ja, das offizielle Image <code>vllm/vllm-openai:latest</code> unterstützt GPU-Passthrough (<code>—gpus all</code>). Für Multi-Model-Serving musst du die Konfigurationsdatei per Volume mounten: <code>docker run —gpus all -v $(pwd)/config.yaml:/app/config.yaml ...</code>. Beachte, dass Docker den Shared Memory (<code>—shm-size</code>) oft erhöhen muss – <code>—shm-size 32g</code> ist ein guter Startwert.</p>
+      <h3>7. Wie hoch ist die Latenz beim Modellwechsel (Hot-Swap)?</h3>
+      <p>Das Laden eines 7B-Modells von NVMe-SSD dauert etwa 2–5 Sekunden, eines 70B-Modells 15–30 Sekunden. Während des Ladens laufen andere Modelle uneingeschränkt weiter. Entladen ist instantan – der Speicher wird sofort freigegeben.</p>
+      <h3>8. Welche Quantisierung empfiehlt sich für Multi-Model-Serving?</h3>
+      <p>Für Multi-Model-Betrieb ist <strong>AWQ (Activation-Aware Weight Quantization)</strong> die beste Wahl – sie bietet Q4-Qualität bei nahezu FP16-Performance und ist vLLM-nativ unterstützt. Lade AWQ-quantisierte Modelle direkt von Hugging Face (erkennbar am Label „AWQ“) – sie benötigen bis zu 60 % weniger VRAM als FP16-Varianten bei minimalem Qualitätsverlust.</p>
+
+      <h2>Fazit</h2>
+      <p><strong>Multi-Model-Serving mit vLLM und Open WebUI</strong> hebt die selbstgehostete KI-Infrastruktur auf ein neues Level. Statt dich auf ein einzelnes Modell zu beschränken, betreibst du ein ganzes Ensemble spezialisierter LLMs parallel – ohne dass deine GPU-Budget explodiert. Dank PagedAttention, dynamischem GPU-Memory-Sharing und Model-Hot-Swapping von vLLM legst du einen hochperformanten, produktionsreifen KI-Server auf, der mit kommerziellen Cloud-APIs in puncto Geschwindigkeit und Flexibilität mithalten kann.</p>
+      <p>Die Kombination aus <strong>Open WebUI</strong> als nutzerfreundlichem Frontend, <strong>LiteLLM</strong> oder Eigenbau-Routing für intelligente Anfrageverteilung und <strong>Prometheus/Grafana</strong> für das Monitoring ergibt eine rundum professionelle Plattform – ob für dein Development-Team, deine Data-Science-Abteilung oder als SaaS-Angebot für interne KI-Assistenten. Wer datenschutzkonforme, leistungsstarke und vielseitige KI selbst hosten will, kommt an vLLM im Multi-Model-Setup nicht vorbei.</p>
+
+    </div>
+    <div class="affiliate-box">
+      <p><strong>Empfohlene Hardware für dein Multi-Model-KI-Setup</strong></p>
+      <a href="https://www.amazon.de/s?k=NVIDIA+RTX+4090+GPU&tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">NVIDIA GPUs auf Amazon ansehen →</a>
+      <p style="margin-top:10px"><a href="https://www.amazon.de/s?k=NVIDIA+A100+GPU&tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">Enterprise-GPUs und Beschleuniger entdecken →</a></p>
+      <p style="margin-top:10px"><a href="https://www.amazon.de/s?k=NVMe+SSD+2TB&tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">Schnelle SSDs für Modell-Speicher →</a></p>
+      <p style="margin-top:8px;font-size:0.75rem">* Affiliate-Link. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.</p>
+    </div>
+    <div id="related-articles"></div>
+    <div class="adsense-placeholder"><p><strong>&mdash; Anzeige &mdash;</strong></p><p>Google AdSense Platzhalter (Ende)</p></div>
+  </article>
+</main>
+<footer class="footer"><div class="container"><div class="footer-grid"><div><h4>hosta<span style="color:var(--accent)">zar</span></h4><p style="color:var(--text-muted);font-size:0.9rem">Dein Hosting- &amp; Server-Portal mit Guides.</p></div><div><h4>Kategorien</h4><ul><li><a href="/gaming/">🎮 Gaming</a></li><li><a href="/webhosting/">🌐 Webhosting</a></li><li><a href="/devops/">⚙️ DevOps</a></li></ul></div><div><h4>Rechtliches</h4><ul><li><a href="/about.html">Über uns</a></li><li><a href="/impressum.html">Impressum</a></li></ul></div></div><div class="footer-bottom"><span>© 2026 hostazar.com</span></div></div></footer>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  if(typeof hostazarApp !== 'undefined'){
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {containerId:'related-articles',category:'devops',excludeSlug:'vllm-multi-model-server-2026',count:3},
+      breadcrumbs: [{url:'/devops/',label:'DevOps'},{label:'KI-Server mit mehreren Modellen gleichzeitig betreiben – vLLM + Open WebUI 2026'}]
+    });
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docker-Container für LLM-Inference – Best Practices 2026 | hostazar.com</title>
+  <meta name="description" content="Docker-Container für LLM-Inference: GPU-Passthrough mit NVIDIA Container Toolkit, Ollama & vLLM in Docker Compose, Multi-Container-Setup mit Open WebUI, Ressourcenlimits & Best Practices 2026.">
+  <meta name="keywords" content="Docker LLM Inference, NVIDIA Container Toolkit, Ollama Docker, vLLM Docker, GPU Passthrough Docker, Docker Compose LLM, Open WebUI Docker, CUDA Docker, LLM Container Best Practices, KI Self-Hosting 2026">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hostazar.com/artikel/docker-llm-inference-container.html">
+  <link rel="stylesheet" href="/css/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hostazar.com/artikel/docker-llm-inference-container.html">
+  <meta property="og:title" content="Docker-Container für LLM-Inference – Best Practices 2026">
+  <meta property="og:description" content="GPU-Passthrough mit NVIDIA Container Toolkit, Ollama & vLLM in Docker Compose, Multi-Container-Setup mit Open WebUI – die besten Praktiken für LLM-Inference im Container.">
+  <meta property="og:image" content="https://hostazar.com/images/docker-llm-inference-container.png">
+  <meta property="og:locale" content="de_DE">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Docker-Container für LLM-Inference – Best Practices 2026 | hostazar.com">
+  <meta name="twitter:description" content="GPU-Passthrough, Ollama & vLLM in Docker Compose – Best Practices für LLM-Inference-Container.">
+  <meta name="twitter:image" content="https://hostazar.com/images/docker-llm-inference-container.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Docker-Container für LLM-Inference – Best Practices 2026",
+    "url": "https://hostazar.com/artikel/docker-llm-inference-container.html",
+    "datePublished": "2026-06-07",
+    "dateModified": "2026-06-07",
+    "author": { "@type": "Organization", "name": "hostazar.com" },
+    "publisher": { "@type": "Organization", "name": "hostazar.com" },
+    "description": "GPU-Passthrough mit NVIDIA Container Toolkit, Ollama & vLLM in Docker Compose, Multi-Container-Setup mit Open WebUI – die besten Praktiken für LLM-Inference im Container.",
+    "image": "https://hostazar.com/images/docker-llm-inference-container.png",
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://hostazar.com/artikel/docker-llm-inference-container.html" },
+    "wordCount": 1750,
+    "articleSection": "KI & LLM / DevOps",
+    "inLanguage": "de"
+  }
+  </script>
+  <script src="/data/script.js" defer></script>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9094916118868532"
+    crossorigin="anonymous"></script>
+
+<meta property="og:site_name" content="Hostazar — VPS & DevOps Portal" />
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">hosta<span>zar</span></a>
+    <ul class="nav-links">
+      <li><a href="/">Startseite</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">🎮 Gaming</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Beliebt</h4>
+              <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">
+                <img src="/images/7-days-to-die-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</span>
+              </a>
+              <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
+                <img src="/images/ark-survival-ascended-server-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2</span>
+              </a>
+              <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">
+                <img src="/images/conan-exiles-server-hosten.png" alt="" loading="lazy">
+                <span class="mega-title">Conan Exiles Server mieten – Setup &amp; Kosten 2026</span>
+              </a>
+              <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">
+                <img src="/images/cs2-server-mieten-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</span>
+              </a>
+              <a href="/artikel/dayz-server-mieten-2026.html" class="mega-item">
+                <img src="/images/dayz-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+              </a>
+              <a href="/artikel/enshrouded-server-hosting-2026.html" class="mega-item">
+                <img src="/images/enshrouded-server-hosting-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Enshrouded Server – Hosting-Guide &amp; Setup für Koop 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Anleitungen</h4>
+              <a href="/artikel/farming-simulator-25-server-mieten-2026.html" class="mega-item">
+                <img src="/images/farming-simulator-25-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Farming Simulator 25 Server mieten – Multiplayer-Guide 2026</span>
+              </a>
+              <a href="/artikel/grounded-server-hosting.html" class="mega-item">
+                <img src="/images/grounded-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Grounded Server hosten – Kosten, Setup &amp; Anbieter 2026</span>
+              </a>
+              <a href="/artikel/icarus-server-hosting.html" class="mega-item">
+                <img src="/images/icarus-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Icarus Server hosten – Dedicated Server für Koop 2026</span>
+              </a>
+              <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
+                <img src="/images/minecraft-server-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Minecraft Server mieten oder selbst hosten? Der ultimative Ver</span>
+              </a>
+              <a href="/artikel/nightingale-server-hosting.html" class="mega-item">
+                <img src="/images/nightingale-server-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Nightingale Server hosten – Realm-Hosting-Guide 2026</span>
+              </a>
+              <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
+                <img src="/images/palworld-server-hosting-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Palworld Server mieten oder selbst hosten? Der komplette Hosti</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#4CAF50">◆</span> Vergleiche</h4>
+              <a href="/artikel/minecraft-bedrock-vs-java-server-2026.html" class="mega-item">
+                <img src="/images/minecraft-bedrock-vs-java-server-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Minecraft Bedrock vs. Java Server – Der große Vergleich 2026</span>
+              </a>
+              <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
+                <img src="/images/minecraft-server-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Minecraft Server mieten oder selbst hosten? Der ultimative Ver</span>
+              </a>
+              <a href="/artikel/palworld-server-mods-guide-2026.html" class="mega-item">
+                <img src="/images/palworld-server-mods-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Palworld Server Mods guide 2026 – Die besten Mods</span>
+              </a>
+              <a href="/artikel/v-rising-server-mieten-2026.html" class="mega-item">
+                <img src="/images/v-rising-server-mieten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">V Rising Server mieten – Privatserver-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/gaming/">→ Alle Gaming‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">🌐 Webhosting</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Beliebt</h4>
+              <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="mega-item">
+                <img src="/images/cloud-hosting-vs-shared-hosting.png" alt="" loading="lazy">
+                <span class="mega-title">Cloud-Hosting vs. Shared-Hosting – Was ist besser?</span>
+              </a>
+              <a href="/artikel/domain-kaufen-einrichten-2026.html" class="mega-item">
+                <img src="/images/domain-kaufen-einrichten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Domain kaufen und einrichten – Schritt-für-Schritt 2026</span>
+              </a>
+              <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
+                <img src="/images/ssl-zertifikat-lets-encrypt-2026.png" alt="" loading="lazy">
+                <span class="mega-title">SSL-Zertifikat mit Let's Encrypt einrichten – Anleitung 2026</span>
+              </a>
+              <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
+                <img src="/images/webhosting-anbieter-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Die 5 besten Webhosting-Anbieter 2026 im Vergleich</span>
+              </a>
+              <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
+                <img src="/images/wordpress-hosting-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">WordPress Hosting Vergleich 2026 – Die besten Anbieter</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Anleitungen</h4>
+              <a href="/artikel/email-server-selbst-hosten-2026.html" class="mega-item">
+                <img src="/images/email-server-selbst-hosten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</span>
+              </a>
+              <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html" class="mega-item">
+                <img src="/images/hetzner-cloud-vs-dediziert-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Hetzner Cloud vs. Dedizierter Server – Vergleich 2026</span>
+              </a>
+              <a href="/artikel/mysql-mariadb-optimierung.html" class="mega-item">
+                <img src="/images/mysql-mariadb-optimierung.png" alt="" loading="lazy">
+                <span class="mega-title">MySQL &amp; MariaDB optimieren – Performance-Guide 2026</span>
+              </a>
+              <a href="/artikel/netcup-vps-erfahrungen-2026.html" class="mega-item">
+                <img src="/images/netcup-vps-erfahrungen-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Netcup VPS Erfahrungen 2026 – Test, Preise &amp; Bewertung</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Vergleiche</h4>
+              <a href="/artikel/nextcloud-server-einrichten.html" class="mega-item">
+                <img src="/images/nextcloud-server-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">Nextcloud Server einrichten – Cloud-Speicher selbst hosten 202</span>
+              </a>
+              <a href="/artikel/plesk-vs-cpanel-vergleich.html" class="mega-item">
+                <img src="/images/plesk-vs-cpanel-vergleich.png" alt="" loading="lazy">
+                <span class="mega-title">Plesk vs. cPanel – Der große Hosting-Panel-Vergleich 2026</span>
+              </a>
+              <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
+                <img src="/images/ssl-zertifikat-lets-encrypt-2026.png" alt="" loading="lazy">
+                <span class="mega-title">SSL-Zertifikat mit Let's Encrypt einrichten – Anleitung 2026</span>
+              </a>
+              <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
+                <img src="/images/webhosting-anbieter-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Die 5 besten Webhosting-Anbieter 2026 im Vergleich</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#2196F3">◆</span> Setup</h4>
+              <a href="/artikel/webseite-sicherheit-2026.html" class="mega-item">
+                <img src="/images/webseite-sicherheit-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Webseite sichern – Security-Checkliste für deine Website 2026</span>
+              </a>
+              <a href="/artikel/website-online-bringen-guide-2026.html" class="mega-item">
+                <img src="/images/website-online-bringen-guide-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Webseite online bringen – Der Komplettguide von A bis Z 2026</span>
+              </a>
+              <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
+                <img src="/images/wordpress-hosting-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">WordPress Hosting Vergleich 2026 – Die besten Anbieter</span>
+              </a>
+              <a href="/artikel/webhosting-vserver-vergleich.html" class="mega-item">
+                <img src="/images/webhosting-vserver-vergleich.png" alt="" loading="lazy">
+                <span class="mega-title">Webhosting vs. VServer – Was passt zu dir?</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/webhosting/">→ Alle 16 Webhosting‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/">⚙️ DevOps</a>
+        <div class="nav-dropdown-menu">
+          <div class="mega-grid">
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Beliebt</h4>
+              <a href="/artikel/ansible-automation-guide.html" class="mega-item">
+                <img src="/images/ansible-automation-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</span>
+              </a>
+              <a href="/artikel/backup-strategien-vps-server-2026.html" class="mega-item">
+                <img src="/images/backup-strategien-vps-server-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Backup-Strategien für VPS und Server – Der Guide 2026</span>
+              </a>
+              <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="mega-item">
+                <img src="/images/docker-vs-podman-vergleich-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</span>
+              </a>
+              <a href="/artikel/elk-stack-log-management.html" class="mega-item">
+                <img src="/images/elk-stack-log-management.png" alt="" loading="lazy">
+                <span class="mega-title">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</span>
+              </a>
+              <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="mega-item">
+                <img src="/images/github-actions-ci-cd-pipeline-2026.png" alt="" loading="lazy">
+                <span class="mega-title">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Anleitungen</h4>
+              <a href="/artikel/gitops-argocd-einrichten.html" class="mega-item">
+                <img src="/images/gitops-argocd-einrichten.png" alt="" loading="lazy">
+                <span class="mega-title">GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</span>
+              </a>
+              <a href="/artikel/k3s-kubernetes-vps-2026.html" class="mega-item">
+                <img src="/images/k3s-kubernetes-vps-2026.png" alt="" loading="lazy">
+                <span class="mega-title">K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</span>
+              </a>
+              <a href="/artikel/linux-server-harden.html" class="mega-item">
+                <img src="/images/linux-server-harden.png" alt="" loading="lazy">
+                <span class="mega-title">Linux Server härten – Security-Baseline 2026</span>
+              </a>
+              <a href="/artikel/n8n-automation-server.html" class="mega-item">
+                <img src="/images/n8n-automation-server.png" alt="" loading="lazy">
+                <span class="mega-title">n8n Automation Server hosten – Workflow-Automatisierung 2026</span>
+              </a>
+              <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" class="mega-item">
+                <img src="/images/nginx-reverse-proxy-einrichten-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Nginx Reverse Proxy konfigurieren – Einsteiger-Guide 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Vergleiche</h4>
+              <a href="/artikel/postgresql-vps-optimierung.html" class="mega-item">
+                <img src="/images/postgresql-vps-optimierung.png" alt="" loading="lazy">
+                <span class="mega-title">PostgreSQL auf dem VPS optimieren – Tuning-Guide 2026</span>
+              </a>
+              <a href="/artikel/prometheus-grafana-monitoring-2026.html" class="mega-item">
+                <img src="/images/prometheus-grafana-monitoring-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Server Monitoring mit Prometheus &amp; Grafana – Setup 2026</span>
+              </a>
+              <a href="/artikel/terraform-infrastructure-as-code-2026.html" class="mega-item">
+                <img src="/images/terraform-infrastructure-as-code-2026.png" alt="" loading="lazy">
+                <span class="mega-title">Terraform Infrastructure as Code – Einführung &amp; Beispiele </span>
+              </a>
+              <a href="/artikel/traefik-reverse-proxy.html" class="mega-item">
+                <img src="/images/traefik-reverse-proxy.png" alt="" loading="lazy">
+                <span class="mega-title">Traefik Reverse Proxy einrichten – Moderner Docker-Proxy 2026</span>
+              </a>
+              <a href="/artikel/wireguard-vpn-server.html" class="mega-item">
+                <img src="/images/wireguard-vpn-server.png" alt="" loading="lazy">
+                <span class="mega-title">WireGuard VPN Server einrichten – Schnell &amp; Sicher 2026</span>
+              </a>
+            </div>
+            <div class="mega-column">
+              <h4><span style="color:#FF9800">◆</span> Setup</h4>
+              <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">
+                <img src="/images/docker-compose-vps-guide.png" alt="" loading="lazy">
+                <span class="mega-title">Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse</span>
+              </a>
+              <a href="/artikel/vps-absichern-2026.html" class="mega-item">
+                <img src="/images/vps-absichern-2026.png" alt="" loading="lazy">
+                <span class="mega-title">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</span>
+              </a>
+              <a href="/artikel/devops-tools-2024.html" class="mega-item">
+                <img src="/images/devops-tools-2024.png" alt="" loading="lazy">
+                <span class="mega-title">DevOps-Tools 2024 – Die 10 wichtigsten Tools im Überblick</span>
+              </a>
+            </div>
+            <div class="mega-view-all">
+              <a href="/devops/">→ Alle 18 DevOps‑Artikel anzeigen</a>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li><a href="/about.html">Über uns</a></li>
+      <li><a href="/impressum.html">Impressum</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="container article-page">
+  <article>
+    <div class="article-header">
+      <div class="card-meta">
+        <span class="card-tag devops">KI & LLM</span>
+        <span>7. Juni 2026</span>
+        <span>⏱ 8 Min Lesezeit</span>
+      </div>
+      <h1>Docker-Container für LLM-Inference – Best Practices 2026</h1>
+      <p style="color:var(--text-secondary);font-size:1.1rem">GPU-Passthrough, Ollama, vLLM und Open WebUI in Docker Compose: Wie du Large Language Models performant, sicher und wartbar in Containern betreibst.</p>
+    </div>
+
+    <div class="hero-image-wrap" style="margin:1.5rem 0;border-radius:12px;overflow:hidden;">
+      <img src="../images/docker-llm-inference-container.png" alt="Docker-Container für LLM-Inference mit GPU-Passthrough und Open WebUI" class="hero-image" style="width:100%;height:auto;display:block;">
+    </div>
+
+    <div class="adsense-placeholder">
+      <p><strong>— Anzeige —</strong></p>
+      <p>Google AdSense Platzhalter</p>
+    </div>
+
+    <div id="breadcrumbs"></div>
+    <div class="article-content">
+      <p><strong>Large Language Models (LLMs)</strong> wie Llama 3.3, Mistral oder Qwen 2.5 in Docker-Containern zu betreiben, ist 2026 zum Standard geworden. Container vereinfachen das Deployment, isolieren Abhängigkeiten und ermöglichen reproduzierbare Setups – sei es auf einem einzelnen GPU-VPS, einem dedizierten Server im Rechenzentrum oder einer Multi-Node-Kubernetes-Umgebung.</p>
+
+      <p>Doch LLM-Inference stellt besondere Anforderungen an Container: GPUs müssen durchgereicht werden, Modelle wiegen 10–80 GB, der Speicherbedarf ist enorm und die Netzwerklatenz zwischen Container und GPU-Treiber darf nicht zum Flaschenhals werden. In diesem Guide zeigen wir dir die bewährten Praktiken für Docker-Container mit LLM-Inference – von der Basis mit dem <strong>NVIDIA Container Toolkit</strong> über <strong>Ollama</strong> und <strong>vLLM</strong> bis zum vollständigen Docker-Compose-Setup mit <strong>Open WebUI</strong> und einer Datenbank.</p>
+
+      <h2>Warum Docker für LLM-Inference?</h2>
+      <p>Container bieten für KI-Workloads entscheidende Vorteile: Du kapselst CUDA-Treiber, Python-Runtime und Modell-Dateien in einem Image, das auf jedem Docker-Host mit NVIDIA-GPU identisch läuft. Versionierung, Rollbacks und parallele Instanzen verschiedener Modelle werden trivial. Statt auf dem Hostsystem eine komplexe CUDA-Umgebung mit mehreren Python-Versionen und Konflikten zu pflegen, deklarierst du alles im Dockerfile oder Compose-Service.</p>
+
+      <p>Hinzu kommt die <strong>Ressourcenisolierung</strong>: Mit Docker limitierst du CPU, RAM und GPU-Speicher pro Container. Ein fehlerhaftes Modell kann dadurch nicht den gesamten Server lahmlegen. Für Teams, die mehrere Modelle parallel betreiben oder eine LLM-Infrastruktur mit CI/CD aufbauen, ist Docker der logische nächste Schritt nach dem manuellen Setup. Für eine grundlegende Einführung in Docker Compose empfehlen wir unseren <a href="/artikel/docker-compose-vps-guide.html">Docker-Compose-VPS-Guide</a>.</p>
+
+      <h2>NVIDIA Container Toolkit – die Basis für GPU-Passthrough</h2>
+      <p>Damit ein Docker-Container auf die GPU zugreifen kann, reicht ein einfaches <code>--gpus all</code> nicht mehr aus – zumindest nicht, wenn du eine saubere, zukunftssichere Konfiguration möchtest. Das <strong>NVIDIA Container Toolkit</strong> (ehemals nvidia-docker2) ist der offizielle Weg, um CUDA-fähige Container zu betreiben. Es stellt das NVIDIA-Runtime-Environment für Docker bereit und sorgt dafür, dass die GPU-Treiber, CUDA-Bibliotheken und der Container-Kernel-Modul-Zugriff korrekt gekapselt werden.</p>
+
+      <h3>Installation des NVIDIA Container Toolkits</h3>
+      <p>Die Installation erfolgt auf Ubuntu 24.04 LTS in wenigen Schritten:</p>
+      <pre><code>curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | \
+  sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+  sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+sudo apt update &amp;&amp; sudo apt install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker</code></pre>
+      <p>Nach einem Neustart von Docker prüfst du die GPU-Erreichbarkeit mit einem ersten CUDA-Container:</p>
+      <pre><code>docker run --rm --gpus all nvidia/cuda:12.6-base-ubuntu24.04 nvidia-smi</code></pre>
+      <p>Wenn <code>nvidia-smi</code> die GPU anzeigt, ist der GPU-Passthrough einsatzbereit. Ab Docker 25+ und neueren Versionen des Toolkits ist die NVIDIA-Container-Runtime automatisch als Default-Runtime konfigurierbar – du musst dann nicht bei jedem Container <code>--gpus all</code> angeben.</p>
+
+      <h2>Ollama im Docker-Container</h2>
+      <p>Ollama bietet ein offizielles Docker-Image, das NVIDIA-GPUs out of the box unterstützt. Der Start ist denkbar einfach:</p>
+      <pre><code>docker run -d --gpus all \
+  -v ollama_data:/root/.ollama \
+  -p 11434:11434 \
+  --name ollama \
+  ollama/ollama</code></pre>
+      <p>Das Volume <code>ollama_data</code> speichert heruntergeladene Modelle dauerhaft. Nach dem Start lädst du ein Modell in den Container:</p>
+      <pre><code>docker exec ollama ollama pull llama3.3:70b-instruct-q4_K_M</code></pre>
+      <p>Für Produktivumgebungen solltest du die Ollama-Umgebungsvariablen <code>OLLAMA_NUM_PARALLEL</code> (Anzahl paralleler Requests), <code>OLLAMA_MAX_LOADED_MODELS</code> und <code>OLLAMA_KEEP_ALIVE</code> setzen, um das Verhalten an deine Hardware anzupassen. Ein vollständiger Aufruf mit Konfiguration:</p>
+      <pre><code>docker run -d --gpus all \
+  -v ollama_data:/root/.ollama \
+  -p 11434:11434 \
+  -e OLLAMA_NUM_PARALLEL=4 \
+  -e OLLAMA_MAX_LOADED_MODELS=2 \
+  -e OLLAMA_KEEP_ALIVE=5m \
+  --memory="64g" \
+  --memory-swap="64g" \
+  --shm-size=8g \
+  --name ollama \
+  --restart unless-stopped \
+  ollama/ollama</code></pre>
+      <p>Die vollständige Anleitung zum Betrieb von Ollama auf einem VPS findest du in unserem Artikel <a href="/artikel/ollama-llm-server-vps-2026.html">Ollama LLM Server auf VPS hosten</a>.</p>
+
+      <h2>vLLM: High-Performance-Inference für produktive Setups</h2>
+      <p>Während Ollama auf Einfachheit und schnelle Experimente ausgelegt ist, zielt <strong>vLLM</strong> auf maximale Inferenz-Performance in Produktionsumgebungen. vLLM implementiert PagedAttention, continuous batching und optimierte CUDA-Kernel, die den GPU-Durchsatz um ein Vielfaches steigern können. Besonders bei vielen parallelen Requests – zum Beispiel in einer Chat-API mit mehreren Nutzern – glänzt vLLM.</p>
+
+      <p>Der offizielle vLLM-Docker-Container wird über das NVIDIA CUDA-Base-Image bereitgestellt und unterstützt ebenfalls GPU-Passthrough:</p>
+      <pre><code>docker run -d --gpus all \
+  -v /models:/models \
+  -p 8000:8000 \
+  --name vllm \
+  vllm/vllm-openai:latest \
+  --model /models/Meta-Llama-3.3-70B-Instruct-Q4_K_M \
+  --tensor-parallel-size 2 \
+  --gpu-memory-utilization 0.9 \
+  --max-model-len 8192 \
+  --enforce-eager</code></pre>
+      <p>Mit <code>--tensor-parallel-size 2</code> verteilst du das Modell auf zwei GPUs. Der Parameter <code>--gpu-memory-utilization 0.9</code> reserviert 90 % des VRAMs für das Modell – der Rest bleibt für KV-Cache und Overhead. vLLM startet automatisch eine OpenAI-kompatible API auf Port 8000, sodass du sie mit Open WebUI, Continue.dev oder LangChain verbinden kannst.</p>
+
+      <h3>Ollama vs. vLLM vs. TGI – Vergleichstabelle</h3>
+      <p>Welche Inference-Engine du wählst, hängt von deinem Use-Case ab. Die folgende Tabelle fasst die wichtigsten Unterschiede zusammen:</p>
+      <table class="vergleichstabelle">
+        <thead>
+          <tr>
+            <th>Kriterium</th>
+            <th>Ollama</th>
+            <th>vLLM</th>
+            <th>Text Generation Inference (TGI)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Einrichtung</td>
+            <td>Sehr einfach (ein Befehl)</td>
+            <td>Mittel (Konfiguration nötig)</td>
+            <td>Mittel (Hugging Face Integration)</td>
+          </tr>
+          <tr>
+            <td>GPU-Unterstützung</td>
+            <td>Ja (automatisch)</td>
+            <td>Ja (Multi-GPU, Tensor Parallel)</td>
+            <td>Ja (Flash Attention 2)</td>
+          </tr>
+          <tr>
+            <td>Continuous Batching</td>
+            <td>Nein (sequentiell)</td>
+            <td>Ja (sehr effizient)</td>
+            <td>Ja (optimiert)</td>
+          </tr>
+          <tr>
+            <td>OpenAI-kompatible API</td>
+            <td>Ja (nativ)</td>
+            <td>Ja (nativ)</td>
+            <td>Ja (nativ)</td>
+          </tr>
+          <tr>
+            <td>Modellformat</td>
+            <td>Ollama-eigenes / GGUF</td>
+            <td>SafeTensors / GPTQ / AWQ</td>
+            <td>SafeTensors (Hugging Face)</td>
+          </tr>
+          <tr>
+            <td>Quantisierungsformate</td>
+            <td>GGUF (Q4–Q8, IQ)</td>
+            <td>GPTQ, AWQ, FP8</td>
+            <td>GPTQ, AWQ, bitsandbytes</td>
+          </tr>
+          <tr>
+            <td>Multi-User-Tauglichkeit</td>
+            <td>Bedingt (num_parallel)</td>
+            <td>Hervorragend</td>
+            <td>Hervorragend</td>
+          </tr>
+          <tr>
+            <td>Ressourcenbedarf (Basis)</td>
+            <td>Gering (~500 MB RAM)</td>
+            <td>Mittel (~2 GB RAM)</td>
+            <td>Mittel (~1,5 GB RAM)</td>
+          </tr>
+          <tr>
+            <td>Idealer Use-Case</td>
+            <td>Einzeluser, Entwicklung, Basteln</td>
+            <td>API-Produktion, Multi-User</td>
+            <td>Hugging-Face-Integration, Finetuning</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Docker Compose: Multi-Container-Setup mit LLM + Open WebUI + DB</h2>
+      <p>Ein vollständiges LLM-Inference-Setup besteht oft aus mehreren Komponenten: der Inference-Engine (Ollama oder vLLM), einem Chat-Frontend (Open WebUI) und optional einer Datenbank für Chat-Verläufe und Nutzerdaten. Mit Docker Compose definierst du alle Dienste in einer einzigen YAML-Datei und startest sie mit einem Befehl.</p>
+
+      <h3>Beispiel: Ollama + Open WebUI + PostgreSQL</h3>
+      <pre><code>services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_NUM_PARALLEL=4
+      - OLLAMA_KEEP_ALIVE=5m
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - llm-net
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - open-webui_data:/app/backend/data
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
+    depends_on:
+      - ollama
+    networks:
+      - llm-net
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: llm-db
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: webui
+      POSTGRES_USER: webui
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - llm-net
+
+volumes:
+  ollama_data:
+  open-webui_data:
+  postgres_data:
+
+networks:
+  llm-net:
+    driver: bridge</code></pre>
+      <p>Dieses Setup trennt die Dienste sauber: Ollama läuft mit GPU-Passthrough, Open WebUI verbindet sich über das interne Docker-Netzwerk (<code>llm-net</code>) und PostgreSQL speichert die Chat-Verläufe. Die Zugangsdaten landen in einer <code>.env</code>-Datei, nicht in der Compose-Datei selbst. Für den produktiven Betrieb empfehlen wir zusätzlich einen Reverse Proxy (Traefik oder Nginx) vor Open WebUI, wie in unserem <a href="/artikel/docker-compose-vps-guide.html">Docker-Compose-VPS-Guide</a> beschrieben.</p>
+
+      <h2>Ressourcenlimits und GPU-Monitoring</h2>
+      <p>LLM-Container sind ressourcenhungrig. Ohne Limits kann ein einzelner Container den gesamten Server blockieren. Setze daher immer explizite <strong>CPU- und RAM-Grenzen</strong> in der Compose-Datei:</p>
+      <pre><code>deploy:
+  resources:
+    limits:
+      cpus: '8'
+      memory: 64G
+    reservations:
+      cpus: '4'
+      memory: 32G
+      devices:
+        - driver: nvidia
+          count: 1
+          capabilities: [gpu]</code></pre>
+      <p>Für das GPU-Monitoring empfiehlt sich <strong>dcgm-exporter</strong> (NVIDIA Data Center GPU Manager) in einem separaten Container. Er exportiert Metriken wie GPU-Auslastung, Temperatur, VRAM-Verbrauch und Power Draw, die du mit Prometheus und Grafana visualisieren kannst. Eine einfachere Alternative ist <code>nvidia-smi</code> im Host-System mit regemäßigem Logging via Cronjob.</p>
+
+      <p>Auch der Speicherplatz wächst schnell: Ein einziges 70B-Modell in Q4 belegt ~40 GB, mehrere Modelle plus Docker-Images und Build-Cache können 200–500 GB füllen. Richte daher eine regelmäßige Bereinigung mit <code>docker system prune -f</code> und <code>ollama prune</code> ein. Für passende SSDs und Server-Hardware findest du Empfehlungen <a href="https://www.amazon.de/s?k=NVMe+SSD+Server&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">bei Amazon*</a>.</p>
+
+      <h2>Sicherheit: GPU-Container absichern</h2>
+      <p>Container mit GPU-Zugriff haben ein erweitertes Privilegienprofil. Der Zugriff auf <code>/dev/nvidia*</code> und <code>/dev/dri*</code> gibt dem Container theoretisch direkten Hardware-Zugriff. Beachte daher folgende Sicherheitsmaßnahmen:</p>
+      <ul>
+        <li><strong>Kein --privileged:</strong> Für GPU-Passthrough ist <code>--privileged</code> nicht nötig. Nutze stattdessen explizite Device-Reservations wie im Compose-Beispiel oben.</li>
+        <li><strong>Read-Only Root Filesystem:</strong> Wenn das Modell auf einem externen Volume liegt, kannst du den Container-RO-FS mit <code>--read-only</code> aktivieren.</li>
+        <li><strong>Keine öffentlichen Ports:</strong> Inference-APIs (Port 11434, 8000) niemals direkt exposen. Setze einen Reverse Proxy mit Authentifizierung davor oder nutze ein VPN (<a href="/artikel/wireguard-vpn-server.html">WireGuard</a>).</li>
+        <li><strong>Regelmäßige Updates:</strong> Halte Docker Engine, NVIDIA-Treiber und das Container Toolkit aktuell. Sicherheitslücken wie CVE-2024-在半 (Container Escape via GPU) wurden mehrfach in NVIDIA-Treibern gefunden.</li>
+        <li><strong>User Namespaces:</strong> Aktiviere <code>userns-remap</code> in der Docker-Daemon-Konfiguration, um Container-Prozesse mit eingeschränkten Rechten laufen zu lassen.</li>
+      </ul>
+
+      <h2>Best Practices für das Docker-Image</h2>
+      <p>Wie bei jedem Docker-Workload gilt: Das Image sollte so klein und sicher wie möglich sein. Für LLM-Inference bedeutet das konkret:</p>
+      <ul>
+        <li><strong>CUDA-Base-Image statt vollständigem OS:</strong> Starte von <code>nvidia/cuda:12.6-runtime-ubuntu24.04</code> statt <code>ubuntu:24.04</code> – das spart 2–3 GB Image-Größe und enthält bereits die optimierten CUDA-Bibliotheken.</li>
+        <li><strong>Multi-Stage-Builds:</strong> Baue Abhängigkeiten in einer Build-Stage mit vollständigem CUDA-Devel-Image und kopiere nur die Binary und Laufzeitbibliotheken in das finale Runtime-Image.</li>
+        <li><strong>Modell nicht im Image:</strong> Lade Modelle zur Laufzeit oder mounte sie als Volume. Ein Image mit 40-GB-Modell-Gewichten ist impractical für CI/CD und Deployment-Pipelines.</li>
+        <li><strong>Healthcheck integrieren:</strong> Definiere einen Docker-Healthcheck, der regelmäßig die API erreichbarkeit prüft. Bei Ollama: <code>HEALTHCHECK CMD ollama ps || exit 1</code>.</li>
+        <li><strong>Non-Root-User:</strong> Auch wenn CUDA-Container oft als Root laufen – viele Images wie das offizielle vLLM-Image unterstützen bereits den <code>vllm</code>-User. Passe die Berechtigungen für die Modell-Volumes entsprechend an.</li>
+      </ul>
+
+      <div class="highlight-box">
+        <p><strong>🚀 Praxis-Tipp:</strong> Starte mit Ollama im Docker-Container für erste Experimente. Sobald du mehrere Nutzer bedienen oder eine Produktions-API bereitstellen möchtest, migriere zu vLLM. Lege für jedes Setup ein eigenes Projektverzeichnis mit <code>compose.yml</code>, <code>.env</code> und einem kurzen <code>README.md</code> an – so behältst du auch nach Monaten den Überblick.</p>
+      </div>
+
+      <h2>Fehlerbehebung: Typische Probleme bei LLM-Containern</h2>
+      <ul>
+        <li><strong>CUDA out of memory:</strong> Reduziere <code>gpu-memory-utilization</code> oder wähle ein kleineres Modell / stärkere Quantisierung. Prüfe mit <code>nvidia-smi</code> den aktuellen VRAM-Verbrauch.</li>
+        <li><strong>Container startet keine GPU:</strong> Überprüfe <code>docker info | grep -i runtime</code>. Fehlt die NVIDIA-Runtime, installiere das Container Toolkit neu und starte Docker neu.</li>
+        <li><strong>Langsame Modell-Ladezeiten:</strong> Nutze eine NVMe-SSD statt SATA-SSD. Die Modell-Gewichte müssen vor der ersten Inference komplett in den VRAM geladen werden – bei 40 GB dauert das auf SATA schnell 30–60 Sekunden.</li>
+        <li><strong>Open WebUI verbindet sich nicht mit Ollama:</strong> Stelle sicher, dass <code>OLLAMA_BASE_URL</code> auf den Container-Namen zeigt (<code>http://ollama:11434</code>) und beide Container im selben Docker-Netzwerk sind.</li>
+        <li><strong>Netzwerk-Timeout bei langen Prompts:</strong> Erhöhe <code>--shm-size</code> (Shared Memory) im Container – einige Inference-Engines nutzen Shared Memory für den KV-Cache.</li>
+      </ul>
+
+      <h2>Fazit</h2>
+      <p>Docker-Container sind 2026 der Standard für den Betrieb von LLM-Inference-Workloads. Das <strong>NVIDIA Container Toolkit</strong> liefert die GPU-Passthrough-Basis, <strong>Ollama</strong> und <strong>vLLM</strong> decken die gesamte Bandbreite von schnellen Experimenten bis zur High-Performance-Produktions-API ab, und <strong>Docker Compose</strong> orchestriert das Multi-Container-Setup aus Inference-Engine, Frontend und Datenbank.</p>
+
+      <p>Der Schlüssel zu einem stabilen Betrieb liegt in drei Punkten: saubere Ressourcenlimits, durchdachte Netzwerktrennung und regelmäßige Updates von Treibern und Containern. Mit den hier gezeigten Best Practices – GPU-Reservierung statt Privileged-Mode, Read-Only-Volumes, keine offenen Ports, Healthchecks und NVMe-SSDs – stellst du sicher, dass deine LLM-Container zuverlässig, schnell und sicher laufen.</p>
+
+      <p>Für die nächsten Schritte empfehlen wir unseren <a href="/artikel/ollama-llm-server-vps-2026.html">Ollama-VPS-Guide</a> für ein vollständiges Inference-Setup, den <a href="/artikel/free-llm-benchmark-2026.html">Free-LLM-Benchmark-Artikel</a> für einen Modellvergleich sowie den <a href="/artikel/docker-compose-vps-guide.html">Docker-Compose-VPS-Guide</a> für allgemeine Docker-Betriebskonzepte. Weiterführende Literatur und Hardware findest du in den Empfehlungen unten.</p>
+
+    </div>
+
+    <div class="affiliate-box">
+      <p><strong>Empfohlene Hardware und Ressourcen für dein LLM-Container-Setup</strong></p>
+      <a href="https://www.amazon.de/s?k=NVIDIA+GPU+LLM+Server&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">NVIDIA GPUs für LLM-Inference auf Amazon ansehen →</a>
+      <p style="margin-top:10px"><a href="https://www.amazon.de/s?k=NVMe+SSD+2TB+Server&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">NVMe-SSDs für schnelle Modell-Ladezeiten →</a></p>
+      <p style="margin-top:10px"><a href="https://www.amazon.de/s?k=Docker+Container+Linux+Buch&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored" class="btn">Docker- und Linux-Server-Bücher entdecken →</a></p>
+      <p style="margin-top:8px;font-size:0.75rem">* Affiliate-Link. Als Amazon-Partner verdienen wir an qualifizierten Käufen. Preis kann abweichen.</p>
+    </div>
+
+    <div id="related-articles"></div>
+    <div class="adsense-placeholder">
+      <p><strong>— Anzeige —</strong></p>
+      <p>Google AdSense Platzhalter (Ende des Artikels)</p>
+    </div>
+
+  </article>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>hosta<span style="color:var(--accent)">zar</span></h4>
+        <p style="color:var(--text-muted);font-size:0.9rem">Dein Hosting- &amp; Server-Portal mit Guides, Vergleichen und Tutorials.</p>
+      </div>
+      <div>
+        <h4>Kategorien</h4>
+        <ul>
+          <li><a href="/gaming/">🎮 Gaming</a></li>
+          <li><a href="/webhosting/">🌐 Webhosting</a></li>
+          <li><a href="/devops/">⚙️ DevOps</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Rechtliches</h4>
+        <ul>
+          <li><a href="/about.html">Über uns</a></li>
+          <li><a href="/impressum.html">Impressum</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 hostazar.com – Alle Rechte vorbehalten.</span>
+      <span>Made with ❤️ für die Hosting-Community</span>
+    </div>
+    <p class="affiliate-note">* Bei den mit Sternchen gekennzeichneten Links handelt es sich um Affiliate-Links. Wenn du über diese Links einkaufst, erhalten wir eine kleine Provision – für dich entstehen keine Mehrkosten. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.</p>
+  </div>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'devops',
+        excludeSlug: 'docker-llm-inference-container',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/devops/', label: 'DevOps' },
+        { url: '/', label: 'KI & LLM' },
+        { label: 'Docker-Container für LLM-Inference – Best Practices 2026' }
+      ]
+    });
+  }
+});
+</script>
+</body>
+</html>
