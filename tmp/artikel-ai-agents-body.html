@@ -1,0 +1,125 @@
+<article class="article-content">
+<h1>AI Agent Frameworks 2026 – Langchain, CrewAI, AutoGen &amp; OpenHands im Vergleich</h1>
+
+<p>2026 ist das Jahr der AI Agents. Statt einfach nur Fragen an eine LLM zu stellen, bauten Entwickler eigenständige Agenten — Programme die planen, Tools nutzen, im Internet recherchieren und komplexe Aufgaben selbstständig lösen. Wir vergleichen die 5 wichtigsten AI-Agent-Frameworks und zeigen dir, welches Framework für welchen Use Case passt.</p>
+
+<div class="highlight-box">
+<p><strong>Was ist ein AI Agent?</strong> Ein AI Agent ist ein Programm, das ein LLM als "Gehirn" nutzt, um eigenständig zu handeln: Informationen zu sammeln, APIs aufzuruffen, Code auszuführen und Entscheidungen zu treffen — alles innerhalb eines vordefinierten Rahmens.</p>
+</div>
+
+<h2>Die 5 wichtigsten AI-Agent-Frameworks 2026</h2>
+
+<h3>1. LangChain / LangGraph</h3>
+<p>LangChain ist das Framework, das die Agent-Welle ausgelöst hat. LangGraph (seit 2024 ist das zentrale Framework) ermöglicht zyklenhafte Agent-Workflows mit expliziter Zustandsverwaltung.</p>
+<ul>
+<li><strong>Stärken:</strong> Größte Community, riesige Tool-Bibliothek, LangSmith Monitoring</li>
+<li><strong>Schwächen:</strong> Steile Lernkurve, LangChain "Uber-Framework"-Komplexität</li>
+<li><strong>Sprache:</strong> Python</li>
+<li><strong>Use Case:</strong> Komplexe Multi-Schritt-Agenten, RAG-Pipelines</li>
+</ul>
+
+<h3>2. CrewAI</h3>
+<p>CrewAI	setzt auf das Konzept "Rollen". Jeder Agent in einem Crew hat eine Rolle (Researcher, Writer, Critic), ein Backstory und spezifische Tools.</p>
+<ul>
+<li><strong>Stärken:</strong> Intuitive API, Role-basiertes Design, einzelne Agenten leicht verständlich</li>
+<li><strong>Schwächen:</strong> Weniger flexibel als LangGraph, jüngeres Projekt</li>
+<li><strong>Sprache:</strong> Python</li>
+<li><strong>Use Case:</strong> Multi-Agent-Teams, Content-Generation, Research-Crews</li>
+</ul>
+
+<h3>3. Microsoft AutoGen / AG2</h3>
+<p>AutoGen (jetzt AG2) von Microsoft Research setzt auf "Conversational Agents" — Agenten die miteinander chatten, um Aufgaben lösen. Besonders stark bei Code-Generation und -Ausführung.</p>
+<ul>
+<li><strong>Stärken:</strong> Code-Ausführung in Sandbox, Microsoft-Ökosystem, Group Chat</li>
+<li><strong>Schwächen:</strong> Microsoft-lastig, weniger Tool-Integration als LangChain</li>
+<li><strong>Sprache:</strong> Python, C#, JavaScript</li>
+<li><strong>Use Case:</strong> Software-Automatisierung, Codeforcing, Data-Analyse Teams</li>
+</ul>
+
+<h3>4. OpenHands (ex-OpenDevin)</h3>
+<p>OpenHands ist ein autonomer Software-Engineering-Agent. Du beschreibst eine Aufgabe — OpenHands schreibt den Code, führt ihn aus, debuggt und iteriert.</p>
+<ul>
+<li><strong>Stärken:</strong> Full-Stack-Code-Generation, Docker-Sandboxing, Web-Browsing</li>
+<li><strong>Schwächen:</strong> Sehr GPU-intensiv, Einkalkulierte Fehlerquote bei komplexen Tasks</li>
+<li><strong>Sprache:</strong> Python-basiert, CLI-Tool</li>
+<li><strong>Use Case:</strong> Automatisierte Software-Entwicklung, Bug-Fixing, Prototyping</li>
+</ul>
+
+<h3>5. Google ADK (Agent Development Kit)</h3>
+<p>Google's ADK ist der neueste Teilnehmer (März 2026) und bietet native Gemini-Integration mit Multi-Modal-Support und Vertex-AI-Deployment.</p>
+<ul>
+<li><strong>Stärken:</strong> Gemini-native, Google Cloud-Integration, Multi-Modal</li>
+<li><strong>Schwächen:</strong> Sehr jung, Google-Lock-in, kleine Community</li>
+<li><strong>Sprache:</strong> Python, Java, Go, JavaScript</li>
+<li><strong>Use Case:</strong> Google-Cloud-Projekte, Multi-Modal-Agenten, Enterprise</li>
+</ul>
+
+<h2>Vergleichsübersicht</h2>
+<table>
+<thead><tr><th>Framework</th><th>Reife</th><th>Community</th><th>Lernkurve</th><th>Best For</th></tr></thead>
+<tbody>
+<tr><td><strong>LangGraph</strong></td><td>★★★★</td><td>Größte</td><td>Steil</td><td>Komplexe Workflows</td></tr>
+<tr><td><strong>CrewAI</strong></td><td>★★★</td><td>Wachsend</td><td>Mittel</td><td>Multi-Agent-Teams</td></tr>
+<tr><td><strong>AG2 (AutoGen)</strong></td><td>★★★★</td><td>Groß</td><td>Mittel</td><td>Code-Automatisierung</td></tr>
+<tr><td><strong>OpenHands</strong></td><td>★★★</td><td>Mittel</td><td>Niedrig</td><td>Software-Engineering</td></tr>
+<tr><td><strong>Google ADK</strong></td><td>★★</td><td>Klein</td><td>Mittel</td><td>Gemini/Google Cloud</td></tr>
+</tbody>
+</table>
+
+<h2>Architektur-Typen: Single Agent vs. Multi-Agent</h2>
+<p>Die nächste Frage nach dem Framework: Single Agent oder Multi-Agent?</p>
+
+<h3>Single Agent (ReAct Pattern)</h3>
+<p>Ein Agent mit Tool-Zugriff der iterativ plant und handelt. Geeignet für:</p>
+<ul>
+<li>Research + Zusammenfassung</li>
+<li>Code-Review</li>
+<li>Einfache Automatisierungen</li>
+</ul>
+
+<h3>Multi-Agent (Crew/Team Pattern)</h3>
+<p>Mehrere spezialisierte Agenten arbeiten zusammen. Geeignet für:</p>
+<ul>
+<li>Content-Pipelines (Research → Write → Review → Publish)</li>
+<li>Software-Teams (PM → Dev → QA → Deploy)</li>
+<li>Komplexe Analysen mit unterschiedlichen Experten-Perspektiven</li>
+</ul>
+
+<h3>State Machine (LangGraph Pattern)</h3>
+<p>Explizite Zustandsübergänge mit bedingter Verzweigung. Geeignet für:</p>
+<ul>
+<li>Geschäftsprozesse mit definierten Schritten</li>
+<li>Error-Handling mit definierten Recovery-Pfaden</li>
+<li>Audit-Compliance (jeder Schritt wird geloggt)</li>
+</ul>
+
+<h2>AI Agents auf dem VPS hosten</h2>
+<p>Für Production-Deployments brauchst du:</p>
+<ul>
+<li><strong>LLM-API:</strong> OpenRouter (Multi-Model), OpenAI, oder lokaler Ollama-Server</li>
+<li><strong>Agent-Runtime:</strong> Python 3.11+, Framework deiner Wahl</li>
+<li><strong>Message Queue:</strong> Redis für Agent-State und Task-Queue</li>
+<li><strong>Monitoring:</strong> LangSmith (LangChain), MLflow, oder Custom-Logging</li>
+</ul>
+
+<p><strong>Empfehlung für den Einstieg:</strong> CrewAI für Multi-Agent-Prototypen, LangGraph für Produktions-Workflows.</p>
+
+<h2>FAQ – AI Agent Frameworks</h2>
+
+<h3>Welches Framework ist best für Anfänger?</h3>
+<p>CrewAI hat die niedrigste Einstiegshürde. Die Role-basierte API ist intuitiv und die Dokumentation gut. Für reine Code-Automatisierung ist OpenHands einsteigerfreundlich.</p>
+
+<h3>Kann ich Agenten mit lokalen LLMs betreiben?</h3>
+<p>Ja, mit Ollama + einem 70B-Modell (z.B. Llama 3.3 70B Q4) auf einem VPS mit GPU. OpenHands und LangGraph unterstützen Ollama nativ. Für CrewAI+AG2 brauchst du mindestens 140B für verlässliche Ergebnisse.</p>
+
+<h3>Sind AI Agents sicher für Produktion?</h3>
+<p>Mit Vorsicht. Immer Sandbox-Umgebung (Docker) verwenden, API-Keys rotieren und Outputs validieren. Besonders bei Code-Ausführung (AutoGen, OpenHands) Sandboxing aktivieren.</p>
+
+<h3>Wie kann ich Agenten debuggen?</h3>
+<p>LangSmith (LangChain) bietet Tracing. Für andere Frameworks: Strukturiertes Logging mit Trace-ID. Wichtig: Jeder Agent-Schritt mit Input/Output loggen.</p>
+
+<h3>Was kostet ein AI Agent im Production-Einsatz?</h3>
+<p>Hauptkosten sind LLM-API-Calls. Ein mittelkomplexer Agent (5-10 Tool-Calls) kostet ca. 0,05-0,20 € pro Ausführung bei GPT-4o. Bei lokalem Ollama nur Stromkosten (ca. 0,01-0,05 €).</p>
+
+<div class="adsense-placeholder"><strong>Anzeige:</strong> [AdSense-Banner]</div>
+</article>

@@ -1,0 +1,150 @@
+<article class="article-content">
+<h1>Istio Service Mesh 2026 – Setup, Traffic Management &amp; mTLS auf Kubernetes</h1>
+
+<p>Wenn deine Mikroservices-Architektur wächst, wird das Networking zum Problem. Service-Mesh wie Istio löst das — mit mTLS, Traffic-Shifting, Observability und Circuit-Breaking, ohne eine einzige Zeile Anwendungslogik zu ändern. Wir zeigen dir, wie du Istio 2026 auf deinem Kubernetes-Cluster aufsetzt und produktiv nutzt.</p>
+
+<div class="highlight-box">
+<p><strong>Istio-Status 2026:</strong> Istio ist das am weitesten verbreitete Service-Mesh. Sidecar-less (Ambient Mesh) seit Istio 1.20 der Default — weniger Overhead, einfachere Installation.</p>
+</div>
+
+<h2>Was ist ein Service Mesh und brauchst du eins?</h2>
+<p>Ein Service Mesh trennt die Kommunikationslogik von deiner Anwendungslogik. Statt dass jeder Service selbst Retry-Logic, Timeouts, Load Balancing und Verschlüsselung implementiert, übernimmt das Mesh:</p>
+
+<table>
+<thead><tr><th>Funktion</th><th>Ohne Mesh</th><th>Mit Istio</th></tr></thead>
+<tbody>
+<tr><td><strong>Verschlussselung</strong></td><td>Jede App selbst</td><td>Automatisches mTLS</td></tr>
+<tr><td><strong>Traffic-Splitting</strong></td><td>In-App oder Ingress</td><td>VirtualService-CRD</td></tr>
+<tr><td><strong>Retries/Circuit Breaker</strong></td><td>In-App</td><td>Automatic iptor</td><td>Jaeger/Zipkin/Kiali-native</td></tr>
+<tr><td><strong>Rate Limiting</strong></td><td>Jede App selbst</td><td>Envoy-Filter</td></tr>
+<tr><td><strong>A/B Testing</strong></td><td>Feature Flags</td><td>Traffic-Shifting</td></tr>
+</tbody>
+</table>
+
+<p><strong>Istio lohnt sich ab ca. 10+ Mikroservices.</strong> Für kleine Setups (3-5 Services) reicht oft ein Ingress-Controller mit Cert-Manager.</p>
+
+<h2>Istio Installation 2026 – Ambient Mesh (Sidecar-less)</h2>
+<p>Seit Istio 1.20 ist Ambient Mesh der Default. Das bedeutet: Kein Sidecar-Proxypod mehr bei jedem Service. Stattdessen läuft der ztunnel-Daemon auf jedem Node und übernimmt L4-Traffic. L7-Features (Traffic-Splitting, mTLS) werden nur bei Services aktiviert die sie brauchen.</p>
+
+<h3>Installation auf Kubernetes</h3>
+<pre><code># IstioCTL herunterladen
+curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.22.0 sh -
+cd istio-1.22.0
+export PATH=$PWD/bin:$PATH
+
+# Ambient Mesh installieren
+istioctl install --set profile=ambient --set values.pilot.env.PILOT_ENABLE_ALPHA_GATEWAY_API=true
+
+# Namespace für Services labeln
+kubectl label namespace default istio-injection=ambient
+</code></pre>
+
+<h3>Vergleich: Sidecar vs. Ambient</h3>
+<table>
+<thead><tr><th>Kriterium</th><th>Sidecar (Alt)</th><th>Ambient (2026 Default)</th></tr></thead>
+<tbody>
+<tr><td><strong>Overhead pro Pod</strong></td><td>~100MB RAM, ~0.1 CPU</td><td>0 (L4) / nur bei Bedarf (L7)</td></tr>
+<tr><td><strong>Startup-Zeit</strong></td><td>+5-15s pro Pod</td><td>0</td></tr>
+<tr><td><strong>mTLS</strong></td><td>Immer aktiv</td><td>Aktivierbar per Service</td></tr>
+<tr><td><strong>Updates</strong></td><td>Pod-Restart nötig</td><td>Rolling Update ohne Downtime</td></tr>
+</tbody>
+</table>
+
+<h2>Istio Traffic Management – Die wichtigsten CRDs</h2>
+<p>Istio verwendet Custom Resource Definitions (CRDs) für die Konfiguration:</p>
+
+<h3>VirtualService – Traffic-Routing</h3>
+<pre><code>apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: reviews
+spec:
+  hosts:
+  - reviews
+  http:
+  - match:
+    - headers:
+        end-user:
+          exact: testuser
+    route:
+    - destination:
+        host: reviews
+        subset: v2
+  - route:
+    - destination:
+        host: reviews
+        subset: v1
+</code></pre>
+
+<h3>DestinationRule – Subsets &amp; Policies</h3>
+<pre><code>apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: reviews
+spec:
+  host: reviews
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+  - name: v2
+    labels:
+      version: v2
+</code></pre>
+
+<h3>Canary Deployment mit Istio</h3>
+<p>Istio kann Traffic prozentual zwischen Versionen splitten:</p>
+<pre><code>http:
+- route:
+  - destination:
+      host: reviews
+      subset: v1
+    weight: 90
+  - destination:
+      host: reviews
+      subset: v2
+    weight: 10
+</code></pre>
+
+<p>Langsam von 10% → 50% → 100% auf v2 rücken. Wenn Infesian_metrics Alarm schlagen, auf 0% zurück.</p>
+
+<h2>Istio Observability – Die drei Säulen</h2>
+<p>Istio liefert Out-of-the-box Observability über Envoy-Proxy-Metriken:</p>
+
+<ul>
+<li><strong>Kiali:</strong> Service-Graph-Visualisierung — siehst wie Services miteinander kommunizieren</li>
+<li><strong>Jaeger/Zipkin:</strong> Distributed Tracing — folgt Requests durch alle Services</li>
+<li><strong>Prometheus + Grafana:</strong> Metriken-Dashboards für Latenz, Error Rate, Throughput</li>
+</ul>
+
+<h2>Istio auf dem VPS – Anforderungen</h2>
+<p>Istio selbst braucht Ressourcen. Für ein produktives Setup:</p>
+<ul>
+<li><strong>Kubernetes-Cluster:</strong> Mindestens 3 Nodes (je 2 CPU, 4 GB RAM)</li>
+<li><strong>Istio Control Plane:</strong> ~2 GB RAM, 1 CPU</li>
+<li><strong>ztunnel (Ambient):</strong> ~100 MB RAM pro Node</li>
+<li><strong>Empfehlung:</strong> Hetzner Cloud CX31 (8 GB RAM, 4 vCPU) als Master + 2x CX21 als Worker</li>
+</ul>
+
+<h2>FAQ – Istio Service Mesh</h2>
+
+<h3>Ist Istio kostenlos?</h3>
+<p>Ja, Istio ist Open Source (Apache 2.0). Es gibt keine Lizenzkosten. Du zahlst nur für die Infrastruktur (Kubernetes-Cluster).</p>
+
+<h3>Ist Istio zu komplex für kleine Teams?</h3>
+<p>Für Teams mit weniger als 5 Mikroservices: Ja, vermutlich. Ab 10+ Services mit mehreren Entwicklern lohnt sich der Overhead.</p>
+
+<h3>Kann ich Istio ohne Kubernetes nutzen?</h3>
+<p>Seit Istio 1.20 gibt es experimentellen Support für VMs neben Kubernetes. Der Primary Use Case bleibt aber Kubernetes.</p>
+
+<h3>Wie ist der Unterschied zu Linkerd?</h3>
+<p>Linkerd ist leichtgewichtiger und einfacher zu installieren. Istio bietet mehr Features (Traffic-Management, Observability, Gateway-API). Für komplexe Setups Istio, für einfache Linkerd.</p>
+
+<h3>Brauche ich Istio wenn ich bereits Ingress-Nginx habe?</h3>
+<p>Ingress-Nginx regelt nur den eingehenden Traffic (L7). Istio regelt den Service-to-Service-Traffic (Ost-West) innerhalb des Clusters. Sie ergänzen sich.</p>
+
+<div class="adsense-placeholder"><strong>Anzeige:</strong> [AdSense-Banner]</div>
+</article>
