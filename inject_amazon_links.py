@@ -6,7 +6,7 @@ Injects an affiliate-box before </main> with category-relevant product links.
 """
 import os, re, glob
 
-ARTIKEL_DIR = r"C:\HermesPortable\home\spaces\hostazar\artikel"
+ARTIKEL_DIR = r"C:\HermesPortable\home\scripts\blog-automation\hostazar\artikel"
 
 # Category-based Amazon keyword mappings
 # For each category, define the search term and display text
