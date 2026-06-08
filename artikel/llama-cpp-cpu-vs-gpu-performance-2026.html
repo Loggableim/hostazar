@@ -902,5 +902,24 @@
   </div>
 </div>
 <script src="/data/script.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'ki-llm',
+        excludeSlug: 'llama-cpp-cpu-vs-gpu-performance-2026',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/ki-llm/', label: 'KI & LLM' },
+        { label: 'llama.cpp Performance 2026: CPU vs GPU – Tokens/s, BLAS-Backends & Hardware-Vergleich' }
+      ]
+    });
+  }
+});
+</script>
 </body>
 </html>
