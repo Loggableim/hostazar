@@ -320,25 +320,6 @@
 
   window.hostazarApp = app;
 
-  /* ---- Cookie Consent Banner ---- */
-  (function() {
-    var banner = document.createElement('div');
-    banner.className = 'cookie-banner';
-    banner.innerHTML = '<div class="cookie-inner"><p>🍪 Diese Website verwendet Cookies und Dienste wie Google AdSense sowie Amazon Affiliate-Links. Mit Klick auf "Akzeptieren" stimmst du der Verwendung zu. <a href="/datenschutz.html">Mehr erfahren</a></p><button class="cookie-btn">Akzeptieren</button></div>';
-    var btn = banner.querySelector('.cookie-btn');
-    btn.addEventListener('click', function() {
-      banner.classList.remove('show');
-      try { localStorage.setItem('hostazar_cookie_consent', '1'); } catch(e) {}
-    });
-    // Check if already accepted
-    var hasConsent = false;
-    try { hasConsent = localStorage.getItem('hostazar_cookie_consent') === '1'; } catch(e) {}
-    if (!hasConsent) {
-      document.body.appendChild(banner);
-      setTimeout(function() { banner.classList.add('show'); }, 500);
-    }
-  })();
-
   /* ---- Hamburger Menu Toggle ---- */
   (function() {
     var toggle = document.querySelector('.nav-toggle');

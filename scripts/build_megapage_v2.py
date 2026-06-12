@@ -190,8 +190,9 @@ def page_shell(title, desc, canonical, body_html,
   <meta name="twitter:title" content="''' + h(title) + '''">
   <meta name="twitter:description" content="''' + h(desc) + '''">
   <meta name="twitter:image" content="''' + og_image + '''">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>
+  <script data-hz-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/css/consent-banner.css">
 ''' + extra_head + '''
 ''' + jsonld_tags + '''
 </head>
@@ -289,7 +290,7 @@ def build_footer():
       <div>
         <h4>hostazar.com</h4>
         <p style="color:var(--text-muted);font-size:.85rem;max-width:300px">
-          Unabh&#228;ngige Hosting-Reviews, Gameserver-Guides und DevOps-Tutorials. Transparent, testbench-basiert, werbefrei.
+          Unabh&#228;ngige Hosting-Reviews, Gameserver-Guides und DevOps-Tutorials. Transparent, recherchiert und praxisnah, finanziert durch Affiliate-Links und Anzeigen.
         </p>
       </div>
 ''' + cats_html + '''    </div>
@@ -297,7 +298,8 @@ def build_footer():
       <span>&copy; ''' + str(year) + ''' hostazar.com</span>
       <span>
         <a href="/impressum.html">Impressum</a> &middot;
-        <a href="/datenschutz.html">Datenschutz</a>
+        <a href="/datenschutz.html">Datenschutz</a> &middot;
+        <a href="#" onclick="window.hzReopenBanner();return false;">Cookie-Einstellungen</a>
       </span>
     </div>
     <div class="affiliate-note">
@@ -305,14 +307,9 @@ def build_footer():
     </div>
   </div>
 </footer>
-<div class="cookie-banner" id="cookieBanner">
-  <div class="cookie-inner">
-    <p>Wir nutzen Cookies f&#252;r Analyse und AdSense. <a href="/datenschutz.html">Mehr erfahren</a></p>
-    <button class="cookie-btn" id="cookieBtn">Akzeptieren</button>
-  </div>
-</div>'''
-
-
+<script src="/data/script.js" defer></script>
+<script src="/js/consent-manager.js" defer></script>
+</body>'''
 # ── Blog Card ────────────────────────────────────────────────────────────────
 
 def render_blog_card(a, color_map=None):
@@ -557,14 +554,23 @@ def build_all_articles():
         else:
             og_image = SITE_URL + '/images/ollama-llm-server-vps-2026.png'
 
-        # Extract article content
+        # Extract article content — fixed regex:
+        # Bug before: (1) 'main' missing [^>]* so main class="..." didn't match
+        #             (2) (.*?) lazy stopped at first </div> inside content
+        #             (3) </(?:main|div)> closed on first match, breaking nesting
+        # Fix: use greedy (.*) with separate patterns per tag type
         content_match = re.search(
-            r'<(?:main|div[^>]*class="?article-content"?[^>]*)>(.*?)</(?:main|div)>',
+            r'<main[^>]*>(.*)</main>',
             raw, re.DOTALL | re.IGNORECASE
         )
         if not content_match:
             content_match = re.search(
                 r'<article[^>]*>(.*?)</article>',
+                raw, re.DOTALL | re.IGNORECASE
+            )
+        if not content_match:
+            content_match = re.search(
+                r'<div[^>]*class="[^"]*article-content[^"]*"[^>]*>(.*)</div>',
                 raw, re.DOTALL | re.IGNORECASE
             )
 
@@ -638,8 +644,26 @@ def build_legal_pages():
     ]:
         with open(os.path.join(BASE, fname), encoding='utf-8') as f:
             existing = f.read()
-        m = re.search(r'<body[^>]*>(.*?)</body>', existing, re.DOTALL)
-        body_inner = m.group(1) if m else existing
+        # Extract ONLY the actual page content — NOT the nav/breadcrumb/footer
+        # Priority 1: content inside <main class="static-page"><div class="container"> (current format)
+        m = re.search(
+            r'<main class="static-page"><div class="container">(.*?)</div></main>',
+            existing, re.DOTALL
+        )
+        if m:
+            body_inner = m.group(1)
+        else:
+            # Priority 2: original standalone format (pre-build-script)
+            m = re.search(
+                r'<main class="container static-page">(.*?)</main>',
+                existing, re.DOTALL
+            )
+            if m:
+                body_inner = m.group(1)
+            else:
+                # Fallback: full body (should never happen after fix)
+                m = re.search(r'<body[^>]*>(.*?)</body>', existing, re.DOTALL)
+                body_inner = m.group(1) if m else existing
         build_legal_page(fname, title, desc, body_inner)
     print('OK Legal pages (impressum, datenschutz, about)', file=sys.stderr)
 

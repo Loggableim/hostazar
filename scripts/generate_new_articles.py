@@ -376,8 +376,9 @@ def make_html(title, slug, desc, cat, image, date, reading_time, content, tags):
   <meta name="twitter:title" content="{title}">
   <meta name="twitter:description" content="{desc}">
   <meta name="twitter:image" content="{SITE_URL}/images/{image}">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>
+  <script data-hz-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/css/consent-banner.css">
   <script type="application/ld+json">
   {{
     "@context": "https://schema.org",
@@ -427,12 +428,12 @@ def make_html(title, slug, desc, cat, image, date, reading_time, content, tags):
       <span>{reading_time} Min Lesezeit</span>
       <span>{date}</span>
     </div>
-    <article class="article-content">
+    <div class="article-content">
       <figure class="article-hero-img" style="margin:0 0 24px">
         <img src="/images/{image}" alt="{title}" loading="lazy" width="800" height="400" style="width:100%;height:auto;border-radius:12px">
       </figure>
       {content}
-    </article>
+    </div>
     <div class="article-tags" style="margin:30px 0;padding-top:20px;border-top:1px solid #333">
       <h4 style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:10px">Tags:</h4>
       <div class="tag-cloud">{tag_list}</div>
@@ -444,14 +445,14 @@ def make_html(title, slug, desc, cat, image, date, reading_time, content, tags):
     <div class="footer-grid">
       <div><h4>hostazar.com</h4><p style="color:var(--text-muted);font-size:.85rem">Unabhängige Hosting-Reviews, Gameserver-Guides und DevOps-Tutorials.</p></div>
     </div>
-    <div class="footer-bottom"><span>© 2026 hostazar.com</span><span><a href="/impressum.html">Impressum</a> · <a href="/datenschutz.html">Datenschutz</a></span></div>
-    <div class="affiliate-note">* Affiliate-Links: Wir erhalten ggf. eine Provision. Das kostet dich keinen Cent mehr.</div>
+    <div class="footer-bottom"><span>© 2026 hostazar.com</span><span><a href="/impressum.html">Impressum</a> · <a href="/datenschutz.html">Datenschutz</a> · <a href="#" onclick="window.hzReopenBanner();return false;">Cookie-Einstellungen</a></span></div>
+    </div>
   </div>
 </footer>
-<div class="cookie-banner" id="cookieBanner"><div class="cookie-inner"><p>Wir nutzen Cookies für Analyse und AdSense. <a href="/datenschutz.html">Mehr erfahren</a></p><button class="cookie-btn" id="cookieBtn">Akzeptieren</button></div></div>
 <script src="/data/script.js" defer></script>
+<script src="/js/consent-manager.js" defer></script>
 </body>
-</html>'''
+</html>"""
 
 
 # ── Generierung ──────────────────────────────────────────────────────────────
@@ -467,10 +468,11 @@ added = 0
 
 for art in ARTICLES:
     if art['slug'] in existing_slugs:
-        print(f"  SKIP (exists): {art['slug']}")
-        continue
+        print(f"  UPDATE (exists): {art['slug']}")
+    else:
+        print(f"  NEW: {art['slug']}")
     
-    # HTML schreiben
+    # HTML schreiben (overwrite if exists)
     html = make_html(
         title=art['title'],
         slug=art['slug'],
@@ -487,7 +489,7 @@ for art in ARTICLES:
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(html)
     
-    # artikel.json Eintrag
+    # artikel.json Eintrag (nur hinzufügen wenn neu)
     entry = {
         "slug": art['slug'],
         "title": art['title'],
@@ -498,10 +500,11 @@ for art in ARTICLES:
         "readingTime": art['readingTime'],
         "image": art['image'],
     }
-    artikel_list.append(entry)
-    existing_slugs.add(art['slug'])
-    added += 1
-    print(f"  OK: {art['slug']}")
+    if art['slug'] not in existing_slugs:
+        artikel_list.append(entry)
+        existing_slugs.add(art['slug'])
+        added += 1
+    print(f"  + OK: {art['slug']}")
 
 # artikel.json speichern
 artikel_list.sort(key=lambda a: a.get('date', ''), reverse=True)

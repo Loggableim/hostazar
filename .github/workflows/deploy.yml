@@ -4,13 +4,59 @@ on:
     branches: [main]
   workflow_dispatch:
 jobs:
-  deploy:
+  quality-and-deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       deployments: write
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Run Article Analysis
+        run: bash analyze_articles.sh || echo "Analysis completed (warnings allowed)"
+      
+      - name: Check H1 Tags
+        run: |
+          missing_h1=0
+          for f in artikel/*.html; do
+            if ! grep -q '<h1>' "$f"; then
+              echo "MISSING H1: $f"
+              missing_h1=$((missing_h1+1))
+            fi
+          done
+          if [ "$missing_h1" -gt 0 ]; then
+            echo "❌ $missing_h1 Artikel ohne H1-Tag gefunden"
+            exit 1
+          fi
+          echo "✅ Alle Artikel haben H1-Tags"
+      
+      - name: HTML Validation (basic)
+        run: |
+          errors=0
+          for f in *.html artikel/*.html; do
+            if [ -f "$f" ]; then
+              # Check for unclosed <main> tags
+              main_open=$(grep -c '<main' "$f" 2>/dev/null || echo 0)
+              main_close=$(grep -c '</main>' "$f" 2>/dev/null || echo 0)
+              if [ "$main_open" -ne "$main_close" ]; then
+                echo "❌ Unclosed <main> in $f"
+                errors=$((errors+1))
+              fi
+              # Check for unclosed <h1> tags
+              h1_open=$(grep -c '<h1' "$f" 2>/dev/null || echo 0)
+              h1_close=$(grep -c '</h1>' "$f" 2>/dev/null || echo 0)
+              if [ "$h1_open" -ne "$h1_close" ]; then
+                echo "❌ Unclosed <h1> in $f"
+                errors=$((errors+1))
+              fi
+            fi
+          done
+          if [ "$errors" -gt 0 ]; then
+            echo "❌ $errors HTML-Fehler gefunden"
+            exit 1
+          fi
+          echo "✅ HTML-Grundprüfung bestanden"
+      
       - name: Deploy to Cloudflare Pages
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

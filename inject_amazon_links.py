@@ -164,7 +164,7 @@ def build_affiliate_block(amazon_kw, category_key):
 <div class="affiliate-box" style="margin:30px 0;padding:20px;background:linear-gradient(135deg,#667eea22,#764ba222);border:1px solid #667eea44;border-radius:12px;text-align:center">
 <p><strong>🔧 {cat["title"]}</strong></p>
 <p style="margin:10px 0;font-size:.95rem">Du möchtest dein Setup optimieren? Hier findest du passende Hardware, Zubehör und Equipment:</p>
-<a href="{url}" class="btn" rel="nofollow noopener" target="_blank" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:8px;text-decoration:none;font-weight:600">👉 {cat["cta"]}</a>
+<a href="{url}" class="btn" rel="sponsored noopener noreferrer" target="_blank" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:8px;text-decoration:none;font-weight:600">👉 {cat["cta"]}</a>
 </div>
 '''
 
