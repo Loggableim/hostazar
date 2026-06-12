@@ -76,8 +76,17 @@ ARTICLE_PROMPTS = {
     "ansible-automation-guide": "Ansible automation guide, playbook YAML, infrastructure automation, control node, managed hosts",
 }
 
-SKETCH_STYLE = "sketch style, black and white charcoal pencil drawing, rough hand-drawn lines, crosshatching, unfinished concept art sketch, monochrome, minimalist linework, paper texture background, artistic sketching technique, no shading"
-NEG = "color, photograph, painting, render, 3d, realistic, detailed textures, soft shading, gradient, blur, watermark, text, signature, vibrant, oil paint, watercolor, digital art"
+# === BRAND STYLE (IDENTISCH MIT batch_minimax_images.py) ===
+BRAND_STYLE = (
+    "furry editorial illustration, anthropomorphic animal characters, "
+    "black and white artwork with a single accent color, bold black ink outlines, "
+    "high contrast monochrome shading, clean vector illustration, graphic novel aesthetics, "
+    "editorial magazine artwork, dynamic composition, expressive characters, "
+    "selective color highlights, professional commercial illustration, crisp linework, halftone textures"
+)
+NEG = "photorealistic, painting, render, 3d, photograph, realistic lighting, soft shading, gradient, blur, watermark, text, color photograph, oil paint, watercolor, digital art"
+
+SKETCH_STYLE = BRAND_STYLE
 
 def submit_prompt(prompt_text):
     workflow = {
