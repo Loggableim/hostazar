@@ -759,6 +759,186 @@
     </div>
 
 <h1>RunPod Serverless vs Dedicated GPU 2026 – Was lohnt sich?</h1>
+<h2>Inhaltsverzeichnis</h2>
+<ul>
+<li><a href="#ueberblick">Überblick 2026</a></li>
+<li><a href="#serverless">Was ist RunPod Serverless?</a></li>
+<li><a href="#dedicated">Was ist RunPod Dedicated GPU?</a></li>
+<li><a href="#architektur">Architektur-Unterschiede</a></li>
+<li><a href="#preise">Preismodelle 2026 im Vergleich</a></li>
+<li><a href="#performance">Performance &amp; Latenz</a></li>
+<li><a href="#scaling">Skalierbarkeit &amp; Cold Starts</a></li>
+<li><a href="#usecase-serverless">Anwendungsfälle Serverless</a></li>
+<li><a href="#usecase-dedicated">Anwendungsfälle Dedicated GPU</a></li>
+<li><a href="#kostenrechnung">Kostenrechnung mit Praxisbeispielen</a></li>
+<li><a href="#code">Code-Beispiele: Deployment beider Varianten</a></li>
+<li><a href="#fazit">Entscheidungshilfe &amp; Fazit</a></li>
+</ul>
+</nav>
+
+<h2 id="ueberblick">Überblick: Der GPU-Markt 2026 im Wandel</h2>
+
+<p>Der Markt für Cloud-GPUs hat sich 2026 deutlich konsolidiert. NVIDIA H200, B200 und die neue B300-Generation dominieren die Rechenzentren, während ältere A100-Instanzen massiv im Preis gefallen sind. RunPod gehört zu den Anbietern, die diesen Hardware-Shift konsequent mitgehen und sowohl <strong>Serverless-Endpoints</strong> als auch <strong>dedizierte GPU-Container</strong> anbieten.</p>
+
+<p>Die zentrale Frage 2026 lautet nicht mehr <em>„Cloud oder On-Prem?"</em>, sondern <em>„Serverless oder Dedicated?"</em>. Beide Optionen laufen in derselben Infrastruktur, unterscheiden sich aber fundamental im Abrechnungsmodell, in der Kontrolle und im operativen Overhead. Wer 2026 ein LLM hostet, ein Fine-Tuning durchführt oder Stable Diffusion in Produktion betreibt, muss diese Differenz verstehen.</p>
+
+<p>Hinzu kommt: Mit dem Aufkommen von <strong>Spot-GPUs</strong>, <strong>Community Cloud</strong> und <strong>autoskalierenden Endpoints</strong> ist die Grenze zwischen „Serverless" und „Dedicated" fließender geworden. Genau hier setzt dieser Vergleich an – mit klaren Kriterien statt Marketing-Versprechen.</p>
+
+<p>Im Kern gilt: Serverless maximiert die Kosteneffizienz bei sporadischen Workloads, Dedicated maximiert Kontrolle, Performance und Vorhersagbarkeit bei konstant hoher Last. Die Wahl ist eine Funktion Ihrer Traffic-Muster, Latenz-Anforderungen und Teamgröße.</p>
+
+<h2 id="serverless">Was ist RunPod Serverless?</h2>
+
+<p><strong>RunPod Serverless</strong> ist ein ereignisgesteuerter GPU-Compute-Service. Sie stellen Ihren Code als Container-Image bereit, definieren einen Endpoint, und RunPod skaliert die Worker dynamisch zwischen null und einem konfigurierbaren Maximum. Sie zahlen nur für die tatsächliche Rechenzeit, gemessen in GB-Sekunden und CPU-Sekunden.</p>
+
+<p>Das Modell ist inspiriert von AWS Lambda, bringt aber GPUs ins Spiel. Ein typischer Endpoint wird mit einem <code>handler.py</code> definiert, der Eingaben über eine HTTP-Schnittstelle entgegennimmt. RunPod übernimmt das Cold-Start-Management, das Image-Caching und das Autoscaling. Der Entwickler konzentriert sich ausschließlich auf die Inferenz-Logik.</p>
+
+<p>Wichtig zu wissen: Serverless-Endpoints haben eine <strong>konfigurierbare Idle-Timeout</strong> (Standard 5 Sekunden). Wird dieser überschritten, fährt der Worker herunter. Bei einem neuen Request startet ein neuer Worker – das ist der sogenannte Cold Start. Für LLM-Inferenz mit kleinen Modellen ist das oft akzeptabel, für latenzkritische Echtzeit-Workflows kann es zum Problem werden.</p>
+
+<p>RunPod bietet 2026 drei Serverless-Tiers: <em>Standard</em>, <em>FlashBoot</em> (optimierte Cold-Starts) und <em>Priority</em> (garantierte Worker-Verfügbarkeit). Letzterer ist neu und richtet sich an Produktionsworkloads mit SLA-Anforderungen. Die Preise variieren je nach GPU-Klasse zwischen 0,0002 USD und 0,004 USD pro GB-Sekunde.</p>
+
+<h2 id="dedicated">Was ist RunPod Dedicated GPU?</h2>
+
+<p><strong>Dedicated GPU</strong> (auch „Pods" genannt) bedeutet: Sie mieten eine physische oder virtuelle Maschine mit garantierten GPU-Ressourcen – stundenweise, täglich oder monatlich. Die Maschine läuft solange Sie buchen, unabhängig davon, ob sie ausgelastet ist. RunPod bietet eine riesige Auswahl: von der günstigen RTX 3090 bis zur H200 mit 141 GB VRAM.</p>
+
+<p>Der Zugriff erfolgt per SSH, JupyterLab oder über das RunPod-Webterminal. Sie haben Root-Rechte, können eigene Docker-Container starten, Treiber anpassen, Volumes mounten und beliebige Software installieren. Das macht Dedicated GPUs zur ersten Wahl für <strong>Fine-Tuning</strong>, <strong>Distributed Training</strong> und <strong>Langzeit-Inferenz mit hohem Durchsatz</strong>.</p>
+
+<p>2026 neu im Programm: <strong>Multi-GPU-Pods</strong> mit NVLink-Bridge sowie <strong>Cluster-Modi</strong> für verteiltes Training mit Horovod oder DeepSpeed. Auch <strong>Spot-Dedicated</strong> ist verfügbar – das sind dedizierte Instanzen mit bis zu 70 % Rabatt, die aber bei Kapazitätsengpässen abgeschaltet werden können. Ideal für Batch-Jobs und nicht-kritische Workloads.</p>
+
+<p>Im Gegensatz zu Serverless zahlen Sie hier <strong>auch im Leerlauf</strong>. Das ist der größte Nachteil, aber auch der größte Vorteil: keine Cold Starts, keine Worker-Limits, keine Ratenbegrenzung. Wer eine konstante Auslastung von mehr als 60–70 % hat, fährt mit Dedicated GPUs fast immer günstiger.</p>
+
+<h2 id="architektur">Architektur-Unterschiede im Detail</h2>
+
+<p>Architektonisch sind die beiden Modelle grundverschieden. <strong>Serverless</strong> ist zustandslos, request-basiert und horizontal skalierend. Jeder Request wird an einen freien Worker geleitet; gibt es keinen, wird einer gestartet. Das System ist hochgradig elastisch, opfert aber Zustand und Latenzgarantien.</p>
+
+<p><strong>Dedicated GPU</strong> ist zustandsbehaftet, immer verfügbar und vertikal konfigurierbar. Sie haben eine Maschine, eine IP, ein Dateisystem. Wenn der Pod aus ist, ist er aus – Sie zahlen nicht. Aber wenn er an ist, kostet er. Diese Einfachheit ist gleichzeitig Stärke und Schwäche.</p>
+
+<p>Ein weiterer Unterschied liegt im <strong>Networking</strong>. Serverless-Endpoints haben eine öffentliche HTTPS-URL, die von RunPods Edge geroutet wird. Dedicated Pods haben eine private IP innerhalb des RunPod-Netzwerks, das per WireGuard-Tunnel oder über einen Reverse-Proxy erreichbar gemacht werden kann. Für komplexe Multi-Service-Architekturen ist Dedicated die flexiblere Wahl.</p>
+
+<p>Schließlich: <strong>Sicherheit</strong>. Serverless-Container laufen in einer Sandbox, der Code wird in einer eingeschränkten Umgebung ausgeführt. Bei Dedicated haben Sie vollen Systemzugriff – was einerseits mehr Flexibilität, andererseits mehr Verantwortung bedeutet. Für sensible Daten (Medizin, Finanzen) ist Dedicated oft die bevorzugte Option, ergänzt um VPC-Peering und Private Networking.</p>
+
+<table border="1" cellpadding="8" cellspacing="0">
+<caption>Tabelle 1: Architektur-Vergleich RunPod Serverless vs Dedicated GPU</caption>
+<thead>
+<tr>
+<th>Kriterium</th>
+<th>RunPod Serverless</th>
+<th>RunPod Dedicated GPU</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Zustandsmodell</td>
+<td>Zustandslos (stateless)</td>
+<td>Zustandsbehaftet (stateful)</td>
+</tr>
+<tr>
+<td>Skalierung</td>
+<td>Automatisch, 0–N Worker</td>
+<td>Manuell, 1 Pod = 1 Maschine</td>
+</tr>
+<tr>
+<td>Zugriff</td>
+<td>HTTP-Endpoint</td>
+<td>SSH / Jupyter / Web</td>
+</tr>
+<tr>
+<td>Root-Rechte</td>
+<td>Nein (Sandbox)</td>
+<td>Ja</td>
+</tr>
+<tr>
+<td>Persistenz</td>
+<td>Container-Ephemer</td>
+<td>Volumes persistent</td>
+</tr>
+<tr>
+<td>Netzwerk</td>
+<td>RunPod Edge / Public URL</td>
+<td>WireGuard / Private VPC</td>
+</tr>
+<tr>
+<td>Cold Start</td>
+<td>Ja (2–30 s)</td>
+<td>Nein</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="preise">Preismodelle 2026 im Vergleich</h2>
+
+<p>Die Preise auf RunPod haben sich 2026 erneut verändert. Mit der Markteinführung der B200-Generation sind die Preise für ältere Karten weiter gesunken, während neue GPUs anfangs Premium-Preise haben. Hier eine Übersicht der gängigsten Instanzen (Stand: Q1 2026, On-Demand):</p>
+
+<table border="1" cellpadding="8" cellspacing="0">
+<caption>Tabelle 2: Preisübersicht RunPod 2026 (On-Demand, USD/h)</caption>
+<thead>
+<tr>
+<th>GPU</th>
+<th>VRAM</th>
+<th>Dedicated / h</th>
+<th>Serverless (pro GB·s, ca.)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RTX 3090</td>
+<td>24 GB</td>
+<td>0,22 USD</td>
+<td>0,00022 USD</td>
+</tr>
+<tr>
+<td>RTX 4090</td>
+<td>24 GB</td>
+<td>0,44 USD</td>
+<td>0,00040 USD</td>
+</tr>
+<tr>
+<td>A100 80GB</td>
+<td>80 GB</td>
+<td>1,64 USD</td>
+<td>0,00120 USD</td>
+</tr>
+<tr>
+<td>H100 80GB</td>
+<td>80 GB</td>
+<td>2,49 USD</td>
+<td>0,00190 USD</td>
+</tr>
+<tr>
+<td>H200 141GB</td>
+<td>141 GB</td>
+<td>3,10 USD</td>
+<td>0,00240 USD</td>
+</tr>
+<tr>
+<td>B200 192GB</td>
+<td>192 GB</td>
+<td>4,99 USD</td>
+<td>0,00380 USD</td>
+</tr>
+</tbody>
+</table>
+
+<p>Die <strong>Serverless-Preise</strong> werden pro <em>GB-Sekunde</em> berechnet. Eine H100 hat 80 GB VRAM – ein Worker, der 10 Sekunden aktiv ist und 60 GB VRAM allokiert hat, kostet also 60 × 10 × 0,00190 = <strong>1,14 USD</strong>. Hinzu kommen CPU-Sekunden und ggf. Storage-Kosten.</p>
+
+<p><strong>Spot-Preise</strong> sind deutlich günstiger: Dedizierte H100-Spots gibt es ab 0,89 USD/h, was ca. 65 % Rabatt entspricht. Allerdings können diese Instanzen mit kurzer Vorlaufzeit beendet werden. Für Training-Jobs mit Checkpointing ist das ein exzellenter Kompromiss.</p>
+
+<p>Die <strong>Priority-Tier</strong> bei Serverless kostet ca. 40 % mehr pro Sekunde, garantiert aber eine Mindestanzahl warmer Worker und reduziert Cold-Starts auf unter 1 Sekunde. Für produktive LLM-APIs mit SLA ist dieser Aufschlag in den meisten Fällen gerechtfertigt.</p>
+
+<h2 id="performance">Performance &amp; Latenz im Vergleich</h2>
+
+<p>Performance ist der Bereich, in dem Dedicated GPUs klar dominieren. Ohne Cold Starts und mit garantierter Bandbreite zum Speicher (NVMe, NVLink) erreichen dedizierte Instanzen <strong>stabile Token-Raten</strong> und deterministische Antwortzeiten. Bei einem 70B-Parameter-LLM auf einer H100 ist eine Time-to-First-Token (TTFT) von 80–120 ms realistisch.</p>
+
+<p>Serverless-Worker haben denselben GPU-Typ, aber die System-Latenz ist höher. Ein typischer Cold Start dauert je nach Containergröße 5–30 Sekunden. Mit <strong>FlashBoot</strong> und vorgewärmten Images lässt sich das auf 1–3 Sekunden reduzieren, was für viele Anwendungsfälle akzeptabel ist. Warme Worker liefern identische Performance wie Dedicated Pods.</p>
+
+<p>Die <strong>Token-Durchsatz</strong> selbst ist vergleichbar. Eine H100 rendert 70B-Llama-Modelle mit ca. 80 Tokens/s im Streaming-Betrieb – unabhängig davon, ob sie in einem Pod oder einem Serverless-Worker läuft. Der Unterschied liegt nicht in der GPU, sondern im Wrapping: Serverless hat einen HTTP-Edge-Proxy, einen Job-Dispatcher und Container-Isolation, die je nach Konfiguration 5–20 ms Overhead pro Request verursachen.</p>
+
+<p>Wer Echtzeit-Anwendungen mit Antwortzeiten unter 200 ms baut (z. B. Voice-Agents, interaktive Copilots), sollte Dedicated verwenden. Für asynchrone Verarbeitung, Batch-Jobs und APIs mit moderater Latenztoleranz ist Serverless die wirtschaftlichere Wahl.</p>
+
+<h2 id="scaling">Skalierbarkeit &amp; Cold Starts</h2>
+
+<p>Skalierbarkeit ist die Kernstärke von Serverless. Ein Endpoint kann von 0 auf 100 gleichzeitige Worker skalieren – RunPod managt die Warteschlange, verteilt Last und beendet ungenutzte Worker automatisch. Das ist ideal für Workloads mit stark schwankendem Traffic: ChatGPT-ähnliche Tools, Bildgenerierung auf Abruf, On-Demand-Transkription.</p>
+
+<p>Allerdings gibt es <strong>Grenzen</strong>. Standard-Endpoints sind auf 50 gleichzeitige Worker pro Endpoint limitiert;
   <a href="/artikel/mistral-modelle-lokal-hosten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/mistral-modelle-lokal-hosten-2026.webp" alt="Mistral Large &amp; Mixtral 8x22B lokal hosten – MoE-Modelle selbst betreiben 2026" loading="lazy" width="400" height="200"></div>
   </a>

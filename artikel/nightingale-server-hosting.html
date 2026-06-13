@@ -759,6 +759,257 @@
     </div>
 
 <h1>Nightingale Server hosten – Realm-Hosting-Guide 2026</h1>
+<h2>Systemanforderungen für einen Nightingale-Server</h2>
+
+<p>Die Basis jedes stabilen Realm-Betriebs bildet die passende Hardware. Nightingale basiert auf der Unreal Engine und stellt entsprechende Anforderungen an CPU, RAM und Speicher. Während kleine private Realms mit wenigen Spielern noch auf älterer Hardware laufen, benötigen öffentliche Server mit 20+ gleichzeitigen Spielern deutlich mehr Leistungsreserven.</p>
+
+<p>Für offizielle Server-Emulatoren und die von Inflexion Games unterstützte Server-Software empfiehlt sich mindestens eine moderne Mehrkern-CPU mit hoher Single-Thread-Performance, da Unreal Engine stark von dieser abhängt. Mehr RAM verhindert Speicherengpässe, wenn die Welt wächst und persistente Daten zunehmen.</p>
+
+<p>Die nachfolgende Tabelle zeigt die empfohlenen Spezifikationen für unterschiedliche Szenarien. Beachte, dass die tatsächlichen Anforderungen mit zunehmender Spielerzahl und aktivierten Mods deutlich steigen können. Eine moderate Overprovisionierung ist empfehlenswert.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Komponente</th>
+      <th>Kleiner Realm (bis 8 Spieler)</th>
+      <th>Mittlerer Realm (bis 16 Spieler)</th>
+      <th>Großer Realm (20+ Spieler)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPU</td>
+      <td>4 vCores (3,5 GHz+)</td>
+      <td>6 vCores (4,0 GHz+)</td>
+      <td>8+ vCores (4,5 GHz+)</td>
+    </tr>
+    <tr>
+      <td>RAM</td>
+      <td>16 GB DDR4</td>
+      <td>32 GB DDR4/DDR5</td>
+      <td>64 GB DDR5</td>
+    </tr>
+    <tr>
+      <td>Speicher</td>
+      <td>80 GB SSD</td>
+      <td>120 GB NVMe</td>
+      <td>250 GB NVMe</td>
+    </tr>
+    <tr>
+      <td>Netzwerk</td>
+      <td>100 Mbit/s</td>
+      <td>500 Mbit/s</td>
+      <td>1 Gbit/s+</td>
+    </tr>
+    <tr>
+      <td>Betriebssystem</td>
+      <td>Windows 10/11, Linux</td>
+      <td>Windows Server, Ubuntu 22.04 LTS</td>
+      <td>Windows Server, Ubuntu/Debian LTS</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Für dedizierte Game-Server empfehlen wir grundsätzlich Linux-Distributionen wie Ubuntu 22.04 LTS oder Debian 12, da diese in der Praxis ressourcenschonender arbeiten und weniger Updates für die Host-Umgebung benötigen. Windows Server ist nur dann sinnvoll, wenn spezifische Windows-only-Tools benötigt werden.</p>
+
+<h2>Nightingale Server installieren – Schritt-für-Schritt</h2>
+
+<p>Die Installation eines Nightingale-Servers unterscheidet sich je nach Betriebssystem leicht. Über SteamCMD, das offizielle Tool von Valve, lässt sich die Dedicated-Server-Anwendung komfortabel herunterladen und aktualisieren. Wir zeigen den Weg für Linux und Windows gleichermaßen.</p>
+
+<p>Unter Linux beginnst du mit der Installation der nötigen Pakete und der Erstellung eines separaten Server-Users. Dies erhöht die Sicherheit, da der Server-Prozess nicht mit Root-Rechten läuft. Anschließend konfigurierst du SteamCMD und lädst die Server-Dateien in ein dediziertes Verzeichnis.</p>
+
+<p>Unter Windows genügt die Installation von SteamCMD, gefolgt vom Download der Server-Anwendung über die Steam-Konsole. Achte darauf, den Server in einem separaten Ordner zu betreiben, um Updates und Konfiguration sauber zu trennen.</p>
+
+<pre><code># Linux-Installation
+sudo apt update &amp;&amp; sudo apt install -y lib32gcc-s1 lib32stdc++6 libsdl2-2.0-0
+sudo useradd -m -s /bin/bash nightingale
+sudo -u nightingale -i
+mkdir -p ~/steamcmd ~/nightingale-server
+cd ~/steamcmd
+curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar xzf -
+./steamcmd.sh +login anonymous +force_install_dir ~/nightingale-server +app_update 2404680 validate +quit
+</code></pre>
+
+<p>Die App-ID 2404680 ist die offizielle Dedicated-Server-Anwendung von Nightingale. Ersetze den Pfad durch dein eigenes Installationsverzeichnis. Nach dem Download startest du den Server mit dem entsprechenden Binary und überprüfst die Logs auf Fehlermeldungen.</p>
+
+<p>Ein erfolgreicher Start erkennst du an Meldungen wie <em>„Realm listening on port XXXX"</em> und <em>„World loaded successfully"</em>. Sollten Fehler auftauchen, findest du im nächsten Abschnitt Hilfe zur Fehlerbehebung.</p>
+
+<h2>Server-Konfiguration und Konfigurationsdateien</h2>
+
+<p>Die Konfiguration eines Nightingale-Servers erfolgt über mehrere Dateien, die sich im Installationsverzeichnis befinden. Die wichtigsten Parameter umfassen Servernamen, Passwort, Spielerlimit, Welt-Einstellungen und Port-Konfiguration. Wir empfehlen, vor jeder Änderung eine Sicherungskopie der Originaldateien anzulegen.</p>
+
+<p>Die zentrale Konfigurationsdatei trägt typischerweise den Namen <code>GameUserSettings.ini</code> oder <code>ServerSettings.ini</code>, abhängig von der Version. Sie ist im INI-Format strukturiert und lässt sich mit jedem Texteditor bearbeiten. Kommentare werden mit einem Semikolon eingeleitet.</p>
+
+<p>Achte darauf, dass ungültige Werte zu Abstürzen oder Fehlverhalten führen können. Teste Änderungen zunächst auf einem Testserver, bevor du sie auf deinen öffentlichen Realm anwendest. Die folgende Beispielkonfiguration zeigt die wichtigsten Parameter.</p>
+
+<pre><code>; ServerSettings.ini - Beispielkonfiguration
+[Server]
+ServerName=Hostazar Nightingale Realm
+ServerPassword=GeheimesPasswort123
+MaxPlayers=20
+AdminPassword=AdminPasswort456
+ServerRegion=EU
+WorldSeed=123456789
+
+[/Script/Engine.GameSession]
+MaxPlayers=20
+bRequiresPassword=True
+
+[/Script/Nightingale.NGGameSession]
+bAllowFriendsOnly=False
+bIsPrivateServer=False
+bUseBattlEye=True
+</code></pre>
+
+<p>Mit <code>bUseBattlEye=True</code> aktivierst du das Anti-Cheat-System, das Cheating-Software erkennt und betroffene Spieler automatisch ausschließt. Für öffentliche Server ist dies dringend empfohlen, um eine faire Spielumgebung zu gewährleisten.</p>
+
+<p>Nach jeder Konfigurationsänderung muss der Server neu gestartet werden. Die meisten Einstellungen werden nicht live übernommen. Plane daher kurze Wartungsfenster ein, vor allem wenn du regelmäßig Anpassungen vornimmst.</p>
+
+<h2>Ports und Firewall richtig konfigurieren</h2>
+
+<p>Eine fehlerhafte Port-Konfiguration ist die häufigste Ursache dafür, dass Spieler den Server nicht erreichen können. Nightingale nutzt mehrere Ports für unterschiedliche Dienste: Game-Traffic, Query, RCON und optional Steam-Server-Browser. Alle relevanten Ports müssen in der Firewall freigegeben werden.</p>
+
+<p>Die Standardports für Nightingale sind 7777 (Game), 27015 (Query) und 32330 (RCON). Wenn du mehrere Instanzen auf demselben Host betreibst, weise jedem Server einen eindeutigen Port-Bereich zu. Andernfalls kommt es zu Konflikten, bei denen nur der erste gestartete Server erreichbar ist.</p>
+
+<p>Die folgende Tabelle zeigt eine Übersicht der relevanten Ports. Öffne sowohl UDP als auch TCP für die Game- und Query-Ports, da Nightingale beide Protokolle parallel nutzen kann.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Port</th>
+      <th>Protokoll</th>
+      <th>Verwendung</th>
+      <th>Hinweis</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>7777</td>
+      <td>UDP/TCP</td>
+      <td>Game-Traffic</td>
+      <td>Hauptport für Spielerverbindungen</td>
+    </tr>
+    <tr>
+      <td>7778</td>
+      <td>UDP</td>
+      <td>Game-Traffic (Sekundär)</td>
+      <td>Bei mehreren Instanzen pro Server</td>
+    </tr>
+    <tr>
+      <td>27015</td>
+      <td>UDP/TCP</td>
+      <td>Steam Query</td>
+      <td>Für Server-Browser erforderlich</td>
+    </tr>
+    <tr>
+      <td>32330</td>
+      <td>TCP</td>
+      <td>RCON (Remote Console)</td>
+      <td>Für administrative Fernsteuerung</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Unter Linux verwendest du <code>ufw</code> oder <code>iptables</code>, um die Ports freizugeben. Achte darauf, nur die tatsächlich benötigten Ports zu öffnen, um die Angriffsfläche zu minimieren. Cloud-Server benötigen zusätzlich Freigaben in der Security-Group des Providers.</p>
+
+<pre><code># UFW-Konfiguration für Nightingale
+sudo ufw allow 7777/udp
+sudo ufw allow 7777/tcp
+sudo ufw allow 27015/udp
+sudo ufw allow 27015/tcp
+sudo ufw allow 32330/tcp
+sudo ufw enable
+sudo ufw status verbose
+</code></pre>
+
+<p>Teste nach der Konfiguration die Erreichbarkeit mit Tools wie <code>netcat</code> oder Online-Port-Checkern. Eine fehlgeschlagene Verbindung deutet meist auf blockierte Ports, falsche IP-Bindings oder eine fehlerhafte Server-Konfiguration hin.</p>
+
+<h2>Performance-Optimierung für Nightingale Realms</h2>
+
+<p>Die Performance eines Nightingale-Servers hängt von vielen Faktoren ab: Welteinstellungen, Spieleraktivität, Tickrate und Hardware-Auslastung. Eine gut optimierte Konfiguration ermöglicht flüssiges Gameplay auch auf mittelstarker Hardware, während schlechte Einstellungen zu Lags und Abstürzen führen.</p>
+
+<p>Der wichtigste Hebel ist die Tickrate, also die Frequenz, mit der der Server die Spielwelt aktualisiert. Höhere Werte sorgen für flüssigere Bewegungen und präzisere Physik, kosten aber deutlich mehr CPU-Leistung. Für die meisten Realms ist ein Wert zwischen 20 und 30 ein guter Kompromiss.</p>
+
+<p>Reduziere außerdem die Anzahl gleichzeitig geladener Entities durch kluge Welteinstellungen. Eine Welt mit zu vielen aggressiven Kreaturen, strukturellen Komplexitäten und Spielerbasen belastet den Server stärker als eine ruhigere Variante. Die Spielerfahrung leidet erfahrungsgemäß erst, wenn die Tickrate dauerhaft unter 15 fällt.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Einstellung</th>
+      <th>Wert (Standard)</th>
+      <th>Wert (Performance)</th>
+      <th>Auswirkung</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Tickrate</td>
+      <td>30</td>
+      <td>20-25</td>
+      <td>CPU-Last reduziert um 30-50%</td>
+    </tr>
+    <tr>
+      <td>Entity-Culling-Distanz</td>
+      <td>Hoch</td>
+      <td>Mittel</td>
+      <td>Weniger Berechnungen pro Frame</td>
+    </tr>
+    <tr>
+      <td>Welten-Grenzen</td>
+      <td>Offen</td>
+      <td>Begrenzt</td>
+      <td>Speicher- und CPU-Bedarf sinken</td>
+    </tr>
+    <tr>
+      <td>Save-Intervall</td>
+      <td>15 Min</td>
+      <td>30 Min</td>
+      <td>Weniger Disk-I/O-Spitzen</td>
+    </tr>
+    <tr>
+      <td>BattlEye aktiv</td>
+      <td>True</td>
+      <td>True</td>
+      <td>Empfohlen, leicht erhöhte CPU-Last</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Überwache die Ressourcenauslastung mit Tools wie <code>htop</code>, <code>iotop</code> und <code>netstat</code>. So erkennst du frühzeitig Engpässe, bevor Spieler Beschwerden äußern. Die meisten Performance-Probleme entstehen durch zu hohen RAM-Verbrauch, der zum Swap-Crashing führt.</p>
+
+<p>Für professionelle Setups empfiehlt sich der Einsatz von Monitoring-Lösungen wie Grafana + Prometheus, die historische Daten sammeln und Trends sichtbar machen. So kannst du vorhersagen, wann ein Hardware-Upgrade notwendig wird.</p>
+
+<h2>Sicherheit und DDoS-Schutz für Game-Server</h2>
+
+<p>Sicherheit ist ein oft unterschätzter Aspekt beim Hosting von Game-Servern. Angriffe wie DDoS, Brute-Force auf RCON oder das gezielte Ausnutzen von Software-Schwachstellen können deinen Realm lahmlegen. Ein mehrschichtiger Ansatz aus Netzwerkschutz, Authentifizierung und regelmäßigen Updates schützt zuverlässig.</p>
+
+<p>Das wichtigste Fundament ist ein starker DDoS-Schutz. Dieser filtert bösartigen Traffic, bevor er deinen Server erreicht. Bei Hostazar ist dieser Schutz standardmäßig in allen Game-Server-Tarifen integriert, sodass du dir um Layer-3- und Layer-4-Angriffe keine Sorgen machen musst.</p>
+
+<p>Zusätzlich solltest du folgende Sicherheitsmaßnahmen implementieren: Verwende ein starkes, eindeutiges Admin-Passwort, aktiviere RCON nur über VPN oder IP-Whitelist, halte das Betriebssystem und die Server-Software stets aktuell, und erstelle regelmäßige Backups der Welt- und Konfigurationsdaten.</p>
+
+<pre><code># SSH-Härtung und Fail2Ban
+sudo apt install -y fail2ban
+sudo systemctl enable fail2ban
+sudo nano /etc/fail2ban/jail.local
+
+[nginx-http-auth]
+enabled = true
+port    = http,https
+filter  = nginx-http-auth
+logpath = /var/log/nginx/error.log
+
+[sshd]
+enabled = true
+port    = ssh
+filter  = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime  = 3600
+</code></pre>
+
+<p>Mit Fail2Ban blockierst du IP-Adressen, die mehrfach fehlerhaft einloggen. Kombiniere dies mit einer restriktiven SSH-Konfiguration (Key-basierte Authentifizierung, kein Root-Login) und du hast eine solide Basis gegen die häufigsten Angriffsvektoren geschaffen.</p>
+
+<p>Vergiss nicht, auch die Nightingale-Server-Software selbst aktuell zu halten. Updates schließen bekannte Sicherheitslücken und verbessern die Stabilität. Richte am
   <a href="/artikel/valheim-server-vps-mieten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/valheim-server-vps-mieten-2026.webp" alt="Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026" loading="lazy" width="400" height="200"></div>
   </a>

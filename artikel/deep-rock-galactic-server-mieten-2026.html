@@ -759,6 +759,127 @@
     </div>
 
 <h1>Deep Rock Galactic Server mieten – 4-Spieler Koop Guide 2026</h1>
+<h2>Warum einen DRG-Server mieten statt Listenserver?</h2>
+
+<p>Deep Rock Galactic bietet im Standard-Matchmaking nur öffentliche Spiele oder private Lobbys, bei denen der Host als Spieler teilnimmt. Sobald dieser Spieler das Spiel verlässt, stirbt der Server. Das ist für kurze Sessions in Ordnung, für eine eingeschworene 4-Spieler-Truppe, die abends regelmäßig Missionen spielt, jedoch suboptimal. Ein Dedicated Server läuft 24/7, kennt keine Disconnects durch den Host und erlaubt persistente Spielstände, Modifikationen und granularere Einstellungen.</p>
+
+<p>Ein weiterer Vorteil liegt in der <strong>Skalierbarkeit</strong>. Während ein Listenserver die Ressourcen deines privaten PCs mit dem Spiel teilen muss, läuft ein gemieteter Server isoliert. Du kannst also während des Spielens streamen, Videos schneiden oder andere Anwendungen nutzen, ohne dass dein Client ins Stocken gerät. Gerade für Content-Creator und Community-Manager ist das ein entscheidender Faktor.</p>
+
+<p>Mods sind ebenfalls ein massiver Pluspunkt. Der offizielle Mod-Support von Ghost Ship Games ermöglicht es, neue Missionstypen, Waffen-Skins, UI-Verbesserungen oder Balancing-Änderungen zu installieren. Diese Mods laufen nur auf Dedicated Servern zuverlässig, da sie den Client und den Server synchron halten müssen. Wer also mit Custom-Difficulty, Deep Dives auf Community-Levels oder neuen Herausforderungen spielen will, kommt um einen gemieteten Server nicht herum.</p>
+
+<p>Schließlich ist die <strong>Privatsphäre</strong> ein wichtiger Punkt. Öffentliche Lobbys ziehen oft zufällige Spieler an, die nicht ins Team passen. Ein eigener Server mit Passwortschutz garantiert, dass nur deine vier Kumpel einloggen. Das ist besonders auf höheren Schwierigkeitsgraden wie Hazard 5 oder bei Solo-Deep-Dives essenziell, wo Kommunikation und Skill-Disziplin über Erfolg und Niederlage entscheiden.</p>
+
+<h2>Systemanforderungen & Hardware-Empfehlungen 2026</h2>
+
+<p>Deep Rock Galactic ist 2018 erschienen und technisch kein Kraftprotz. Dennoch hat sich der Code mit den Jahren durch Seasons, Events und Mods weiterentwickelt. Für einen flüssigen 4-Spieler-Server ohne Lags empfehlen wir 2026 folgende Mindest- und empfohlene Spezifikationen:</p>
+
+<table border="1" cellpadding="8" cellspacing="0">
+<thead>
+<tr><th>Komponente</th><th>Minimum (4 Spieler)</th><th>Empfohlen (4 Spieler + Mods)</th><th>High-End (8-16 Spieler via Mods)</th></tr>
+</thead>
+<tbody>
+<tr><td>CPU</td><td>4 vCPU Cores (z.B. AMD EPYC 7002)</td><td>6 vCPU Cores, ≥3.5 GHz</td><td>8 vCPU Cores, ≥4.0 GHz</td></tr>
+<tr><td>RAM</td><td>8 GB DDR4</td><td>16 GB DDR4/DDR5</td><td>32 GB DDR5</td></tr>
+<tr><td>Speicher</td><td>40 GB SSD</td><td>80 GB NVMe SSD</td><td>120 GB NVMe SSD</td></tr>
+<tr><td>Netzwerk</td><td>100 Mbit/s, 1 Gbit/s Uplink</td><td>1 Gbit/s, DDoS-Schutz</td><td>2.5 Gbit/s, Anycast-Routing</td></tr>
+<tr><td>Betriebssystem</td><td>Windows Server 2019+</td><td>Windows Server 2022</td><td>Windows Server 2025 / Linux via Wine</td></tr>
+</tbody>
+</table>
+
+<p>Die CPU ist bei DRG der wichtigste Faktor, da der Server Physikberechnungen, Gegner-KI und Höhlenprozedur parallel verarbeitet. Moderne AMD-EPYC- oder Intel-Xeon-Plattformen mit hoher Single-Thread-Performance liefern hier die besten Ergebnisse. Wir empfehlen mindestens 4 dedizierte Kerne, da jeder der vier Spieler eine eigene Verbindung mit World-State-Updates unterhält.</p>
+
+<p>RAM-Menge ist weniger kritisch als bei MMOs, sollte aber 8 GB nicht unterschreiten. Mit Mods, erhöhter Gegnerzahl oder Community-Maps steigt der Verbrauch schnell auf 12-14 GB. NVMe-SSDs sind klassischen SATA-SSDs vorzuziehen, da die prozedurale Höhlengenerierung viele kleine Datei-Zugriffe erzeugt.</p>
+
+<p>Beim Netzwerk ist die <strong>Latenz</strong> entscheidender als die Bandbreite. Jeder Tick der Server-Simulation wird an die Clients übertragen, und in hektischen Situationen (z.B. Bulk-Detonator-Welle) zählt jede Millisekunde. Achte auf Anbieter mit Rechenzentren in Frankfurt, Amsterdam oder Zürich, wenn dein Squad in Mitteleuropa sitzt. Ein DDoS-Schutz ist 2026 Pflicht, da Gamer-Server zunehmend Ziel automatisierter Angriffe werden.</p>
+
+<h2>Dedicated vs. Listen Server – Technische Unterschiede</h2>
+
+<p>Der größte Unterschied zwischen einem Listen- und einem Dedicated Server liegt in der <em>Host-Rolle</em>. Bei einem Listenserver ist der Host gleichzeitig Spieler und Server-Instanz. Verlässt er das Spiel, kollabiert die Session. Bei einem Dedicated Server läuft die Instanz unabhängig vom Client – du kannst dich einloggen, spielen, ausloggen, und die Welt bleibt persistent.</p>
+
+<p>Ein weiterer technischer Unterschied betrifft die <strong>Tickrate</strong>. Listen-Server passen sich oft an die Hardware des Hosts an und können bei schlechter Verbindung des Hosts zu Server-Side-Lag führen. Dedicated Server laufen mit konfigurierbarer, fester Tickrate (standardmäßig 30 Hz in DRG, mit Mods bis zu 60 Hz). Das sorgt für vorhersehbare Performance und konsistente Spielmechanik.</p>
+
+<p>Die <strong>Admin-Oberfläche</strong> ist ebenfalls unterschiedlich. Listenserver bieten nur die Standard-Lobby-Einstellungen. Dedicated Server erlauben den Zugriff auf RCON (Remote Console), separate Config-Dateien, Log-Auswertung und die Möglichkeit, Skripte für automatische Saves, Restart-Routinen oder Mod-Updates einzusetzen. Für ambitionierte Communities ist das ein Muss.</p>
+
+<p>Schließlich unterscheidet sich die <strong>Mod-Kompatibilität</strong>. Viele komplexe Mods wie "DRG ModLoader" oder "Custom Gamemodes" benötigen zwingend einen Dedicated Server, da sie Server-seitig Skripte ausführen. Listenserver unterstützen nur eine Teilmenge der Mods. Wer in den Genuss der vollen Mod-Welt kommen will, kommt um einen gemieteten Dedicated Server nicht herum.</p>
+
+<h2>Die besten Anbieter 2026 im Vergleich</h2>
+
+<p>Bei der Wahl des richtigen Hosters für deinen <strong>Deep Rock Galactic Server mieten</strong>-Plan gibt es 2026 einige etablierte Größen. Wir haben die wichtigsten Anbieter nach Preis, Performance, Support und Mod-Support verglichen:</p>
+
+<table border="1" cellpadding="8" cellspacing="0">
+<thead>
+<tr><th>Anbieter</th><th>Preis/Monat (4 Slots)</th><th>Standort</th><th>Mod-Support</th><th>Setup-Zeit</th><th>Support</th></tr>
+</thead>
+<tbody>
+<tr><td>hostazar.com</td><td>ab 9,99 €</td><td>Frankfurt, Amsterdam</td><td>Ja, vorinstalliert</td><td>&lt; 5 Minuten</td><td>24/7 Deutsch/Englisch</td></tr>
+<tr><td>Nitrado</td><td>ab 11,90 €</td><td>Frankfurt, Wien</td><td>Ja, manuell</td><td>~10 Minuten</td><td>24/7 Deutsch</td></tr>
+<tr><td>4Netplayers</td><td>ab 12,50 €</td><td>Frankfurt, Zürich</td><td>Ja, mit Mod-Browser</td><td>~8 Minuten</td><td>Forum + Ticket</td></tr>
+<tr><td>GPortal</td><td>ab 10,99 €</td><td>Frankfurt, Warschau</td><td>Eingeschränkt</td><td>~15 Minuten</td><td>24/7 Englisch</td></tr>
+<tr><td>Host-Unlimited</td><td>ab 8,50 €</td><td>Nürnberg, Düsseldorf</td><td>Ja, mit Web-UI</td><td>~7 Minuten</td><td>Werktags Deutsch</td></tr>
+</tbody>
+</table>
+
+<p>hostazar.com bietet als spezialisierter Gamer-Hoster ein vorkonfiguriertes DRG-Image, das binnen weniger Minuten einsatzbereit ist. Der Mod-Support ist vorinstalliert, und die Web-Oberfläche erlaubt das Hochladen eigener Mods per Drag & Drop. Dank DDoS-Schutz und Frankfurt-Standort ist die Latenz für deutsche Spieler optimal.</p>
+
+<p>Nitrado ist ebenfalls eine solide Wahl, allerdings ist die Mod-Verwaltung etwas technischer und erfordert manuelle Config-Anpassungen. Dafür ist die Preisstruktur flexibel mit Tagesabrechnung. 4Netplayers punktet mit einem eigenen Mod-Browser, was die Installation vereinfacht, allerdings zu Lasten der Individualisierung geht.</p>
+
+<p>Wer einen möglichst günstigen Server sucht und bereit ist, kleinere Abstriche beim Support zu machen, sollte sich Host-Unlimited ansehen. GPortal ist eher auf Konsolen-Titel spezialisiert und eignet sich für DRG nur bedingt. Für 4-Spieler-Squads, die Mods nutzen wollen, ist hostazar.com oder Nitrado die erste Wahl.</p>
+
+<h2>Schritt-für-Schritt: Deep Rock Galactic Dedicated Server einrichten</h2>
+
+<p>Die Einrichtung eines DRG-Servers ist 2026 deutlich einfacher als noch 2022. Die meisten Hoster bieten One-Click-Installer, die das komplette Setup übernehmen. Dennoch lohnt sich ein Blick auf die einzelnen Schritte, um Fehler zu vermeiden:</p>
+
+<p><strong>Schritt 1 – Tarif wählen:</strong> Logge dich bei deinem Hoster (z.B. hostazar.com) ein und wähle einen Tarif mit mindestens 4 Slots. Achte darauf, dass das Betriebssystem Windows Server 2022 oder neuer ist, da DRG auf Linux nur via Wine läuft und das oft instabil ist.</p>
+
+<p><strong>Schritt 2 – Server starten:</strong> Nach der Bestellung wird der Server binnen weniger Minuten provisioniert. Du erhältst IP-Adresse, RCON-Port (standardmäßig 27015 für Steam-Server) und Zugangsdaten. Speichere diese Daten sicher.</p>
+
+<p><strong>Schritt 3 – Spiel installieren:</strong> Über das Web-Interface oder SteamCMD wird Deep Rock Galactic Dedicated Server installiert. Bei hostazar.com ist das Image bereits vorbereitet, du klickst nur auf "Installieren" und wartest, bis die Dateien entpackt sind (ca. 12 GB).</p>
+
+<p><strong>Schritt 4 – Konfiguration anpassen:</strong> Bearbeite die Datei <code>ServerSettings.json</code> im Verzeichnis <code>/DRG-Server/FSD/Content/Server/</code>. Hier stellst du Spielername, Passwort, Schwierigkeit, Mod-Whitelist und Savegame-Pfad ein. Ein Beispiel-Config findest du weiter unten.</p>
+
+<p><strong>Schritt 5 – Ports freigeben:</strong> Stelle sicher, dass die Ports <code>27015-27020</code> (UDP) in der Firewall des Servers offen sind. Die meisten Hoster übernehmen das automatisch, ein Blick in die Anleitung schadet jedoch nicht.</p>
+
+<p><strong>Schritt 6 – Verbindung testen:</strong> Starte Deep Rock Galactic auf deinem PC, gehe in die Server-Browser, klicke auf "Server hinzufügen" und gib die IP-Adresse ein. Alternativ verbindest du dich direkt über die Konsole mit <code>open &lt;IP&gt;:27015</code>. Bei korrekter Einrichtung solltest du nach wenigen Sekunden in der Lobby landen.</p>
+
+<h2>server_config.json – Komplettbeispiel</h2>
+
+<p>Die zentrale Konfigurationsdatei für einen DRG Dedicated Server ist <code>ServerSettings.json</code>. Sie befindet sich im Verzeichnis <code>%GAME_DIR%/FSD/Content/Server/</code>. Eine typische Konfiguration für einen 4-Spieler-Server mit moderaten Mods sieht so aus:</p>
+
+<pre><code>{
+  "ServerName": "[GER] hostazar Squad-Höhle",
+  "ServerPassword": "rockAndStone2026",
+  "MaxPlayers": 4,
+  "Difficulty": 4,
+  "GameMode": "Coop",
+  "SaveGame": true,
+  "SaveGameInterval": 300,
+  "AllowMods": true,
+  "ModWhitelist": [
+    "DRG.ModLoader",
+    "CustomDifficultyTweaks",
+    "DeepDiveCustomLevels",
+    "FriendlyUI"
+  ],
+  "Region": "EU",
+  "PublicLobby": false,
+  "FriendlyFire": false,
+  "JoinInProgress": true,
+  "MissionGeneration": "Standard",
+  "MissionSelection": "Random",
+  "ProceduralGeneration": {
+    "CaveComplexity": 1.5,
+    "EnemyDensity": 1.2,
+    "HazardBonus": 1.1
+  },
+  "NetworkSettings": {
+    "TickRate": 30,
+    "MaxBandwidth": 50000,
+    "RCONEnabled": true,
+    "RCONPort": 27015
+  },
+  "Logging": {
+    "LogLevel": "Info",
+    "SaveLogsTo
   <a href="/artikel/valheim-server-vps-mieten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/valheim-server-vps-mieten-2026.webp" alt="Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026" loading="lazy" width="400" height="200"></div>
   </a>

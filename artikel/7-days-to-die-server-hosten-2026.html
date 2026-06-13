@@ -759,6 +759,146 @@
     </div>
 
 <h1>7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</h1>
+<h2>Warum einen eigenen 7 Days to Die Server hosten?</h2>
+<p>Ein eigener <strong>7 Days to Die Server</strong> bietet dir die volle Kontrolle über Spielwelt, Regeln, Mods und Spielerzahl. Während öffentliche Server oft überfüllt, schlecht gewartet oder mit fragwürdigen Modifikationen versehen sind, kannst du auf deinem eigenen Host eine maßgeschneiderte Zombie-Apokalypse erschaffen.</p>
+<p>Du bestimmst die Schwierigkeit, die Tageslänge, die Zombiedichte und ob du mit Freunden entspannt craften oder in der Hardcore-Variante ums Überleben kämpfen willst. Gerade für deutsche Spieler ist ein heimischer Server attraktiv, weil die Latenz niedrig ist und keine Sprachbarrieren bestehen.</p>
+<p>Ein weiterer Vorteil: Du kannst jederzeit Backups erstellen, Welten zurücksetzen oder neue Spielstände starten. Gerade wenn du mit Mods wie <em>Undead Legacy</em>, <em>Darkness Falls</em> oder <em>Valmod</em> spielst, ist ein eigener Server Pflicht, da diese viele Spielmechaniken tiefgreifend verändern.</p>
+<p>Für 2026 lohnt sich das Hosting zudem mehr denn je, denn mit dem offiziellen Release von <strong>7 Days to Die 1.0</strong> und der fortlaufenden Konsolen-Version wurden viele Server-Tools aktualisiert. Du profitierst von stabilerer Performance, verbessertem Anti-Cheat und einer reiferen Modding-Community.</p>
+
+<h2>Systemanforderungen für einen 7D2D Server</h2>
+<p>Die Hardware-Anforderungen hängen stark davon ab, wie viele Spieler gleichzeitig spielen und ob du Mods einsetzt. Für eine kleine Gruppe von 4-6 Spielern reicht bereits ein VServer mit moderaten Ressourcen aus.</p>
+<table>
+<thead>
+<tr><th>Spielerzahl</th><th>RAM</th><th>CPU-Kerne</th><th>Speicher</th><th>Empfohlener Tarif</th></tr>
+</thead>
+<tbody>
+<tr><td>2-4 Spieler</td><td>8 GB</td><td>2 vCPU</td><td>50 GB SSD</td><td>VPS Einsteiger</td></tr>
+<tr><td>4-8 Spieler</td><td>16 GB</td><td>4 vCPU</td><td>100 GB SSD</td><td>VPS Performance</td></tr>
+<tr><td>8-16 Spieler</td><td>32 GB</td><td>6 vCPU</td><td>200 GB SSD</td><td>Dedizierter Server</td></tr>
+<tr><td>16+ Spieler</td><td>64 GB+</td><td>8+ vCPU</td><td>300+ GB NVMe</td><td>High-End Dedicated</td></tr>
+</tbody>
+</table>
+<p>Wichtig: 7 Days to Die nutzt primär <strong>Single-Thread-CPU-Leistung</strong> und RAM. Eine schnelle Single-Core-CPU (z. B. AMD Ryzen 7 oder Intel Core i7/i9 der aktuellen Generation) ist wichtiger als viele Kerne. SSD oder NVMe sind Pflicht, da Ladezeiten sonst explodieren.</p>
+<p>Für die Internetanbindung empfehlen wir mindestens 100 Mbit/s Up- und Download, wobei der Upload entscheidender ist. Bei 8 Spielern solltest du rund 5-10 Mbit/s stabilen Upload bereitstellen können – was in den meisten deutschen Haushalten und Rechenzentren problemlos möglich ist.</p>
+
+<h2>Server-Vorbereitung unter Linux (Ubuntu/Debian)</h2>
+<p>Bevor du 7 Days to Die installierst, solltest du dein Betriebssystem aktualisieren und die nötigen Abhängigkeiten installieren. Wir empfehlen <strong>Ubuntu 22.04 LTS</strong> oder <strong>Debian 12</strong> als stabile Basis.</p>
+<pre><code>sudo apt update &amp;&amp; sudo apt upgrade -y
+sudo apt install -y wget curl ufw screen lib32gcc-s1 lib32stdc++6 libsdl2-2.0-0</code></pre>
+<p>Mit <code>ufw</code> (Uncomplicated Firewall) aktivierst du die benötigten Ports. Standardmäßig nutzt 7 Days to Die den Port <strong>26900/UDP</strong> sowie den Steam Query Port <strong>26901/UDP</strong> und Telnet <strong>8081/TCP</strong>.</p>
+<pre><code>sudo ufw allow 22/tcp
+sudo ufw allow 26900:26903/udp
+sudo ufw allow 8081/tcp
+sudo ufw enable</code></pre>
+<p>Lege einen dedizierten Benutzer für den Server an – aus Sicherheitsgründen sollte der Dienst niemals als <code>root</code> laufen. So minimierst du das Risiko bei Sicherheitslücken in Spielesoftware.</p>
+<pre><code>sudo adduser sdtd
+sudo su - sdtd</code></pre>
+<p>Erstelle ein Arbeitsverzeichnis, in dem du den Server später installierst. Eine klare Ordnerstruktur hilft bei Backups und Updates erheblich.</p>
+<pre><code>mkdir -p ~/sdtd-server/serverfiles
+cd ~/sdtd-server</code></pre>
+
+<h2>Installation via SteamCMD (Linux)</h2>
+<p>Die offizielle Methode führt über <strong>SteamCMD</strong>, das Valve-Tool für Dedicated Server. Lade es herunter und entpacke es in dein Serververzeichnis.</p>
+<pre><code>cd ~/sdtd-server
+wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+tar -xvzf steamcmd_linux.tar.gz</code></pre>
+<p>Starte SteamCMD nun im ersten Durchlauf, damit es sich selbst aktualisiert. Anschließend loggst du dich anonym ein und lädst die <strong>App-ID 294420</strong> (7 Days to Die Dedicated Server) herunter.</p>
+<pre><code>./steamcmd.sh +login anonymous +force_install_dir ./serverfiles +app_update 294420 validate +quit</code></pre>
+<p>Der erste Download ist mit rund 8-12 GB relativ groß. Wiederhole den Befehl regelmäßig, um den Server auf dem neuesten Stand zu halten – das <code>validate</code> stellt sicher, dass beschädigte Dateien ersetzt werden.</p>
+<p>Für eine bequeme Steuerung empfehlen wir, das Update per Cronjob oder systemd-Service zu automatisieren. Ein typisches Update-Script sieht so aus:</p>
+<pre><code>#!/bin/bash
+cd /home/sdtd/sdtd-server
+./steamcmd.sh +login anonymous \
+  +force_install_dir ./serverfiles \
+  +app_update 294420 validate \
+  +quit &gt; /home/sdtd/sdtd-update.log 2&gt;&amp;1
+echo "Update fertig: $(date)" &gt;&gt; update-history.log</code></pre>
+
+<h2>serverconfig.xml – Die wichtigsten Einstellungen</h2>
+<p>Die zentrale Konfigurationsdatei findest du unter <code>serverfiles/7DaysToDieServer_Data/</code>. Die Datei <strong>serverconfig.xml</strong> enthält alle relevanten Optionen – von Spielmodus über Zombiedichte bis hin zu Telnet-Zugang.</p>
+<pre><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;ServerSettings&gt;
+  &lt;property name="ServerName" value="[DE] Hostaz Zombie-Wasteland"/&gt;
+  &lt;property name="ServerDescription" value="Willkommen auf unserem 7D2D Server!"/&gt;
+  &lt;property name="GameWorld" value="Navezgane"/&gt;
+  &lt;property name="GameMode" value="GameModeSurvival"/&gt;
+  &lt;property name="Difficulty" value="3"/&gt;
+  &lt;property name="MaxPlayers" value="8"/&gt;
+  &lt;property name="ServerPort" value="26900"/&gt;
+  &lt;property name="ServerDisallowedLanguage" value="english"/&gt;
+  &lt;property name="TelnetEnabled" value="true"/&gt;
+  &lt;property name="TelnetPort" value="8081"/&gt;
+  &lt;property name="EACEnabled" value="true"/&gt;
+&lt;/ServerSettings&gt;</code></pre>
+<p>Die wichtigsten Parameter erklärt:</p>
+<ul>
+<li><strong>GameWorld</strong>: <em>Navezgane</em> (Standardkarte) oder <em>RWG</em> (Random Generated World)</li>
+<li><strong>GameMode</strong>: <em>GameModeSurvival</em>, <em>GameModeSurvivalMP</em> oder <em>GameModeCreative</em></li>
+<li><strong>Difficulty</strong>: 1-5 (Scavenger bis Insane) – 3 ist ein guter Kompromiss</li>
+<li><strong>ZombieMove</strong> / <strong>ZombieRun</strong>: Multiplikator für Zombie-Geschwindigkeit</li>
+<li><strong>LootAbundance</strong>: 0-100% – reguliert die Beute-Menge</li>
+</ul>
+<p>Für ein authentisches Hardcore-Erlebnis empfehlen viele Spieler <strong>Difficulty 4</strong> mit erhöhter Zombiedichte in der Nacht (<code>BloodMoonEnemyCount=16</code>) und kürzeren Tagen (<code>DayLength=45</code>).</p>
+
+<h2>Server starten und als Dienst betreiben</h2>
+<p>Du kannst den Server direkt per <code>screen</code> starten – das ist die einfachste Methode für Einsteiger.</p>
+<pre><code>cd ~/sdtd-server/serverfiles
+screen -S sdtd ./startdedicated.sh</code></pre>
+<p>Mit <code>Strg+A</code>, dann <code>D</code> löst du die Sitzung, mit <code>screen -r sdtd</code> holst du sie zurück. Für den produktiven Einsatz ist jedoch ein <strong>systemd-Service</strong> deutlich eleganter, da der Server dann automatisch beim Boot startet und bei Abstürzen neu gestartet wird.</p>
+<pre><code>[Unit]
+Description=7 Days to Die Dedicated Server
+After=network.target
+
+[Service]
+User=sdtd
+WorkingDirectory=/home/sdtd/sdtd-server/serverfiles
+ExecStart=/home/sdtd/sdtd-server/serverfiles/startdedicated.sh -logfile /home/sdtd/sdtd-server/logs/sdtd.log
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<p>Anschließend aktivierst du den Dienst:</p>
+<pre><code>sudo systemctl daemon-reload
+sudo systemctl enable sdtd.service
+sudo systemctl start sdtd.service
+sudo systemctl status sdtd.service</code></pre>
+<p>Die Log-Datei hilft bei der Fehlersuche – insbesondere die Einträge mit <em>ERROR</em> oder <em>WARN</em> solltest du regelmäßig prüfen.</p>
+
+<h2>Mods und Mod-Launcher einbinden</h2>
+<p>Mit dem <strong>7D2D Mod Launcher</strong> lassen sich Mods komfortabel verwalten, ohne Dateien manuell zu bearbeiten. Besonders beliebte Mods 2026 sind:</p>
+<table>
+<thead>
+<tr><th>Mod</th><th>Kategorie</th><th>Größe</th><th>Beschreibung</th></tr>
+</thead>
+<tbody>
+<tr><td>Undead Legacy</td><td>Overhaul</td><td>~500 MB</td><td>Komplett überarbeitetes Crafting &amp; Inventar</td></tr>
+<tr><td>Darkness Falls</td><td>Overhaul</td><td>~1,2 GB</td><td>Neue Klassen, Quests, Monster</td></tr>
+<tr><td>Valmod Pack</td><td>QoL/Content</td><td>~200 MB</td><td>Mehr Items, Fahrzeuge, Bauteile</td></tr>
+<tr><td>SMX Core</td><td>UI/Performance</td><td>~50 MB</td><td>Modulares UI- und Performance-Framework</td></tr>
+<tr><td>Stallions Dennis</td><td>Overhaul</td><td>~800 MB</td><td>Erweiterte Städte und Quests</td></tr>
+</tbody>
+</table>
+<p>Mods werden per Steam-Workshop-Abo verknüpft. Dazu trägst du in <code>serverconfig.xml</code> die Workshop-IDs ein:</p>
+<pre><code>&lt;property name="WorkshopItems" value="2800791827,2196041876,2227117821"/&gt;</code></pre>
+<p>Achte darauf, dass alle Clients die gleichen Mods abonniert haben, sonst können sie dem Server nicht beitreten. Eine Whitelist der erlaubten Mods verhinderst du, indem du nur die Workshop-IDs angibst und die Option <code>DisableModAutoDownload</code> deaktiviert lässt.</p>
+<p>Tipp: Teste Mods immer zuerst lokal oder auf einem Testserver, bevor du sie auf deinem Hauptserver aktivierst – inkompatible Mods können den Spielstand korrumpieren.</p>
+
+<h2>Performance-Tuning und Anti-Lag-Maßnahmen</h2>
+<p>Trotz guter Hardware kann es zu Lags kommen, besonders bei großen Basen, vielen Spielern oder aufwändigen Mods. Die folgenden Maßnahmen helfen erfahrungsgemäß am meisten:</p>
+<ul>
+<li><strong>Sichtweite reduzieren</strong>: <code>ViewDistance=8</code> (Standard) bis <code>6</code> spart enorm CPU-Last</li>
+<li><strong>Zombie-Limit anpassen</strong>: <code>MaxSpawnedZombies=80</code> statt 200</li>
+<li><strong>BloodMoon-Skalierung</strong>: <code>BloodMoonEnemyCount=8</code> für gemütlichere Horden</li>
+<li><strong>DynMap deaktivieren</strong>: Die Web-Map kostet bei großen Welten viel CPU</li>
+<li><strong>Loot-Respawn verlängern</strong>: Weniger Container-Reset = weniger CPU-Spitzen</li>
+</ul>
+<p>Auch das Betriebssystem lässt sich optimieren. Tausche <code>libc</code> gegen <code>libc6</code> und installiere <code>haveged</code> für bessere Entropie.</p>
+<pre><code>sudo apt install -y haveged
+sudo systemctl enable haveged</code></pre>
+<p>Für Linux-Gamer empfiehlt sich der <code>performance</code>-CPU-Governor, der die Taktfrequenz hochhält:</p>
+<pre><code>echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor</code></pre>
+<p>Beobachte die Performance mit Tools wie <code>htop</code>, <code>netdata</code> oder
   <a href="/artikel/valheim-server-vps-mieten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/valheim-server-vps-mieten-2026.webp" alt="Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026" loading="lazy" width="400" height="200"></div>
   </a>

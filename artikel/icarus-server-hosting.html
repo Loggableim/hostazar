@@ -759,6 +759,117 @@
     </div>
 
 <h1>Icarus Server hosten – Dedicated Server für Koop 2026</h1>
+<h2>Was ist Icarus und warum benötigt das Spiel einen eigenen Server?</h2>
+<p>Icarus ist ein Survival-Spiel des Entwicklerstudios RocketWerkz, das von Dean Hall – dem Schöpfer von DayZ – ins Leben gerufen wurde. Im Gegensatz zu vielen anderen Survival-Titeln spielt sich Icarus in einer persistenten Sci-Fi-Welt ab, die von einem terraformierten Planeten mit feindlicher Atmosphäre geprägt ist. Spieler übernehmen die Rolle von Raumfahrern, die auf die Erde zurückkehren und dort Außenposten errichten, Ressourcen abbauen, Jagd auf wilde Tiere machen und sich gegen die Natur sowie gelegentliche Stürme behaupten müssen.</p>
+<p>Das Besondere an Icarus ist das Konzept der "Prospect" – jeder Spieler oder jede Gruppe erhält einen temporären Vertrag, der auf einer prozedural generierten Karte ausgeführt wird. Diese Verträge haben ein klares Ziel, eine begrenzte Zeit und klare Konsequenzen, wenn sie scheitern. Genau hier setzt die Idee des dedizierten Hostings an: Ein eigener Icarus-Server ermöglicht es, die Welt dauerhaft zu kontrollieren, Modifikationen einzubinden und die Performance unabhängig von den Ressourcen des Host-Rechners zu skalieren.</p>
+<p>Ohne dedizierte Hosting-Lösung sind Spieler auf das Hosten über den eigenen PC oder den vom Spielentwickler bereitgestellten offiziellen Session-Browser angewiesen. Beide Varianten haben gravierende Nachteile: Der lokale PC muss ständig laufen, leidet unter Performance-Einbußen, wenn andere Anwendungen parallel laufen, und die Internetleitung des Heimbüros ist selten für die gleichzeitige Übertragung von dutzenden Spielerdatenströmen optimiert. Ein Icarus Server Hosting über einen VPS löst all diese Probleme auf elegante Weise.</p>
+<p>Darüber hinaus bietet ein eigener Server die Möglichkeit, Spielparameter wie Ressourcenraten, Tierverhalten, Sturmfrequenz und XP-Gewinnung individuell anzupassen. Wer mit Freunden eine private Welt mit entspannter Spielbalance erschaffen möchte, ist auf einen selbst verwalteten Server angewiesen, denn die offiziellen Server lassen kaum Anpassungen zu. Aus diesen Gründen entscheiden sich immer mehr Gamer für ein professionelles Icarus Server Hosting auf einer Cloud-Infrastruktur.</p>
+
+<h2>Systemanforderungen für einen Icarus Game Server</h2>
+<p>Die offiziellen Mindestanforderungen für einen Icarus Dedicated Server wurden von RocketWerkz im Laufe der Early-Access-Phase mehrfach angepasst. Aktuell gelten für eine flüssige Spielerfahrung mit 4 bis 8 Spielern folgende Eckdaten als Richtwert: mindestens 8 GB RAM, ein moderner Quad-Core-Prozessor mit hoher Single-Core-Leistung sowie 30 GB SSD-Speicherplatz für Basisinstallation, Welten und Backups.</p>
+<p>Die Icarus-Engine basiert auf der Unreal Engine 4 und ist überraschend CPU-hungrig, da viele Berechnungen – insbesondere die KI der Wildtiere, das Höhlensystem und die Wettereffekte – auf dem Server ausgeführt werden. Eine hohe Single-Core-Leistung ist daher wichtiger als eine hohe Kernanzahl. Aktuelle AMD EPYC- oder Intel Xeon-Prozessoren der neuesten Generation eignen sich hervorragend, da sie sowohl Single-Core-Taktraten von über 3,5 GHz als auch genügend Reserven für Hintergrundprozesse bieten.</p>
+<p>Der Arbeitsspeicher skaliert direkt mit der Anzahl der Spieler und der Komplexität der Spielwelt. Für kleine Gruppen bis 8 Spieler reichen 8 GB RAM, ab 16 Spielern sollten mindestens 16 GB zur Verfügung stehen. Wer mit Mods spielt, muss zusätzlich 2 bis 6 GB einplanen, da Mods oft zusätzliche Assets, Skripte und Speicherstrukturen laden. Im professionellen Icarus Server Hosting setzt hostazar deshalb auf dedizierte Ressourcen, die nicht mit anderen Kunden geteilt werden.</p>
+<p>Beim Speicherplatz gilt: Pro gespeicherte Spielwelt sollten 5 bis 10 GB eingeplant werden. Wer regelmäßig Welten wechselt oder verschiedene Szenarien parallel testet, benötigt schnell 50 bis 100 GB. Eine SSD ist Pflicht, da lange Ladezeiten den Spielfluss empfindlich stören. NVMe-SSDs reduzieren die Ladezeiten im Vergleich zu SATA-SSDs nochmals um den Faktor drei bis fünf.</p>
+
+<h2>VPS vs. Dedicated Server: Welche Infrastruktur ist ideal für Icarus?</h2>
+<p>Die Wahl zwischen einem Virtual Private Server (VPS) und einem physischen Dedicated Server hängt von mehreren Faktoren ab: Spielerzahl, gewünschte Uptime, Budget und technischer Komplexität. Für die meisten Heimgamer-Communities ist ein VPS die beste Wahl, da er ein hervorragendes Preis-Leistungs-Verhältnis bietet und trotzdem dedizierte Ressourcen garantiert.</p>
+<p>Ein VPS basiert auf moderner Virtualisierungstechnologie (KVM, Hyper-V oder VMware), bei der die physischen Ressourcen eines Host-Servers in isolierte Container aufgeteilt werden. Im Gegensatz zu klassischem Shared Hosting hat ein VPS garantierte CPU-Kerne, garantierten RAM und garantierten Storage. Das bedeutet, dass die Icarus-Server-Performance nicht durch Nachbarn beeinträchtigt wird, die auf demselben Host intensive Prozesse ausführen.</p>
+<p>Ein Dedicated Server lohnt sich erst ab größeren Communities mit 30+ Spielern, professionellen Streaming-Sessions oder wenn extrem viele Mods gleichzeitig geladen werden. Die monatlichen Kosten liegen je nach Anbieter zwischen 80 und 300 Euro, während ein leistungsfähiger VPS bereits ab 12 Euro pro Monat verfügbar ist. Für die meisten Hobby-Gilden ist ein VPS daher die wirtschaftlich rationale Entscheidung.</p>
+<p>Hostazars Icarus Server Hosting basiert vollständig auf KVM-virtualisierten VPS-Instanzen mit garantierten Ressourcen, NVMe-SSDs und einer 1-Gbit/s-Netzwerkanbindung. Dies gewährleistet niedrige Latenzen – auch beim Verbinden von Spielern aus unterschiedlichen europäischen Ländern – und eine gleichbleibend hohe Performance zu jeder Tages- und Nachtzeit.</p>
+
+<h2>Installation des Icarus Dedicated Servers auf einem VPS</h2>
+<p>Die Installation eines Icarus-Servers auf einem Linux-VPS unterscheidet sich grundsätzlich von der auf einem Windows-Server, da RocketWerkz für Linux eine reine Konsolenapplikation bereitstellt. Wer mit Linux-Grundlagen vertraut ist, kann die Installation in etwa 20 bis 30 Minuten durchführen.</p>
+<p>Zunächst muss eine Verbindung zum VPS per SSH hergestellt werden. Anschließend werden die nötigen Systembibliotheken und das SteamCMD-Tool installiert:</p>
+<pre><code>sudo apt update && sudo apt upgrade -y
+sudo apt install -y lib32gcc-s1 lib32stdc++6 libcurl4-gnutls-dev libsdl2-2.0-0
+mkdir -p ~/steamcmd && cd ~/steamcmd
+wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+tar -xvzf steamcmd_linux.tar.gz</code></pre>
+<p>Nach der Installation von SteamCMD kann der Icarus Dedicated Server heruntergeladen werden. Die Steam-Anwendungs-ID für Icarus lautet 2089300, der Server-Client ist unter 2089330 verzeichnet:</p>
+<pre><code>./steamcmd.sh +login anonymous +force_install_dir ~/icarus \
++app_update 2089330 validate +quit</code></pre>
+<p>Nach erfolgreichem Download wird der Server zum ersten Mal gestartet, um die Konfigurationsdateien zu generieren. Diese befinden sich standardmäßig im Verzeichnis <code>~/icarus/Icarus/Config/LinuxServer</code>. In der Datei <code>GameUserSettings.ini</code> lassen sich Spielername, Passwort, maximale Spieleranzahl und viele weitere Parameter einstellen. Es empfiehlt sich, den Server mit <code>screen</code> oder <code>tmux</code> in einer separaten Sitzung zu starten, damit die Instanz nach dem Schließen der SSH-Verbindung weiterläuft.</p>
+
+<h2>Optimale Konfiguration des Icarus Servers</h2>
+<p>Die Konfiguration des Icarus Dedicated Servers erfolgt über mehrere INI-Dateien, die im <code>Config</code>-Verzeichnis des Servers liegen. Die wichtigsten Parameter betreffen die Server-Performance, die Spielbalance und die Netzwerkeinstellungen.</p>
+<p>Eine gut abgestimmte <code>GameUserSettings.ini</code> könnte folgendermaßen aussehen:</p>
+<pre><code>[/Script/Icarus.IcarusGameSession]
+ServerName=Mein Icarus Server
+MaxPlayers=8
+ServerPassword=geheimes_passwort
+bUseP2P=False
+bAllowJoinInProgress=True
+
+[/Script/Engine.GameSession]
+MaxSlots=8
+bIsLan=False</code></pre>
+<p>Für eine flüssige Performance empfiehlt es sich, die <code>ServerSettings.ini</code> anzupassen. Wichtige Werte sind die Tickrate (Standard: 30), die Sichtweite für KI-Berechnungen und die Anzahl der gleichzeitig spawnbaren Wildtiere. Eine Reduzierung dieser Werte kann die CPU-Last um bis zu 30 % senken, ohne dass die Spielerfahrung spürbar leidet.</p>
+<p>Wer mehrere Spielwelten parallel betreiben möchte, kann verschiedene Ports verwenden. Standardmäßig nutzt Icarus die UDP-Ports 17777 und 7777. Beim Hosting über hostazar können diese Ports bequem im Webinterface freigeschaltet werden, ohne dass manuelle Firewall-Konfigurationen auf dem VPS nötig sind.</p>
+
+<h2>Automatisches Backup und Update des Servers</h2>
+<p>Ein professionelles Icarus Server Hosting zeichnet sich durch automatisierte Backups aus, die im Ernstfall – etwa bei einem versehentlichen Welt-Crash oder Datenverlust durch fehlerhafte Mods – eine schnelle Wiederherstellung ermöglichen. Manuelle Backups sind möglich, aber fehleranfällig, weshalb ein Cronjob-basierter Ansatz empfehlenswert ist.</p>
+<p>Ein einfaches Backup-Skript für die Spielwelten kann wie folgt aussehen:</p>
+<pre><code>#!/bin/bash
+BACKUP_DIR="/var/backups/icarus"
+SOURCE_DIR="/home/icarus/Icarus/Saved/SavedArks"
+DATE=$(date +%Y-%m-%d_%H-%M)
+mkdir -p $BACKUP_DIR
+tar -czf $BACKUP_DIR/icarus_backup_$DATE.tar.gz $SOURCE_DIR
+find $BACKUP_DIR -type f -mtime +7 -delete</code></pre>
+<p>Dieses Skript erstellt ein komprimiertes Backup aller gespeicherten Spielwelten und löscht automatisch Backups, die älter als sieben Tage sind. Es empfiehlt sich, das Skript via Cronjob stündlich oder täglich auszuführen, je nachdem wie intensiv auf dem Server gespielt wird.</p>
+<p>Updates des Icarus Servers werden von RocketWerkz regelmäßig veröffentlicht und enthalten Bugfixes, Balancing-Anpassungen und gelegentlich neue Inhalte. Über SteamCMD lässt sich der Server mit dem gleichen Befehl wie bei der Erstinstallation aktualisieren:</p>
+<pre><code>./steamcmd.sh +login anonymous +force_install_dir ~/icarus \
++app_update 2089330 validate +quit</code></pre>
+<p>Hostazars Managed-Icarus-Hosting aktualisiert Server automatisch, sobald neue Versionen verfügbar sind. Kunden können im Webinterface festlegen, ob Updates sofort, zeitversetzt oder nach manueller Freigabe eingespielt werden sollen.</p>
+
+<h2>Sicherheit und DDoS-Schutz für Icarus Server</h2>
+<p>Sobald ein Server öffentlich erreichbar ist, besteht grundsätzlich die Gefahr von DDoS-Attacken, Brute-Force-Logins und Exploits. Ein dediziertes Icarus Server Hosting sollte daher mehrere Sicherheitsebenen umfassen: Netzwerk-Firewall, DDoS-Filterung, fail2ban und regelmäßige Sicherheitsupdates des Betriebssystems.</p>
+<p>Auf Netzwerkebene filtert eine gehärtete iptables- oder nftables-Konfiguration unerwünschten Traffic heraus, bevor er den Icarus-Serverprozess überhaupt erreicht. Hostazar setzt zusätzlich auf professionelle DDoS-Mitigation, die selbst volumetrische Angriffe im Bereich von mehreren hundert Gigabit pro Sekunde absorbieren kann, ohne dass der eigentliche Spielserver beeinträchtigt wird.</p>
+<p>Auf Anwendungsebene empfiehlt sich die Verwendung des privaten Server-Passworts, das in der <code>GameUserSettings.ini</code> hinterlegt wird. Zusätzlich sollte der Serveradministrator die IP-Whitelist-Funktion aktivieren, falls nur bekannte Freunde Zugriff erhalten sollen. Bei öffentlichen Servern ist die Aktivierung des Anti-Cheat-Modus empfehlenswert, der verdächtige Spielaktionen erkennt und protokolliert.</p>
+<p>Regelmäßige Updates des Betriebssystems schließen bekannte Sicherheitslücken. Ein einfacher Cronjob, der wöchentlich <code>apt update && apt upgrade</code> ausführt und die Ergebnisse per E-Mail zustellt, reicht für die meisten Hobby-Setups aus. Hostazar übernimmt diese Aufgaben im Rahmen des Managed-Hostings und informiert Kunden proaktiv über sicherheitsrelevante Updates.</p>
+
+<h2>Performance-Tuning: Mehr Spieler auf dem Icarus Server</h2>
+<p>Die Performance eines Icarus Servers hängt von vielen Faktoren ab: CPU-Architektur, RAM-Geschwindigkeit, Speicher-I/O, Netzwerklatenz und Anzahl der gleichzeitigen Spieler. Wer die maximale Spieleranzahl aus seiner Hosting-Lösung herausholen möchte, sollte gezielt an diesen Stellschrauben drehen.</p>
+<p>Eine der wichtigsten Maßnahmen ist die Wahl einer Single-Core-starken CPU. Moderne AMD EPYC 7003- und 9004-Serien erreichen Boost-Taktraten von bis zu 4,1 GHz und eignen sich daher hervorragend für Icarus. Bei Intel sind die Xeon E-2300- und Scalable-Series-Prozessoren der vierten und fünften Generation empfehlenswert, da sie ebenfalls hohe Single-Core-Leistungen liefern.</p>
+<p>Auch der Arbeitsspeicher sollte möglichst schnell sein. DDR4-3200 oder DDR5-4800 reduziert Latenzen bei Speicherzugriffen und entlastet die CPU. Beim Festplattensubsystem ist NVMe Pflicht; SATA-SSDs können bei großen Spielwelten zum Flaschenhals werden. Hostazar setzt ausschließlich auf NVMe-SSDs der Enterprise-Klasse, die IOPS-Werte von über 500.000 erreichen.</p>
+<p>Die Netzwerkanbindung sollte mindestens 1 Gbit/s betragen, um Latenzspitzen bei vielen gleichzeitigen Spielern zu vermeiden. Idealerweise liegt der Server in einem gut angebundenen Rechenzentrum, etwa in Frankfurt am Main, Amsterdam oder Helsinki. Diese Standorte bieten kurze Wege zu den meisten europäischen Spielern und minimieren die durchschnittliche Ping-Zeit.</p>
+
+<h2>Kosten eines Icarus Server Hostings im Überblick</h2>
+<p>Die monatlichen Kosten für ein Icarus Server Hosting variieren stark je nach Anbieter, Ausstattung und Servicelevel. Die folgende Tabelle gibt einen Überblick über typische Preiskategorien:</p>
+<table>
+<thead>
+<tr><th>Tarif</th><th>RAM</th><th>CPU</th><th>Speicher</th><th>Spieler</th><th>Preis/Monat</th></tr>
+</thead>
+<tbody>
+<tr><td>Starter</td><td>8 GB</td><td>4 vCores</td><td>60 GB NVMe</td><td>bis 8</td><td>ab 12 €</td></tr>
+<tr><td>Standard</td><td>16 GB</td><td>6 vCores</td><td>120 GB NVMe</td><td>bis 16</td><td>ab 22 €</td></tr>
+<tr><td>Performance</td><td>32 GB</td><td>8 vCores</td><td>250 GB NVMe</td><td>bis 24</td><td>ab 39 €</td></tr>
+<tr><td>Pro</td><td>64 GB</td><td>12 vCores</td><td>500 GB NVMe</td><td>bis 40</td><td>ab 69 €</td></tr>
+</tbody>
+</table>
+<p>Zusätzlich zum Grundpreis können je nach Anbieter Kosten für zusätzliche Domains, dedizierte IP-Adressen, Backups oder Premium-DDoS-Schutz anfallen. Bei hostazar sind automatische tägliche Backups, 1-Gbit/s-Anbindung und Basis-DDoS-Schutz bereits inklusive – Kunden sehen also von Anfang an den Endpreis ohne versteckte Aufschläge.</p>
+<p>Wer seinen Icarus-Server nur gelegentlich – etwa für Wochenend-Sessions – benötigt, kann auf Stunden- oder Tagesbasis buchen. Diese Abrechnungsmodelle sind besonders günstig, wenn der Server nicht durchgängig laufen muss. Hostazar bietet sowohl monatsbasierende als auch flexible Abrechnungsmodelle an, sodass Hobby-Gamer und professionelle Communities gleichermaßen bedient werden.</p>
+
+<h2>Mods und Custom Content auf dem Icarus Server</h2>
+<p>Mods erweitern Icarus um neue Gegenstände, Gebäude, Tierarten, Wettereffekte und Spielmechaniken. Sie werden über das Steam-Workshop-System verteilt und lassen sich auf einem dedizierten Server relativ einfach einbinden. Die Steam-Workshop-ID des Mods wird in der <code>GameUserSettings.ini</code> hinterlegt, der Server lädt die Mod-Inhalte dann automatisch beim Start.</p>
+<p>Beispiel für die Mod-Konfiguration in der <code>GameUserSettings.ini</code>:</p>
+<pre><code>[/Script/Icarus.IcarusGameSession]
+ServerName=Modded Icarus Server
+MaxPlayers=12
+bAllowJoinInProgress=True
+
+[Mods]
++ModIDs=2820193456
++ModIDs=2831987654
++ModIDs=2856321987</code></pre>
+<p>Bei der Verwendung vieler Mods steigt die RAM-Belastung des Servers spürbar an, da jedes Mod-Paket zusätzliche Assets, Texturen und Skripte in den Speicher lädt. Außerdem können inkompatible Mods zu Server-Crashes führen, weshalb vor dem produktiven Einsatz ausführliche Tests empfehlenswert sind.</p>
+<p>Hostazar stellt im Rahmen des Managed-Hostings ein Webinterface bereit, mit dem Mods per Mausklick aktiviert und deaktiviert werden können. Das System überprüft automatisch die Kompatibilität der Mods und informiert den Administrator, falls ein Mod mit dem aktuellen Server-Build inkompatibel sein sollte. So gelingt der Einstieg in die modifizierte Icarus-Welt auch ohne tiefgreifende Linux-Kenntnisse.</p>
+
+<h2>Warum hostazar die beste Wahl für Icarus Server Hosting ist</h2>
+<p>Hostazar kombiniert leistungsfähige KVM-VPS-Hardware mit einem speziell auf Game-Server-Anforderungen optimierten Netzwerk. Die Rechenzentren in Frankfurt, Helsinki und Amsterdam bieten exzellente Anbindungen an alle großen europäischen Internetknoten und sorgen für niedrige Latenzen bei Spielern aus Deutschland, Österreich, der Schweiz, Skandinavien und den Benelux-Staaten.</p>
+<p>Das Besondere am hostazar-Service ist das durchdachte Webinterface, das speziell für Game-Server-Administration entwickelt wurde. Über das Interface lassen sich Server starten, stoppen, neu starten, Konfigurationsdateien bearbeiten, Mods verwalten, Backups anstoßen und Live-Konsolenausgaben einsehen. Auch die Installation eines neuen Icarus-Servers gelingt mit wenigen Klicks – ein vorkonfiguriertes Image übernimmt die komplette Grundinstallation.</p>
+<p>Der Support von hostazar ist 24/7 erreichbar und besteht aus echten Game-Server-Experten, die nicht nur Linux-, sondern auch Icarus-spezifische Fragen beantworten können. Bei technischen Problemen – etwa nach einem fehlgeschlagenen Update oder einem Mod-Konflikt – steht das Support-Team mit Rat und Tat zur Seite. Kunden profitieren von kurzen Reaktionszeiten und transparenten Kommunikationskanälen.</p>
+<p>Nicht zuletzt überzeugt hostazar mit einem fairen Preismodell ohne versteckte Kosten. Die Preise auf der Webseite entsprechen den tatsächlichen monatlichen Kosten, automatische Backups, DDoS-Schutz und 1-Gbit/s-Anbindung sind bereits inklusive. Wer auf der Suche nach einem zuverlässigen, performanten und einfach zu bedienenden Icarus Server Hosting ist, findet in hostazar den idealen Partner.</p>
   <a href="/artikel/valheim-server-vps-mieten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/valheim-server-vps-mieten-2026.webp" alt="Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026" loading="lazy" width="400" height="200"></div>
   </a>

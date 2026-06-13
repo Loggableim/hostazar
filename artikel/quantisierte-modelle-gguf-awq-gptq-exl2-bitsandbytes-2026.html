@@ -759,6 +759,142 @@
     </div>
 
 <h1>Quantisierte Modelle: GGUF, AWQ, GPTQ, EXL2, Bitsandbytes – Was ist besser? 2026</h1>
+<h2>Quantisierte KI-Modelle 2026: Der umfassende Leitfaden zu GGUF, AWQ, GPTQ, EXL2 und bitsandbytes</h2>
+
+<p>Die KI-Landschaft hat sich in den letzten Jahren rasant weiterentwickelt, und mit ihr die Techniken zur Modellkomprimierung. Quantisierte Modelle sind im Jahr 2026 unverzichtbar geworden, um Large Language Models (LLMs) effizient auf Consumer-Hardware und in Cloud-Umgebungen zu betreiben. Durch die Reduzierung der numerischen Präzision von Gewichten und Aktivierungen können Unternehmen und Entwickler enorme Einsparungen bei Speicher, Energie und Inferenzzeit erzielen, ohne dabei signifikante Qualitätsverluste hinnehmen zu müssen.</p>
+
+<p>Die bekanntesten Quantisierungsformate haben sich in unterschiedlichen Ökosystemen etabliert. Während GGUF vor allem im llama.cpp-Universum zu Hause ist, dominieren AWQ, GPTQ und EXL2 den GPU-basierten Bereich. bitsandbytes wiederum bietet flexible In-Memory-Quantisierungslösungen, die besonders beim Training und Fine-Tuning von Modellen geschätzt werden. Wer 2026 produktiv mit KI arbeiten möchte, kommt an diesen Technologien nicht vorbei.</p>
+
+<h2>Was bedeutet Quantisierung eigentlich?</h2>
+
+<p>Unter Quantisierung versteht man die Umwandlung von kontinuierlichen Werten in eine diskrete, niedrigere Präzisionsstufe. In der KI-Welt bedeutet dies konkret, dass die üblicherweise in 16-Bit- oder 32-Bit-Floating-Point-Format gespeicherten Modellgewichte auf 8-Bit, 4-Bit oder sogar 2-Bit-Formate reduziert werden. Dies führt zu einer drastischen Reduktion des benötigten Arbeitsspeichers und ermöglicht es, größere Modelle auf kleinerer Hardware auszuführen.</p>
+
+<p>Es gibt verschiedene Quantisierungsstrategien, die jeweils eigene Vor- und Nachteile besitzen. Die Post-Training Quantization (PTQ) wird nach dem vollständigen Training eines Modells angewendet und erfordert keinen erneuten Trainingsaufwand. Die Quantization-Aware Training (QAT) hingegen integriert den Quantisierungsprozess direkt ins Training, was oft zu besseren Ergebnissen führt, aber deutlich mehr Ressourcen benötigt. Im Jahr 2026 setzen die meisten Anwender auf PTQ-Varianten, da diese schneller und kostengünstiger sind.</p>
+
+<p>Ein wichtiger Aspekt ist der Unterschied zwischen uniformer und non-uniformer Quantisierung. Bei der uniformen Quantisierung werden die Werte gleichmäßig auf den verfügbaren Zahlenbereich abgebildet, während non-uniforme Verfahren wie die affine Quantisierung oder die Skalierungsfaktor-basierte Quantisierung eine bessere Ausnutzung des Wertebereichs ermöglichen. Moderne Formate wie AWQ nutzen diese Techniken, um die Genauigkeit besonders bei niedrigen Bit-Breiten zu erhalten.</p>
+
+<h2>GGUF: Das Universalformat für llama.cpp</h2>
+
+<p>GGUF (GPT-Generated Unified Format) ist der Nachfolger von GGML und hat sich als Standardformat für CPU- und Apple-Silicon-Inferenz etabliert. Entwickelt wurde es von Georgi Gerganov, dem Schöpfer von llama.cpp, und wird von einer riesigen Community unterstützt. Das Format ist selbstbeschreibend, enthält Metadaten und unterstützt verschiedene Quantisierungsstufen von Q2_K bis zu Q8_0 sowie F16 und F32 für volle Präzision.</p>
+
+<p>Die Benennung der Quantisierungsmethoden in GGUF folgt einem klaren Schema: Q bedeutet quantisiert, die Zahl gibt die durchschnittliche Bit-Breite an, und die Suffixe (K, K_S, K_M, K_L) kennzeichnen unterschiedliche Qualitätsstufen. So steht Q4_K_M für eine 4-Bit-Quantisierung mit mittlerer Qualität, die einen ausgewogenen Kompromiss zwischen Modellgröße und Inferenzqualität bietet. Q5_K_M und Q6_K liefern noch bessere Ergebnisse bei moderat größerem Speicherbedarf.</p>
+
+<p>GGUF-Modelle können direkt mit llama.cpp, Ollama, LM Studio oder text-generation-webui geladen werden. Die Installation ist denkbar einfach und erfordert keine komplexe Python-Umgebung. Auf moderner Hardware erreichen GGUF-Modelle beeindruckende Inferenzgeschwindigkeiten, insbesondere auf Apple Silicon (M1, M2, M3, M4) und modernen CPUs mit AVX2- oder AVX-512-Unterstützung. Für Anwender, die ohne teure GPU-Karten auskommen möchten, ist GGUF oft die erste Wahl.</p>
+
+<h2>AWQ: Activation-aware Weight Quantization</h2>
+
+<p>AWQ wurde 2023 von MIT-Forschern vorgestellt und hat sich schnell als eines der leistungsfähigsten Quantisierungsverfahren für GPUs etabliert. Der Grundgedanke: Nur etwa 1% der Modellgewichte sind besonders wichtig für die Inferenzqualität. AWQ identifiziert diese kritischen Gewichte anhand ihrer Aktivierungsmuster und schützt sie vor der Quantisierung, während die übrigen Gewichte aggressiv komprimiert werden.</p>
+
+<p>Im praktischen Einsatz liefert AWQ bei 4-Bit-Quantisierung Ergebnisse, die mit der vollen FP16-Präzision vergleichbar sind. Dies ist bemerkenswert, da ältere Methoden bei gleicher Bit-Breite oft deutliche Qualitätsverluste zeigen. AWQ ist besonders gut für Endpunkt-Inferenz auf Consumer-GPUs geeignet, wo es um maximale Performance bei minimalem Speicherverbrauch geht. Das Format wird vollständig von vLLM, AutoAWQ und Hugging Face Transformers unterstützt.</p>
+
+<p>Die Erstellung eines AWQ-Modells erfordert einen kleinen Kalibrierungsdatensatz, mit dem die wichtigen Gewichte identifiziert werden. Die Inferenz selbst läuft dann mit speziellen CUDA-Kernels, die auf modernen NVIDIA-GPUs optimiert sind. AMD-GPUs werden ebenfalls zunehmend unterstützt, was AWQ zu einer plattformübergreifenden Lösung macht. Für 2026 ist AWQ eine der empfehlenswertesten Optionen für GPU-basierte Inferenz-Workloads.</p>
+
+<h2>GPTQ: Der Klassiker für GPU-Inferenz</h2>
+
+<p>GPTQ (GPT Quantization) basiert auf einem einstufigen Optimierungsverfahren, das alle Gewichte schichtweise quantisiert, während die Ausgabe approximiert wird. Entwickelt wurde es von Frantar et al. und es war eines der ersten Verfahren, das eine praktikable 3-Bit- und 4-Bit-Quantisierung für große Transformer-Modelle ermöglichte. Auch wenn neuere Methoden wie AWQ und EXL2 in einigen Benchmarks besser abschneiden, bleibt GPTQ relevant.</p>
+
+<p>Der größte Vorteil von GPTQ liegt in seiner breiten Kompatibilität. Nahezu alle Inferenz-Engines, darunter vLLM, TGI (Text Generation Inference), ExLlamaV1 und die meisten quantisierten Modelle auf Hugging Face, unterstützen GPTQ. Für Entwickler, die eine breite Auswahl an vortrainierten Modellen benötigen, ist GPTQ oft die sicherste Wahl. Die Qualität ist besonders bei 4-Bit-Quantisierung sehr gut und übertrifft viele andere ältere Methoden.</p>
+
+<p>Bei der Auswahl eines GPTQ-Modells sollte man auf das exakte Quantisierungsschema achten. Es gibt verschiedene Gruppengrößen (group_size), wobei kleinere Gruppen (z.B. 32 oder 64) eine bessere Qualität, aber auch einen höheren Overhead bieten. Die Standardkonfiguration mit group_size=128 bietet einen guten Kompromiss. Für maximale Qualität empfiehlt sich die Verwendung von GPTQ mit Aktivierungs-Quantisierung (act-order=True), was die Inferenzgenauigkeit weiter verbessert.</p>
+
+<h2>EXL2: ExLlamaV2 für höchste Performance</h2>
+
+<p>EXL2 ist das native Format der ExLlamaV2-Bibliothek und wurde speziell für maximale Inferenzgeschwindigkeit auf NVIDIA-GPUs optimiert. Es unterstützt variable Bit-Breiten pro Schicht, was bedeutet, dass wichtige Schichten mit höherer Präzision (z.B. 6 oder 8 Bit) und weniger kritische Schichten aggressiver (z.B. 3 oder 4 Bit) quantisiert werden können. Diese Mischung ermöglicht eine optimale Ressourcennutzung bei hoher Qualität.</p>
+
+<p>Die Konvertierung in EXL2 erfolgt typischerweise mit dem exllamav2-Tool, das eine Ziel-Bit-Breite (z.B. 4.5 bpw) vorgibt und die Bit-Verteilung pro Schicht automatisch optimiert. Die resultierenden Modelle erreichen oft bessere Qualitäts-Metriken als AWQ oder GPTQ bei vergleichbarer Bit-Breite und sind dabei oft auch schneller. Auf einer einzelnen RTX 4090 können 70B-Modelle in EXL2 mit brauchbaren Geschwindigkeiten ausgeführt werden, was 2024 noch undenklich schien.</p>
+
+<p>EXL2 ist besonders bei Enthusiasten und professionellen Anwendern beliebt, die das Maximum aus ihrer Hardware herausholen möchten. Die Bibliothek unterstützt auch innovative Funktionen wie Cache-Quantisierung, was die VRAM-Nutzung bei langen Kontexten weiter optimiert. Wer 2026 das beste Preis-Leistungs-Verhältnis auf einer High-End-GPU sucht, sollte EXL2 in Betracht ziehen.</p>
+
+<h2>bitsandbytes: Flexible In-Memory-Quantisierung</h2>
+
+<p>bitsandbytes (bnb) ist eine Python-Bibliothek, die 8-Bit- und 4-Bit-Quantisierung direkt in PyTorch und Transformers integriert. Im Gegensatz zu den oben genannten Formaten werden die Modelle hier nicht in ein spezielles Dateiformat konvertiert, sondern die Quantisierung erfolgt beim Laden in den Speicher. Dies ermöglicht es, mit einem einziligen Checkpoint verschiedene Quantisierungsstufen auszuprobieren.</p>
+
+<p>Die 4-Bit-Quantisierung mit bitsandbytes (genannt NF4 – NormalFloat 4-bit) ist besonders beim QLoRA-Fine-Tuning von Modellen beliebt. Mit dieser Technik können 70B-Parameter-Modelle auf einer einzelnen 24-GB-GPU feinjustiert werden, was die Demokratisierung des Fine-Tunings vorangetrieben hat. Auch bei der Inferenz ist bitsandbytes nützlich, da Modelle mit minimalem Aufwand komprimiert geladen werden können.</p>
+
+<p>Im 4-Bit-Modus stehen verschiedene Quantisierungstypen zur Verfügung: FP4, NF4 und ein Double-Quant-Modus, der zusätzlich die Quantisierungskonstanten quantisiert. NF4 hat sich als Standard für die meisten Anwendungen etabliert, da es speziell für normalverteilte Gewichte optimiert ist. Für 2026 ist bitsandbytes das bevorzugte Werkzeug für alle, die Modelle effizient laden oder mit minimalem Speicherverbrauch feinjustieren möchten.</p>
+
+<h2>Vergleichstabelle: GGUF, AWQ, GPTQ, EXL2, bitsandbytes</h2>
+
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>Hauptanwendung</th>
+<th>Hardware</th>
+<th>Bit-Breiten</th>
+<th>Besonderheiten</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GGUF</td>
+<td>CPU/Apple Silicon Inferenz</td>
+<td>CPU, Apple Silicon, GPU (begrenzt)</td>
+<td>2-8 Bit, F16, F32</td>
+<td>Selbstbeschreibend, riesiges Ökosystem, llama.cpp</td>
+</tr>
+<tr>
+<td>AWQ</td>
+<td>GPU-Inferenz</td>
+<td>NVIDIA, AMD (zunehmend)</td>
+<td>4 Bit (typisch)</td>
+<td>Activation-aware, sehr gute Qualität</td>
+</tr>
+<tr>
+<td>GPTQ</td>
+<td>GPU-Inferenz</td>
+<td>NVIDIA, AMD</td>
+<td>3-8 Bit</td>
+<td>Breite Kompatibilität, etabliert</td>
+</tr>
+<tr>
+<td>EXL2</td>
+<td>High-End-GPU-Inferenz</td>
+<td>NVIDIA (optimiert)</td>
+<td>Variable bpw (z.B. 2.5-8)</td>
+<td>Höchste Performance, Cache-Quantisierung</td>
+</tr>
+<tr>
+<td>bitsandbytes</td>
+<td>In-Memory Quantisierung, Training</td>
+<td>NVIDIA, AMD, CPU</td>
+<td>4 Bit (NF4), 8 Bit</td>
+<td>Keine Datei-Konvertierung nötig, QLoRA</td>
+</tr>
+</tbody>
+</table>
+
+<h2>Wann sollte man welches Format wählen?</h2>
+
+<p>Die Wahl des richtigen Quantisierungsformats hängt von mehreren Faktoren ab: der verfügbaren Hardware, dem Einsatzzweck, der gewünschten Qualität und der Kompatibilität mit der bevorzugten Software. Für reine CPU- oder Apple-Silicon-Inferenz ist GGUF praktisch alternativlos. Wer auf einer NVIDIA-GPU maximale Performance benötigt, sollte EXL2 in Betracht ziehen, gefolgt von AWQ und GPTQ.</p>
+
+<p>Für Fine-Tuning und Training ist bitsandbytes 4-Bit (NF4) der klare Favorit, da es nahtlos mit Hugging Face Transformers und QLoRA funktioniert. Wer ein vortrainiertes Modell aus der Hugging Face-Bibliothek herunterlädt, findet dort oft mehrere Formate – AWQ für Geschwindigkeit, GPTQ für Kompatibilität und bitsandbytes für einfaches Laden. Es lohnt sich, vorab die Anforderungen der Zielumgebung zu prüfen.</p>
+
+<p>Ein weiterer Aspekt ist die Kontextlänge. Bei sehr langen Kontexten (32k+ Tokens) spielt die Cache-Verwaltung eine wichtige Rolle. EXL2 bietet hier Vorteile durch seine Cache-Quantisierung, während GGUF mit llama.cpp ebenfalls effizient mit langen Kontexten umgehen kann. Bei der Wahl sollte man auch das zukünftige Wachstum des Modells berücksichtigen – ein Format, das heute schnell ist, sollte auch morgen noch unterstützt werden.</p>
+
+<h2>Speicherersparnis und Performance in der Praxis</h2>
+
+<p>Die Speicherersparnis durch Quantisierung ist beeindruckend. Ein 70B-Parameter-Modell benötigt in FP16 etwa 140 GB VRAM – weit außerhalb dessen, was Consumer-Hardware bietet. In 4-Bit-Quantisierung schrumpft der Speicherbedarf auf etwa 35-40 GB, was auf einer einzelnen H100 oder auf zwei A6000-Karten bequem lauffähig ist. Bei 3-Bit-Quantisierung sinkt der Bedarf weiter auf ca. 28-30 GB.</p>
+
+<p>Die Inferenzgeschwindigkeit hängt nicht nur von der Quantisierung, sondern auch von der Hardware, der Batch-Größe und der Kontextlänge ab. Auf einer RTX 4090 erreicht ein 70B-Modell in EXL2 4-Bit etwa 15-25 Tokens pro Sekunde bei einem einzelnen Stream – ein Wert, der vor wenigen Jahren nur mit wesentlich teurerer Hardware möglich war. Mit 4-Bit-AWQ oder GPTQ auf einer A100 80GB sind sogar 50+ Tokens pro Sekunde erreichbar.</p>
+
+<p>Bei der Performance-Messung sollte man zwischen Prefill (Verarbeitung der Eingabe) und Decode (Token-Generierung) unterscheiden. Quantisierung beeinflusst das Decode-Tempo weniger stark als den Prefill, da hier die Rechenoperationen speicherlimitiert sind. Für interaktive Chat-Anwendungen ist vor allem die Decode-Geschwindigkeit entscheidend, für Batch-Verarbeitung eher der Prefill-Durchsatz. Moderne Formate wie EXL2 minimieren diese Unterschiede durch effiziente Kernel-Implementierungen.</p>
+
+<h2>Häufige Fehler und Best Practices</h2>
+
+<p>Einer der häufigsten Fehler ist die Wahl einer zu aggressiven Quantisierung. Während 4-Bit für die meisten Modelle einen guten Kompromiss bietet, kann 3-Bit oder 2-Bit bei komplexen Reasoning-Aufgaben zu deutlichen Qualitätsverlusten führen. Es empfiehlt sich, vor der finalen Auswahl Benchmarks mit dem konkreten Anwendungsfall durchzuführen. Tools wie lm-evaluation-harness helfen dabei, die Qualität objektiv zu messen.</p>
+
+<p>Ein weiterer Fehler ist die Verwendung inkompatibler Bibliotheksversionen. AWQ erfordert eine spezielle Version von AutoAWQ, EXL2 benötigt ExLlamaV2 und bitsandbytes sollte in der neuesten stabilen Version verwendet werden. Mischen sich inkompatible Versionen, kann dies zu Abstürzen oder fehlerhaften Inferenzergebnissen führen. Containerisierte Deployments mit Docker oder Apptainer können hier Abhilfe schaffen.</p>
+
+<p>Best Practices umfassen die Verwendung vertrauenswürdiger Quellen für quantisierte Modelle, die regelmäßige Aktualisierung der Inferenz-Engines sowie das Monitoring der Inferenzqualität in Produktionsumgebungen. Bei unternehmenskritischen Anwendungen sollte man außerdem A/B-Tests zwischen verschiedenen Quantisierungsstufen durchführen und die Ergebnisse dokumentieren. Die Investition in sorgfältige Evaluierung zahlt sich langfristig aus.</p>
+
+<h2>Zukunft der Quantisierung 2026 und darüber hinaus</h2>
+
+<p>Die Entwicklung der Quantisierungstechniken steht auch 2026 nicht still. Neue Methoden wie SmoothQuant, ZeroQuant und SpQR zielen darauf ab, die Qualitätsverluste bei niedrigen Bit-Breiten weiter zu reduzieren. Insbesondere 1-Bit- und 1.58-Bit-Modelle (BitNet b1.58) gewinnen an Bedeutung und versprechen, die Inferenz noch effizienter zu machen. Diese extremen Quantisierungen erfordern jedoch speziell trainierte Modelle und sind noch nicht universell einsetzbar.</p>
+
+<p>Ein weiterer Trend ist die hardwarebeschleunigte Quantisierung. Moderne GPUs und CPUs bieten zunehmend native Unterstützung für niedrigere Präzisionen, etwa INT4- und FP4-Operationen direkt in den Tensor-Cores. NVIDIA Blackwell, AMD RDNA 4 und Apple M4 sind hier wegweisend. Inferenz-Engines wie vLLM, TensorRT-LLM und llama.cpp integrieren diese Hardware-Features zunehmend, was die Performance weiter steigert.</p>
+
+<p>Für die Zukunft ist zu erwarten, dass Quantisierung in vielen Bereichen zur Standardpraxis wird. Edge-KI, On-Device-Inferenz und Embedded-Anwendungen werden stark von effizienten Quantisierungsmethoden profitieren. Unternehmen, die frühzeitig in die passende Quantisierungsstrategie investieren, sichern sich Wettbewerbsvorteile bei Kosten, Latenz und Skalierbarkeit. Wer jetzt die Grundlagen versteht, ist bestens für die kommenden Entwicklungen gerüstet.</p>
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

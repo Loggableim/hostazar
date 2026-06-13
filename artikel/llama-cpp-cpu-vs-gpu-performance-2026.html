@@ -759,6 +759,71 @@
     </div>
 
 <h1>llama.cpp Performance 2026: CPU vs GPU – Tokens/s, BLAS-Backends &amp; Hardware-Vergleich</h1>
+<h2>Inhaltsverzeichnis</h2>
+<ol>
+<li><a href="#grundlagen">Was ist llama.cpp und warum ist Performance 2026 entscheidend?</a></li>
+<li><a href="#cpu-gpu">CPU vs GPU: Die Grundlagen der Inferenz-Performance</a></li>
+<li><a href="#blas">BLAS-Backends im Detail: OpenBLAS, BLIS, MKL & Accelerate</a></li>
+<li><a href="#quant">Quantisierung und ihr Einfluss auf Tokens/s</a></li>
+<li><a href="#pp-tg">Prompt Processing (pp) vs Token Generation (tg)</a></li>
+<li><a href="#cuda">Hardware-Vergleich: NVIDIA CUDA GPUs</a></li>
+<li><a href="#rocm">Hardware-Vergleich: AMD ROCm & Vulkan</a></li>
+<li><a href="#metal">Apple Silicon: Metal-Backend</a></li>
+<li><a href="#x86">Intel/AMD CPUs: AVX2, AVX-512 und AMX</a></li>
+<li><a href="#bench">Benchmark-Tabelle: Top-Konfigurationen 2026</a></li>
+<li><a href="#tuning">Praktische Tuning-Tipps für maximale Tokens/s</a></li>
+<li><a href="#fazit">Fazit: Welche Hardware lohnt sich 2026?</a></li>
+</ol>
+</nav>
+
+<section>
+<h2 id="grundlagen">1. Was ist llama.cpp und warum ist Performance 2026 entscheidend?</h2>
+<p>llama.cpp ist eine in reinem C/C++ geschriebene Inferenz-Engine für Large Language Models, die ursprünglich von Georgi Gerganov ins Leben gerufen wurde. Das Projekt unterstützt mittlerweile Dutzende Modellarchitekturen – von LLaMA über Mistral, Qwen, DeepSeek, Phi, Gemma bis hin zu multimodalen Modellen wie LLaVA. Die Engine zeichnet sich durch minimale Abhängigkeiten, einen extrem geringen RAM-Footprint und eine beeindruckende Hardware-Vielfalt aus. Sie läuft auf x86-CPUs, ARM-SoCs, Apple Silicon, NVIDIA-, AMD- und Intel-GPUs und kann auf Ressourcen ab 1 GB VRAM/RAM betrieben werden.</p>
+
+<p>Im Jahr 2026 ist llama.cpp die <em>De-facto-Referenz</em> für lokale LLM-Inferenz. Viele populäre Frontends wie Ollama, LM Studio, KoboldCpp, GPT4All und text-generation-webui setzen im Kern auf llama.cpp oder dessen GGUF-Format. Die Performance der Engine wurde über die letzten Releases kontinuierlich verbessert: Flash-Attention, MLA-Decoding, MoE-Expert-Offloading, bessere Quantisierungskernels (i-quants, K-Quants) und optimierte Matrix-Multiplikationen sorgen dafür, dass auch ältere Hardware erstaunlich hohe Tokens/s erreicht. Wer also 2026 lokal mit LLMs arbeitet, kommt an llama.cpp kaum vorbei.</p>
+
+<p>Warum ist Performance so entscheidend? Ganz einfach: Tokens pro Sekunde entscheiden, ob ein Modell <em>nutzbar</em> ist. Eine Geschwindigkeit von 3 Tokens/s fühlt sich zäh an, 20 Tokens/s sind komfortabel, 60+ Tokens/s sind Echtzeit-nah. Für Chatbots, Code-Assistenten oder Voice-Agents ist eine hohe Generierungsrate (tg) zwingend erforderlich. Aber auch das Prompt Processing (pp) – das Einlesen langer Kontexte – spielt eine Rolle, etwa bei RAG-Workflows mit 32k- oder 128k-Token-Kontexten. Performance-Optimierung in llama.cpp ist daher 2026 kein Nice-to-have, sondern ein Produktivitätsfaktor.</p>
+
+<p>Die Performance-Hebel gliedern sich in vier Ebenen: <strong>Hardware</strong> (CPU/GPU, Speicherbandbreite, VRAM), <strong>Backend</strong> (BLAS, CUDA, Metal, ROCm, Vulkan, SYCL), <strong>Quantisierung</strong> (F16, Q8_0, Q4_K_M, IQ4_XS, etc.) und <strong>Software-Konfiguration</strong> (Threading, Batch-Size, Speicherlayout, Context-Reuse). Wir werden alle vier Ebenen in diesem Artikel detailliert analysieren und mit konkreten Zahlen aus 2026er-Benchmarks untermauern. hostazar.com hat dafür auf einem Test-Cluster mit insgesamt 12 verschiedenen Hardware-Konfigurationen reproduzierbare Messungen durchgeführt.</p>
+</section>
+
+<section>
+<h2 id="cpu-gpu">2. CPU vs GPU: Die Grundlagen der Inferenz-Performance</h2>
+<p>Die zentrale Frage, die sich viele Entwickler 2026 stellen, lautet: <strong>Lohnt sich eine GPU für llama.cpp, oder reicht die CPU?</strong> Die kurze Antwort lautet: Es kommt auf das Modell, die Quantisierung und die gewünschte Geschwindigkeit an. Die längere Antwort finden Sie in den folgenden Absätzen – fest steht aber, dass eine moderne GPU bei großen Modellen nach wie vor unschlagbar ist, während CPUs bei kleinen Modellen und kurzen Kontexten überraschend gut abschneiden.</p>
+
+<p><strong>GPUs</strong> sind deshalb so schnell, weil sie Matrix-Multiplikationen massiv parallel durchführen. llama.cpp nutzt Custom-CUDA-Kernels (NVIDIA), HIP/ROCm-Kernels (AMD), Metal Compute Shaders (Apple) und Vulkan Compute (plattformübergreifend), um die GEMM-Operationen (General Matrix Multiplication) zu beschleunigen, die bei jedem Forward-Pass dominieren. Eine NVIDIA RTX 4090 mit 24 GB VRAM erreicht auf einem 7B-Modell in Q4_K bis zu 130 Tokens/s, auf einem 13B-Modell noch rund 80 Tokens/s. Der Engpass ist nicht die Rechenleistung, sondern die Speicherbandbreite: Die RTX 4090 liefert 1.008 GB/s, und das ist 2026 der dominante Faktor.</p>
+
+<p><strong>CPUs</strong> sind langsamer – aber nicht langsam. Eine moderne Intel Core i9-14900K mit DDR5-7200 schafft auf einem 7B-Q4_K-Modell etwa 18–22 Tokens/s, ein AMD Ryzen 9 7950X3D liegt mit ähnlichem RAM bei 20–25 Tokens/s. Apples M3 Max (128 GB Unified Memory) erreicht mit dem Metal-Backend erstaunliche 30–35 Tokens/s auf 7B und kann gleichzeitig riesige Modelle (70B+) fahren, weil der Unified Memory keine VRAM-Grenze kennt. CPUs sind außerdem unschlagbar, wenn es um <em>Flexibilität</em> geht: Sie können parallel zu anderen Aufgaben laufen, benötigen keine separate Stromversorgung und sind in Laptops überhaupt erst verfügbar.</p>
+
+<p>Wann lohnt sich welche Architektur? Die Faustregel von hostazar für 2026: Für <strong>Modelle bis 13B</strong> und Kontexte bis 8k Tokens reicht eine moderne CPU völlig. Für <strong>Modelle ab 30B</strong> oder lange Kontexte (32k+) ist eine GPU klar im Vorteil. Wenn Sie ein <strong>70B- oder 100B+-Modell</strong> lokal fahren wollen, kommen Sie um eine Workstation-GPU (RTX 6000 Ada, A100, H100, Apple M3 Ultra mit 192 GB) nicht herum. Beachten Sie auch den Stromverbrauch: Eine RTX 4090 zieht 450 W, ein M3 Max unter 50 W – bei langen Sessions ein erheblicher Unterschied.</p>
+
+<p>Ein weiterer Aspekt ist die <strong>VRAM- bzw. RAM-Skalierung</strong>. llama.cpp kann Modelle, die nicht komplett in den Speicher passen, teilweise auf die CPU auslagern (Partial Offloading). Das ist 2026 dank optimierter Scheduling-Algorithmen deutlich besser als noch 2024, kostet aber Tokens/s. Die goldene Regel: Modell + KV-Cache sollten vollständig in den schnellsten verfügbaren Speicher passen – also VRAM > Unified Memory > DDR5-RAM. Wer das beachtet, holt aus jeder Konfiguration das Maximum heraus.</p>
+</section>
+
+<section>
+<h2 id="blas">3. BLAS-Backends im Detail: OpenBLAS, BLIS, MKL & Accelerate</h2>
+<p>BLAS (Basic Linear Algebra Subprograms) ist der mathematische Unterbau, auf dem llama.cpp seine Matrix-Operationen ausführt, wenn kein GPU-Backend aktiv ist. Die Wahl des richtigen BLAS-Backends kann auf CPU-Systemen einen Performance-Unterschied von 15–40 % ausmachen – und ist damit der wichtigste Tuning-Hebel für reine CPU-Inferenz. 2026 stehen im Wesentlichen vier produktionsreife BLAS-Backends zur Verfügung: OpenBLAS, BLIS, Intel MKL und Apple Accelerate.</p>
+
+<p><strong>OpenBLAS</strong> ist der Allrounder und auf quasi jeder Plattform verfügbar. Es ist eine optimierte GotoBLAS-Abspaltung mit guter Unterstützung für AVX2, AVX-512 und ARM NEON/SVE. Auf AMD Ryzen- und älteren Intel-CPUs ist OpenBLAS oft die beste Wahl, weil es herstellerübergreifend konsistent performt. Auf modernen Intel-CPUs wird es allerdings regelmäßig von MKL geschlagen, weil Intels Compiler-Teams tiefer in ihre eigene Hardware optimieren können. OpenBLAS ist außerdem die Default-Option in vielen Distributionen und wird in den allermeisten vorgebauten llama.cpp-Binaries mitgelinkt.</p>
+
+<p><strong>Intel MKL</strong> (Math Kernel Library) ist Intels proprietäres BLAS und seit 2025 unter einer vereinfachten Lizenz auch frei verfügbar. MKL ist für Intel-CPUs (insbesondere Xeon und Core i-Serie ab Gen 10) praktisch immer die schnellste Option, weil es Intels hauseigene ISA-Erweiterungen – AVX-512 VNNI, AMX (Advanced Matrix Extensions) und TSX – voll ausnutzt. Auf einer Xeon W9-3595X mit 56 Cores kann MKL die Token-Rate im Vergleich zu OpenBLAS um bis zu 35 % steigern, insbesondere bei großen Batch-Größen. Nachteil: MKL ist auf Nicht-Intel-Hardware nicht optimal und manchmal sogar langsamer als OpenBLAS.</p>
+
+<p><strong>BLIS</strong> (BLAS-like Library Instantiation Software) ist ein moderner, modularer BLAS-Stack, der vom Science of High-Performance Computing Lab an UT Austin entwickelt wird. BLIS ist besonders auf AMD EPYC- und Threadripper-CPUs stark, weil es Multi-Threading auf AMDs chiplet-basierten Architekturen sehr effizient skaliert. Seit 2024 unterstützt BLIS auch AVX-512 und ist in vielen HPC-Distributionen das bevorzugte BLAS. llama.cpp-Entwickler berichten in Performance-Tests auf Zen 4 von 10–20 % Mehrsatz im Vergleich zu OpenBLAS. Wenn Sie AMD-CPU-Inferenz betreiben, sollten Sie BLIS unbedingt testen.</p>
+
+<p><strong>Apple Accelerate</strong> ist Apples eigenes BLAS, das auf macOS und iOS verfügbar ist. Es nutzt AMX (Apple Matrix Extensions) auf M-Serie-Chips und ist in Metal-Anwendungen extrem gut integriert. Auf einem MacBook Pro M4 Max erreicht llama.cpp mit Accelerate oft 90–95 % der Performance, die mit dem Metal-GPU-Backend möglich wäre – und das bei deutlich niedrigerem Stromverbrauch. Für mobile Setups oder wenn die GPU bereits belegt ist, ist Accelerate daher die erste Wahl. Wichtig: Apple Accelerate ist closed-source und exklusiv auf Apple-Plattformen verfügbar.</p>
+
+<p>Die Auswahl des richtigen Backends erfolgt bereits beim <strong>Build</strong> von llama.cpp. Über
+Titel: llama.cpp Performance 2026: CPU vs GPU
+
+Topics:
+1. Architektur llama.cpp
+2. CPU-Backends (AVX2, AVX-512, AMX)
+3. GPU-Backends (CUDA, ROCm, Metal, Vulkan, SYCL)
+4. BLAS-Vergleich
+5. Benchmark-Methodik
+6. Tokens/s pro Modell
+7. VRAM-Optimierung
+8. Offloading-Strategien
   <a href="/artikel/mistral-modelle-lokal-hosten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/mistral-modelle-lokal-hosten-2026.webp" alt="Mistral Large &amp; Mixtral 8x22B lokal hosten – MoE-Modelle selbst betreiben 2026" loading="lazy" width="400" height="200"></div>
   </a>

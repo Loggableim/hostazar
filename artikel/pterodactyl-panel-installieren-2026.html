@@ -759,6 +759,221 @@
     </div>
 
 <h1>Pterodactyl Panel installieren – Gameserver-Management auf VPS 2026</h1>
+<h2>Pterodactyl Panel 2026: Vollständiger Installations-Guide für Game-Server-Hosting</h2>
+
+<p>Pterodactyl Panel ist die führende Open-Source-Lösung für die Verwaltung von Game-Servern und ist 2026 aus der Szene nicht mehr wegzudenken. Mit über 200 unterstützten Spielen - darunter Minecraft, Valheim, CS2, Rust, ARK, Satisfactory und viele mehr - bietet Pterodactyl eine einheitliche Weboberfläche zur Verwaltung mehrerer Server auf verteilten Nodes. Dieser Guide führt dich detailliert durch die Installation und Konfiguration.</p>
+
+<p>Die Architektur von Pterodactyl besteht aus zwei Hauptkomponenten: Dem Panel (Weboberfläche) und Wings (Daemon auf den Nodes). Diese Trennung ermöglicht es, mehrere physische Server als "Nodes" an ein zentrales Panel anzubinden und so eine skalierbare Hosting-Infrastruktur aufzubauen. Pterodactyl wird unter MIT-Lizenz veröffentlicht und ist komplett kostenlos, lediglich für Support oder erweiterte Module wie den Jexactyl-Shop fallen Kosten an.</p>
+
+<h2>Systemvoraussetzungen für Pterodactyl Panel 2026</h2>
+
+<p>Bevor du mit der Installation beginnst, prüfe die Mindestanforderungen an dein System. Das Panel selbst ist ressourcenschonend, da es hauptsächlich als Verwaltungsoberfläche dient. Wings hingegen ist für die tatsächliche Server-Performance verantwortlich und muss je nach Anzahl und Größe der Game-Server entsprechend dimensioniert werden.</p>
+
+<table>
+<thead>
+<tr>
+<th>Komponente</th>
+<th>Panel (Minimum)</th>
+<th>Wings Node (Empfohlen)</th>
+<th>Großer Node (20+ Server)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPU</td>
+<td>2 vCores</td>
+<td>AMD Ryzen 7 / Intel i7</td>
+<td>AMD Ryzen 9 / Intel i9</td>
+</tr>
+<tr>
+<td>RAM</td>
+<td>2 GB</td>
+<td>32 GB DDR4</td>
+<td>128 GB DDR5 ECC</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>10 GB SSD</td>
+<td>2 TB NVMe</td>
+<td>8 TB NVMe im RAID-10</td>
+</tr>
+<tr>
+<td>OS</td>
+<td>Ubuntu 22.04/24.04, Debian 12</td>
+<td>Ubuntu 22.04/24.04, Debian 12</td>
+<td>Ubuntu 24.04 LTS</td>
+</tr>
+<tr>
+<td>Docker</td>
+<td>Nicht erforderlich</td>
+<td>Erforderlich</td>
+<td>Erforderlich</td>
+</tr>
+</tbody>
+</table>
+
+<p>Für das Panel empfehlen wir eine separate Maschine oder einen LXC-Container, da dort sensible Daten wie Benutzer-Logins, API-Keys und Konfigurationen gespeichert werden. Wings kann auf beliebig vielen Nodes laufen, wobei die Performance hauptsächlich von CPU-Single-Thread-Leistung und RAM-Geschwindigkeit abhängt - Game-Server sind klassische Single-Thread-Anwendungen.</p>
+
+<h2>Vorbereitung des Servers: Grundlegende Konfiguration</h2>
+
+<p>Bevor du Pterodactyl installierst, musst du dein Betriebssystem vorbereiten. Update zunächst alle Pakete und installiere grundlegende Tools. Wir empfehlen Ubuntu 24.04 LTS, da dies die aktuelle Version mit dem längsten Support-Zeitraum ist. Aktiviere außerdem automatische Sicherheitsupdates und konfiguriere eine korrekte Zeitzone.</p>
+
+<pre><code># System aktualisieren
+apt update && apt upgrade -y
+
+# Grundlegende Tools installieren
+apt install -y curl wget git nano ufw software-properties-common
+
+# Firewall einrichten (Panel)
+ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw allow 8080/tcp
+ufw allow 2022/tcp
+ufw enable
+
+# Sicherstellen, dass der Server einen FQDN hat
+hostnamectl set-hostname panel.example.com
+echo "127.0.0.1 panel.example.com" >> /etc/hosts
+</code></pre>
+
+<p>Wichtig ist die korrekte DNS-Konfiguration: Der Server, auf dem das Panel läuft, sollte über einen FQDN (Fully Qualified Domain Name) erreichbar sein, damit SSL-Zertifikate ausgestellt werden können. Auch für Wings wird ein eindeutiger Hostname empfohlen, um Konflikte zu vermeiden.</p>
+
+<h2>PHP 8.3, MariaDB und Nginx installieren</h2>
+
+<p>Das Pterodactyl Panel benötigt PHP 8.2 oder höher, einen Webserver (Nginx oder Apache) und eine Datenbank (MariaDB oder MySQL). Wir empfehlen das offizielle Repository für PHP, um stets die aktuelle Version zu erhalten. Auch wenn PHP 8.4 verfügbar ist, hat sich 8.3 als stabiler und kompatibler erwiesen.</p>
+
+<pre><code># PHP 8.3 Repository hinzufügen
+apt install -y lsb-release gnupg2 ca-certificates apt-transport-https
+curl -fsSL https://packages.sury.org/php/apt.gpg | gpg --dearmor -o /usr/share/keyrings/sury-php.gpg
+echo "deb [signed-by=/usr/share/keyrings/sury-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list
+
+# Pakete installieren
+apt update
+apt install -y php8.3 php8.3-{cli,gd,mysql,pdo,mysql,mbstring,tokenizer,bcmath,xml,zip,curl,fpm,common,intl}
+
+# MariaDB installieren
+apt install -y mariadb-server
+mysql_secure_installation
+
+# Nginx installieren
+apt install -y nginx
+</code></pre>
+
+<p>Nach der Installation konfigurierst du PHP-FPM für die Verarbeitung von PHP-Dateien. Erstelle einen PHP-FPM-Pool, der auf Unix-Sockets hört, und konfiguriere die nötigen PHP-Settings wie memory_limit, upload_max_filesize und post_max_size. Für Pterodactyl empfehlen wir mindestens 512 MB Memory-Limit und 100 MB Upload-Größe, damit auch große Modpacks oder Backups hochgeladen werden können.</p>
+
+<h2>Composer und Datenbank einrichten</h2>
+
+<p>Composer ist der PHP-Paketmanager, der für die Installation von Pterodactyl benötigt wird. Erstelle eine separate MariaDB-Datenbank und einen Benutzer für Pterodactyl, bevor du mit der Installation beginnst. Achte darauf, ein sicheres Passwort zu verwenden und nicht den root-Benutzer für die Panel-Datenbank zu nutzen.</p>
+
+<pre><code># Composer installieren
+curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Datenbank und Benutzer erstellen
+mysql -u root -p
+CREATE DATABASE panel;
+CREATE USER 'pterodactyl'@'127.0.0.1' IDENTIFIED BY 'super_secure_password';
+GRANT ALL PRIVILEGES ON panel.* TO 'pterodactyl'@'127.0.0.1';
+FLUSH PRIVILEGES;
+EXIT;
+
+# Panel-Verzeichnis erstellen
+mkdir -p /var/www/pterodactyl
+cd /var/www/pterodactyl
+curl -Lo panel.tar.gz https://github.com/pterodactyl/panel/releases/latest/download/panel.tar.gz
+tar -xzvf panel.tar.gz
+chmod -R 755 storage/* bootstrap/cache/
+</code></pre>
+
+<p>Die Umgebungsvariablen für das Panel werden in einer .env-Datei konfiguriert. Diese enthält sensible Daten wie Datenbank-Credentials, Mail-Server-Einstellungen und den App-Encryption-Key. Führe `php artisan key:generate --force` aus, um einen sicheren Encryption-Key zu generieren, der für die Verschlüsselung sensibler Daten verwendet wird.</p>
+
+<h2>Pterodactyl Panel installieren und konfigurieren</h2>
+
+<p>Nach der Vorbereitung kann die eigentliche Installation beginnen. Composer installiert alle PHP-Abhängigkeiten, und Laravel's Artisan-Befehle richten die Datenbank ein. Im letzten Schritt erstellst du den ersten Admin-User, mit dem du dich später in der Weboberfläche anmeldest.</p>
+
+<pre><code># Composer-Abhängigkeiten installieren
+cd /var/www/pterodactyl
+composer install --no-dev --optimize-autoloader
+
+# Umgebungsvariablen konfigurieren
+cp .env.example .env
+php artisan key:generate --force
+
+# In .env die Datenbank-Einstellungen anpassen
+nano .env
+# APP_URL=https://panel.example.com
+# DB_DATABASE=panel
+# DB_USERNAME=pterodactyl
+# DB_PASSWORD=super_secure_password
+
+# Datenbank-Migrationen ausführen
+php artisan migrate --seed --force
+
+# Storage-Link erstellen
+php artisan storage:link
+
+# Admin-User erstellen
+php artisan p:user:make
+</code></pre>
+
+<p>Bei der Erstellung des Admin-Users wirst du nach E-Mail, Benutzername, Vor- und Nachname sowie Passwort gefragt. Notiere dir diese Daten sicher, da du sie für den ersten Login benötigst. Optional kannst du auch die Berechtigungen "Admin" setzen, um vollen Zugriff auf alle Funktionen zu erhalten.</p>
+
+<h2>Nginx-Konfiguration und SSL mit Let's Encrypt</h2>
+
+<p>Ein sicherer Webserver mit SSL-Verschlüsselung ist Pflicht für ein öffentlich erreichbares Pterodactyl Panel. Erstelle eine Nginx-Serverkonfiguration, die den Datenverkehr auf HTTPS umleitet, PHP-FPM über Unix-Sockets einbindet und die nötigen Header für Sicherheit und Performance setzt. Mit Certbot und Let's Encrypt erhältst du kostenlose SSL-Zertifikate, die sich automatisch erneuern.</p>
+
+<pre><code># /etc/nginx/sites-available/pterodactyl.conf
+server {
+    listen 80;
+    server_name panel.example.com;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name panel.example.com;
+    
+    root /var/www/pterodactyl/public;
+    index index.html index.htm index.php;
+    
+    ssl_certificate /etc/letsencrypt/live/panel.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/panel.example.com/privkey.pem;
+    
+    add_header X-Content-Type-Options nosniff;
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-XSS-Protection "1; mode=block";
+    
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+    
+    location ~ \.php$ {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+
+# Let's Encrypt Zertifikat erstellen
+certbot --nginx -d panel.example.com
+</code></pre>
+
+<p>Certbot richtet die SSL-Konfiguration automatisch ein und konfiguriert die HTTP-zu-HTTPS-Umleitung. Stelle sicher, dass die automatische Erneuerung der Zertifikate funktioniert, indem du `certbot renew --dry-run` ausführst. Cron überwacht die Zertifikate standardmäßig und erneuert sie vor Ablauf.</p>
+
+<h2>Wings-Daemon auf den Nodes installieren</h2>
+
+<p>Wings ist die Server-Komponente, die auf
+<h2>Pterodactyl Panel: Die moderne Open-Source-Lösung für Game-Server-Management</h2>
+<p>Pterodactyl Panel hat sich in den letzten Jahren als die führende Open-Source-Weboberfläche für die Verwaltung von Game-Servern etabliert. Ob Minecraft, Rust, Valheim, CS2, ARK, Satisfactory oder Teamspeak – mit Pterodactyl kannst du Dutzende verschiedene Game-Server-Typen zentral verwalten. Die Kombination aus einer schlanken Weboberfläche und leistungsstarken Daemons macht die Plattform sowohl für Hobby-Admins als auch für kommerzielle Hosting-Anbieter attraktiv.</p>
+<p>Im Jahr 2026 ist Pterodactyl in der Version 1.11+ verfügbar, die zahlreiche Verbesserungen mitbringt. Dazu gehören eine moderne React-basierte Weboberfläche, native Docker-Integration, granulare Berechtigungen auf Server-Ebene und ein neues Billing-System, das die kommerzielle Nutzung vereinfacht. Die Community ist riesig und die Zahl der unterstützten Games wächst stetig.</p>
+<p>Im Vergleich zu Alternativen wie Multicraft, TCAdmin oder GamePanelX bietet Pterodactyl den Vorteil, dass es vollständig kostenlos und Open-Source ist. Du bist nicht an einen Anbieter gebunden, kannst den Code einsehen und anpassen, und die Community liefert regelmäßig neue Features. Auch die Performance ist hervorragend, da die Daemons sehr ressourcenschonend arbeiten.</p>
+<p>Pterodactyl besteht aus zwei Hauptkomponenten: dem Panel (Weboberfläche) und den Daemons (Wings), die auf den Server-Nodes laufen. Diese Trennung ermöglicht es, ein zentrales Panel zu betreiben und mehrere physische Server als Nodes anzubinden. Damit lassen sich komplexe Setups realisieren, die auch professionellen Hosting-Anbietern Konkurrenz machen.</p>
+
+<h2>Systemanforderungen für Pterodactyl Panel 2026</h2>
+<p>Die Systemanforderungen für Pterodactyl Panel sind moderat, da die Weboberfläche in PHP/Laravel implementiert ist und die Daemons in Go geschrieben sind. Für ein kleines Setup mit 1-10 Servern reicht bereits ein VPS mit 2 vCPUs, 4 GB RAM und 40 GB SSD-Speicher. Für größere Setups mit 50+ Servern empfehlen wir mindestens 4 vCPUs, 8 GB RAM und schnellen NVMe-Speicher.</p>
+<p>Das Panel selbst benötigt einen LAMP-Stack (Linux, Apache/Nginx, MySQL/MariaDB, PHP) oder kann alternativ mit dem offiziellen Docker-Image betrieben werden. Die Docker-Variante ist besonders für Einsteiger empfehlenswert, da sie alle Abhängigkeiten in Containern bündelt und keine manuelle Konfiguration des Webservers erfordert.</p>
+<table
   <a href="/artikel/valheim-server-vps-mieten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/valheim-server-vps-mieten-2026.webp" alt="Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026" loading="lazy" width="400" height="200"></div>
   </a>

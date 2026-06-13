@@ -759,6 +759,349 @@
     </div>
 
 <h1>Gitea – Selfhosted Git-Server auf VPS installieren &amp; betreiben 2026</h1>
+<h2>Was ist Gitea und warum ist es 2026 die ideale Wahl für Selbsthosting?</h2>
+
+<p>Gitea ist ein leichtgewichtiger, in Go geschriebener Git-Server, der sich durch seine einfache Installation, geringe Ressourcenanforderungen und umfangreiche Funktionalität auszeichnet. Im Jahr 2026 hat sich Gitea als eine der führenden Alternativen zu kommerziellen Plattformen wie GitHub, GitLab und Bitbucket etabliert, insbesondere für Entwickler und Unternehmen, die Wert auf Datenhoheit, Datenschutz und volle Kontrolle über ihre Repositories legen. Die Software wird aktiv von einer weltweiten Community gepflegt und bietet eine moderne Weboberfläche, die funktional kaum Wünsche offen lässt.</p>
+
+<p>Im Vergleich zu GitLab benötigt Gitea nur einen Bruchteil der Systemressourcen. Während GitLab auf einem VPS mit 4 GB RAM bereits an seine Grenzen stößt, läuft Gitea problemlos auf einem Server mit lediglich 1 GB Arbeitsspeicher. Diese Effizienz macht Gitea besonders attraktiv für kleinere Teams, Hobby-Entwickler und Unternehmen, die eine kostengünstige Selfhosting-Lösung suchen. Die Installation erfolgt in der Regel innerhalb weniger Minuten und erfordert keine tiefgreifenden Linux-Kenntnisse.</p>
+
+<p>Ein weiterer entscheidender Vorteil von Gitea ist die vollständige Unterstützung von Open-Source-Standards. Neben klassischem Git via SSH und HTTPS bietet Gitea eine REST-API, Webhooks, Actions (kompatibel mit GitHub Actions), Package-Registries sowie integrierte Wikis und Issue-Tracker. Damit deckt Gitea nahezu alle Funktionen ab, die auch von kommerziellen Plattformen geboten werden, ohne dass dabei Lizenzkosten anfallen. Die Datenhoheit bleibt vollständig beim Betreiber des Servers.</p>
+
+<p>Für deutsche Anwender ist besonders relevant, dass Gitea DSGVO-konform betrieben werden kann, da alle Daten auf eigenen Servern innerhalb Deutschlands oder der EU gespeichert werden. Dies ist ein wesentlicher Vorteil gegenüber US-amerikanischen Diensten, die oft komplexe Datenverarbeitungsvereinbarungen erfordern. Gitea unterstützt zudem LDAP, OAuth und SAML, sodass eine Integration in bestehende Unternehmensstrukturen problemlos möglich ist.</p>
+
+<h2>Systemvoraussetzungen für Gitea auf einem VPS im Jahr 2026</h2>
+
+<p>Die Systemvoraussetzungen für Gitea sind erfreulich moderat und ermöglichen den Betrieb auch auf kleinen VPS-Instanzen. Für eine produktive Nutzung mit bis zu 100 aktiven Nutzern und mehreren hundert Repositories empfiehlt sich eine Konfiguration mit mindestens 2 CPU-Kernen, 2 GB RAM und 20 GB SSD-Speicher. Diese Ressourcen sind bei nahezu allen aktuellen VPS-Anbietern bereits in den Einstiegstarifen enthalten und machen Gitea zu einer äußerst wirtschaftlichen Lösung.</p>
+
+<p>Als Betriebssystem eignen sich alle gängigen Linux-Distributionen wie Ubuntu 22.04 LTS, Ubuntu 24.04 LTS, Debian 12 (Bookworm) oder Rocky Linux 9. Gitea selbst ist als statisch kompiliertes Binary verfügbar und benötigt keine zusätzlichen Laufzeitumgebungen. Für die Datenhaltung wird standardmäßig SQLite verwendet, das sich für kleine bis mittelgroße Installationen bestens bewährt. Alternativ können MySQL, MariaDB oder PostgreSQL als Datenbanksystem zum Einsatz kommen.</p>
+
+<p>Die folgende Tabelle gibt einen Überblick über die empfohlenen Systemvoraussetzungen je nach Einsatzgröße:</p>
+
+<table border="1">
+<thead>
+<tr><th>Einsatzgröße</th><th>CPU-Kerne</th><th>RAM</th><th>Speicher</th><th>Datenbank</th><th>Nutzer</th></tr>
+</thead>
+<tbody>
+<tr><td>Klein (privat)</td><td>1</td><td>1 GB</td><td>10 GB SSD</td><td>SQLite</td><td>1-5</td></tr>
+<tr><td>Mittel (Team)</td><td>2</td><td>2 GB</td><td>20 GB SSD</td><td>SQLite/MySQL</td><td>5-50</td></tr>
+<tr><td>Groß (Unternehmen)</td><td>4</td><td>4 GB</td><td>50 GB SSD</td><td>PostgreSQL</td><td>50-200</td></tr>
+<tr><td>Enterprise</td><td>8+</td><td>8 GB+</td><td>100 GB+ SSD</td><td>PostgreSQL Cluster</td><td>200+</td></tr>
+</tbody>
+</table>
+
+<p>Für die Netzwerkanbindung empfiehlt sich ein VPS-Standort in Deutschland, um kurze Latenzzeiten und DSGVO-Konformität zu gewährleisten. Anbieter wie Hetzner, Netcup oder IONOS bieten entsprechende Standorte in Frankfurt, Nürnberg oder München an. Eine statische IPv4-Adresse ist Pflicht, damit Gitea über eine feste URL erreichbar ist und SSL-Zertifikate korrekt ausgestellt werden können.</p>
+
+<p>Zusätzlich sollte der VPS über ausreichend Swap-Speicher verfügen, um Lastspitzen abzufangen. Als Faustregel gilt: Swap = 1,5 × RAM. Bei 2 GB RAM empfiehlt sich also ein Swap von 3 GB. Dies verhindert Out-of-Memory-Fehler bei gleichzeitigen Git-Operationen wie Klonen, Push oder Pull mehrerer großer Repositories.</p>
+
+<h2>Vorbereitung des VPS: SSH-Zugang, Updates und Firewall einrichten</h2>
+
+<p>Bevor mit der eigentlichen Installation von Gitea begonnen wird, muss der VPS grundlegend vorbereitet werden. Zunächst erfolgt die Anmeldung per SSH mit dem vom Provider zugewiesenen Root-Passwort oder besser mit einem SSH-Schlüsselpaar. Der Befehl <code>ssh root@IHRE-IP</code> stellt die Verbindung her. Nach dem ersten Login sollte umgehend das Passwort geändert und ein neuer Benutzer mit sudo-Rechten angelegt werden, um die Sicherheit zu erhöhen.</p>
+
+<p>Ein regelmäßig aktualisiertes System ist die Grundlage für jede sichere Server-Installation. Unter Ubuntu oder Debian werden verfügbare Updates mit folgenden Befehlen eingespielt:</p>
+
+<pre><code>apt update && apt upgrade -y
+apt install -y curl wget git nano ufw fail2ban
+</code></pre>
+
+<p>Die anschließende Konfiguration der Firewall ist ein kritischer Sicherheitsschritt. UFW (Uncomplicated Firewall) bietet eine einfache Möglichkeit, nur die wirklich benötigten Ports freizugeben. Für Gitea werden typischerweise die Ports 22 (SSH), 80 (HTTP) und 443 (HTTPS) benötigt. SSH sollte idealerweise auf einen nicht-standardisierten Port verlegt werden, um automatisierte Angriffe zu erschweren.</p>
+
+<pre><code>ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw enable
+ufw status verbose
+</code></pre>
+
+<p>Fail2Ban ergänzt die Firewall um eine zusätzliche Schutzschicht, indem es nach mehreren fehlgeschlagenen Login-Versuchen automatisch die entsprechenden IP-Adressen sperrt. Standardmäßig überwacht Fail2Ban den SSH-Dienst, kann aber bei Bedarf auch auf den Gitea-Webdienst ausgedehnt werden. Die Konfiguration erfolgt über die Datei <code>/etc/fail2ban/jail.local</code>, in der die gewünschten Schwellenwerte und Sperrzeiten definiert werden.</p>
+
+<p>Abschließend sollte die Zeitzone des Servers korrekt gesetzt werden, da Gitea alle Zeitstempel in der lokalen Zeitzone des Servers anzeigt. Für deutsche Installationen empfiehlt sich <code>Europe/Berlin</code>. Mit <code>timedatectl set-timezone Europe/Berlin</code> wird die Einstellung dauerhaft übernommen. Diese Vorbereitungen schaffen eine solide Grundlage für die nun folgende Gitea-Installation.</p>
+
+<h2>Gitea Installation: Schritt-für-Schritt-Anleitung</h2>
+
+<p>Die Installation von Gitea erfolgt am einfachsten über das offizielle Binary, das auf der Gitea-Website oder via GitHub Releases heruntergeladen werden kann. Für 64-Bit-Linux-Systeme lautet der Befehl wie folgt:</p>
+
+<pre><code>wget -O gitea https://dl.gitea.com/gitea/1.22/gitea-1.22-linux-amd64
+chmod +x gitea
+sudo mv gitea /usr/local/bin/gitea
+</code></pre>
+
+<p>Anschließend wird ein dedizierter Systembenutzer für Gitea angelegt, unter dem der Dienst ausgeführt wird. Dies ist eine wichtige Sicherheitsmaßnahme, da der Gitea-Prozess so nicht mit Root-Rechten läuft und im Falle einer Sicherheitslücke der Schaden begrenzt bleibt.</p>
+
+<pre><code>sudo adduser --system --shell /bin/bash --group --disabled-password --home /var/lib/gitea gitea
+sudo mkdir -p /var/lib/gitea/{custom,data,log}
+sudo chown -R gitea:gitea /var/lib/gitea
+sudo mkdir -p /etc/gitea
+sudo chown gitea:gitea /etc/gitea
+</code></pre>
+
+<p>Die Verzeichnisstruktur folgt dabei den Linux-Standards: <code>/var/lib/gitea</code> enthält alle Anwendungsdaten, Logs und benutzerdefinierten Konfigurationen, während <code>/etc/gitea</code> die Hauptkonfigurationsdatei <code>app.ini</code> beherbergt. Diese Trennung erleichtert spätere Backups und Updates erheblich.</p>
+
+<p>Damit Gitea als Systemdienst automatisch beim Booten startet, wird eine systemd-Service-Datei erstellt. Diese wird unter <code>/etc/systemd/system/gitea.service</code> abgelegt und enthält folgende Konfiguration:</p>
+
+<pre><code>[Unit]
+Description=Gitea (Git with a cup of tea)
+After=syslog.target
+After=network.target
+Wants=network.target
+
+[Service]
+RestartSec=2s
+Type=simple
+User=gitea
+Group=gitea
+WorkingDirectory=/var/lib/gitea
+ExecStart=/usr/local/bin/gitea web --config /etc/gitea/app.ini
+Restart=always
+Environment=USER=gitea HOME=/var/lib/gitea
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+
+<p>Nach dem Speichern der Datei wird der Dienst aktiviert und gestartet:</p>
+
+<pre><code>sudo systemctl daemon-reload
+sudo systemctl enable gitea
+sudo systemctl start gitea
+sudo systemctl status gitea
+</code></pre>
+
+<p>Wenn der Dienst erfolgreich startet, ist Gitea zunächst unter <code>http://IHRE-IP:3000</code> erreichbar. Der Standardport 3000 sollte in der Produktion durch einen Reverse-Proxy wie Nginx oder Caddy ersetzt werden, der gleichzeitig die SSL-Terminierung übernimmt.</p>
+
+<h2>Gitea Konfiguration: app.ini optimal einstellen</h2>
+
+<p>Die zentrale Konfigurationsdatei von Gitea ist <code>app.ini</code>, die sich unter <code>/etc/gitea/app.ini</code> befindet. Bei der Erstinstallation über das Webinterface wird diese Datei automatisch generiert. Für eine produktive Umgebung empfiehlt es sich jedoch, die wichtigsten Parameter manuell anzupassen, um Sicherheit und Performance zu optimieren.</p>
+
+<p>Ein vollständiges Grundgerüst der <code>app.ini</code> könnte wie folgt aussehen:</p>
+
+<pre><code>APP_NAME = Mein Gitea Server
+RUN_USER = gitea
+RUN_MODE = prod
+WORK_PATH = /var/lib/gitea
+
+[server]
+DOMAIN = git.example.de
+SSH_DOMAIN = git.example.de
+HTTP_PORT = 3000
+ROOT_URL = https://git.example.de/
+DISABLE_SSH = false
+SSH_PORT = 22
+LFS_JWT_SECRET = ZUFALLSSCHLUESSEL
+OFFLINE_MODE = false
+
+[database]
+DB_TYPE = sqlite3
+PATH = /var/lib/gitea/data/gitea.db
+
+[security]
+INSTALL_LOCK = true
+SECRET_KEY = ZUFALLSSCHLUESSEL
+INTERNAL_TOKEN = ZUFALLSSCHLUESSEL
+
+[service]
+DISABLE_REGISTRATION = false
+ENABLE_NOTIFY_MAIL = true
+</code></pre>
+
+<p>Besonders wichtig sind die <strong>SECRET_KEY</strong> und der <strong>INTERNAL_TOKEN</strong>, die als kryptografische Zufallsschlüssel generiert werden müssen. Diese können mit dem Befehl <code>gitea generate secret SECRET_KEY</code> erzeugt werden. Beide Schlüssel sollten mindestens 50 Zeichen lang sein und niemals öffentlich zugänglich gemacht werden.</p>
+
+<p>Im Abschnitt <code>[server]</code> werden die Netzwerkeinstellungen definiert. Hier ist darauf zu achten, dass <code>DOMAIN</code>, <code>SSH_DOMAIN</code> und <code>ROOT_URL</code> konsistent sind. Andernfalls können Klon-URLs falsch generiert werden, was zu Verwirrung bei den Nutzern führt. Für deutsche Installationen sollte zudem <code>LANGUAGE = de-DE</code> gesetzt werden, um die Benutzeroberfläche in deutscher Sprache anzuzeigen.</p>
+
+<p>Im Block <code>[service]</code> lässt sich die Registrierung neuer Nutzer steuern. Für interne Unternehmensinstallationen empfiehlt sich <code>DISABLE_REGISTRATION = true</code>, sodass neue Konten nur durch Administratoren angelegt werden können. Für öffentliche Gitea-Instanzen kann die Registrierung aktiviert bleiben, optional mit E-Mail-Bestätigung über <code>ENABLE_NOTIFY_MAIL = true</code>.</p>
+
+<p>Die <code>app.ini</code> sollte nach jeder Änderung neu geladen werden, was am einfachsten durch einen Neustart des Dienstes erfolgt:</p>
+
+<pre><code>sudo systemctl restart gitea
+sudo journalctl -u gitea -n 50
+</code></pre>
+
+<h2>SSL/TLS-Verschlüsselung mit Let's Encrypt einrichten</h2>
+
+<p>Eine unverschlüsselte Gitea-Instanz ist in der heutigen Zeit ein absolutes No-Go, da sämtliche Daten – inklusive Passwörter, Quellcode und persönlicher Informationen – im Klartext über das Internet übertragen würden. Die einfachste und kostengünstigste Methode, um SSL-Verschlüsselung zu implementieren, ist die Nutzung von Let's Encrypt, das kostenlose Zertifikate mit automatischer Verlängerung bereitstellt.</p>
+
+<p>Zunächst wird Nginx als Reverse-Proxy installiert, der die SSL-Terminierung übernimmt. Nginx wird dabei vor dem Gitea-Server (Port 3000) geschaltet und leitet alle Anfragen transparent weiter. Die Installation erfolgt unter Ubuntu mit <code>apt install -y nginx certbot python3-certbot-nginx</code>.</p>
+
+<p>Die Nginx-Konfiguration für Gitea wird unter <code>/etc/nginx/sites-available/gitea</code> abgelegt und über einen symbolischen Link in <code>sites-enabled</code> aktiviert:</p>
+
+<pre><code>server {
+    listen 80;
+    server_name git.example.de;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name git.example.de;
+
+    client_max_body_size 512M;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+</code></pre>
+
+<p>Der Parameter <code>client_max_body_size 512M</code> ist besonders wichtig, da Gitea auch für größere Uploads konfiguriert sein sollte. Standardmäßig erlaubt Nginx nur 1 MB pro Request, was das Pushen größerer Repositories verhindern würde. Nach der Aktivierung der Konfiguration mit <code>ln -s /etc/nginx/sites-available/gitea /etc/nginx/sites-enabled/</code> und einem Neustart von Nginx kann das Let's-Encrypt-Zertifikat angefordert werden.</p>
+
+<pre><code>sudo certbot --nginx -d git.example.de
+sudo systemctl reload nginx
+</code></pre>
+
+<p>Certbot passt die Nginx-Konfiguration automatisch an und ergänzt die SSL-spezifischen Direktiven. Das Zertifikat ist zunächst 90 Tage gültig, wird aber durch einen systemd-Timer automatisch alle 60 Tage erneuert. Mit <code>certbot renew --dry-run</code> lässt sich der Erneuerungsprozess testen. Für maximale Sicherheit empfiehlt sich die Aktivierung des HSTS-Headers, der Browser zwingt, die Verbindung in Zukunft immer über HTTPS aufzubauen.</p>
+
+<p>Nach Abschluss dieser Schritte ist Gitea über <code>https://git.example.de</code> erreichbar und alle Daten werden verschlüsselt übertragen. Die SSL-Konfiguration kann anschließend mit Online-Tools wie SSL Labs (ssllabs.com/ssltest) überprüft und bei Bedarf weiter optimiert werden.</p>
+
+<h2>Backup und Wiederherstellung von Gitea-Daten</h2>
+
+<p>Ein regelmäßiges Backup ist für jede produktive Gitea-Instanz unerlässlich. Gitea bietet ein eingebautes Backup-Tool, das mit dem Befehl <code>gitea dump</code> aufgerufen werden kann. Dieses erstellt ein vollständiges Archiv, das alle Repositories, Datenbankinhalte, Konfigurationen, Avatare und Anhänge enthält. Der Standardbefehl lautet:</p>
+
+<pre><code>sudo -u gitea /usr/local/bin/gitea dump -c /etc/gitea/app.ini
+</code></pre>
+
+<p>Das resultierende ZIP-Archiv enthält alle relevanten Daten und kann bei Bedarf auf einem anderen Server wiederhergestellt werden. Für automatisierte tägliche Backups empfiehlt sich die Einrichtung eines Cronjobs, der das Backup erstellt, komprimiert und auf einen externen Speicher kopiert. Ein entsprechendes Skript könnte wie folgt aussehen:</p>
+
+<pre><code>#!/bin/bash
+BACKUP_DIR="/var/backups/gitea"
+DATE=$(date +%Y-%m-%d)
+sudo -u gitea /usr/local/bin/gitea dump -c /etc/gitea/app.ini -t /tmp/gitea-dump
+mv /tmp/gitea-dump/*.zip $BACKUP_DIR/gitea-backup-$DATE.zip
+find $BACKUP_DIR -name "gitea-backup-*.zip" -mtime +14 -delete
+</code></pre>
+
+<p>Die Aufbewahrungsdauer von 14 Tagen ist ein guter Kompromiss zwischen Speicherplatzverbrauch und Wiederherstellungsmöglichkeit. Für kritische Produktionsumgebungen empfiehlt sich zusätzlich die Speicherung der Backups auf einem externen Speicher wie Amazon S3, Hetzner Storage Box oder einem zweiten VPS an einem anderen Standort. Das 3-2-1-Backup-Prinzip (3 Kopien, 2 verschiedene Medien, 1 externe Lagerung) hat sich in der Praxis bewährt.</p>
+
+<p>Die Wiederherstellung eines Backups erfolgt mit dem Befehl <code>gitea restore</code>. Vor der Wiederherstellung sollte unbedingt ein aktueller Stand der bestehenden Installation gesichert werden, da die Wiederherstellung die existierenden Daten überschreibt. Der Wiederherstellungsbefehl lautet:</p>
+
+<pre><code>sudo -u gitea /usr/local/bin/gitea restore -c /etc/gitea/app.ini /path/to/gitea-backup.zip
+</code></pre>
+
+<p>Nach der Wiederherstellung empfiehlt sich ein Neustart des Gitea-Dienstes und eine vollständige Funktionsprüfung. Insbesondere sollten die SSH-Verbindung, die Weboberfläche, das Klonen von Repositories und der Login mit einem bestehenden Benutzerkonto getestet werden. Ein regelmäßig getestetes Backup ist mehr wert als zehn ungetestete Backups, die im Ernstfall nicht funktionieren.</p>
+
+<h2>Gitea Actions: CI/CD-Pipelines direkt im Repository</h2>
+
+<p>Eine der bemerkenswertesten Funktionen von Gitea sind die integrierten <strong>Gitea Actions</strong>, die seit Version 1.19 verfügbar sind und vollständig mit der GitHub-Actions-Syntax kompatibel sind. Damit können Entwickler CI/CD-Pipelines direkt im Repository definieren, ohne auf externe Dienste wie Jenkins, GitLab CI oder Travis CI angewiesen zu sein. Dies spart nicht nur Lizenzkosten, sondern vereinfacht auch die gesamte Entwicklungspipeline erheblich.</p>
+
+<p>Die Konfiguration einer Action erfolgt über YAML-Dateien im Verzeichnis <code>.gitea/workflows/</code> eines Repositories. Eine typische Workflow-Definition für das Bauen und Testen einer Node.js-Anwendung könnte wie folgt aussehen:</p>
+
+<pre><code>name: Build and Test
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm install
+      - name: Run tests
+        run: npm test
+      - name: Build application
+        run: npm run build
+</code></pre>
+
+<p>Damit Gitea Actions ausgeführt werden können, ist ein zusätzlicher Service namens <strong>act_runner</strong> erforderlich, der die Workflows tatsächlich abarbeitet. Der Runner kann auf dem gleichen VPS wie Gitea oder auf einem separaten Server installiert werden. Für die meisten Anwendungsfälle ist die Installation auf dem gleichen Server ausreichend, wobei auf eine ausreichende Ressourcenverfügbarkeit geachtet werden sollte.</p>
+
+<p>Die Registrierung des Runners erfolgt über die Gitea-Weboberfläche unter <code>Site Administration &gt; Actions &gt; Runners</code>. Nach der Generierung eines Registrierungstokens wird der Runner mit folgendem Befehl initialisiert:</p>
+
+<pre><code>wget -O act_runner https://dl.gitea.com/act_runner/0.2.10/act_runner-0.2.10-linux-amd64
+chmod +x act_runner
+./act_runner register --instance https://git.example.de --token REGISTRATIONSTOKEN --name mein-runner
+./act_runner daemon
+</code></pre>
+
+<p>Für eine persistente Installation empfiehlt sich auch hier die Einrichtung als systemd-Dienst. Mit Gitea Actions lassen sich komplexe Pipelines realisieren, die das Bauen, Testen und Deployen von Anwendungen vollständig automatisieren. Die enge Integration in das Gitea-Ökosystem macht Actions zu einem mächtigen Werkzeug für DevOps-Teams.</p>
+
+<h2>Sicherheits-Härtung und Best Practices für Gitea</h2>
+
+<p>Die Sicherheit einer selbstgehosteten Gitea-Instanz sollte oberste Priorität haben, da der Server sensible Quellcodes und möglicherweise geschäftskritische Daten enthält. Neben den bereits erwähnten Maßnahmen wie Firewall, Fail2Ban und SSL gibt es weitere Best Practices, die unbedingt beachtet werden sollten.</p>
+
+<p>Eine der wichtigsten Maßnahmen ist die Aktivierung der Zwei-Faktor-Authentifizierung (2FA). Gitea unterstützt sowohl TOTP-basierte Authenticator-Apps als auch Hardware-Sicherheitsschlüssel (WebAuthn/FIDO2). Administratoren sollten 2FA nicht nur für sich selbst aktivieren, sondern auch für alle Nutzer verpflichtend vorgeben. Diese Einstellung erfolgt unter <code>Site Administration &gt; Security</code>.</p>
+
+<p>Regelmäßige Updates sind ein weiterer kritischer Faktor für die Sicherheit. Gitea veröffentlicht im monatlichen Rhythmus neue Versionen, die Sicherheitslücken schließen und neue Funktionen einführen. Updates können einfach durch das Ersetzen des Binarys und einen Neustart des Dienstes durchgeführt werden:</p>
+
+<pre><code>wget -O gitea https://dl.gitea.com/gitea/1.22.1/gitea-1.22.1-linux-amd64
+chmod +x gitea
+sudo systemctl restart gitea
+</code></pre>
+
+<p>Die <code>app.ini</code> sollte mit restriktiven Dateiberechtigungen geschützt werden, da sie kryptografische Schlüssel enthält. Empfohlen werden die Berechtigungen <code>640</code> mit dem Besitzer <code>root:gitea</code>, sodass nur Root und der Gitea-Benutzer die Datei lesen können:</p>
+
+<pre><code>sudo chown root:gitea /etc/gitea/app.ini
+sudo chmod 640 /etc/gitea/app.ini
+</code></pre>
+
+<p>Für Unternehmen empfiehlt sich zudem die Integration in ein zentrales Identity-Management über LDAP oder SAML. Damit können Mitarbeiter ihre bestehenden Firmenzugangsdaten verwenden, und das On- bzw. Offboarding wird erheblich vereinfacht. Gitea unterstützt eine Vielzahl von Identity-Providern, darunter Active Directory, FreeIPA, Keycloak und Auth0.</p>
+
+<p>Abschließend sollte ein Monitoring-System eingerichtet werden, das die Verfügbarkeit und Performance der Gitea-Instanz überwacht. Tools wie Prometheus in Kombination mit Grafana oder schlanke Lösungen wie UptimeRobot können frühzeitig auf Probleme hinweisen und ermöglichen eine proaktive Wartung. Ein regelmäßiges Audit der Zugriffslogs unter <code>Site Administration &gt; Logs</code> hilft zudem, verdächtige Aktivitäten frühzeitig zu erkennen.</p>
+
+<h2>Migration von GitHub, GitLab oder Bitbucket zu Gitea</h2>
+
+<p>Ein häufiger Anwendungsfall ist die Migration bestehender Repositories von kommerziellen Plattformen zu einer selbstgehosteten Gitea-Instanz. Gitea bietet hierfür eine eingebaute Migrationsfunktion, die nahezu alle relevanten Plattformen unterstützt. Die Migration kann bequem über die Weboberfläche unter <code>+ &gt; Neue Migration</code> gestartet werden, ohne dass Tools auf der Kommandozeile erforderlich sind.</p>
+
+<p>Bei der Migration von GitHub können sowohl öffentliche als auch private Repositories übertragen werden. Voraussetzung ist ein persönlicher Zugriffstoken (Personal Access Token), der auf der Quellplattform generiert werden muss. Für die Übertragung von Issues, Pull Requests, Wikis, Labels und Milestones wird zusätzlich ein Token mit erweiterten Berechtigungen benötigt, was Gitea im Migrationsassistenten transparent kommuniziert.</p>
+
+<p>Die folgende Tabelle zeigt die unterstützten Migrationsquellen und die jeweils übertragenen Daten:</p>
+
+<table border="1">
+<thead>
+<tr><th>Quelle</th><th>Repository</th><th>Issues</th><th>Pull Requests</th><th>Wikis</th><th>Releases</th><th>Labels</th></tr>
+</thead>
+<tbody>
+<tr><td>GitHub</td><td>Ja</td><td>Ja</td><td>Ja</td><td>Ja</td><td>Ja</td><td>Ja</td></tr>
+<tr><td>GitLab</td><td>Ja</td><td>Ja</td><td>Ja</td><td>Ja</td><td>Ja</td><td>Ja</td></tr>
+<tr><td>Gitea</td><td>Ja</td><td>Ja</td><td>Ja</td><td>Ja</td><td>Ja</td><td>Ja</td></tr>
+<tr><td>Bitbucket</td><td>Ja</td><td>Ja</td><td>Ja</td><td>Ja</td><td>Nein</td><td>Ja</td></tr>
+<tr><td>OneDev</td><td>Ja</td><td>Ja</td><td>Ja</td><td>Ja</td><td>Ja</td><td>Ja</td></tr>
+</tbody>
+</table>
+
+<p>Für sehr große Migrationen mit Hunderten von Repositories empfiehlt sich die Nutzung der Kommandozeile bzw. der REST-API. Gitea stellt hierfür den Befehl <code>gitea admin auth-ldap</code> und verschiedene API-Endpunkte zur Verfügung, die sich auch in Skripte einbinden lassen. Ein typisches Migrationsskript könnte mit curl und der Gitea-API arbeiten, um eine Liste von Repositories automatisch zu übertragen.</p>
+
+<p>Nach der technischen Migration sollten die Team-Mitglieder über die neue Plattform informiert und die lokalen Git-Konfigurationen angepasst werden. Mit dem Befehl <code>git remote set-url origin https://git.example.de/USER/REPO.git</code> lässt sich die Remote-URL in den lokalen Klons aktualisieren. Eine durchdachte Kommunikation und eine mögliche Übergangsphase, in der beide Plattformen parallel betrieben werden, erleichtern den Umstieg erheblich.</p>
+
+<h2>Gitea Performance-Tuning für große Installationen</h2>
+
+<p>Während Gitea in der Standardkonfiguration für die meisten Anwendungsfälle ausreichend performant ist, können bei sehr großen Installationen mit Tausenden von Repositories und Hunderten von Nutzern einige Optimierungen vorgenommen werden. Diese betreffen vor allem die Datenbank, das Caching und die Konfiguration der Worker-Prozesse.</p>
+
+<p>Der Wechsel von SQLite zu PostgreSQL ist eine der wichtigsten Optimierungsmaßnahmen. PostgreSQL bietet eine deutlich bessere Performance bei vielen gleichzeitigen Schreibzugriffen und ermöglicht fortschrittliche Funktionen wie Replikation und Partitionierung. Für eine Migration von SQLite zu PostgreSQL kann das eingebaute Backup-Tool in Kombination mit einer neuen Datenbankinstanz verwendet werden.</p>
+
+<p>Die Optimierung der PostgreSQL-Konfiguration hat erheblichen Einfluss auf die Performance. Wichtige Parameter sind <code>shared_buffers</code>, <code>work_mem</code> und <code>effective_cache_size</code>. Für einen Server mit 4 GB RAM empfehlen sich folgende Werte:</p>
+
+<pre><code>shared_buffers = 1GB
+work_mem = 64MB
+effective_cache_size = 3GB
+maintenance_work_mem = 256MB
+</code></pre>
+
+<p>Im Abschnitt <code>[performance]</code> der <code>app.ini</code> können weitere Parameter angepasst werden. <code>MAX_CONCURRENT_REQUESTS</code> steuert die maximale Anzahl gleichzeitiger HTTP-Requests, während <code>WORKERS</code> die Anzahl der Worker-Prozesse definiert. Als Faustregel gilt: <code>WORKERS = Anzahl CPU-Kerne</code>. Bei 4 CPU-Kernen wäre also <code>WORKERS = 4</code> optimal.</p>
+
+<p>Das Caching kann durch die Nutzung von Redis erheblich beschleunigt werden. Redis speichert Session-Daten und Caches im Arbeitsspeicher und reduziert damit die Datenbanklast deutlich. Die Konfiguration in der <code>app.ini</code> erfolgt über den Abschnitt <code>[cache]</code>:</p>
+
+<pre><code>[cache]
+ENABLED = true
+ADAPTER = redis
+HOST = 127.0.0.1:6379
+</code></pre>
+
+<p>Schließlich sollte regelmäßig die <a href="/blog/gitea-performance-monitoring">Performance überwacht</a> werden, um Engpässe frühzeitig zu erkennen. Tools wie <code>htop</code>, <code>iotop</code> und <code>pg_stat_activity</code> liefern wertvolle Einblicke in die Ressourcennutzung. Bei anhaltender hoher Last empfiehlt sich eine Skalierung auf mehrere Server, wobei die Gitea-Datenbank auf einem dedizierten Server ausgelagert werden kann.</p>
+
+<h2>Fazit: Gitea als zukunftssichere Git-Hosting-Lösung 2026</h2>
+
+<p>Gitea hat sich im Jahr 2026 als eine der besten Lösungen für selbstgehostetes Git-Management etabliert. Die Kombination aus geringem Ressourcenverbrauch, umfangreicher Funktionalität, aktiver Community und vollständiger Open-Source-Lizenz macht Gitea zur idealen Wahl für Entwickler, Teams und Unternehmen jeder Größe. Die Plattform bietet alle Funktionen, die von kommerziellen Alternativen bekannt sind, ohne dabei Kompromisse bei der Datenhoheit oder dem Datenschutz einzugehen.</p>
+
+<p>Die Installation auf einem VPS ist unkompliziert und in weniger als einer Stunde abgeschlossen. Mit den hier beschriebenen Schritten – von der Vorbereitung des Servers über die Installation und SSL-Konfiguration bis hin zu Backup-Strategien und Performance-Tuning – steht einer produktiven Nutzung nichts im Wege. Die Gitea-Community ist aktiv und hilfsbereit, und die Dokumentation auf docs.gitea.com ist vorbildlich strukturiert.</p>
+
+<p>Wer auf der Suche nach einer zukunftssicheren, kostengünstigen und DSGVO-konformen Alternative zu GitHub oder GitLab ist, sollte Gitea definitiv eine Chance geben. Mit Gitea Actions steht zudem eine moderne CI/CD-Plattform zur Verfügung, die keine Wünsche offen lässt. Die Zukunft der Softwareentwicklung ist dezentral, und Gitea ist ein wichtiger Baustein auf diesem Weg.</p>
+
+<p>Bei hostazar.com bieten wir maßgeschneiderte VPS-Lösungen an, die optimal für den Betrieb von Gitea geeignet sind. Unsere Server stehen in deutschen Rechenzentren, garantieren DSGVO-Konformität und bieten eine ausgezeichnete Performance. Kontaktieren Sie uns gerne für eine individuelle Beratung zu Ihrer Gitea-Installation.</p>
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

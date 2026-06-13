@@ -759,6 +759,256 @@
     </div>
 
 <h1>GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</h1>
+<h2 id="was-ist-github-actions">Was ist GitHub Actions und warum ist es 2026 so relevant?</h2>
+
+<p><strong>GitHub Actions</strong> ist die native CI/CD-Plattform von GitHub, die es ermöglicht, Software-Workflows direkt im Repository zu definieren, zu testen und auszuführen. Seit der allgemeinen Verfügbarkeit im Jahr 2019 hat sich der Dienst kontinuierlich weiterentwickelt und bietet 2026 eine beeindruckende Palette an Funktionen, die mit dedizierten CI/CD-Lösungen wie Jenkins, GitLab CI oder CircleCI konkurriert.</p>
+
+<p>Der größte Vorteil von GitHub Actions liegt in der tiefen Integration in das GitHub-Ökosystem. Pull Requests, Issues, Releases, Tags und Branches sind keine externen Konzepte mehr – sie sind First-Class-Citizens in deiner Pipeline. Ein Kommentar wie <code>/deploy production</code> in einem Pull Request kann eine komplette Deployment-Sequenz auslösen, ohne dass eine externe Orchestrierung notwendig ist.</p>
+
+<p>Die Plattform basiert auf dem Konzept der <em>Events</em>, <em>Workflows</em>, <em>Jobs</em> und <em>Steps</em>. Ein Workflow wird durch ein Event ausgelöst (z. B. <code>push</code>, <code>pull_request</code>), besteht aus einem oder mehreren Jobs, die parallel oder sequenziell laufen, und jeder Job enthält einzelne Steps, die Befehle oder <em>Actions</em> (wiederverwendbare Codebausteine) ausführen.</p>
+
+<p>2026 bietet GitHub Actions zudem erweiterte Features wie GPU-beschleunigte Runner, integrierte OIDC-Authentifizierung für Cloud-Deployments, einen überarbeiteten Workflow-Editor mit KI-gestützten Vorschlägen sowie ein neues Pre-Built-Action-Registry, das kuratierte, sicherheitsgeprüfte Actions von vertrauenswürdigen Anbietern enthält.</p>
+
+<h2 id="voraussetzungen">Voraussetzungen für den Start mit GitHub Actions</h2>
+
+<p>Bevor du deine erste Pipeline aufsetzt, solltest du einige technische und organisatorische Voraussetzungen prüfen. Die Grundlagen sind zwar niedrigschwellig – ein GitHub-Account und ein Repository reichen aus – aber für produktionsreife Setups empfiehlt sich eine durchdachte Vorbereitung.</p>
+
+<p>Technisch benötigst du ein GitHub-Konto (Free, Team oder Enterprise), ein Repository mit aktivem Git-Zugriff und grundlegende Kenntnisse in YAML-Syntax. YAML (YAML Ain't Markup Language) ist die Konfigurationssprache für Workflows und folgt strikten Einrückungsregeln – bereits ein einzelnes falsches Leerzeichen kann einen Workflow komplett stoppen.</p>
+
+<p>Je nach Projekt-Stack kommen weitere Anforderungen hinzu: Für Node.js-Projekte wird Node.js (empfohlen LTS) benötigt, für Python-Projekte eine aktuelle Python-Version, für Java-Projekte JDK 17 oder 21. Auch die Konfiguration von <em>Secrets</em> im Repository- oder Organisationsbereich ist essenziell, um sensible Daten wie API-Tokens, Deploy-Schlüssel oder Datenbankzugangsdaten sicher zu hinterlegen.</p>
+
+<p>Organisatorisch solltest du klare Verantwortlichkeiten definieren: Wer darf Workflows bearbeiten? Welche Branches sind geschützt? Welche Secrets werden zentral verwaltet? GitHub bietet hierfür <em>Environments</em> mit Approval-Regeln und Branch Protection Rules, die wir später detailliert besprechen.</p>
+
+<table>
+<caption>Mindestanforderungen für GitHub Actions 2026</caption>
+<thead>
+<tr>
+<th>Komponente</th>
+<th>Mindestanforderung</th>
+<th>Empfohlen für Produktion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GitHub-Plan</td>
+<td>Free</td>
+<td>Team oder Enterprise</td>
+</tr>
+<tr>
+<td>YAML-Kenntnisse</td>
+<td>Grundlagen</td>
+<td>Fortgeschritten (Anchors, Includes)</td>
+</tr>
+<tr>
+<td>Secrets-Management</td>
+<td>Repository-Secrets</td>
+<td>Organisation-Secrets + OIDC</td>
+</tr>
+<tr>
+<td>Runner-Typ</td>
+<td>GitHub-Hosted</td>
+<td>Hybrid (Self-Hosted für sensible Workloads)</td>
+</tr>
+<tr>
+<td>Tooling</td>
+<td>Git, Code-Editor</td>
+<td>VS Code + GitHub Actions Extension</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="erster-workflow">Dein erster Workflow: Schritt-für-Schritt-Anleitung</h2>
+
+<p>Ein GitHub-Actions-Workflow wird als YAML-Datei im Verzeichnis <code>.github/workflows/</code> deines Repositories definiert. Jede Datei in diesem Ordner stellt einen separaten Workflow dar. Lass uns einen einfachen Einstiegs-Workflow erstellen, der bei jedem Push und Pull Request ausgeführt wird.</p>
+
+<p>Erstelle zunächst die Datei <code>.github/workflows/hello-world.yml</code> in deinem Repository. Der Dateiname ist frei wählbar, sollte aber beschreibend sein. GitHub erkennt automatisch alle <code>*.yml</code>- und <code>*.yaml</code>-Dateien in diesem Verzeichnis.</p>
+
+<pre><code>name: Hello World Workflow
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  greet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Begrüßung ausgeben
+        run: echo "Hallo von GitHub Actions! 🚀"
+
+      - name: Datum anzeigen
+        run: date
+
+      - name: Runner-Info
+        run: |
+          echo "Runner-Betriebssystem: ${{ runner.os }}"
+          echo "Runner-Architektur: ${{ runner.arch }}"
+</code></pre>
+
+<p>Dieser minimale Workflow enthält alle Grundbausteine: einen aussagekräftigen Namen, einen Trigger-Block (<code>on</code>), einen Job namens <code>greet</code>, der auf dem aktuellen Ubuntu-Runner läuft, und drei Steps, die einfache Shell-Befehle ausführen. Die Syntax <code>${{ ... }}</code> ist eine <em>Expression</em>, die zur Laufzeit ausgewertet wird – in diesem Fall der Zugriff auf vordefinierte Kontext-Variablen.</p>
+
+<p>Nach dem Commit und Push in den <code>main</code>-Branch findest du unter dem Tab <strong>Actions</strong> in deinem Repository den ausgeführten Workflow. Klicke auf den Run, um die Logs der einzelnen Steps einzusehen. Dieser erste Test bildet die Grundlage für alle weiteren Pipelines.</p>
+
+<h2 id="workflow-syntax">Workflow-Syntax im Detail verstehen</h2>
+
+<p>Die GitHub-Actions-Syntax folgt einem klaren Schema. Das Verständnis der einzelnen Bausteine ist entscheidend, um komplexe Pipelines zu modellieren. Die wichtigsten Top-Level-Keys sind <code>name</code>, <code>on</code>, <code>env</code>, <code>defaults</code>, <code>jobs</code> und optional <code>permissions</code>, <code>concurrency</code> sowie <code>permissions</code>.</p>
+
+<p>Der <code>on</code>-Block definiert die Auslöser. Dies können einzelne Events (<code>push</code>, <code>pull_request</code>, <code>workflow_dispatch</code>), zeitbasierte Trigger (<code>schedule</code> mit Cron-Syntax) oder manuelle Trigger sein. Mit <code>workflow_dispatch</code> wird ein Workflow über die GitHub-Oberfläche, die API oder die CLI manuell startbar – ideal für Deployments.</p>
+
+<pre><code>on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Zielumgebung'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+  schedule:
+    - cron: '0 2 * * *'
+</code></pre>
+
+<p>Der <code>jobs</code>-Block enthält die eigentliche Arbeitslogik. Jeder Job läuft in einer frischen VM, hat einen eigenen <code>runs-on</code>-Runner und kann <code>needs</code>-Abhängigkeiten zu anderen Jobs definieren. Innerhalb eines Jobs werden Steps sequenziell ausgeführt, es sei denn, man setzt <code>continue-on-error</code> oder verwendet Conditional Logic mit <code>if</code>.</p>
+
+<p>Eine Besonderheit sind <em>Matrix-Strategien</em>, mit denen ein Job mehrfach mit unterschiedlichen Parametern ausgeführt wird – etwa verschiedenen Node.js-Versionen, Betriebssystemen oder Node-Versionen. Dies ist besonders wertvoll für Cross-Browser- oder Cross-Platform-Tests.</p>
+
+<table>
+<caption>Wichtige Top-Level-Keys eines Workflows</caption>
+<thead>
+<tr>
+<th>Key</th>
+<th>Zweck</th>
+<th>Pflicht?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>Anzeigename des Workflows</td>
+<td>Nein</td>
+</tr>
+<tr>
+<td><code>on</code></td>
+<td>Trigger (Events)</td>
+<td>Ja</td>
+</tr>
+<tr>
+<td><code>env</code></td>
+<td>Globale Umgebungsvariablen</td>
+<td>Nein</td>
+</tr>
+<tr>
+<td><code>jobs</code></td>
+<td>Definition der auszuführenden Jobs</td>
+<td>Ja</td>
+</tr>
+<tr>
+<td><code>permissions</code></td>
+<td>Token-Berechtigungen (GITHUB_TOKEN)</td>
+<td>Nein (Best Practice: explizit setzen)</td>
+</tr>
+<tr>
+<td><code>concurrency</code></td>
+<td>Steuerung paralleler Runs</td>
+<td>Nein</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="ci-pipeline">CI-Pipeline: Build, Test und Linting automatisieren</h2>
+
+<p>Continuous Integration ist das Herzstück jeder modernen Softwareentwicklung. Eine gut konfigurierte CI-Pipeline stellt sicher, dass jeder Commit und jeder Pull Request automatisch gebaut, getestet und auf Codequalität geprüft wird. Lass uns eine realistische CI-Pipeline für eine Node.js-Anwendung aufbauen.</p>
+
+<p>Im folgenden Beispiel klonen wir den Code, richten Node.js ein, installieren Abhängigkeiten mit Caching, führen Linting und Tests aus und bauen das Projekt. Die Verwendung von <code>actions/checkout@v5</code> und <code>actions/setup-node@v5</code> entspricht den 2026er-Konventionen – pinning auf Major-Versionen sorgt für Stabilität, automatische Patch-Updates werden per <code>@v5</code> ermöglicht.</p>
+
+<pre><code>name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Code auschecken
+        uses: actions/checkout@v5
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Linting ausführen
+        run: npm run lint
+
+      - name: Tests ausführen
+        run: npm test -- --coverage
+
+      - name: Build erstellen
+        run: npm run build
+
+      - name: Coverage-Report hochladen
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+</code></pre>
+
+<p>Der Schritt <code>npm ci</code> ist dabei gegenüber <code>npm install</code> zu bevorzugen, da er strikt die Lockfile befolgt und reproduzierbare Builds garantiert. Das integrierte Caching über <code>cache: 'npm'</code> in <code>setup-node</code> spart wertvolle Sekunden, indem es den <code>~/.npm</code>-Cache zwischen Runs teilt.</p>
+
+<p>Das Schlüsselwort <code>if: always()</code> sorgt dafür, dass der Coverage-Upload selbst dann erfolgt, wenn vorherige Steps fehlgeschlagen sind – so gehen wertvolle Diagnosedaten nicht verloren. Für die Abdeckung ganzer Test-Suiten empfiehlt sich die parallele Ausführung in Matrix-Jobs, die wir später behandeln.</p>
+
+<h2 id="matrix-builds">Matrix-Builds für maximale Testabdeckung</h2>
+
+<p>Eine der leistungsstärksten Funktionen von GitHub Actions sind <strong>Matrix-Builds</strong>. Sie ermöglichen es, denselben Job mehrfach mit variierenden Parametern auszuführen, ohne den Workflow-Code zu duplizieren. Dies ist ideal, um eine Anwendung gegen mehrere Node-Versionen, Betriebssysteme oder Browser zu testen.</p>
+
+<p>Im folgenden Beispiel erstellen wir eine Matrix, die unsere Tests unter Ubuntu, macOS und Windows mit Node.js 18, 20 und 22 ausführt – insgesamt neun Kombinationen, die parallel laufen. GitHub erstellt automatisch einen eigenen Runner pro Matrix-Kombination und fasst die Ergebnisse übersichtlich zusammen.</p>
+
+<pre><code>jobs:
+  test:
+    name: Tests auf ${{ matrix.os }} mit Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Node.js ${{ matrix.node }} einrichten
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
+</code></pre>
+
+<p>Die Option <code>fail-fast: false</code> ist entscheidend: Sie sorgt dafür, dass alle Matrix-Kombinationen ausgeführt werden, auch wenn eine fehlschlägt. So erhältst du einen vollständigen Überblick über Kompatibilitätsprobleme, anstatt beim ersten Fehler abgebrochen zu werden.</p>
+
+<p>Mit <em>Matrix-Extensions</em> kannst du dynamische Konfigurationen erstellen. So lassen sich <code>include</code> und <code>exclude</code> nutzen, um spezifische Kombinationen hinzuzufügen oder auszuschließen – etwa um Windows + Node 18 auszulassen, wenn
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

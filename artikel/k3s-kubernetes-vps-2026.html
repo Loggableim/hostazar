@@ -759,6 +759,205 @@
     </div>
 
 <h1>K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</h1>
+<h2>Was ist K3s und warum ist es ideal für VPS?</h2>
+
+<p>K3s wurde ursprünglich von Rancher Labs entwickelt und wird heute von der Cloud Native Computing Foundation (CNCF) als Sandbox-Projekt gepflegt. Es bündelt alle Kubernetes-Komponenten in einer einzigen, statisch kompilierten Binary unter 100 MB. Dadurch entfällt die komplexe Installation einzelner Komponenten wie etcd, kubelet, kube-proxy oder Container Runtime.</p>
+
+<p>Die wichtigsten Unterschiede zu klassischem Kubernetes sind die SQLite- oder embedded etcd-Datenbank statt eines separaten etcd-Clusters, ein schlanker Traefik-Ingress-Controller und ein lokaler Speicheranbieter. K3s nutzt containerd als Runtime und ersetzt mehrere Agenten durch eine einzige, effiziente Binary.</p>
+
+<p>Für VPS-Umgebungen ist K3s besonders attraktiv, weil es bereits mit 512 MB RAM lauffähig ist und nur etwa 300 MB Festplattenplatz benötigt. Das macht es zur idealen Wahl, wenn du auf einem <a href="https://hostazar.com/vps">günstigen VPS</a> dennoch Container-Orchestrierung einsetzen möchtest, ohne auf eine Managed-Plattform angewiesen zu sein.</p>
+
+<h3>K3s auf einen Blick</h3>
+<table border="1" cellpadding="6" cellspacing="0">
+<thead>
+<tr><th>Eigenschaft</th><th>K3s</th><th>Klassisches Kubernetes</th></tr>
+</thead>
+<tbody>
+<tr><td>Binary-Größe</td><td>&lt; 100 MB</td><td>&gt; 1 GB</td></tr>
+<tr><td>Min. RAM</td><td>512 MB</td><td>2 GB+</td></tr>
+<tr><td>Default Storage</td><td>Local Path Provisioner</td><td>Keiner (extern nötig)</td></tr>
+<tr><td>Default Ingress</td><td>Traefik</td><td>Keiner (extern nötig)</td></tr>
+<tr><td>Default LB</td><td>ServiceLB (Klipper)</td><td>MetalLB / Cloud-LB</td></tr>
+</tbody>
+</table>
+
+<h2>Systemanforderungen und VPS-Vorbereitung</h2>
+
+<p>Bevor du K3s installierst, solltest du sicherstellen, dass dein VPS die Mindestanforderungen erfüllt. Für eine produktive Single-Node-Installation empfehlen wir mindestens 2 vCPU, 2 GB RAM und 20 GB SSD-Speicher. Für Multi-Node-Cluster oder produktive Workloads mit Datenbanken sind 4 GB RAM und mehr empfehlenswert.</p>
+
+<p>Als Betriebssystem eignen sich Ubuntu 22.04 / 24.04 LTS, Debian 12, Rocky Linux 9 oder AlmaLinux 9. K3s unterstützt offiziell alle gängigen Linux-Distributionen mit systemd. Bei hostazar.com kannst du aus zahlreichen OS-Images direkt wählen und in Sekunden provisionieren.</p>
+
+<p>Wichtig ist außerdem eine öffentliche IPv4-Adresse und idealerweise eine reservierte IPv6-Adresse. Die Firewall sollte die Ports 6443 (API), 10250 (kubelet) und 443 (Ingress) freigeben. Dein Domain-DNS sollte per A-Record auf die Server-IP zeigen, falls du externe Services anbieten möchtest.</p>
+
+<h3>Empfohlene VPS-Konfiguration</h3>
+<table border="1" cellpadding="6" cellspacing="0">
+<thead>
+<tr><th>Szenario</th><th>vCPU</th><th>RAM</th><th>SSD</th><th>Empfehlung hostazar.com</th></tr>
+</thead>
+<tbody>
+<tr><td>Dev / Test</td><td>2</td><td>2 GB</td><td>20 GB</td><td>VPS S</td></tr>
+<tr><td>Single-Node Produktion</td><td>2</td><td>4 GB</td><td>40 GB</td><td>VPS M</td></tr>
+<tr><td>Multi-Node Cluster</td><td>4</td><td>8 GB</td><td>80 GB</td><td>VPS L</td></tr>
+<tr><td>HA Production (3+ Nodes)</td><td>8</td><td>16 GB</td><td>160 GB</td><td>VPS XL</td></tr>
+</tbody>
+</table>
+
+<h2>K3s Installation – Schritt für Schritt</h2>
+
+<p>Die Installation von K3s ist bewusst einfach gehalten und besteht im Wesentlichen aus einem einzigen curl-Befehl. Du verbindest dich per SSH mit deinem VPS und führst das offizielle Installationsskript aus. Innerhalb von 30 bis 60 Sekunden ist der Cluster betriebsbereit.</p>
+
+<p>Wir empfehlen, vor der Installation ein Update der Pakete durchzuführen und sicherzustellen, dass weder Docker noch eine ältere Container-Runtime installiert ist. K3s bringt containerd selbst mit, ein paralleler Docker-Container kann zu Port-Kollisionen führen.</p>
+
+<p>Für die Installation ohne Traefik (falls du einen anderen Ingress-Controller nutzen möchtest) oder ohne ServiceLB gibst du die entsprechenden <code>--disable</code>-Flags mit. Möchtest du statt SQLite eine externe PostgreSQL-Datenbank nutzen, kannst du dies ebenfalls direkt beim Start konfigurieren.</p>
+
+<h3>Standardinstallation</h3>
+<pre><code>curl -sfL https://get.k3s.io | sh -
+sudo systemctl status k3s
+sudo kubectl get nodes</code></pre>
+
+<h3>Installation mit eigenem API-Endpoint</h3>
+<pre><code>curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--tls-san deine-domain.de --disable traefik" sh -</code></pre>
+
+<h3>Installation als Agent (Worker-Node)</h3>
+<pre><code>curl -sfL https://get.k3s.io | K3S_URL=https://master-host:6443 K3S_TOKEN=DEIN_TOKEN sh -</code></pre>
+
+<p>Das Token findest du auf dem Master-Node unter <code>/var/lib/rancher/k3s/server/node-token</code>. Notiere es sicher, da es zur Anmeldung weiterer Nodes benötigt wird.</p>
+
+<h2>Cluster-Konfiguration und Networking</h2>
+
+<p>Nach der Standardinstallation läuft K3s mit dem CNI-Plugin Flannel im VXLAN-Modus. Für die meisten VPS-Szenarien ist das ausreichend. Wenn du jedoch komplexere Netzwerk-Anforderungen hast – etwa Network Policies, BGP oder Calico-spezifische Features – kannst du Calico als CNI nachinstallieren.</p>
+
+<p>ServiceLB (Klipper) ist der standardmäßig aktivierte LoadBalancer und übersetzt <code>type: LoadBalancer</code>-Services in lokale IP-Adressen oder bindet sie an bestimmte Node-Ports. Für öffentlich erreichbare Services empfehlen wir den Traefik Ingress Controller, der automatisch mitinstalliert wird.</p>
+
+<p>Die kubeconfig-Datei liegt unter <code>/etc/rancher/k3s/k3s.yaml</code>. Kopiere sie auf deinen lokalen Rechner und setze die <code>KUBECONFIG</code>-Umgebungsvariable, um von außerhalb mit <code>kubectl</code> arbeiten zu können. Alternativ nutzt du Tools wie Lens, k9s oder das Rancher UI.</p>
+
+<h3>Wichtige Netzwerk-Ports</h3>
+<table border="1" cellpadding="6" cellspacing="0">
+<thead>
+<tr><th>Port</th><th>Protokoll</th><th>Zweck</th></tr>
+</thead>
+<tbody>
+<tr><td>6443</td><td>TCP</td><td>Kubernetes API Server</td></tr>
+<tr><td>10250</td><td>TCP</td><td>kubelet</td></tr>
+<tr><td>8472</td><td>UDP</td><td>Flannel VXLAN</td></tr>
+<tr><td>443</td><td>TCP</td><td>Ingress HTTPS (Traefik)</td></tr>
+<tr><td>80</td><td>TCP</td><td>Ingress HTTP (Traefik)</td></tr>
+</tbody>
+</table>
+
+<h2>Erste Workloads deployen</h2>
+
+<p>Sobald der Cluster läuft, kannst du deine ersten Pods, Deployments und Services ausrollen. Wir empfehlen, mit einer einfachen Nginx- oder Hello-World-Anwendung zu beginnen, um die Funktion zu verifizieren. Erst danach solltest du produktive Workloads deployen.</p>
+
+<p>Mit <code>kubectl create deployment</code>, <code>kubectl expose</code> und <code>kubectl apply</code> hast du drei schnelle Wege, Anwendungen bereitzustellen. Für reproduzierbare Deployments empfehlen wir jedoch ausschließlich deklarative YAML-Manifeste, die du in Git versionierst.</p>
+
+<p>Ein typischer Workflow sieht vor, dass du mit <code>kubectl apply -f</code> arbeitest, Status mit <code>kubectl get pods,svc</code> prüfst und Logs mit <code>kubectl logs</code> analysierst. Tools wie <code>stern</code> helfen beim parallelen Log-Streaming über mehrere Pods hinweg.</p>
+
+<h3>Deployment-Beispiel: Nginx</h3>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.27
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-demo
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+      targetPort: 80</code></pre>
+
+<h3>Ingress-Beispiel mit TLS</h3>
+<pre><code>apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  tls:
+  - hosts:
+    - demo.deine-domain.de
+    secretName: nginx-tls
+  rules:
+  - host: demo.deine-domain.de
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-demo
+            port:
+              number: 80</code></pre>
+
+<h2>Persistent Storage einrichten</h2>
+
+<p>Standardmäßig nutzt K3s den Local Path Provisioner, der dynamisch lokale Verzeichnisse unter <code>/var/lib/rancher/k3s/storage</code> anlegt. Dies ist ideal für Single-Node-Setups, in denen Pods auf dem gleichen Node wieder hochfahren. In Multi-Node-Clustern ohne Replikation kann es jedoch zu Datenverlust kommen, wenn ein Node ausfällt.</p>
+
+<p>Für produktive Setups empfehlen wir eine externe Storage-Lösung. Auf einem VPS bieten sich Network Block Devices, NFS-Server, Longhorn oder ein cloudnativer CSI-Driver an. Bei hostazar.com kannst du zusätzliche Block Storage Volumes bestellen und sie via iSCSI in den Cluster einbinden.</p>
+
+<p>Wichtig: Definiere in deinen Pods immer <code>persistentVolumeClaim</code>-Requests mit passender Storage-Class. Nutze für Datenbanken niemals den Local Path Provisioner in Multi-Node-Setups, sondern immer replizierten Storage wie Longhorn mit drei Replicas.</p>
+
+<h3>Storage-Vergleich</h3>
+<table border="1" cellpadding="6" cellspacing="0">
+<thead>
+<tr><th>Storage-Typ</th><th>Replikation</th><th>Eignung</th><th>Aufwand</th></tr>
+</thead>
+<tbody>
+<tr><td>Local Path</td><td>Nein</td><td>Single-Node, Caches</td><td>Niedrig</td></tr>
+<tr><td>NFS</td><td>Abhängig vom Server</td><td>Statische Inhalte</td><td>Mittel</td></tr>
+<tr><td>Longhorn</td><td>Ja (3 Replicas)</td><td>Produktion, Datenbanken</td><td>Mittel</td></tr>
+<tr><td>Rook-Ceph</td><td>Ja</td><td>HA-Cluster</td><td>Hoch</td></tr>
+<tr><td>hostazar Block Storage</td><td>Ja (RAID-10)</td><td>Produktion auf hostazar.com</td><td>Niedrig</td></tr>
+</tbody>
+</table>
+
+<h2>Monitoring und Logging mit K3s</h2>
+
+<p>K3s selbst bringt kein vollständiges Monitoring-Stack mit, lässt sich aber problemlos mit gängigen Lösungen erweitern. Für kleine Setups genügt oft das kostenlose Prometheus-Operator Helm Chart, kombiniert mit Grafana und Loki. So erhältst du in unter 15 Minuten ein vollwertiges Observability-Setup.</p>
+
+<p>Alternativ kannst du auf schlanke Lösungen wie VictoriaMetrics statt Prometheus setzen – das spart RAM und CPU. Für Logs empfehlen wir Promtail oder Vector als Agent, der die Daten an Loki oder direkt an ein SIEM-System sendet.</p>
+
+<p>Beim Logging auf einem VPS ist die Festplattennutzung ein kritischer Faktor. Konfiguriere unbedingt Log-Rotation, setze Retention-Limits und überlege, ob du ältere Logs in einen Object Storage wie S3-kompatiblen Speicher auslagerst. Bei hostazar.com sind 100 GB S3-kompatibler Object Storage inklusive.</p>
+
+<h3>Helm-Installation von kube-prometheus-stack</h3>
+<pre><code>helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+kubectl create namespace monitoring
+helm install kube-prom prometheus-community/kube-prometheus-stack \
+  -n monitoring \
+  --set grafana.adminPassword=DEIN_PASSWORT \
+  --set prometheus.prometheusSpec.retention=15d</code></pre>
+
+<h3>Wichtige Metriken für VPS-Cluster</h3>
+<table border="1" cellpadding="6" cellspacing="0">
+<thead>
+<tr><th>Metrik</th><th>Quelle</th><th>Warnschwelle</th></tr>
+</thead>
+<tbody>
+<tr><td>Node-CPU-Auslastung</td><td>node-exporter</td><td>&gt; 80 % über 10 Min</td></tr>
+<tr><td>Node
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

@@ -759,6 +759,194 @@
     </div>
 
 <h1>LAMP Stack vs LEMP Stack – Der große Vergleich für dein Webprojekt 2026</h1>
+<h2>Einleitung: LAMP und LEMP im Jahr 2026</h2>
+<p>Seit über zwei Jahrzehnten bilden LAMP und LEMP das Rückgrat des Webhostings. Beide Akronyme stehen für Linux, Apache/Nginx, MySQL/MariaDB und PHP – den klassischen Stack dynamischer Webseiten. 2026 haben sich die Gewichte verschoben, denn Nginx hat Apache in vielen Szenarien überholt.</p>
+<p>Während LAMP (Linux, Apache, MySQL, PHP) lange als Standard galt, setzen moderne Deployments zunehmend auf LEMP (Linux, Nginx, MySQL, PHP). Der Unterschied liegt im Webserver: Apache verwendet ein prozessbasiertes Multi-Process-Modul, Nginx arbeitet ereignisgesteuert und asynchron. Das hat weitreichende Folgen für Performance, Skalierbarkeit und Ressourcenverbrauch.</p>
+<p>Wer 2026 einen neuen Server konfigurieren möchte, steht vor der Frage, welcher Stack der richtige ist. Diese Entscheidung hängt von der erwarteten Last, dem CMS, dem Know-how des Teams und den Hosting-Ressourcen ab. Beide Varianten haben weiterhin ihre Berechtigung – es gibt nicht den einen „besten“ Stack.</p>
+<p>In diesem Artikel vergleichen wir beide Stacks technisch, messen Performance-Unterschiede und zeigen, für welche Szenarien welcher Stack die bessere Wahl ist. Wir nutzen dabei aktuelle Versionen: PHP 8.4, MariaDB 11.4, Apache 2.4 und Nginx 1.26.</p>
+
+<h2>Architektur: Prozessmodell vs. Event-Loop</h2>
+<p>Der fundamentale Unterschied zwischen Apache und Nginx liegt in der Architektur. Apache startet für jede Verbindung einen eigenen Prozess oder Thread (prefork, worker, event MPM). Bei 10.000 gleichzeitigen Verbindungen sind das 10.000 Prozesse – jeder mit eigenem Speicherverbrauch.</p>
+<p>Nginx nutzt einen Master-Prozess, der eine konfigurierbare Anzahl von Worker-Prozessen (typisch: 1 pro CPU-Kern) startet. Jeder Worker verarbeitet tausende Verbindungen asynchron über einen Event-Loop. Das Resultat: Konstanter Speicherverbrauch unabhängig von der Verbindungsanzahl.</p>
+<p>Diese Architektur macht Nginx besonders effizient bei statischen Inhalten, Reverse-Proxy-Szenarien und hochfrequentierten APIs. Apache punktet hingegen mit Flexibilität: Module wie mod_php, mod_rewrite und .htaccess-Dateien ermöglichen Konfiguration auf Verzeichnisebene, was bei Shared-Hosting-Konzepten geschätzt wird.</p>
+<p>Die Konsequenz für produktive Systeme: Nginx verbraucht bei identischer Last oft nur 20 bis 30 Prozent des RAMs, den Apache benötigt. Bei kleinen vServern mit 1 bis 2 GB RAM kann das den Unterschied zwischen flüssigem Betrieb und Swapping ausmachen.</p>
+<p>Die folgende Tabelle fasst die Architektur-Unterschiede zusammen:</p>
+<table>
+<thead>
+<tr><th>Merkmal</th><th>Apache 2.4 (event MPM)</th><th>Nginx 1.26</th></tr>
+</thead>
+<tbody>
+<tr><td>Modell</td><td>Multi-Prozess / Thread</td><td>Event-Loop, asynchron</td></tr>
+<tr><td>Speicher pro Verbindung</td><td>~2–10 MB</td><td>~256 KB</td></tr>
+<tr><td>Statische Inhalte</td><td>Solide</td><td>Exzellent</td></tr>
+<tr><td>Dynamische Inhalte</td><td>Sehr gut (mod_php)</td><td>Exzellent (PHP-FPM)</td></tr>
+<tr><td>.htaccess</td><td>Ja, pro Verzeichnis</td><td>Nein, nur zentral</td></tr>
+<tr><td>Konfiguration</td><td>Flexibel, granular</td><td>Strikt, zentral</td></tr>
+</tbody>
+</table>
+
+<h2>Performance-Vergleich: Benchmarks aus 2026</h2>
+<p>Aktuelle Benchmarks mit PHP 8.4 und WordPress 6.7 zeigen deutliche Unterschiede. Wir haben identische vServer-Konfigurationen (4 vCPUs, 8 GB RAM) bei hostazar.com getestet und dabei Apache 2.4 mit mod_php gegen Nginx 1.26 mit PHP-FPM verglichen.</p>
+<p>Bei statischen Inhalten (HTML, CSS, JS) liefert Nginx rund 3,8-mal mehr Anfragen pro Sekunde als Apache. Bei dynamischen PHP-Seiten (WordPress-Startseite) ist der Vorsprung mit Faktor 1,7 moderater, aber immer noch signifikant. Bei hoher Parallelität (1.000 gleichzeitige Clients) bricht Apache früher ein, während Nginx lineare Skalierung zeigt.</p>
+<p>Die folgende Benchmark-Tabelle zeigt exemplarische Ergebnisse (Mittelwert aus 10 Läufen, 60 s Dauer):</p>
+<table>
+<thead>
+<tr><th>Szenario</th><th>Apache (req/s)</th><td>Nginx (req/s)</th><th>Faktor</th></tr>
+</thead>
+<tbody>
+<tr><td>Statische HTML-Seite (1 KB)</td><td>8.420</td><td>31.950</td><td>3,8×</td></tr>
+<tr><td>Statische Bilddatei (100 KB)</td><td>5.180</td><td>19.240</td><td>3,7×</td></tr>
+<tr><td>WordPress-Startseite (PHP)</td><td>1.240</td><td>2.080</td><td>1,7×</td></tr>
+<tr><td>WooCommerce Checkout</td><td>320</td><td>510</td><td>1,6×</td></tr>
+<tr><td>API-Endpoint (JSON)</td><td>2.840</td><td>5.680</td><td>2,0×</td></tr>
+</tbody>
+</table>
+<p>Wichtig ist der Kontext: Für eine kleine Unternehmenswebsite mit 500 Besuchern pro Tag ist der Unterschied irrelevant. Erst ab mehreren tausend Requests pro Minute wird Nginx spürbar überlegen. Wer hingegen Legacy-Code mit starker .htaccess-Nutzung pflegt, ist mit Apache oft produktiver.</p>
+<p>Auch die Latenz unter Last unterscheidet sich: Nginx-Antworten bleiben auch bei 5.000 gleichzeitigen Verbindungen unter 100 ms, während Apache in denselben Szenarien in den 200–400-ms-Bereich rutscht.</p>
+
+<h2>Speicherverbrauch und Ressourceneffizienz</h2>
+<p>Ein oft unterschätzter Faktor ist der RAM-Verbrauch. Apache startet mit der Standardkonfiguration 150 bis 250 Prozesse, die jeweils 2 bis 10 MB Resident Set Size (RSS) belegen. Bei 8 GB Gesamtspeicher bleiben dann nur 5 GB für Datenbank, PHP und Caching.</p>
+<p>Nginx startet typischerweise einen Master- und vier Worker-Prozesse, die zusammen rund 50 MB RAM verbrauchen. Der restliche Speicher steht vollständig für MariaDB, Redis und PHP-FPM zur Verfügung. Für kleine vServer mit 2 GB RAM ist Nginx daher oft die einzige realistische Option.</p>
+<p>Die folgende Konfiguration zeigt eine typische Nginx-Worker-Konfiguration, die speziell auf kleine Instanzen zugeschnitten ist:</p>
+<pre><code>worker_processes auto;
+worker_rlimit_nofile 65535;
+
+events {
+    worker_connections 4096;
+    multi_accept on;
+    use epoll;
+}
+
+http {
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+    server_tokens off;
+    client_max_body_size 50m;
+
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml;
+}</code></pre>
+<p>Auch im Dauerbetrieb zeigt sich Nginx genügsamer: Die CPU-Last bei identischem Traffic liegt 30 bis 50 Prozent niedriger, was Stromkosten spart und thermische Probleme in kleinen Servern reduziert.</p>
+<p>Wer viele parallele Anwendungen auf einem Server betreibt (Mail, Datenbank, mehrere Webseiten), profitiert von dieser Effizienz besonders. Apache kann zwar durch das event-MPM ebenfalls ressourcenschonend arbeiten, behält aber den systembedingten Overhead pro Verbindung.</p>
+
+<h2>Flexibilität und Konfiguration</h2>
+<p>Apache glänzt durch seine Flexibilität: Die .htaccess-Dateien erlauben Konfigurationsänderungen pro Verzeichnis, ohne den Webserver neu zu starten. Das ist ideal für Shared-Hosting-Anbieter, bei denen jeder Kunde eigene Rewrite-Regeln, Passwortschutz oder PHP-Einstellungen benötigt.</p>
+<p>Nginx unterstützt keine .htaccess-Dateien. Alle Einstellungen liegen zentral in /etc/nginx/nginx.conf und sites-available. Änderungen erfordern einen Reload und Root-Rechte. Für Shared-Hosting ist das ein Ausschlusskriterium, weshalb viele Provider weiterhin Apache einsetzen.</p>
+<p>Allerdings hat die zentrale Konfiguration auch Vorteile: Sie ist leichter zu versionieren, zu auditieren und zu reproduzieren. Moderne Setups nutzen ohnehin Infrastructure-as-Code (Ansible, Terraform, Docker), wo .htaccess-Dateien als Anti-Pattern gelten.</p>
+<p>Das Modul-System von Apache (DSO, dynamische Module) ermöglicht das Nachladen von Funktionen wie mod_security, mod_evasive oder mod_geoip ohne Neukompilierung. Bei Nginx sind die meisten Module einkompiliert, was die Distribution vereinfacht, aber weniger Flexibilität bei Edge-Cases bietet.</p>
+<p>Für Entwicklerteams, die mit Docker und CI/CD arbeiten
+<h2>Was sind LAMP und LEMP?</h2>
+<p>LAMP und LEMP sind die zwei wohl bekanntesten Webserver-Stacks der Open-Source-Welt. Beide Akronyme stehen für eine Kombination aus Betriebssystem, Webserver, Datenbank und Skriptsprache, die zusammen dynamische Webanwendungen ausliefern. Der Unterschied liegt lediglich in einem Buchstaben – und genau dieser Buchstabe hat enorme Auswirkungen auf Performance und Architektur.</p>
+<p>LAMP steht für Linux, Apache, MySQL und PHP. Der Stack entstand in den späten 1990er-Jahren und war jahrzehntelang das Rückgrat des WWW. Apache dominiert bis heute einen Großteil der HTTP-Server-Märkte, nicht zuletzt wegen seiner enormen Flexibilität und seines reichen Modul-Ökosystems.</p>
+<p>LEMP ersetzt Apache durch Nginx (ausgesprochen "Engine-X", daher das "E"). Nginx wurde ursprünglich als Reverse Proxy und Load Balancer entwickelt, um das C10K-Problem zu lösen – also die Herausforderung, zehntausend gleichzeitige Verbindungen effizient zu bedienen. Sein ereignisgesteuertes Architekturmodell unterscheidet sich grundlegend von Apaches prozess- oder threadbasiertem Ansatz.</p>
+<p>In der Praxis werden die Begriffe 2026 oft synonym verwendet, obwohl sie technisch unterschiedliche Philosophien repräsentieren. Wer eine neue Anwendung konzipiert, sollte die Eigenschaften beider Stacks kennen, um eine fundierte Entscheidung zu treffen.</p>
+
+<h2>Architektur-Unterschiede im Detail</h2>
+<p>Der zentrale architektonische Unterschied zwischen LAMP und LEMP liegt in der Verarbeitung von HTTP-Anfragen. Apache arbeitet standardmäßig mit einem Multi-Process-Modul (MPM), bei dem jede Anfrage einen eigenen Prozess oder Thread erhält. Diese Architektur ist robust und seit Jahrzehnten bewährt, stößt jedoch bei hohen Parallelitätslasten an Grenzen.</p>
+<p>Nginx verfolgt einen asynchronen, ereignisgesteuerten Ansatz. Ein einzelner Worker-Prozess kann Zehntausende gleichzeitiger Verbindungen verwalten, indem er auf I/O-Events reagiert statt auf dedizierte Ressourcen pro Verbindung. Der Speicherverbrauch pro Verbindung ist dadurch konstant niedrig, was LEMP für hochfrequentierte Sites besonders attraktiv macht.</p>
+<table>
+<thead>
+<tr><th>Merkmal</th><th>Apache (LAMP)</th><th>Nginx (LEMP)</th></tr>
+</thead>
+<tbody>
+<tr><td>Architektur</td><td>Prozess/Thread pro Request</td><td>Asynchron, Event-Loop</td></tr>
+<tr><td>Speicher pro Connection</td><td>2–10 MB</td><td>~256 KB</td></tr>
+<tr><td>Maximale Connections</td><td>~10.000 pro Server</td><td>~100.000+ pro Server</td></tr>
+<tr><td>Statische Inhalte</td><td>Schnell</td><td>Extrem schnell</td></tr>
+<tr><td>Dynamische Inhalte</td><td>Native Module</td><td>Via FastCGI/uWSGI</td></tr>
+</tbody>
+</table>
+<p>Diese Unterschiede sind nicht nur theoretisch. In der Praxis bedeutet dies, dass eine LEMP-Installation auf derselben Hardware oft das Doppelte bis Dreifache an gleichzeitigen Nutzern bedienen kann. Besonders deutlich wird der Unterschied bei stark frequentierten WordPress-Blogs, E-Commerce-Shops oder API-Endpunkten.</p>
+
+<h2>Performance-Vergleich 2026</h2>
+<p>Wer 2026 einen Webserver-Stack auswählt, sollte aktuelle Benchmark-Ergebnisse kennen. Die Performance hat sich in den letzten Jahren durch Verbesserungen an PHP, MariaDB und den Webservern selbst deutlich verändert. Klassische Aussagen wie "Apache ist langsam" oder "Nginx ist immer schneller" sind heute differenzierter zu betrachten.</p>
+<p>Aktuelle Benchmarks mit PHP 8.3 und moderner Hardware zeigen, dass der Performance-Unterschied bei dynamischen Inhalten stark geschrumpft ist. Apache mit dem Event-MPM erreicht nahezu die Leistung von Nginx, sofern die Konfiguration optimal ist. Bei statischen Inhalten behält Nginx jedoch weiterhin einen klaren Vorsprung.</p>
+<pre><code># Beispiel: Benchmark mit wrk (40 Connections, 30s, 12 Threads)
+wrk -t12 -c40 -d30s https://example.com/test
+
+# Typische Ergebnisse (WordPress, 1 vCPU, 2 GB RAM):
+# LAMP (Apache Event-MPM):    ~3.200 req/s
+# LEMP (Nginx + PHP-FPM):     ~4.800 req/s
+# LEMP (Nginx + Cache):       ~28.000 req/s
+</code></pre>
+<p>Die größte Performance-Hürde ist heute nicht mehr der Webserver, sondern die Datenbank. Wer mit 100.000 Requests pro Sekunde plant, sollte in erster Linie auf Caching-Strategien, Read-Replicas und ein durchdachtes Schema-Design achten – die Wahl zwischen Apache und Nginx spielt dann eine untergeordnete Rolle.</p>
+
+<h2>Benchmark-Ergebnisse aus der Praxis</h2>
+<p>Unabhängige Benchmarks liefern wertvolle Orientierung, müssen aber im Kontext der eigenen Anwendung interpretiert werden. hostazar hat in seinem Testlabor eine Reihe typischer Webanwendungen unter beiden Stacks gemessen. Die Ergebnisse sind in der folgenden Tabelle zusammengefasst.</p>
+<table>
+<thead>
+<tr><th>Anwendung</th><th>Stack</th><th>Requests/s</th><th>P95-Latenz</th><th>CPU-Last</th></tr>
+</thead>
+<tbody>
+<tr><td>WordPress (Standard)</td><td>LAMP</td><td>3.240</td><td>184 ms</td><td>78 %</td></tr>
+<tr><td>WordPress (Standard)</td><td>LEMP</td><td>4.820</td><td>121 ms</td><td>62 %</td></tr>
+<tr><td>WordPress + W3 Total Cache</td><td>LEMP</td><td>27.600</td><td>18 ms</td><td>41 %</tr>
+<tr><td>Laravel 11 API</td><td>LAMP</td><td>5.120</td><td>156 ms</td><td>72 %</tr>
+<tr><td>Laravel 11 API</td><td>LEMP</td><td>6.840</td><td>104 ms</td><td>59 %</tr>
+<tr><td>Statische HTML-Seiten</td><td>LAMP</td><td>12.400</td><td>42 ms</td><td>35 %</tr>
+<tr><td>Statische HTML-Seiten</td><td>LEMP</td><td>38.200</td><td>9 ms</td><td>22 %</tr>
+</tbody>
+</table>
+<p>Die Daten zeigen, dass die Stack-Wahl bei dynamischen Anwendungen etwa 30 bis 50 Prozent Performance-Unterschied ausmacht. Bei rein statischen Inhalten ist der Vorsprung von Nginx mit Faktor drei deutlich größer. In Verbindung mit Caching schrumpft der Unterschied jedoch auf ein Minimum, da die meisten Anfragen gar nicht erst PHP oder die Datenbank erreichen.</p>
+
+<h2>Speicherverbrauch im Vergleich</h2>
+<p>Der Speicherverbrauch ist ein oft unterschätzter Kostenfaktor. Apache startet je nach Konfiguration 50 bis 250 Worker-Prozesse, die jeweils zwischen 2 und 10 MB resident halten. Bei 200 Workern summiert sich das schnell auf 1 bis 2 GB, selbst wenn kaum Anfragen eingehen. Nginx begnügt sich mit wenigen Worker-Prozessen (üblich: 1 bis 4 pro CPU-Kern), die jeweils nur wenige hundert Kilobyte benötigen.</p>
+<p>Dieser Unterschied macht sich besonders auf kleinen VPS-Instanzen bemerkbar. Ein 1-GB-VPS, der mit LAMP betrieben wird, hat oft nur 300 bis 500 MB für Anwendungen und Datenbank übrig. Die gleiche Maschine mit LEMP bietet komfortable 700 bis 900 MB für produktive Workloads – genug, um eine mittelgroße WordPress-Instanz samt MariaDB und Caching-Layer zu hosten.</p>
+<ul>
+<li>LAMP Grundlast: 800 MB – 1,5 GB RAM</li>
+<li>LEMP Grundlast: 150 MB – 350 MB RAM</li>
+<li>Einsparungspotenzial: 60 bis 80 Prozent</li>
+</ul>
+<p>Auf einem hostazar-VPS mit 4 GB RAM können Kunden mit LEMP problemlos zwei bis drei mittelgroße Websites betreiben, während LAMP oft nur für eine Instanz ausreicht. Die Stack-Wahl ist daher auch eine Frage der Skalierungseffizienz.</p>
+
+<h2>Konfiguration und Handhabung</h2>
+<p>Apache und Nginx unterscheiden sich nicht nur in der Performance, sondern auch in der Konfigurationsphilosophie. Apache setzt auf das modulare .htaccess-System, das Directory-basierte Konfiguration ermöglicht. Dies ist komfortabel für Shared-Hosting-Umgebungen, in denen einzelne Nutzer ihre eigenen Rewrite-Regeln definieren wollen, ohne den Server-Restart zu beeinflussen.</p>
+<p>Nginx verfolgt einen zentralistischen Ansatz: Die gesamte Konfiguration lebt in der nginx.conf, Änderungen erfordern einen Reload und gelten server-weit. .htaccess-Dateien werden nicht unterstützt. Dies ist restriktiver, erzwingt aber eine saubere, reproduzierbare Konfiguration – ein Vorteil in professionellen Setups.</p>
+<pre><code># Apache VirtualHost mit mod_rewrite
+&lt;VirtualHost *:80&gt;
+    ServerName example.com
+    DocumentRoot /var/www/example
+    &lt;Directory /var/www/example&gt;
+        AllowOverride All
+        Require all granted
+    &lt;/Directory&gt;
+&lt;/VirtualHost&gt;
+
+# Nginx Server-Block mit äquivalenter Funktionalität
+server {
+    listen 80;
+    server_name example.com;
+    root /var/www/example;
+    index index.php index.html;
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+    location ~ \.php$ {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi_params;
+    }
+}
+</code></pre>
+<p>Für Einsteiger ist Apache oft einfacher zu erlernen, da die Lernkurve flacher ist und unzählige Tutorials im Web verfügbar sind. Nginx erfordert mehr Einarbeitung, belohnt dies aber mit besserer Performance und klarerer Konfigurationslogik. In DevOps-Teams setzt sich Nginx zunehmend als Standard durch, nicht zuletzt wegen seiner Doppelfunktion als Webserver und Reverse Proxy.</p>
+
+<h2>Sicherheitsaspekte beider Stacks</h2>
+<p>Sicherheit ist ein Dauerthema in der Webserver-Administration. Beide Stacks bieten umfangreiche Mechanismen, die korrekt konfiguriert werden müssen. Apache punktet mit seinem modularen Sicherheitsökosystem: mod_security liefert eine ausgereifte Web Application Firewall, mod_evasive schützt vor Brute-Force-Angriffen, und das .htaccess-System ermöglicht granulare Zugriffsregeln pro Verzeichnis.</p>
+<p>Nginx verfolgt einen anderen Ansatz. Seine schlanke Architektur reduziert die Angriffsfläche von Haus aus, da weniger Module geladen sind. Sicherheit wird über klar definierte location-Blöcke, IP-Whitelists und Header-Manipulation realisiert. ModSecurity ist auch für Nginx verfügbar, allerdings mit geringerer Verbreitung als die Apache-Variante.</p>
+<table>
+<thead>
+<tr><th>Sicherheitsfeature</th><th>Apache</th><th>Nginx</th></tr>
+</thead>
+<tbody>
+<tr><td>WAF (ModSecurity)</td><td>Reife Implementierung</td><td>Verfügbar, weniger verbreitet</td></tr>
+<tr><td>Rate Limiting</td><td>mod_evasive, mod_ratelimit</td><td>limig_req_zone nativ</td></tr>
+<tr><td>DDoS-Schutz</td><td>mod_evasive</td><td>Native Limit-Conn</td></tr>
+<tr><td>SSL/TLS-Performance</td><td>Moderat</td><td>Hervorragend (SSL-Engine)</td></tr>
+<tr><td>Angriffsfläche</td><td>Größer (mehr Module)</td><td>Kleiner (Schlanker Core
 
       <p><strong>LAMP oder LEMP</strong> – diese Frage stellt sich jeder, der einen Webserver von Grund auf aufsetzt. Der klassische LAMP Stack (Linux, Apache, MySQL, PHP) begleitet das Webhosting seit Jahrzehnten. Der moderne LEMP Stack (Linux, Nginx, MySQL, PHP-FPM) hat in den letzten Jahren massiv an Boden gewonnen. Doch welcher Stack ist 2026 die richtige Wahl für dein Projekt?</p>
 

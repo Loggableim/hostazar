@@ -759,6 +759,124 @@
     </div>
 
 <h1>Docker-Container für LLM-Inference – Best Practices 2026</h1>
+<h2>Was ist LLM-Inference und warum in Docker?</h2>
+<p>Large Language Models (LLMs) wie Llama 3, Mistral oder GPT-Modelle benötigen erhebliche Rechenressourcen für die Inferenz – also die eigentliche Vorhersage von Texten. Die Ausführung dieser Modelle in einem Docker-Container bietet entscheidende Vorteile: reproduzierbare Umgebungen, einfache Skalierung und die Möglichkeit, verschiedene Modelle isoliert voneinander zu betreiben.</p>
+<p>Ein typischer LLM-Inference-Container kapselt das Modell, die Abhängigkeiten, die CUDA-Treiber und den Inference-Server in einer einzigen Einheit. Dadurch entfällt das aufwendige Einrichten der Softwareumgebung auf jedem Host, was besonders in Produktionsumgebungen mit mehreren GPU-Servern Gold wert ist.</p>
+<p>Zudem ermöglicht Docker die Nutzung von GPU-Ressourcen über das NVIDIA Container Toolkit, sodass Sie Ihre Modelle auf dedizierten Grafikkarten ausführen können, ohne sich um Treiberkonflikte oder Bibliotheksversionen sorgen zu müssen. Für Self-Hosting-Enthusiasten und Unternehmen, die KI-Dienste anbieten möchten, ist dies der ideale Einstieg.</p>
+
+<h2>Systemanforderungen für LLM-Inference-Container</h2>
+<p>Die Anforderungen variieren stark je nach Modellgröße. Während ein 7B-Parameter-Modell noch auf einer einzelnen NVIDIA RTX 4090 mit 24 GB VRAM laufen kann, benötigen 70B-Modelle bereits mehrere A100- oder H100-GPUs mit entsprechendem Arbeitsspeicher und schneller NVMe-Speicherung.</p>
+<p>Für die Containerisierung selbst empfiehlt sich ein Linux-Host mit aktuellem Kernel, mindestens 32 GB System-RAM und ausreichend Festplattenplatz für die Modelldateien. Diese sind oft 4–140 GB groß, abhängig von der Quantisierung und der Parameteranzahl.</p>
+<p>Eine schnelle Netzwerkanbindung ist essenziell, wenn das Modell als API-Endpunkt für mehrere Clients dient. In der Praxis haben sich 10-Gbit-Ethernet-Verbindungen bewährt, um Latenz und Throughput auf einem produktiven Niveau zu halten.</p>
+
+<table>
+<thead>
+<tr><th>Modellgröße</th><th>VRAM-Bedarf</th><th>Empfohlene GPU</th><th>Tokens/s (ca.)</th></tr>
+</thead>
+<tbody>
+<tr><td>7B (Q4)</td><td>6 GB</td><td>RTX 3060</td><td>40–60</td></tr>
+<tr><td>13B (Q4)</td><td>10 GB</td><td>RTX 4080</td><td>25–40</td></tr>
+<tr><td>70B (Q4)</td><td>40 GB</td><td>A100 80GB</td><td>15–25</td></tr>
+<tr><td>405B (FP8)</td><td>240 GB</td><td>4× H100</td><td>8–15</td></tr>
+</tbody>
+</table>
+
+<h2>Docker-Setup mit NVIDIA GPU-Unterstützung</h2>
+<p>Bevor Sie einen LLM-Container starten können, müssen Sie das NVIDIA Container Toolkit auf Ihrem Host-System installieren. Dieses stellt die nötigen Bibliotheken bereit, damit Docker-Container auf die GPU zugreifen dürfen. Ohne diese Erweiterung bleibt der CUDA-Support im Container deaktiviert.</p>
+<p>Die Installation erfolgt je nach Distribution unterschiedlich. Auf Ubuntu 22.04 oder neuer genügen wenige apt-Befehle, um das Toolkit, die nvidia-container-runtime und die passenden Treiber einzurichten. Anschließend starten Sie den Docker-Daemon neu, damit die Runtime registriert wird.</p>
+<p>Nach der Installation können Sie mit einem einfachen Testcontainer prüfen, ob die GPU korrekt erkannt wird. Wenn hier bereits Fehler auftauchen, sollten Sie die Treiberversion und die Toolkit-Konfiguration überprüfen, bevor Sie mit dem eigentlichen LLM-Deployment fortfahren.</p>
+
+<pre><code># Installation auf Ubuntu 22.04
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | \
+  sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+  sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker</code></pre>
+
+<h2>Beliebte LLM-Inference-Server für Docker</h2>
+<p>Es gibt mittlerweile eine breite Auswahl an spezialisierten Inference-Servern, die als Docker-Images bereitgestellt werden. Die bekanntesten sind vLLM, llama.cpp, Text Generation Inference (TGI) von Hugging Face und Ollama. Jeder dieser Server hat spezifische Stärken und eignet sich für unterschiedliche Einsatzzwecke.</p>
+<p>vLLM überzeugt durch seine PagedAttention-Technologie, die einen sehr hohen Throughput bei gleichbleibender Latenz ermöglicht. llama.cpp ist besonders beliebt für lokale Setups, da es CPUs und Apple-Silicon optimal unterstützt. TGI wiederum bietet eine ausgereifte Produktionsreife und Skalierungsoptionen.</p>
+<p>Ollama hat sich durch seine einfache Bedienung etabliert und ist ideal für Einsteiger, die mit minimalem Konfigurationsaufwand Modelle lokal betreiben möchten. Alle genannten Tools lassen sich mit wenigen Docker-Befehlen starten und in bestehende Infrastrukturen integrieren.</p>
+
+<h2>Docker Compose für Multi-Model-Setups</h2>
+<p>In produktiven Umgebungen kommt man selten mit einem einzelnen Modell aus. Häufig möchte man mehrere Modelle parallel betreiben oder ein Fallback-System aufbauen, falls ein Modell nicht antworten kann. Docker Compose ist hier das Werkzeug der Wahl, um solche Setups deklarativ zu definieren.</p>
+<p>Mit einer übersichtlichen YAML-Datei können Sie Services, Netzwerke, Volumes und Ressourcenlimits zentral verwalten. Das macht die Konfiguration reproduzierbar und versionierbar – ein unschätzbarer Vorteil in Teams und CI/CD-Pipelines.</p>
+<p>Beim Multi-Model-Setup ist es sinnvoll, ein API-Gateway wie LiteLLM oder Open WebUI vorzuschalten. Diese Tools vereinheitlichen die Schnittstellen, übernehmen das Routing und bieten zusätzliche Funktionen wie Authentifizierung, Logging und Kostenkontrolle.</p>
+
+<pre><code>version: '3.8'
+services:
+  llm-router:
+    image: ghcr.io/berriai/litellm:main-stable
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./litellm_config.yaml:/app/config.yaml
+    command: --config /app/config.yaml
+    depends_on:
+      - llama3
+      - mistral
+
+  llama3:
+    image: ghcr.io/huggingface/text-generation-inference:2.0
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=0
+      - MODEL_ID=meta-llama/Meta-Llama-3-8B-Instruct
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  mistral:
+    image: ghcr.io/huggingface/text-generation-inference:2.0
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=1
+      - MODEL_ID=mistralai/Mistral-7B-Instruct-v0.3
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]</code></pre>
+
+<h2>Quantisierung und Modelloptimierung</h2>
+<p>Quantisierung ist eine der wichtigsten Techniken, um große Modelle in ressourcenbeschränkten Umgebungen lauffähig zu machen. Dabei werden die Gewichte des neuronalen Netzes von hochpräzisen 16- oder 32-Bit-Floats auf 8-Bit- oder sogar 4-Bit-Werte reduziert. Dies senkt den Speicherbedarf drastisch und beschleunigt die Inferenz oft erheblich.</p>
+<p>Die bekanntesten Formate sind GGUF (für llama.cpp), GPTQ und AWQ. GGUF-Modelle lassen sich direkt über Ollama oder llama.cpp im Container laden und bieten einen guten Kompromiss zwischen Qualitätsverlust und Performance. GPTQ wird häufig in Kombination mit vLLM oder TGI verwendet.</p>
+<p>Bei der Wahl der Quantisierung sollten Sie immer einen Kompromiss zwischen Modellqualität und Hardwareanforderungen finden. Ein 7B-Modell in Q4-Quantisierung liefert für die meisten Anwendungsfälle ausreichend gute Ergebnisse und passt in gängige Consumer-GPUs.</p>
+
+<h2>Sicherheit und Isolation von LLM-Containern</h2>
+<p>Da LLMs sensible Daten verarbeiten können, sollte die Sicherheit der Container-Umgebung höchste Priorität haben. Empfehlenswert ist der Betrieb in einem dedizierten Docker-Netzwerk ohne direkten Internetzugriff. Externe Anfragen sollten ausschließlich über einen Reverse-Proxy mit TLS-Terminierung laufen.</p>
+<p>Setzen Sie zudem auf Rootless Docker oder führen Sie den Container mit einem unprivilegierten Benutzer aus. Dadurch verhindern Sie, dass ein kompromittiertes Modell oder ein Exploit im Inference-Server volle Root-Rechte auf dem Host erlangt. Auch das Setzen von Read-Only-Dateisystemen und Capability-Drops reduziert die Angriffsfläche.</p>
+<p>Authentifizierung und Rate-Limiting sind weitere essenzielle Schutzmaßnahmen, insbesondere wenn der Endpunkt öffentlich erreichbar ist. Tools wie Kong, Traefik oder Caddy lassen sich problemlos in das Docker-Setup integrieren und bieten umfangreiche Sicherheitsfunktionen.</p>
+
+<h2>Monitoring und Logging im Betrieb</h2>
+<p>Ein produktives LLM-Deployment ohne Monitoring ist ein Risiko. Sie sollten unbedingt Metriken wie Tokens pro Sekunde, GPU-Auslastung, Speicherverbrauch und Latenz kontinuierlich erfassen. Beliebte Tools hierfür sind Prometheus in Kombination mit Grafana sowie NVIDIA DCGM für GPU-spezifische Werte.</p>
+<p>Logging ist ebenso wichtig, um Probleme frühzeitig zu erkennen und Anomalien im Nutzerverhalten zu identifizieren. Strukturierte Logs im JSON-Format lassen sich einfach in Loki, Elasticsearch oder eine Cloud-Logging-Lösung einspeisen und auswerten.</p>
+<p>Für kommerzielle Setups empfiehlt sich zusätzlich ein Tracking der tatsächlichen Nutzung, um Kosten pro Anfrage zu berechnen und Budgets zu kontrollieren. Viele API-Gateways bieten diese Funktion bereits out-of-the-box an.</p>
+
+<h2>Häufige Fehler und Troubleshooting</h2>
+<p>Ein häufiges Problem ist die unzureichende GPU-Speicherzuweisung. Wenn das Modell größer ist als der verfügbare VRAM, schlägt der Start mit einer CUDA-OOM-Meldung fehl. In diesem Fall hilft nur eine stärkere Quantisierung, ein kleineres Modell oder zusätzlicher GPU-Speicher.</p>
+<p>Ein weiterer Klassiker sind fehlende oder inkompatible CUDA-Versionen zwischen Host-Treibern und Container-Image. Hier ist es ratsam, die CUDA-Major-Version des Containers an die Treiberversion des Hosts anzupassen. Die Dokumentation der jeweiligen Inference-Server gibt hierzu klare Empfehlungen.</p>
+<p>Performance-Probleme entstehen oft durch ineffiziente Batch-Größen oder zu lange Prompt-Kontexte. Experimentieren Sie mit den entsprechenden Konfigurationsparametern und messen Sie die Auswirkungen mit dem integrierten Benchmarking-Tool des jeweiligen Servers.</p>
+
+<h2>Best Practices für produktive Setups</h2>
+<p>In der Produktion haben sich einige bewährte Praktiken etabliert. Dazu gehört die Verwendung von offiziellen Images mit getaggten Versionen statt dem latest-Tag, um reproduzierbare Deployments zu gewährleisten. Auch das externe Speichern der Modelldateien auf einem Volume oder NFS-Mount verhindert unnötig große Container-Images.</p>
+<p>Setzen Sie auf Health-Checks, damit Ihr Orchestrierungstool (z. B. Docker Swarm oder Kubernetes) ausgefallene Container automatisch neu starten kann. Definieren Sie außerdem klare Ressourcenlimits, um zu verhindern, dass ein fehlerhafter Container den gesamten Host in Mitleidenschaft zieht.</p>
+<p>Schließlich empfiehlt sich eine regelmäßige Aktualisierung der Images, um von Performance-Verbesserungen und Sicherheitspatches zu profitieren. Ein automatisierter Workflow mit Watchtower oder einem eigenen CI/CD-Setup nimmt Ihnen diese Aufgabe ab und hält Ihr System langfristig stabil.</p>
+
+<h2>Fazit: LLM-Inference mit Docker als Schlüsseltechnologie</h2>
+<p>Die Kombination aus Docker-Containern und modernen Inference-Servern hat die Bereitstellung von LLMs revolutioniert. Was früher tagelange Konfigurationsarbeit erforderte, lässt sich heute in wenigen Minuten mit einem einzigen Docker-Befehl erledigen. Die Vielfalt an Tools und Images macht es sowohl Einsteigern als auch Profis leicht, eigene KI-Dienste aufzubauen.</p>
+<p>Wer auf seinem Hostazar-Server oder dedizierten Root-Server die Möglichkeiten der KI voll ausschöpfen möchte, findet in Docker die ideale Grundlage. Mit den hier vorgestellten Best Practices, Code-Beispielen und Konfigurationen steht Ihrem produktiven LLM-Setup nichts mehr im Wege.</p>
+<p>Beachten Sie jedoch, dass leistungsfähige Modelle entsprechende Hardware benötigen. Investieren Sie in schnelle GPUs, ausreichend RAM und eine stabile Netzwerkanbindung, um optimale Ergebnisse zu erzielen. So verwandeln Sie Ihren Server in eine leistungsstarke KI-Plattform.</p>
   <a href="/artikel/mistral-modelle-lokal-hosten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/mistral-modelle-lokal-hosten-2026.webp" alt="Mistral Large &amp; Mixtral 8x22B lokal hosten – MoE-Modelle selbst betreiben 2026" loading="lazy" width="400" height="200"></div>
   </a>

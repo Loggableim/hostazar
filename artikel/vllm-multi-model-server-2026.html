@@ -759,6 +759,635 @@
     </div>
 
 <h1>KI-Server mit mehreren Modellen gleichzeitig betreiben – vLLM + Open WebUI 2026</h1>
+<h2>vLLM Multi-Model Server 2026: Die Revolution im LLM-Hosting</h2>
+<p>Der vLLM Multi-Model Server hat sich im Jahr 2026 als eine der führenden Lösungen für das gleichzeitige Hosting mehrerer Large Language Models etabliert. Diese Open-Source-Engine ermöglicht es Unternehmen und Entwicklern, verschiedene KI-Modelle auf einer einzigen GPU-Infrastruktur zu betreiben, ohne dabei Kompromisse bei der Performance einzugehen. Die Paged-Attention-Technologie, die vLLM von anderen Frameworks abhebt, revolutioniert die Art und Weise, wie Modelle im Speicher verwaltet werden.</p>
+<p>Im Vergleich zu klassischen Inference-Servern wie FastAPI oder Flask-basierten Wrappern bietet vLLM eine deutlich höhere Token-Durchsatzrate. Studien aus dem Jahr 2026 zeigen, dass vLLM bei der Bedienung mehrerer Modelle gleichzeitig bis zu 24-mal mehr Anfragen pro Sekunde verarbeiten kann als herkömmliche Lösungen. Dies liegt vor allem an der effizienten Speicherverwaltung und der kontinuierlichen Batch-Verarbeitung.</p>
+<p>Ein weiterer entscheidender Vorteil ist die native Unterstützung moderner Modellformate wie GGUF, AWQ und GPTQ. Administratoren können Modelle verschiedener Quantisierungsstufen parallel betreiben und so die Ressourcennutzung optimieren. Die Integration in bestehende MLOps-Pipelines gestaltet sich dabei besonders unkompliziert, da vLLM standardisierte REST- und gRPC-Schnittstellen bereitstellt.</p>
+
+<h2>Architektur und technische Grundlagen des Multi-Model-Betriebs</h2>
+<p>Die Architektur des vLLM Multi-Model Servers basiert auf einem modularen Konzept, bei dem jedes Modell in einem isolierten Worker-Prozess läuft. Diese Worker kommunizieren über einen zentralen Scheduler, der eingehende Anfragen basierend auf der aktuellen Auslastung verteilt. Durch die Paged-Attention-Technologie wird der GPU-Speicher in kleine, verwaltbare Pages unterteilt, ähnlich wie bei virtueller Speicherverwaltung in Betriebssystemen.</p>
+<p>Der Scheduler nutzt einen innovativen Algorithmus, der als Continuous Batching bekannt ist. Anstatt Anfragen zu sammeln und gemeinsam zu verarbeiten, werden einzelne Anfragen kontinuierlich in den Batch aufgenommen und abgeschlossen, sobald sie fertig generiert wurden. Dies reduziert die Latenz erheblich und maximiert gleichzeitig den Durchsatz. Die Implementierung in C++ und CUDA gewährleistet dabei eine optimale GPU-Auslastung.</p>
+<p>Für das Multi-Model-Setup kommen zwei Hauptstrategien zum Einsatz: Tensor Parallelism und Model Parallelism. Beim Tensor Parallelism wird ein einzelnes Modell über mehrere GPUs verteilt, während beim Model Parallelism verschiedene Modelle auf verschiedenen GPUs laufen. Die vLLM-Engine unterstützt beide Ansätze und kann diese sogar dynamisch kombinieren, je nach verfügbaren Ressourcen und Anfragelast.</p>
+
+<h2>Installation und erste Konfiguration in 2026</h2>
+<p>Die Installation des vLLM Multi-Model Servers ist im Jahr 2026 deutlich vereinfacht worden. Mit dem überarbeiteten pip-Paket genügt ein einfacher Befehl, um die neueste Version zu installieren. Die Entwickler haben dabei besonderen Wert auf eine reibungslose Integration mit gängigen Cloud-Plattformen und Container-Orchestrierungssystemen gelegt.</p>
+<p>Der erste Schritt besteht in der Vorbereitung der Umgebung. Es wird empfohlen, eine dedizierte Python-Virtual-Environment zu erstellen und die CUDA-Treiber auf dem aktuellen Stand zu halten. vLLM 2026 setzt mindestens CUDA 12.4 voraus und unterstützt offiziell die H100, A100 sowie die neue Blackwell-Architektur. Die Installation kann wahlweise über pip, Docker oder Kubernetes-Operatoren erfolgen.</p>
+<p>Nach der Installation muss die Konfigurationsdatei erstellt werden. Diese definiert, welche Modelle geladen werden sollen, wie viel GPU-Speicher jedes Modell beanspruchen darf und welche Optimierungsstrategien angewendet werden. Die Konfiguration erfolgt im YAML-Format und ermöglicht eine deklarative Definition der gesamten Multi-Model-Umgebung.</p>
+
+<pre><code># config.yaml - vLLM Multi-Model Server 2026
+server:
+  host: "0.0.0.0"
+  port: 8000
+  api_key: "${VLLM_API_KEY}"
+  max_concurrent_requests: 256
+
+models:
+  - name: "llama-3-70b-instruct"
+    model_path: "/models/llama-3-70b"
+    tensor_parallel_size: 4
+    gpu_memory_utilization: 0.85
+    quantization: "awq"
+    max_model_len: 8192
+    
+  - name: "mistral-large-2"
+    model_path: "/models/mistral-large-2"
+    tensor_parallel_size: 2
+    gpu_memory_utilization: 0.75
+    quantization: "gptq"
+    max_model_len: 32768
+    
+  - name: "qwen2.5-coder-32b"
+    model_path: "/models/qwen-coder"
+    tensor_parallel_size: 1
+    gpu_memory_utilization: 0.60
+    max_model_len: 16384
+
+scheduler:
+  continuous_batching: true
+  max_num_batched_tokens: 8192
+  enable_prefix_caching: true
+  chunked_prefill: true
+</code></pre>
+
+<h2>Performance-Optimierung für Multi-Model-Workloads</h2>
+<p>Die Performance-Optimierung eines vLLM Multi-Model Servers erfordert ein tiefes Verständnis der zugrunde liegenden Hardware und der typischen Anfragemuster. Im Jahr 2026 haben sich einige Best Practices etabliert, die Administratoren beachten sollten. Die wichtigste Kennzahl ist dabei der Tokens-pro-Sekunde-Wert pro Modell, der die Effizienz der GPU-Nutzung widerspiegelt.</p>
+<p>Eine der effektivsten Optimierungstechniken ist das Prefix Caching. Da viele Anfragen ähnliche System-Prompts verwenden, können diese geteilt und im KV-Cache gehalten werden. vLLM 2026 unterstützt automatisches Prefix Caching, das die Latenz für wiederkehrende Prompt-Präfixe um bis zu 70 Prozent reduzieren kann. Besonders bei Chatbot-Anwendungen mit langen System-Prompts ist diese Funktion ein wesentlicher Performance-Boost.</p>
+<p>Die Wahl der richtigen Quantisierungsmethode spielt ebenfalls eine entscheidende Rolle. AWQ eignet sich besonders für Modelle bis 70B Parameter und bietet ein gutes Verhältnis zwischen Speichereffizienz und Modellqualität. GPTQ ist für größere Modelle optimiert, während FP8 auf den neuesten GPUs die beste Performance liefert. Die folgende Tabelle zeigt die empfohlenen Konfigurationen für verschiedene Modellgrößen.</p>
+
+<table>
+<thead>
+<tr>
+<th>Modellgröße</th>
+<th>Empfohlene Quantisierung</th>
+<th>GPU-Speicher (ca.)</th>
+<th>Max. Batch-Größe</th>
+<th>Typische TPS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>7B Parameter</td>
+<td>AWQ-4bit</td>
+<td>8 GB</td>
+<td>64</td>
+<td>2.500</td>
+</tr>
+<tr>
+<td>13B Parameter</td>
+<td>AWQ-4bit</td>
+<td>12 GB</td>
+<td>48</td>
+<td>1.800</td>
+</tr>
+<tr>
+<td>34B Parameter</td>
+<td>GPTQ-4bit</td>
+<td>24 GB</td>
+<td>32</td>
+<td>1.200</td>
+</tr>
+<tr>
+<td>70B Parameter</td>
+<td>AWQ-4bit</td>
+<td>48 GB</td>
+<td>16</td>
+<td>800</td>
+</tr>
+<tr>
+<td>120B+ Parameter</td>
+<td>FP8</td>
+<td>96+ GB</td>
+<td>8</td>
+<td>400</td>
+</tr>
+</tbody>
+</table>
+
+<h2>Sicherheitsaspekte beim Multi-Model-Hosting</h2>
+<p>Die Sicherheit eines vLLM Multi-Model Servers erfordert besondere Aufmerksamkeit, da mehrere Modelle gleichzeitig exponiert werden und unterschiedliche Angriffsvektoren existieren. Im Jahr 2026 sind die Bedrohungen durch Prompt Injection, Model Extraction und Resource Exhaustion zu den Hauptproblemen geworden. Administratoren müssen daher ein mehrschichtiges Sicherheitskonzept implementieren.</p>
+<p>Die Authentifizierung erfolgt idealerweise über API-Keys oder OAuth 2.0. vLLM 2026 bietet eine native Integration mit beliebten Identity Providern wie Keycloak, Auth0 und Okta. Zusätzlich sollte eine Rate-Limiting-Schicht vorgeschaltet werden, um Brute-Force-Angriffe und übermäßige Ressourcennutzung zu verhindern. Tools wie Nginx, HAProxy oder spezialisierte API-Gateways wie Kong eignen sich hierfür besonders gut.</p>
+<p>Eine weitere wichtige Sicherheitsmaßnahme ist die Input-Validierung. Eingehende Prompts sollten auf bekannte Angriffsmuster überprüft werden, bevor sie an die Modelle weitergeleitet werden. Open-Source-Tools wie Rebuff oder Microsoft Guidance können dabei helfen, schädliche Prompts zu erkennen und zu blockieren. Logging und Monitoring sind ebenfalls essenziell, um verdächtige Aktivitäten frühzeitig zu erkennen.</p>
+
+<pre><code># Beispiel: Nginx-Konfiguration mit Rate Limiting
+http {
+    limit_req_zone $binary_remote_addr zone=llm_api:10m rate=10r/s;
+    
+    upstream vllm_backend {
+        server 127.0.0.1:8000;
+        keepalive 32;
+    }
+    
+    server {
+        listen 443 ssl http2;
+        server_name api.example.com;
+        
+        ssl_certificate /etc/ssl/certs/api.crt;
+        ssl_certificate_key /etc/ssl/private/api.key;
+        
+        location /v1/ {
+            limit_req zone=llm_api burst=20 nodelay;
+            limit_req_status 429;
+            
+            proxy_pass http://vllm_backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            
+            proxy_http_version 1.1;
+            proxy_read_timeout 300s;
+            proxy_send_timeout 300s;
+        }
+    }
+}
+</code></pre>
+
+<h2>Monitoring und Observability im Produktivbetrieb</h2>
+<p>Ein professionelles Monitoring ist für den Betrieb eines vLLM Multi-Model Servers unerlässlich. Die Standard-Metriken umfassen GPU-Auslastung, Speichernutzung, Tokens-pro-Sekunde, Latenz und Queue-Länge. Im Jahr 2026 haben sich vor allem Prometheus und Grafana als de-facto-Standard etabliert, während OpenTelemetry für das verteilte Tracing immer mehr an Bedeutung gewinnt.</p>
+<p>vLLM 2026 exportiert nativ Prometheus-Metriken, die ohne zusätzliche Konfiguration abgegriffen werden können. Zu den wichtigsten Metriken gehören vllm:gpu_cache_usage_perc, vllm:num_requests_running und vllm:time_to_first_token_seconds. Diese Werte ermöglichen es Administratoren, Engpässe frühzeitig zu erkennen und die Kapazität bedarfsgerecht zu skalieren.</p>
+<p>Für das Logging empfiehlt sich der Einsatz strukturierter JSON-Logs, die in einem zentralen Log-Management-System wie Loki oder Elasticsearch gespeichert werden. Dabei sollten personenbezogene Daten pseudonymisiert werden, um DSGVO-Konformität zu gewährleisten. Die folgenden Dashboards haben sich als besonders nützlich erwiesen: GPU-Übersicht, Modell-spezifische Performance, API-Endpunkt-Latenzen und Fehlerraten.</p>
+
+<h2>Skalierung mit Kubernetes und Cloud-Native-Architekturen</h2>
+<p>Die Skalierung eines vLLM Multi-Model Servers in Produktionsumgebungen erfolgt in der Regel über Kubernetes. Der offizielle vLLM-Operator für Kubernetes vereinfacht das Deployment und ermöglicht eine deklarative Verwaltung der Modelle. Im Jahr 2026 unterstützt der Operator auch autoskalierende Funktionen, die auf Metriken wie der aktuellen GPU-Auslastung oder der Anzahl wartender Anfragen basieren.</p>
+<p>Ein typisches Setup besteht aus mehreren Node-Pools mit verschiedenen GPU-Typen. Kleinere Modelle können auf A10- oder L4-GPUs laufen, während große Modelle H100- oder B200-Instanzen benötigen. Kubernetes-Scheduler-Affinitäten sorgen dafür, dass Modelle automatisch auf der passenden Hardware platziert werden. Der vLLM-Operator verwaltet dabei den Modell-Cache und sorgt für schnelle Cold-Start-Zeiten.</p>
+<p>Für die horizontale Skalierung empfiehlt sich der Einsatz des Kubernetes Horizontal Pod Autoscaler in Kombination mit Prometheus-Adaptern. Die Skalierungsregeln sollten dabei konservativ gewählt werden, da das Laden eines 70B-Modells mehrere Minuten dauern kann. Eine Pre-Warming-Strategie, bei der Standby-Pods mit vorgeladenen Modellen bereitgehalten werden, kann hier Abhilfe schaffen.</p>
+
+<h2>Kostenoptimierung im Multi-Model-Betrieb</h2>
+<p>Die Kosten für den Betrieb eines vLLM Multi-Model Servers können je nach Auslastung und Modellgröße erheblich variieren. Im Jahr 2026 sind GPU-Cloud-Kosten zwar tendenziell gesunken, dennoch bleibt die effiziente Ressourcennutzung ein zentrales Thema. Durch die Kombination mehrerer Modelle auf derselben Hardware lassen sich jedoch signifikante Einsparungen erzielen.</p>
+<p>Eine bewährte Strategie ist das dynamische Laden und Entladen von Modellen basierend auf der tatsächlichen Nachfrage. Modelle mit geringer Auslastung können nach einer konfigurierbaren Inaktivitätszeit aus dem GPU-Speicher entfernt und bei Bedarf automatisch nachgeladen werden. vLLM 2026 bietet hierfür einen eingebauten Model-Swapping-Mechanismus, der den Übergang für Endbenutzer nahezu nahtlos gestaltet.</p>
+<p>Cloud-Provider wie AWS, Google Cloud und Azure bieten im Jahr 2026 spezialisierte GPU-Instanzen mit unterschiedlichen Preisstrukturen an. Spot-Instanzen können die Kosten um bis zu 70 Prozent reduzieren, sind jedoch mit dem Risiko von Unterbrechungen verbunden. Reserved Instances und Savings Plans eignen sich für vorhersehbare Workloads. Die folgende Übersicht zeigt typische Kostenmodelle.</p>
+
+<table>
+<thead>
+<tr>
+<th>Cloud-Provider</th>
+<th>GPU-Typ</th>
+<th>On-Demand (Stunde)</th>
+<th>Spot/Preemptible</th>
+<th>1-Jahres-Reservation</th>
+<th>3-Jahres-Reservation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AWS</td>
+<td>H100 80GB</td>
+<td>4,10 €</td>
+<td>1,64 €</td>
+<td>2,79 €</td>
+<td>1,85 €</td>
+</tr>
+<tr>
+<td>Google Cloud</td>
+<td>H100 80GB</td>
+<td>3,92 €</td>
+<td>1,47 €</td>
+<td>2,61 €</td>
+<td>1,72 €</td>
+</tr>
+<tr>
+<td>Azure</td>
+<td>H100 80GB</td>
+<td>4,20 €</td>
+<td>1,68 €</td>
+<td>2,86 €</td>
+<td>1,89 €</td>
+</tr>
+<tr>
+<td>Lambda Labs</td>
+<td>H100 80GB</td>
+<td>2,99 €</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>RunPod</td>
+<td>H100 80GB</td>
+<td>2,39 €</td>
+<td>1,79 €</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+
+<h2>Vergleich mit Alternativen: TGI, Triton und SGLang</h2>
+<p>Auch wenn vLLM im Jahr 2026 zu den führenden Lösungen gehört, existieren mehrere Alternativen, die je nach Anwendungsfall ebenfalls in Betracht gezogen werden sollten. Die bekanntesten Konkurrenten sind Text Generation Inference (TGI) von Hugging Face, NVIDIA Triton Inference Server und SGLang. Jede dieser Lösungen hat spezifische Stärken und Schwächen.</p>
+<p>TGI von Hugging Face punktet vor allem mit seiner engen Integration in das Hugging Face-Ökosystem und einer breiten Modellunterstützung. Allerdings liegt die Performance bei Multi-Model-Workloads meist hinter vLLM zurück. NVIDIA Triton ist besonders für Unternehmen interessant, die bereits in das NVIDIA-Ökosystem investiert haben, da es eine umfassende Plattform für verschiedene KI-Workloads bietet. Allerdings ist die Konfiguration deutlich komplexer.</p>
+<p>SGLang hat sich als Spezialist für strukturierte Generierung etabliert und bietet fortschrittliche Funktionen für Function Calling und JSON-Outputs. Die Performance ist vergleichbar mit vLLM, allerdings ist die Community kleiner und die Dokumentation weniger umfangreich. Für die meisten Multi-Model-Anwendungsfälle bleibt vLLM jedoch die erste Wahl, da es die beste Balance aus Performance, Benutzerfreundlichkeit und Community-Support bietet.</p>
+
+<h2>Praktisches Beispiel: Deployment mit Docker Compose</h2>
+<p>Für Test- und Entwicklungsumgebungen ist Docker Compose die einfachste Methode, um einen vLLM Multi-Model Server aufzusetzen. Das folgende Beispiel zeigt eine vollständige Konfiguration mit drei Modellen, die parallel betrieben werden. Diese Konfiguration eignet sich besonders für Proof-of-Concept-Phasen und kann später in eine produktive Kubernetes-Umgebung überführt werden.</p>
+<p>Die Voraussetzungen umfassen eine NVIDIA-GPU mit mindestens 48 GB VRAM, installierte NVIDIA Container Toolkit und Docker 24.0 oder höher. Auf der Host-Seite sollten mindestens 64 GB RAM und ein moderner Multi-Core-Prozessor verfügbar sein. Das Docker-Image vllm/vllm-openai:2026.1 enthält alle notwendigen Abhängigkeiten und ist sofort einsatzbereit.</p>
+<p>Nach dem Start des Compose-Stacks können die Modelle über die standardisierte OpenAI-kompatible API angesprochen werden. Die Endpunkte sind nach Modellnamen strukturiert, sodass ein einfaches Load-Balancing implementiert werden kann. Für Produktionsumgebungen empfiehlt sich der Einsatz eines dedizierten API-Gateways mit Caching und Rate-Limiting.</p>
+
+<pre><code># docker-compose.yml - vLLM Multi-Model Server 2026
+version: '3.8'
+
+services:
+  vllm-server:
+    image: vllm/vllm-openai:2026.1
+    runtime: nvidia
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/models
+      - ./config:/config
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      HUGGING_FACE_HUB_TOKEN: ${HF_TOKEN}
+    command: >
+      --config /config/multi-model.yaml
+      --served-model-name llama,mistral,qwen
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+</code></pre>
+
+<h2>Zukunftsausblick: Trends und Entwicklungen für 2026 und darüber hinaus</h2>
+<p>Die Entwicklung im Bereich der LLM-Inference-Server schreitet im Jahr 2026 mit hoher Geschwindigkeit voran. vLLM plant in seinen Roadmap-Veröffentlichungen die native Unterstützung für Mixture of Experts (MoE) Modelle, die in der neuesten Generation von Large Language Models immer häufiger zum Einsatz kommen. Diese Modelle können die Inferenzkosten drastisch senken, da nicht alle Parameter für jede Anfrage aktiviert werden müssen.</p>
+<p>Ein weiterer Trend ist die Integration von Hardware-Beschleunigern jenseits von GPUs. Google TPUs, AWS Trainium und der neue Groq LPU gewinnen zunehmend an Bedeutung. vLLM arbeitet an einer Hardware-Abstraktionsschicht, die es ermöglichen soll, Modelle transparent auf verschiedenen Beschleunigern auszuführen. Dies würde die Plattformunabhängigkeit deutlich verbessern und neue Optimierungsmöglichkeiten eröffnen.</p>
+<p>Die Demokratisierung von KI durch effizientere Inference-Engines ist ein weiterer wichtiger Trend. Mit der zunehmenden Verbreitung von quantisierten Modellen und effizienteren Architekturen wird es möglich, leistungsstarke LLMs auch auf Consumer-Hardware zu betreiben. vLLM positioniert sich hier als Brücke zwischen Cloud-Infrastruktur und Edge-Deployment, mit entsprechenden Optimierungen für mobile Geräte und lokale Workstations.</p>
+
+<h2>Fazit und Empfehlung für den Einstieg</h2>
+<p>Der vLLM Multi-Model Server ist im Jahr 2026 die erste Wahl für Unternehmen und Entwickler, die mehrere Large Language Models effizient auf einer einzigen Infrastruktur betreiben möchten. Die Kombination aus hervorragender Performance, aktiver Community und kontinuierlicher Weiterentwicklung macht die Plattform zukunftssicher. Besonders die Paged-Attention-Technologie und das Continuous Batching setzen Maßstäbe in der Branche.</p>
+<p>Für den Einstieg empfiehlt sich zunächst die lokale Installation mit einem einzelnen Modell, um die Grundlagen zu verstehen. Anschließend können schrittweise weitere Modelle hinzugefügt und die Konfiguration optimiert werden. Produktionsdeployments sollten mit einem Pilotprojekt beginnen, das die spezifischen Anforderungen und Lastprofile abbildet. Die Community-Foren und die offizielle Dokumentation bieten dabei wertvolle Unterstützung.</p>
+<p>Wer in 2026 in KI-Infrastruktur investiert, sollte vLLM als strategische Plattform in Betracht ziehen. Die breite Modellunterstützung, die aktive Entwicklung und die starke Community-Performance sprechen für sich. Mit der geplanten MoE-Unterstützung und der Hardware-Abstraktion ist vLLM bestens gerüstet, um auch in den kommenden Jahren eine führende Rolle im LLM-Hosting zu spielen.</p>
+<h2>Was ist vLLM und warum ist es 2026 der führende Multi-Model-Server?</h2>
+<p>vLLM ist ein Open-Source-Inferenz-Framework, das speziell für die effiziente Bereitstellung großer Sprachmodelle (LLMs) entwickelt wurde. Ursprünglich an der UC Berkeley entstanden, hat es sich bis 2026 als Industriestandard etabliert, wenn es darum geht, mehrere KI-Modelle gleichzeitig auf einer einzigen GPU-Infrastruktur zu betreiben. Die Architektur nutzt PagedAttention, eine revolutionäre Technik, die den GPU-Speicher wesentlich effizienter verwaltet als herkömmliche Ansätze.</p>
+<p>Im Gegensatz zu klassischen Serving-Frameworks wie TensorFlow Serving oder TorchServe versteht vLLM die spezifischen Anforderungen von Transformer-basierten Modellen. Es erkennt automatisch die Modellarchitektur, optimiert die Batch-Verarbeitung und sorgt für minimale Latenz bei maximalem Durchsatz. Für Unternehmen, die mehrere LLMs parallel betreiben möchten, ist dies ein entscheidender Vorteil.</p>
+<p>Die Community rund um vLLM wächst rasant. Bis 2026 haben sich über 3000 Entwickler an dem Projekt beteiligt, und zahlreiche große KI-Unternehmen nutzen vLLM als Backend für ihre kommerziellen Produkte. Diese breite Adoption führt zu einer kontinuierlichen Weiterentwicklung und einer Fülle von Integrationen mit anderen Tools im KI-Ökosystem.</p>
+<p>Besonders relevant ist vLLM für Self-Hosting-Szenarien. Wer ein eigenes LLM auf dedizierter Hardware betreiben möchte, ohne auf Cloud-APIs angewiesen zu sein, findet in vLLM eine ausgereifte Lösung, die produktionsreif ist. Die Lernkurve ist moderat, und die Dokumentation wurde in den letzten Versionen deutlich verbessert.</p>
+
+<h2>Die Kernarchitektur von vLLM im Detail</h2>
+<p>Das Herzstück von vLLM bildet das innovative PagedAttention-Verfahren. Analog zur virtuellen Speicherverwaltung in Betriebssystemen unterteilt PagedAttention den KV-Cache (Key-Value-Cache) in fixed-size Pages. Dies ermöglicht es, den Speicher nicht mehr als zusammenhängenden Block allokieren zu müssen, sondern flexibel zu verteilen.</p>
+<p>Dadurch erreicht vLLM eine bis zu 24-fach höhere Durchsatzrate im Vergleich zu herkömmlichen Implementierungen wie dem HF-Transformers-Serving. Die Speicherfragmentierung wird drastisch reduziert, was bedeutet, dass mehr parallele Anfragen auf derselben GPU bedient werden können. Gerade bei Multi-Model-Serving-Szenarien ist dies ein Game-Changer.</p>
+<p>Ein weiteres architektonisches Highlight ist die Continuous Batching-Strategie. Während klassische Systeme einen Batch erst komplett abschließen, bevor ein neuer gestartet wird, erlaubt vLLM das dynamische Hinzufügen neuer Anfragen zu einem laufenden Batch. Die Wartezeit für Endnutzer sinkt dadurch erheblich, und die GPU-Auslastung bleibt konstant hoch.</p>
+<p>Die Speicherverwaltung wird durch einen zentralen Scheduler koordiniert, der sowohl Prefix-Sharing als auch Beam-Search-Optimierungen unterstützt. Wer mitten in der Inferenz ein Prefill-Caching aktiviert, kann wiederkehrende Prompt-Bestandteile wiederverwenden und so die Verarbeitung beschleunigen. Diese Funktion ist besonders für Chatbots und RAG-Systeme relevant.</p>
+
+<h2>Unterstützte Modelle und Hardware-Kompatibilität</h2>
+<p>vLLM unterstützt mittlerweile nahezu alle relevanten Open-Source-LLMs. Dazu gehören Modelle aus den Familien Llama 3, Mistral, Qwen, DeepSeek, Phi sowie die neuesten Generationen multimodaler Modelle. Auch Mixtral-MoE-Modelle und dichte Transformer-Architekturen werden nativ unterstützt.</p>
+<p>Die Hardware-Kompatibilität ist beeindruckend breit. NVIDIA-GPUs der Serien A100, H100, RTX 4090, L40S und sogar die älteren A30- und T4-Karten werden vollständig unterstützt. Auch AMD-GPUs gewinnen zunehmend an Bedeutung, und durch die ROCm-Integration können immer mehr Modelle auch auf AMD-Hardware performant betrieben werden.</p>
+<p>Für kleinere Setups sind sogar CPU-Inferenz und Apple-Silicon (MPS) möglich, wobei diese Varianten eher für Entwicklung und Tests gedacht sind. Wer in Produktion geht, sollte mindestens eine NVIDIA-GPU mit 24 GB VRAM für Modelle mit 7B-Parametern einplanen. Für 70B-Modelle oder MoE-Varianten sind mehrere GPUs im Verbund empfehlenswert.</p>
+<p>Die folgende Tabelle gibt einen Überblick über die empfohlene Hardware für gängige Modellgrößen:</p>
+<table>
+<thead>
+<tr>
+<th>Modellgröße</th>
+<th>VRAM-Bedarf (FP16)</th>
+<th>VRAM-Bedarf (INT4 quantisiert)</th>
+<th>Empfohlene GPU</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>7B Parameter</td>
+<td>~14 GB</td>
+<td>~5 GB</td>
+<td>RTX 4090, A10</td>
+</tr>
+<tr>
+<td>13B Parameter</td>
+<td>~26 GB</td>
+<td>~9 GB</td>
+<td>RTX 6000 Ada, A100 40GB</td>
+</tr>
+<tr>
+<td>70B Parameter</td>
+<td>~140 GB</td>
+<td>~40 GB</td>
+<td>2x A100 80GB, H100 80GB</td>
+</tr>
+<tr>
+<td>Mistral 8x7B (MoE)</td>
+<td>~90 GB</td>
+<td>~30 GB</td>
+<td>2x A100 80GB</td>
+</tr>
+<tr>
+<td>Llama 3 405B</td>
+<td>~810 GB</td>
+<td>~210 GB</td>
+<td>8x H100 80GB (Tensor Parallel)</td>
+</tr>
+</tbody>
+</table>
+
+<h2>Installation und erste Schritte mit vLLM</h2>
+<p>Die Installation von vLLM gestaltet sich 2026 erfreulich unkompliziert. Am einfachsten gelingt sie über das offizielle Docker-Image, das alle Abhängigkeiten bereits mitbringt. Alternativ kann vLLM auch direkt per pip in einer Python-Umgebung installiert werden, sofern CUDA und die richtigen Treiber vorhanden sind.</p>
+<p>Der folgende Befehl zeigt die Installation mit pip:</p>
+<pre><code>pip install vllm</code></pre>
+<p>Nach der Installation kann ein erster Serve-Vorgang direkt aus der Kommandozeile gestartet werden. Das nachfolgende Beispiel lädt das Llama-3-8B-Modell und stellt es auf Port 8000 bereit:</p>
+<pre><code>python -m vllm.entrypoints.openai.api_server \
+    --model meta-llama/Meta-Llama-3-8B-Instruct \
+    --host 0.0.0.0 \
+    --port 8000 \
+    --gpu-memory-utilization 0.9 \
+    --max-model-len 8192</code></pre>
+<p>Wichtig ist der Parameter <code>--gpu-memory-utilization</code>, der angibt, wie viel des GPU-Speichers vLLM nutzen darf. Standardwert ist 0.9, was für die meisten Setups sinnvoll ist. Bei mehreren parallel laufenden Modellen sollte dieser Wert reduziert werden, um Konflikte zu vermeiden.</p>
+<p>Nach dem Start steht eine OpenAI-kompatible API unter <code>http://localhost:8000/v1</code> zur Verfügung. Dies ist einer der größten Vorteile von vLLM, da bestehende Anwendungen, die die OpenAI-API nutzen, ohne Änderungen auf das selbstgehostete Modell umgestellt werden können.</p>
+
+<h2>Multi-Model-Serving: Mehrere LLMs parallel betreiben</h2>
+<p>Eine der häufigsten Anforderungen in Produktionsumgebungen ist das gleichzeitige Hosting mehrerer Modelle. vLLM unterstützt dies nativ durch die Möglichkeit, mehrere API-Server-Instanzen auf unterschiedlichen Ports zu starten. Alternativ kann ein Reverse-Proxy wie Nginx oder ein API-Gateway die Lastverteilung übernehmen.</p>
+<p>Ein typisches Setup sieht vor, ein kleines Modell wie Llama-3-8B für einfache Klassifikationsaufgaben bereitzustellen, während ein größeres Modell wie Mixtral-8x7B für komplexe Reasoning-Aufgaben verwendet wird. Beide Modelle können auf derselben GPU laufen, sofern genügend VRAM vorhanden ist, oder auf separaten GPUs verteilt werden.</p>
+<p>Ein weiteres Pattern ist das Routing basierend auf Anfrage-Typ. Ein leichtgewichtiges Modell übernimmt die Intent-Klassifikation eingehender Anfragen, leitet dann an das passende Spezialmodell weiter. So entstehen effiziente, mehrstufige KI-Pipelines, die sowohl Kosten als auch Latenz optimieren.</p>
+<p>Die folgende Konfiguration zeigt, wie zwei Modelle parallel gestartet werden können:</p>
+<pre><code># Modell 1: Llama-3-8B auf Port 8000
+python -m vllm.entrypoints.openai.api_server \
+    --model meta-llama/Meta-Llama-3-8B-Instruct \
+    --port 8000 \
+    --gpu-memory-utilization 0.4
+
+# Modell 2: Mistral-7B auf Port 8001
+python -m vllm.entrypoints.openai.api_server \
+    --model mistralai/Mistral-7B-Instruct-v0.3 \
+    --port 8001 \
+    --gpu-memory-utilization 0.4</code></pre>
+
+<h2>Performance-Optimierung und Best Practices</h2>
+<p>Um die maximale Performance aus vLLM herauszuholen, gibt es mehrere Stellschrauben. Die Wahl des richtigen Attention-Backends spielt dabei eine zentrale Rolle. Standardmäßig nutzt vLLM FlashAttention, das für die meisten modernen GPUs optimal ist. Alternativ können XFormers, FlashInfer oder Pallas verwendet werden, je nach Hardware und Modell.</p>
+<p>Quantisierung ist ein weiterer wichtiger Hebel. vLLM unterstützt AWQ, GPTQ und FP8-Quantisierung nativ, ohne dass zusätzliche Tools nötig sind. Ein in INT4 quantisiertes 70B-Modell benötigt nur etwa 40 GB VRAM, was den Betrieb auf einer einzelnen H100 mit 80 GB ermöglicht. Die Qualitätseinbußen sind dabei minimal.</p>
+<p>Die Konfiguration der Speicher- und Batch-Parameter sollte an das jeweilige Nutzungsprofil angepasst werden. Für latenzkritische Anwendungen empfiehlt sich ein niedriger Wert für <code>--max-num-seqs</code>, um kleinere, schnellere Batches zu erzwingen. Für Durchsatz-optimierte Workloads kann dieser Wert deutlich höher gesetzt werden.</p>
+<p>Eine oft unterschätzte Optimierung ist das Speichern und Wiederverwenden von Prefix-Caches. Wenn viele Anfragen ähnliche System-Prompts oder Few-Shot-Beispiele verwenden, können diese im Cache gehalten und für nachfolgende Anfragen wiederverwendet werden. Die Aktivierung erfolgt über den Parameter <code>--enable-prefix-caching</code>.</p>
+
+<h2>Monitoring und Logging in Produktionsumgebungen</h2>
+<p>Wer vLLM in Produktion betreibt, kommt um ein solides Monitoring nicht herum. vLLM bietet von Haus aus Prometheus-kompatible Metriken, die unter <code>/metrics</code> abgerufen werden können. Dazu gehören Token-Durchsatz, GPU-Auslastung, Latenz-Histogramme und Cache-Trefferraten.</p>
+<p>Die Integration in gängige Monitoring-Stacks wie Grafana, Prometheus und Loki ist unkompliziert. Wer Datadog, New Relic oder Elastic APM nutzt, kann die vLLM-Metriken ebenfalls problemlos einspeisen. Eine eigene JSON-Logging-Konfiguration ermöglicht zudem eine strukturierte Erfassung von Anfragedaten.</p>
+<p>Für die Nachvollziehbarkeit von Anfragen empfiehlt sich die Aktivierung des Request-Logging-Modus. Allerdings sollte man vorsichtig sein, wenn personenbezogene Daten involviert sind. In solchen Fällen ist eine vorgelagerte Anonymisierung oder ein DSGVO-konformes Logging-Konzept zwingend erforderlich.</p>
+<p>Ein typischer Prometheus-Scrape-Job in der Konfiguration sieht wie folgt aus:</p>
+<pre><code>scrape_configs:
+  - job_name: 'vllm'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['vllm-server:8000']
+    metrics_path: /metrics</code></pre>
+
+<h2>Skalierung und Hochverfügbarkeit</h2>
+<p>Wenn die Anfragelast steigt, muss vLLM horizontal skaliert werden. Dies geschieht typischerweise über Kubernetes, wobei jeder Pod eine vLLM-Instanz mit einem oder mehreren Modellen betreibt. Ein Ingress-Controller oder Service-Mesh wie Istio übernimmt das Load-Balancing zwischen den Pods.</p>
+<p>Bei rechenintensiven Modellen ist die vertikale Skalierung durch Hinzufügen weiterer GPUs oft sinnvoller. vLLM unterstützt Tensor Parallelism, mit dem ein Modell auf mehrere GPUs verteilt werden kann. Die Konfiguration erfolgt über den Parameter <code>--tensor-parallel-size</code>, der die Anzahl der zu verwendenden GPUs angibt.</p>
+<p>Für Hochverfügbarkeit empfiehlt sich der Einsatz von Health-Checks und automatischen Neustarts. Kubernetes-Probes können den Status eines vLLM-Pods überwachen und bei Ausfällen automatisch einen Neustart einleiten. Wichtig ist dabei, dass die Modellgewichte entweder lokal vorgehalten oder schnell von einem Object-Storage nachgeladen werden können.</p>
+<p>Eine bewährte Strategie ist die Trennung von Modell-Storage und Compute. Die Gewichte liegen in einem S3-kompatiblen Object-Storage, und die Compute-Nodes laden sie beim Start in den lokalen NVMe-Cache. Bei einem Pod-Neustart ist das Modell innerhalb weniger Sekunden verfügbar, statt die volle Download-Zeit in Kauf nehmen zu müssen.</p>
+
+<h2>Sicherheitsaspekte beim Betrieb eines Multi-Model-Servers</h2>
+<p>Sicherheit ist ein kritischer Aspekt beim Betrieb eines LLM-Servers. Zunächst sollte der API-Endpunkt niemals ungeschützt im Internet erreichbar sein. Mindestens eine Authentifizierung über API-Keys, idealerweise ein vollständiges OAuth2-Setup, ist Pflicht. vLLM unterstützt API-Key-Authentifizierung über die Umgebungsvariable <code>VLLM_API_KEY</code>.</p>
+<p>Die Netzwerkisolation spielt eine zentrale Rolle. vLLM-Instanzen sollten in einem privaten Subnetz betrieben werden, das nur über definierte Ingress-Points erreichbar ist. TLS-Verschlüsselung für die API-Kommunikation ist Standard und sollte über einen Reverse-Proxy wie Nginx oder Traefik terminiert werden.</p>
+<p>Modelle selbst können ein Sicherheitsrisiko darstellen. Einige Open-Source-Modelle wurden bereits mit Backdoors oder schädlichen Gewichten in Umlauf gebracht. Es ist ratsam, Modellgewichte ausschließlich von vertrauenswürdigen Quellen zu beziehen und deren Hashes zu verifizieren. Tools wie safetensors bieten hier zusätzliche Sicherheit.</p>
+<p>Auch Rate-Limiting und Input-Validierung sind unverzichtbar. Wer das Modell öffentlich zugänglich macht, sollte Prompts auf maximale Länge und potenziell schädliche Inhalte prüfen. Bibliotheken wie Rebuff oder Vigil von Protect AI bieten entsprechende Prompt-Injection-Erkennung, die vor vLLM geschaltet werden kann.</p>
+
+<h2>vLLM vs. Alternativen: TGI, Ollama, llama.cpp</h2>
+<p>Im Vergleich zu anderen Inferenz-Frameworks schneidet vLLM in den meisten Performance-Benchmarks am besten ab. Hugging Face Text Generation Inference (TGI) ist ein weiterer starker Kandidat, der besonders in Kombination mit Hugging-Face-Modellen gut funktioniert. In puncto Durchsatz liegt vLLM jedoch meist vorne.</p>
+<p>Ollama hat sich als benutzerfreundliche Lösung für lokale Entwicklung etabliert. Es abstrahiert viele Komplexitäten und ermöglicht es, Modelle mit einem einzigen Befehl zu starten. Für Produktionsumgebungen mit hohen Anforderungen an Skalierbarkeit und Durchsatz ist vLLM jedoch die bessere Wahl.</p>
+<p>llama.cpp ist die erste Wahl, wenn CPU-only-Inferenz oder extreme Ressourceneffizienz gefragt sind. Es unterstützt eine breite Palette von Quantisierungsformaten und läuft auf nahezu jeder Hardware, von Smartphones bis zu Servern. Die Performance ist allerdings deutlich geringer als bei GPU-basierten Lösungen wie vLLM.</p>
+<p>Die folgende Tabelle fasst die wesentlichen Unterschiede zusammen:</p>
+<table>
+<thead>
+<tr>
+<th>Framework</th>
+<th>Haupteinsatzgebiet</th>
+<th>Hardware</th>
+<th>Durchsatz</th>
+<th>Einfachheit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>vLLM</td>
+<td>Produktion, Multi-Model</td>
+<td>GPU (primär)</td>
+<td>Sehr hoch</td>
+<td>Mittel</td>
+</tr>
+<tr>
+<td>TGI</td>
+<td>Hugging-Face-Workflows</td>
+<td>GPU</td>
+<td>Hoch</td>
+<td>Mittel</td>
+</tr>
+<tr>
+<td>Ollama</td>
+<td>Lokale Entwicklung</td>
+<td>CPU/GPU/Apple Silicon</td>
+<td>Mittel</td>
+<td>Sehr einfach</td>
+</tr>
+<tr>
+<td>llama.cpp</td>
+<td>Edge, CPU-Inferenz</td>
+<td>CPU, schwache GPU</td>
+<td>Niedrig</td>
+<td>Einfach</td>
+</tr>
+</tbody>
+</table>
+
+<h2>Anwendungsfälle und Branchen-Einsatz</h2>
+<p>vLLM wird mittlerweile in einer Vielzahl von Branchen eingesetzt. Im E-Commerce dient es als Backend für personalisierte Produktempfehlungen und intelligente Suchsysteme. Große Online-Shops betreiben mit vLLM eigene Chatbots, die auf den jeweiligen Produktkatalog und die Kundenhistorie zugreifen.</p>
+<p>Im Gesundheitswesen unterstützt vLLM die Analyse medizinischer Texte, die Dokumentation von Patientengesprächen und die Generierung von Befundberichten. Datenschutz ist hier besonders kritisch, weshalb Self-Hosting mit vLLM eine attraktive Alternative zu Cloud-APIs darstellt.</p>
+<p>Finanzdienstleister nutzen vLLM für die Automatisierung von Compliance-Prüfungen, die Analyse von Verträgen und die Beantwortung regulatorischer Anfragen. Die Fähigkeit, mehrere Modelle parallel zu betreiben, ermöglicht es, spezialisierte Modelle für unterschiedliche Anwendungsfälle zu verwenden.</p>
+<p>Auch im Bildungsbereich findet vLLM zunehmend Verbreitung. Universitäten und Online-Lernplattformen betreiben eigene LLM-Instanzen, um datenschutzkonforme Tutoring-Systeme anzubieten. Die Möglichkeit, mit Open-Source-Modellen zu arbeiten, macht dies auch für kleinere Institutionen erschwinglich.</p>
+
+<h2>Ausblick: Die Zukunft von vLLM bis 2027</h2>
+<p>Die Roadmap von vLLM für 2026 und 2027 ist ambitioniert. Geplant sind unter anderem verbesserte Unterstützung für multimodale Modelle, die nicht nur Text, sondern auch Bilder, Audio und Video verarbeiten können. Erste Implementierungen existieren bereits, eine breite Stabilisierung wird für die zweite Jahreshälfte 2026 erwartet.</p>
+<p>Ein weiterer Schwerpunkt liegt auf der Effizienzsteigerung. Spekulatives Decoding, bei dem ein kleines Modell Tokens vorschlägt, die dann von einem großen Modell verifiziert werden, soll den Durchsatz weiter erhöhen. Auch die Integration von State-Space-Modellen (Mamba) und hybriden Architekturen ist in Arbeit.</p>
+<p>Die Community plant zudem, die Tool-Calling-Funktionen auszubauen, damit vLLM als vollwertiger Agent-Backend fungieren kann. Function Calling, strukturierte Outputs und JSON-Mode-Unterstützung sind bereits implementiert, sollen aber in Bezug auf Stabilität und Performance weiter optimiert werden.</p>
+<p>Für Anwender bedeutet dies, dass vLLM auch in den kommenden Jahren die erste Wahl für selbstgehostete LLM-Inferenz bleiben wird. Die Kombination aus hoher Performance, aktiver Community und kontinuierlicher Weiterentwicklung macht das Framework zu einer zukunftssicheren Investition für jedes Unternehmen, das auf KI setzt.</p>
+<h2>vLLM Multi-Model-Server 2026: Mehrere LLMs parallel betreiben</h2>
+<p>Im Jahr 2026 gehört das gleichzeitige Hosten mehrerer Large Language Models auf einer einzigen Infrastruktur zum Standard-Repertoire moderner KI-Plattformen. vLLM bietet mit seinen Multi-Model-Fähigkeiten eine elegante Lösung, um verschiedenste Modelle für unterschiedliche Anwendungsfälle parallel bereitzustellen – ohne den Overhead mehrerer separater Server-Instanzen.</p>
+<p>Ob du ein Chatbot-Produkt, ein Code-Assistenz-Tool und ein Embedding-Modell gleichzeitig anbieten möchtest oder einfach nur zwischen Modellversionen wechseln willst: Ein Multi-Model-Server spart Kosten, Ressourcen und Komplexität. Die VRAM-Auslastung lässt sich intelligent steuern, und du kannst Modelle dynamisch nachladen oder entladen.</p>
+<p>Dieser Artikel zeigt dir alle relevanten Techniken, Architekturen und Best Practices, um mit vLLM 2026 mehrere Modelle effizient auf einer oder mehreren GPUs zu betreiben. Wir gehen auf Konfiguration, Routing, Monitoring und Skalierung ein.</p>
+
+<h2>Warum Multi-Model-Serving 2026 unverzichtbar ist</h2>
+<p>Die Anforderungen an moderne KI-Anwendungen sind in den letzten Jahren explodiert. Statt eines einzelnen Modells benötigen viele Use-Cases spezialisierte Modelle: ein Code-Modell für Entwickler, ein Vision-Language-Modell für Bildanalyse, ein kompaktes Modell für Low-Latency-Chat und ein riesiges Reasoning-Modell für komplexe Aufgaben.</p>
+<p>Jedes dieser Modelle hat unterschiedliche Anforderungen an Latenz, Kontextlänge und Genauigkeit. Mit klassischem Single-Model-Serving müsstest du für jedes Modell eine separate Infrastruktur betreiben – was Ressourcen verschwendet und die Wartung erschwert.</p>
+<p>Ein Multi-Model-Server mit vLLM löst diese Herausforderung, indem er mehrere Modelle im selben Prozess verwaltet. Die Speicherverwaltung wird intelligent orchestriert, und ungenutzte Modelle können in den CPU-Swap ausgelagert werden, um VRAM für aktive Modelle freizugeben.</p>
+
+<h2>Architektur-Optionen im Vergleich</h2>
+<p>Bevor wir ins Detail gehen, lohnt sich ein Blick auf die gängigen Architekturansätze für Multi-Model-Serving. Jede Variante hat spezifische Vor- und Nachteile, die je nach Use-Case relevant sind.</p>
+<p>Die wichtigsten Optionen sind Single-Process-Multi-Model, Multi-Process mit gemeinsam genutztem Ray-Cluster und Hybrid-Setups mit dynamischem Model-Swapping. Wir vergleichen sie hier:</p>
+<table>
+<thead>
+<tr><th>Architektur</th><th>Vorteile</th><th>Nachteile</th><th>Einsatzgebiet</th></tr>
+</thead>
+<tbody>
+<tr><td>Single-Process Multi-Model</td><td>Niedrige Komplexität, schnelles Routing</td><td>Begrenzte Isolation, ein Crash = alle aus</td><td>Kleine Deployments, Development</td></tr>
+<tr><td>Multi-Process mit Ray</td><td>Skalierbar, gute Isolation</td><td>Höherer Overhead, mehr GPU-Memory</td><td>Produktion, Multi-GPU</td></tr>
+<tr><td>Dynamic Model Swapping</td><td>Optimale VRAM-Nutzung</td><td>Latenz beim Wechsel</td><td>Viele Modelle, begrenzte GPU</td></tr>
+<tr><td>Hybrid mit Load Balancer</td><td>Maximale Flexibilität</td><td>Komplexes Setup</td><td>Enterprise, Cloud-Native</td></tr>
+</tbody>
+</table>
+
+<h2>vLLM Multi-Modell-Konfiguration in der Praxis</h2>
+<p>vLLM hat in den letzten Versionen die Multi-Model-Unterstützung deutlich ausgebaut. Mit dem vLLM-Server kannst du mehrere Modelle gleichzeitig laden, die über einen einheitlichen API-Endpunkt erreichbar sind. Das Routing erfolgt automatisch anhand des model-Parameters im Request.</p>
+<p>Die Konfiguration erfolgt über eine YAML-Datei oder Kommandozeilen-Argumente. Wichtig ist, dass du die Speicherlimits pro Modell definierst, damit nicht ein einzelnes Modell den gesamten VRAM belegt und andere verdrängt.</p>
+<p>Konfigurationsbeispiel für mehrere Modelle:</p>
+<pre><code>{
+  "models": [
+    {
+      "name": "llama-3-8b",
+      "path": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "gpu_memory_utilization": 0.4,
+      "max_model_len": 8192
+    },
+    {
+      "name": "mistral-7b",
+      "path": "mistralai/Mistral-7B-Instruct-v0.3",
+      "gpu_memory_utilization": 0.3,
+      "max_model_len": 32768
+    },
+    {
+      "name": "qwen-coder-7b",
+      "path": "Qwen/Qwen2.5-Coder-7B-Instruct",
+      "gpu_memory_utilization": 0.2,
+      "max_model_len": 16384
+    }
+  ]
+}</code></pre>
+
+<h2>Intelligentes Model-Routing einrichten</h2>
+<p>Ein gutes Multi-Model-System erkennt automatisch, welches Modell für eine Anfrage am besten geeignet ist. Klassisches Content-basiertes Routing analysiert den Input und leitet ihn an das passende Modell weiter. Das spart Kosten, da leichte Anfragen nicht unnötig durch ein 70B-Modell laufen.</p>
+<p>Fortgeschrittene Setups nutzen einen separaten LLM-Router (oft ein kleines 1B-Modell), der die Klassifizierung übernimmt. Alternativ können regelbasierte Systeme Keywords oder Metadaten für das Routing nutzen.</p>
+<p>Beispiel-Routing-Logik mit Nginx:</p>
+<pre><code>location /v1/chat/completions {
+    if ($arg_model = "code") {
+        proxy_pass http://vllm-coder-backend;
+    }
+    if ($arg_model = "vision") {
+        proxy_pass http://vllm-vision-backend;
+    }
+    proxy_pass http://vllm-default-backend;
+}</code></pre>
+
+<h2>VRAM-Management und Model-Swapping</h2>
+<p>Das wichtigste Thema bei Multi-Model-Serving ist das VRAM-Management. Selbst auf einer H100 mit 80 GB ist irgendwann Schluss, und nicht alle Modelle müssen permanent im Speicher bleiben. vLLM bietet Mechanismen für dynamisches Laden und Entladen.</p>
+<p>Die Strategie <em>LRU-Eviction</em> (Least Recently Used) entlädt automatisch Modelle, die längere Zeit nicht genutzt wurden. <em>Idle-Swapping</em> lagert Modelle in den CPU-Swap, wenn ein Schwellwert unterschritten wird. Beide Strategien lassen sich kombinieren.</p>
+<p>Swap-Parameter konfigurieren:</p>
+<pre><code>python -m vllm.entrypoints.openai.api_server \
+  --model meta-llama/Meta-Llama-3-8B-Instruct \
+  --swap-space 8 \
+  --enable-prefix-caching \
+  --max-num-batched-tokens 16384 \
+  --block-size 16</code></pre>
+
+<h2>Load Balancing und Hochverfügbarkeit</h2>
+<p>Für produktive Setups ist Load Balancing essenziell. Du kannst mehrere vLLM-Instanzen hinter einem Load Balancer wie Nginx, HAProxy oder Envoy betreiben. Dabei helfen Strategien wie Least-Connections oder Token-basiertes Routing.</p>
+<p>Hochverfügbarkeit erreichst du durch redundante Instanzen, automatische Health-Checks und schnelle Failover-Mechanismen. Kubernetes bietet mit Deployments, Services und HPA (Horizontal Pod Autoscaler) eine ideale Grundlage.</p>
+<p>Load-Balancer-Konfig für HAProxy:</p>
+<pre><code>frontend vllm_api
+    bind *:8000
+    default_backend vllm_servers
+
+backend vllm_servers
+    balance leastconn
+    option httpchk GET /health
+    server vllm1 10.0.0.1:8000 check
+    server vllm2 10.0.0.2:8000 check
+    server vllm3 10.0.0.3:8000 check</code></pre>
+
+<h2>Performance-Benchmarking mit mehreren Modellen</h2>
+<p>Die gleichzeitige Last auf mehreren Modellen zu messen ist komplexer als bei Single-Model-Setups. vLLM bietet eingebaute Benchmark-Tools, die du pro Modell oder im Mix ausführen kannst. Wichtig sind Metriken wie Tokens-per-Second-pro-Modell, Inter-Modell-Latenz und Cache-Hit-Rate.</p>
+<p>Empfohlene Benchmarking-Tools sind vllm-benchmark, llm-perf und k6. Letzteres eignet sich besonders für realistische Lasttests, da es parallele User simulieren kann.</p>
+<p>Beispiel eines k6-Lasttests:</p>
+<pre><code>import http from 'k6/http';
+
+export default function () {
+  const res = http.post('http://localhost:8000/v1/chat/completions', JSON.stringify({
+    model: 'llama-3-8b',
+    messages: [{role: 'user', content: 'Erkläre Quantencomputing'}],
+  }), {headers: {'Content-Type': 'application/json'}});
+}</code></pre>
+
+<h2>Container-Orchestrierung mit Kubernetes</h2>
+<p>Für Enterprise-Deployments ist Kubernetes die erste Wahl. Mit dem vLLM-Operator oder Custom Resource Definitions (CRDs) kannst du Multi-Model-Setups deklarativ verwalten. Autoscaling reagiert auf Lastspitzen und spart Kosten in Schwachlastzeiten.</p>
+<p>Ein typisches Setup umfasst ein vLLM-Deployment pro Modell, ein Service für internes Routing und ein Ingress für externen Traffic. Mit KEDA (Kubernetes Event-Driven Autoscaling) lässt sich die Skalierung an GPU-Metriken oder Queue-Längen koppeln.</p>
+<p>Kubernetes-Manifest vereinfacht:</p>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-llama
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        args:
+          - --model=meta-llama/Meta-Llama-3-8B-Instruct
+          - --port=8000
+        resources:
+          limits:
+            nvidia.com/gpu: 1</code></pre>
+
+<h2>Sicherheit und Mandantentrennung</h2>
+<p>In Multi-Tenant-Umgebungen ist Sicherheit kritisch. Verschiedene Kunden oder Teams sollten keinen Zugriff auf die Modelle anderer Mandanten haben. vLLM bietet API-Key-Authentifizierung und kann mit externen Identity-Providern wie Keycloak oder Auth0 integriert werden.</p>
+<p>Für sensible Daten empfehlen wir zusätzlich End-to-End-Verschlüsselung, Request-Auditing und Rate-Limiting pro Tenant. Mit NVIDIA Confidential Computing lässt sich VRAM sogar hardwareverschlüsselt nutzen.</p>
+<p>Authentifizierung mit FastAPI-Middleware:</p>
+<pre><code>from fastapi import Header, HTTPException
+
+async def verify_api_key(x_api_key: str = Header(...)):
+    valid_keys = load_tenant_keys()
+    if x_api_key not in valid_keys:
+        raise HTTPException(status_code=401)
+    return valid_keys[x_api_key]</code></pre>
+
+<h2>Monitoring und Observability im Multi-Model-Setup</h2>
+<p>Monitoring wird komplexer, wenn mehrere Modelle laufen. Pro-Modell-Metriken sind Pflicht, dazu kommen Cluster-weite Metriken wie Gesamtauslastung, Routing-Entscheidungen und Cache-Hit-Raten. Tools wie Prometheus, Grafana und OpenTelemetry bieten die nötige Sichtbarkeit.</p>
+<p>Wichtige Metriken für Multi-Model-Setups:</p>
+<table>
+<thead>
+<tr><th>Metrik</th><th>Beschreibung</th><th>Warnschwelle</th></tr>
+</thead>
+<tbody>
+<tr><td>Per-Model TPS</td><td>Tokens/Sekunde pro Modell</td><td>&lt; 50% Erwartungswert</td></tr>
+<tr><td>VRAM-Fragmentierung</td><td>Nicht-nutzbarer freier Speicher</td><td>&gt; 20%</td></tr>
+<tr><td>Cache-Hit-Rate</td><td>Prefix-Cache-Trefferquote</td><td>&lt; 30%</td></tr>
+<tr><td>Swap-Aktivität</td><td>Modellwechsel pro Minute</td><td>&gt; 10</td></tr>
+<tr><td>Queue-Länge</td><td>Wartende Requests</td><td>&gt; 50</td></tr>
+</tbody>
+</table>
+
+<h2>Best Practices für 2026</h2>
+<p>Die vLLM-Community hat in den letzten Monaten viele Best Practices erarbeitet. Dazu gehören der konsequente Einsatz von Prefix-Caching für wiederkehrende System-Prompts, der Verzicht auf unnötige lange Kontexte und die Nutzung von Speculative Decoding zur Latenz-Reduktion.</p>
+<p>Wir empfehlen, regelmäßig auf neue vLLM-Versionen zu aktualisieren, da das Entwicklungstempo extrem hoch ist. Auch das Beobachten alternativer Engines wie SGLang oder TensorRT-LLM lohnt sich, um die beste Performance für den jeweiligen Use-Case zu finden.</p>
+<p>Top 5 Best Practices für Multi-Model-vLLM:</p>
+<ul>
+<li>Prefix-Caching aktivieren für System-Prompts</li>
+<li>Quantisierung (AWQ/GPTQ) für VRAM-Effizienz nutzen</li>
+<li>Health-Checks und Circuit Breaker implementieren</li>
+<li>Modellversionierung mit eindeutigen Namen</li>
+<li>Regelmäßige Lasttests in staging-Umgebung</li>
+</ul>
+
+<h2>Fazit: Multi-Model-vLLM als Wettbewerbsvorteil</h2>
+<p>Ein professioneller Multi-Model-vLLM-Stack ist 2026 kein Nice-to-have, sondern Pflicht für ernsthafte KI-Produkte. Die Flexibilität, mehrere spezialisierte Modelle parallel zu betreiben, eröffnet neue Anwendungsfelder und spart gleichzeitig Kosten.</p>
+<p>Mit der richtigen Architekturwahl, sauberem VRAM-Management und umfassendem Monitoring baust du dir eine zukunftssichere KI-Infrastruktur, die mit deinen Anforderungen skaliert. Der initiale Aufwand zahlt sich bereits nach wenigen Wochen aus.</p>
+<p>Auf hostazar.com findest du die passende GPU-Hardware, um dein Multi-Model-Setup in Produktion zu bringen – ob mit einzelnen H100-Karten, Multi-GPU-Nodes oder kompletten Cluster-Lösungen.</p>
   <a href="/artikel/mistral-modelle-lokal-hosten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/mistral-modelle-lokal-hosten-2026.webp" alt="Mistral Large &amp; Mixtral 8x22B lokal hosten – MoE-Modelle selbst betreiben 2026" loading="lazy" width="400" height="200"></div>
   </a>

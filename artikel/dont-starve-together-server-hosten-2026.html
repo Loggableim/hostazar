@@ -759,6 +759,162 @@
     </div>
 
 <h1>Don&#39;t Starve Together Server hosten – Dedicated Server Setup &amp; Kosten 2026</h1>
+<h2>Warum einen eigenen Don't Starve Together Server hosten?</h2>
+
+<p>Don't Starve Together (DST) gehört zu den anspruchsvollsten Survival-Multiplayer-Spielen auf dem Markt. Die offiziellen Klei-Server funktionieren grundsätzlich stabil, stoßen jedoch bei großen Spielerzahlen, individuellen Modifikationen oder speziellen Weltkonfigurationen an ihre Grenzen. Wer einen eigenen DST-Server betreibt, erhält die volle Kontrolle über Spielparameter, Welteinstellungen, Tageszyklus und die Auswahl der installierten Mods.</p>
+
+<p>Ein selbst gehosteter Server bietet darüber hinaus erhebliche Performance-Vorteile. Die Latenzzeiten sinken, weil die Datenpakete nicht erst über Klei-Rechenzentren in Übersee geroutet werden müssen. Gerade bei kooperativen Spielen, in denen Timing und Synchronisation entscheidend sind, macht sich ein regional naher Server sofort bemerkbar.</p>
+
+<p>Auch aus datenschutzrechtlicher Sicht kann ein eigener Server sinnvoll sein. Sämtliche Spielerdaten, Chat-Logs und Konfigurationsdateien verbleiben auf der eigenen Infrastruktur. Für Community-Admins, die Turniere veranstalten oder private Spielerunden organisieren, ist dies ein nicht zu unterschätzender Vorteil.</p>
+
+<h2>Systemanforderungen für einen DST-Server im Jahr 2026</h2>
+
+<p>Die Mindestanforderungen für einen Don't Starve Together Dedicated Server sind im Vergleich zu anderen Survival-Spielen moderat, steigen jedoch mit der Anzahl der Spieler und Mods deutlich an. Für eine kleine Gruppe von vier bis sechs Spielern ohne Mods reicht ein VPS mit 2 vCPUs und 4 GB RAM aus.</p>
+
+<table>
+<thead>
+<tr><th>Spielerzahl</th><th>Mods</th><th>Empfohlene CPU</th><th>RAM</th><th>Speicher</th></tr>
+</thead>
+<tbody>
+<tr><td>1-6 Spieler</td><td>Keine / Wenige</td><td>2 vCPUs</td><td>4 GB</td><td>10 GB SSD</td></tr>
+<tr><td>6-12 Spieler</td><td>Mittlere Anzahl</td><td>4 vCPUs</td><td>8 GB</td><td>15 GB SSD</td></tr>
+<tr><td>12-20 Spieler</td><td>Viele Mods</td><td>6 vCPUs</td><td>16 GB</td><td>20 GB SSD</td></tr>
+<tr><td>20+ Spieler</td><td>Modpack</td><td>8+ vCPUs</td><td>32 GB</td><td>30 GB NVMe</td></tr>
+</tbody>
+</table>
+
+<p>Als Betriebssystem empfiehlt sich ein schlankes Linux in der 64-Bit-Variante. Ubuntu 22.04 LTS, Debian 12 oder Rocky Linux 9 haben sich in der Praxis bewährt. Windows-Server sind möglich, verbrauchen jedoch deutlich mehr Ressourcen und benötigen zusätzliche Lizenzkosten.</p>
+
+<p>Die Netzwerkanbindung sollte mindestens 100 Mbit/s symmetrisch betragen. Zwar ist der Traffic eines DST-Servers überschaubar, jedoch profitieren Spieler von einer niedrigen Latenz. Ein Server in Frankfurt eignet sich optimal für deutschsprachige Spielergemeinschaften.</p>
+
+<h2>Schritt-für-Schritt: DST-Server unter Linux installieren</h2>
+
+<p>Die Installation eines Don't Starve Together Servers unter Linux erfolgt über die SteamCMD-Schnittstelle. SteamCMD ist das offizielle Valve-Werkzeug zum Herunterladen und Aktualisieren von Steam-Workshop-Inhalten und Dedicated-Server-Anwendungen.</p>
+
+<p>Zunächst muss SteamCMD auf dem System eingerichtet werden. Unter Ubuntu oder Debian funktioniert dies mit den folgenden Befehlen:</p>
+
+<pre><code>sudo apt update
+sudo apt install lib32gcc-s1 lib32stdc++6 libsdl2-2.0-0 \
+  libcurl4-gnutls-dev libssl-dev steamcmd -y
+</code></pre>
+
+<p>Nach der Installation von SteamCMD kann der Don't Starve Together Dedicated Server heruntergeladen werden. Die App-ID lautet 343050, der Pfad sollte in einem dedizierten Benutzerverzeichnis liegen, um Sicherheitsrisiken zu minimieren.</p>
+
+<h2>Konfiguration des Dedicated Servers</h2>
+
+<p>Die Konfiguration des DST-Servers erfolgt über mehrere Textdateien im Verzeichnis ~/.klei/DoNotStarveTogether. Die wichtigsten Dateien sind cluster.ini, server.ini und die cluster_token.txt für den Steam-Token.</p>
+
+<table>
+<thead>
+<tr><th>Konfigurationsdatei</th><th>Zweck</th></tr>
+</thead>
+<tbody>
+<tr><td>cluster.ini</td><td>Allgemeine Cluster-Einstellungen, Weltsettings</td></tr>
+<tr><td>server.ini</td><td>Netzwerkeinstellungen, Spielerlimits, Passwörter</td></tr>
+<tr><td>cluster_token.txt</td><td>Steam-Authentifizierungstoken</td></tr>
+<tr><td>modoverrides.lua</td><td>Aktivierte Mods aus dem Steam Workshop</td></tr>
+<tr><td>worldgenoverride.lua</td><td>Benutzerdefinierte Weltgenerierung</td></tr>
+</tbody>
+</table>
+
+<p>Eine typische server.ini enthält Parameter wie die maximale Spieleranzahl, das Server-Passwort, den Server-Namen und die Sichtbarkeit in der Server-Liste. Besonders wichtig ist der Parameter max_players, da die Standardeinstellung nur sechs Spieler erlaubt.</p>
+
+<h2>Mods installieren und verwalten</h2>
+
+<p>Modifikationen sind das Herzstück der Don't Starve Together Community. Über den Steam Workshop lassen sich tausende Mods installieren, die neue Gegenstände, Charaktere, Welten und Spielmechaniken hinzufügen. Die Verwaltung erfolgt entweder manuell über die modoverrides.lua oder automatisch über Tools wie dst-mod-config.</p>
+
+<p>Um Mods auf einem Dedicated Server zu nutzen, müssen sie zunächst im Steam Workshop abonniert werden. Der Server synchronisiert die ausgewählten Mods dann automatisch beim Start. Wichtig ist, dass alle Clients die gleichen Mods in identischer Reihenfolge aktiviert haben, sonst treten Synchronisationsfehler auf.</p>
+
+<p>Für die Mod-Installation per Kommandozeile empfiehlt sich das Skript dst-admin oder die Weboberfläche dstsrv. Diese Tools ermöglichen es, Mods bequem über ein Dashboard zu verwalten, ohne manuell in Konfigurationsdateien editieren zu müssen.</p>
+
+<h2>Sicherheit und Backup-Strategien</h2>
+
+<p>Ein öffentlich erreichbarer Gameserver ist ein beliebtes Ziel für DDoS-Attacken und Brute-Force-Versuche. Daher sollten grundlegende Sicherheitsmaßnahmen unbedingt implementiert werden. Dazu gehören eine konfigurierte Firewall, fail2ban gegen Login-Versuche und regelmäßige Sicherheitsupdates des Betriebssystems.</p>
+
+<p>Backups sind bei DST-Servern besonders wichtig, da Spielwelten bei Crashes oder fehlerhaften Updates beschädigt werden können. Empfohlen wird ein tägliches automatisches Backup des Master- und Caves-Verzeichnisses, idealerweise mit einer 30-tägigen Aufbewahrung.</p>
+
+<pre><code>#!/bin/bash
+BACKUP_DIR="/var/backups/dst"
+CLUSTER_DIR="/home/dst/.klei/DoNotStarveTogether"
+DATE=$(date +%Y%m%d_%H%M%S)
+tar -czf $BACKUP_DIR/dst_$DATE.tar.gz $CLUSTER_DIR
+find $BACKUP_DIR -name "dst_*.tar.gz" -mtime +30 -delete
+</code></pre>
+
+<p>Zusätzlich empfiehlt es sich, die Backup-Dateien auf einen externen Speicher oder in eine Cloud wie S3, Hetzner Storage Box oder Backblaze B2 zu übertragen. So sind die Daten auch bei einem Totalausfall des Servers gesichert.</p>
+
+<h2>Performance-Tuning für große Server</h2>
+
+<p>Bei mehr als zwölf Spielern oder vielen Mods kann die Leistung eines DST-Servers spürbar abnehmen. Die häufigsten Ursachen sind ineffiziente Lua-Skripte, fehlerhafte Mods und unzureichender Arbeitsspeicher. Eine regelmäßige Überwachung der Ressourcen ist daher unverzichtbar.</p>
+
+<p>Tools wie htop, iotop und netdata liefern Echtzeit-Einblicke in die Systemauslastung. Auf der Spielerseite hilft der Konsolenbefehl c_countpref, um die Anzahl der gespawnten Objekte zu überwachen. Werte über 2000 Objekte deuten auf ineffiziente Mods hin.</p>
+
+<table>
+<thead>
+<tr><th>Performance-Indikator</th><th>Optimaler Wert</th><th>Kritischer Wert</th></tr>
+</thead>
+<tbody>
+<tr><td>CPU-Auslastung</td><td>&lt; 70%</td><td>&gt; 90%</td></tr>
+<tr><td>RAM-Nutzung</td><td>&lt; 75%</td><td>&gt; 90%</td></tr>
+<tr><td>Tickrate</td><td>30 TPS</td><td>&lt; 20 TPS</td></tr>
+<tr><td>Latenz zum Client</td><td>&lt; 50 ms</td><td>&gt; 150 ms</td></tr>
+</tbody>
+</table>
+
+<h2>Automatisierung mit Systemd</h2>
+
+<p>Damit der DST-Server dauerhaft läuft und bei einem Neustart automatisch startet, sollte er als Systemd-Service konfiguriert werden. Dies ermöglicht ein einfaches Starten, Stoppen und Neustarten über systemctl-Befehle.</p>
+
+<pre><code>[Unit]
+Description=Don't Starve Together Dedicated Server
+After=network.target
+
+[Service]
+User=dst
+WorkingDirectory=/home/dst/dst_server
+ExecStart=/home/dst/dst_server/bin/dontstarve_dedicated_server_nullrenderer
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+
+<p>Mit dem Befehl sudo systemctl enable dst-server wird der Service aktiviert und startet ab dem nächsten Bootvorgang automatisch. Der Parameter Restart=on-failure sorgt dafür, dass der Server bei einem Absturz innerhalb von zehn Sekunden neu gestartet wird.</p>
+
+<h2>Häufige Probleme und Fehlerbehebung</h2>
+
+<p>Der häufigste Fehler bei frisch installierten DST-Servern ist ein fehlender oder ungültiger Cluster-Token. Dieser wird über die Klei-Webseite generiert und muss in der Datei cluster_token.txt eingetragen werden. Ohne diesen Token startet der Server nicht korrekt und gibt die Fehlermeldung "Authentication failed" aus.</p>
+
+<p>Ein weiteres typisches Problem sind Mod-Konflikte. Wenn zwei Mods dieselben Spielobjekte verändern, kann dies zu Lua-Fehlern und Serverabstürzen führen. In solchen Fällen hilft es, die Mods schrittweise zu deaktivieren und den Übeltäter zu identifizieren. Das Log-File server_log.txt liefert hierbei wertvolle Hinweise.</p>
+
+<p>Performance-Probleme bei großen Spielwelten lassen sich oft durch die Reduzierung der "Epifizierung" und der Anzahl der simulierten Tiere beheben. In der server.ini lassen sich die entsprechenden Parameter gezielt anpassen, um die Serverlast zu verringern.</p>
+
+<h2>Vergleich: Selbst hosten vs. Game-Server-Hoster</h2>
+
+<p>Die Entscheidung zwischen einem eigenen VPS und einem spezialisierten Game-Server-Hoster hängt von den individuellen Anforderungen ab. Ein eigener VPS bietet maximale Flexibilität und Kontrolle, erfordert jedoch technisches Know-how für Installation, Wartung und Sicherheit.</p>
+
+<table>
+<thead>
+<tr><th>Kriterium</th><th>Eigener VPS</th><th>Game-Server-Hoster</th></tr>
+</thead>
+<tbody>
+<tr><td>Kosten pro Monat</td><td>10-40 €</td><td>15-60 €</td></tr>
+<tr><td>Technisches Know-how</td><td>Hoch</td><td>Niedrig</td></tr>
+<tr><td>Flexibilität</td><td>Sehr hoch</td><td>Eingeschränkt</td></tr>
+<tr><td>Support</td><td>Eigene Verantwortung</td><td>24/7 verfügbar</td></tr>
+<tr><td>DDoS-Schutz</td><td>Selbst konfigurieren</td><td>Inklusive</td></tr>
+<tr><td>Performance</td><td>Abhängig vom Tarif</td><td>Optimiert für Gaming</td></tr>
+</tbody>
+</table>
+
+<p>Für technisch versierte Administratoren mit Linux-Erfahrung ist ein eigener VPS langfristig die kostengünstigere und flexiblere Lösung. Wer hingegen ein unkompliziertes Setup mit Webinterface, automatischen Backups und DDoS-Schutz bevorzugt, ist bei einem spezialisierten Hoster wie hostazar.com gut aufgehoben.</p>
+
+<h2>Fazit: Lohnt sich ein eigener DST-Server 2026?</h2>
+
+<p>Das Hosten eines eigenen Don't Starve Together Servers ist im Jahr 2026 einfacher denn je. Dank ausgereifter Tools, umfangreicher Dokumentation und leistungsfähiger Cloud-Infrastruktur können selbst Einsteiger innerhalb weniger Stunden einen stabilen Server aufsetzen. Die Investition in einen VPS mit 4-8 GB RAM reicht für die meisten Spielgruppen vollkommen aus.</p>
+
+<p>Wer eine langfristige Community aufbauen möchte, profitiert von der vollen Kontrolle über Mods, Welteinstellungen und Spielerzugang. Die monatlichen Kosten von 10-30 Euro stehen in einem sehr guten Verhältnis zu den gebotenen Möglichkeiten. Mit den in diesem Artikel beschriebenen Schritten gelingt der Einstieg in die eigene DST-Server-Welt zuverlässig und sicher.</p>
   <a href="/artikel/valheim-server-vps-mieten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/valheim-server-vps-mieten-2026.webp" alt="Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026" loading="lazy" width="400" height="200"></div>
   </a>

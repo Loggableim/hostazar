@@ -759,6 +759,77 @@
     </div>
 
 <h1>Cloudflare WAF einrichten – DDoS-Schutz &amp; Bot-Filter 2026</h1>
+<h2>Cloudflare WAF einrichten 2026: Umfassende Anleitung</h2>
+<p>Die Web Application Firewall (WAF) von Cloudflare ist eines der leistungsstärksten Sicherheits-Tools, die dir kostenlos zur Verfügung stehen. Sie schützt Webseiten und Anwendungen vor einer Vielzahl von Bedrohungen, von SQL-Injection über Cross-Site-Scripting bis hin zu DDoS-Angriffen auf Anwendungsebene.</p>
+<p>Im Jahr 2026 hat Cloudflare seine WAF-Funktionen weiter ausgebaut und neue Regelwerke integriert. Die Konfiguration ist intuitiver geworden, gleichzeitig bietet die Plattform fortgeschrittenen Nutzern tiefe Eingriffsmöglichkeiten. Diese Anleitung führt dich Schritt für Schritt durch die Einrichtung und optimale Konfiguration.</p>
+<p>Hostazar nutzt die Cloudflare WAF in vielen Kundenprojekten und kann bestätigen, dass die richtige Konfiguration die Sicherheit deutlich erhöht, ohne die Performance zu beeinträchtigen. Die WAF lässt sich granular an die eigenen Bedürfnisse anpassen und schützt auch komplexe Anwendungen zuverlässig.</p>
+
+<h2>Was ist eine Web Application Firewall?</h2>
+<p>Eine Web Application Firewall (WAF) ist eine spezielle Form der Firewall, die auf der Anwendungsschicht (Layer 7) arbeitet. Im Gegensatz zu klassischen Netzwerk-Firewalls analysiert sie den HTTP/HTTPS-Traffic und kann dadurch Angriffe erkennen, die auf Anwendungsebene stattfinden. Dazu gehören SQL-Injection, Cross-Site-Scripting, Remote Code Execution und viele weitere.</p>
+<p>Cloudflare positioniert seine WAF als globale Lösung, die an jedem Edge-Standort aktiv ist. Das bedeutet, dass Angriffe bereits am Netzwerkrand abgewehrt werden, bevor sie überhaupt deinen Origin-Server erreichen. Dies reduziert die Latenz für legitime Anfragen und entlastet gleichzeitig deine Infrastruktur.</p>
+<p>Die WAF arbeitet regelbasiert und nutzt eine Kombination aus bekannten Signaturen, Verhaltensanalyse und Machine Learning. Die OWASP Top 10 sind als vorgefertigte Regelwerke verfügbar, und Cloudflare aktualisiert diese kontinuierlich, um neue Bedrohungen abzudecken. Für individuelle Anforderungen können eigene Regeln erstellt werden.</p>
+<p>Im Gegensatz zu lokalen WAF-Lösungen erfordert die Cloudflare WAF keine zusätzliche Hardware oder Software. Die Konfiguration erfolgt komplett im Dashboard oder über die API, und die Regeln werden innerhalb weniger Sekunden weltweit ausgerollt.</p>
+
+<h2>Cloudflare WAF Free vs. Pro vs. Enterprise</h2>
+<p>Die Cloudflare WAF ist in verschiedenen Tarifen verfügbar, die sich im Funktionsumfang deutlich unterscheiden. Bereits im Free Tier ist ein Basisschutz enthalten, der viele gängige Angriffe abwehrt. Dies umfasst die OWASP-Regelwerke und einen grundlegenden Bot-Schutz.</p>
+<p>Im Pro-Plan stehen erweiterte WAF-Funktionen zur Verfügung, darunter zusätzliche Regelwerke, granulare Kontrolle über einzelne Regeln und prioritärer Support. Für kleine bis mittelgroße Webseiten ist der Pro-Plan oft ausreichend und kostet etwa 20 Dollar pro Monat pro Domain.</p>
+<p>Der Enterprise-Plan richtet sich an große Organisationen mit hohen Sicherheitsanforderungen. Er bietet erweiterte Bedrohungsinformationen, dedizierte Support-Teams, SLA-Garantien und Zugriff auf neue Features vor der breiten Veröffentlichung. Die Preise sind individuell und richten sich nach Traffic und Funktionsumfang.</p>
+
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Free</th>
+<th>Pro</th>
+<th>Enterprise</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OWASP Top 10 Schutz</td>
+<td>Ja (Basis)</td>
+<td>Ja (Erweitert)</td>
+<td>Ja (Vollständig)</td>
+</tr>
+<tr>
+<td>Eigene WAF-Regeln</td>
+<td>Begrenzt</td>
+<td>Unbegrenzt</td>
+<td>Unbegrenzt</td>
+</tr>
+<tr>
+<td>Bot Management</td>
+<td>Nein</td>
+<td>Basic</td>
+<td>Advanced</td>
+</tr>
+<tr>
+<td>Anomalie-Erkennung</td>
+<td>Nein</td>
+<td>Ja</td>
+<td>Ja (ML-basiert)</td>
+</tr>
+<tr>
+<td>24/7 Support</td>
+<td>Nein</td>
+<td>Nein</td>
+<td>Ja</td>
+</tr>
+</tbody>
+</table>
+
+<h2>Erste Schritte: WAF aktivieren</h2>
+<p>Die Aktivierung der WAF in Cloudflare ist unkompliziert. Nach dem Login ins Dashboard wählst du die gewünschte Domain aus und navigierst zum Bereich Security. Dort findest du den Punkt WAF, wo du die grundlegenden Einstellungen vornehmen kannst.</p>
+<p>Im Bereich Security Level kannst du zunächst die globale Sensibilität einstellen. Die Optionen reichen von Essentially Off bis I'm Under Attack. Für die meisten Webseiten ist High ein guter Kompromiss zwischen Sicherheit und Nutzerfreundlichkeit. Bei sensiblen Anwendungen oder während eines laufenden Angriffs solltest du auf I'm Under Attack wechseln.</p>
+<p>Die aktivierten Managed Rules werden im Bereich WAF Managed Rules angezeigt. Cloudflare verwaltet mehrere Regelwerke, darunter das Cloudflare OWASP Core Rule Set und spezielle Sets für bekannte CMS wie WordPress, Joomla und Drupal. Wir empfehlen, zunächst alle relevanten Regelwerke zu aktivieren und dann schrittweise zu optimieren.</p>
+
+<h2>Managed Rules optimal konfigurieren</h2>
+<p>Managed Rules sind vorgefertigte Regelwerke, die von Cloudflare kontinuierlich aktualisiert werden. Jedes Regelwerk enthält Dutzende bis Hunderte einzelner Regeln, die spezifische Angriffsmuster erkennen. Die richtige Konfiguration ist entscheidend, da zu aggressive Einstellungen legitime Nutzer blockieren können.</p>
+<p>Beginne mit dem Modus Log für neue Regelwerke, um zunächst zu beobachten, welche Regeln potenziell ausgelöst würden. Nach einer Beobachtungsphase von einigen Tagen kannst du auf Block umstellen, sobald du sicher bist, dass keine False Positives auftreten. Die Logs findest du im Bereich Security Events.</p>
+<p>Für einzelne Regeln kannst du Aktionen wie Simulate, Block, Challenge oder JS Challenge festlegen. Simulate protokolliert lediglich die Auslösung, ohne den Traffic zu beeinträchtigen. Block lehnt die Anfrage ab, während Challenge und JS Challenge den Nutzer zusätzlich verifizieren. Die Wahl der richtigen Aktion hängt vom Risiko und dem gewünschten Sicherheitsniveau ab.</p>
+
+<h2>Eigene WAF-Regeln erstellen</h2>
+<p>Neben den Managed Rules kannst du eigene Regeln erstellen, um spezifische Anforderungen abzudecken. Die Regel-Syntax ist flexibel und erlaubt komplexe Bedingungen basierend auf URL, Headern, Cookies, IP-Bereichen und vielen
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

@@ -759,6 +759,251 @@
     </div>
 
 <h1>WireGuard VPN Server einrichten – Schnell &amp; Sicher 2026</h1>
+<h2>1. Was ist WireGuard und warum 2026 die beste Wahl?</h2>
+
+<p>WireGuard ist ein modernes VPN-Protokoll, das von Jason Donenfeld entwickelt wurde und mittlerweile im Linux-Kernel (ab Version 5.6) fest integriert ist. Es nutzt modernste Kryptografie mit Curve25519 für den Schlüsselaustausch, ChaCha20 für die Verschlüsselung und Poly1305 für die Authentifizierung. Diese Kombination gilt als besonders sicher und gleichzeitig blitzschnell – ideal für mobile Geräte und Hochgeschwindigkeitsverbindungen.</p>
+
+<p>Im Vergleich zu OpenVPN, das auf SSL/TLS basiert und oft mehrere tausend Zeilen Konfigurationscode benötigt, kommt WireGuard mit minimalem Overhead aus. Das Resultat sind geringere Latenzzeiten, eine höhere Bandbreite und ein deutlich stabilerer Verbindungsaufbau, insbesondere bei wechselnden Netzwerken wie LTE oder öffentlichem WLAN.</p>
+
+<p>Im Jahr 2026 setzen immer mehr Hosting-Provider, Unternehmen und Privatanwender auf WireGuard, da das Protokoll durch seine schlanke Architektur und starke Sicherheitsgarantien überzeugt. Auch große Projekte wie der Linux-Kernel selbst, verschiedene Router-Firmware-Lösungen und Cloud-Anbieter haben WireGuard als Standard-VPN integriert.</p>
+
+<p>Ein weiterer Vorteil ist die einfache Konfiguration. Während bei OpenVPN komplexe Zertifikatsstrukturen nötig sind, arbeitet WireGuard mit simplen Public-Key-Kryptografie-Schlüsselpaaren. Das macht die Verwaltung deutlich einfacher und reduziert potenzielle Fehlerquellen.</p>
+
+<table>
+<caption>Vergleich: WireGuard vs. OpenVPN vs. IPsec</caption>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>WireGuard</th>
+<th>OpenVPN</th>
+<th>IPsec</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Codezeilen</td>
+<td>~4.000</td>
+<td>~100.000</td>
+<td>~400.000</td>
+</tr>
+<tr>
+<td>Verschlüsselung</td>
+<td>ChaCha20-Poly1305</td>
+<td>AES-256-GCM</td>
+<td>AES-256-CBC</td>
+</tr>
+<tr>
+<td>Schlüsselaustausch</td>
+<td>Curve25519</td>
+<td>RSA / ECDSA</td>
+<td>IKEv2</td>
+</tr>
+<tr>
+<td>Performance</td>
+<td>Sehr hoch</td>
+<td>Mittel</td>
+<td>Hoch</td>
+</tr>
+<tr>
+<td>Konfiguration</td>
+<td>Einfach</td>
+<td>Komplex</td>
+<td>Sehr komplex</td>
+</tr>
+<tr>
+<td>Roaming-Verhalten</td>
+<td>Hervorragend</td>
+<td>Mittel</td>
+<td>Gut</td>
+</tr>
+</tbody>
+</table>
+
+<h2>2. Systemanforderungen und Server-Auswahl</h2>
+
+<p>Bevor du mit der Installation beginnst, solltest du die passende Server-Hardware bzw. den passenden Hosting-Tarif auswählen. WireGuard selbst ist äußerst ressourcenschonend, sodass bereits ein kleiner VPS (Virtual Private Server) mit 512 MB RAM und einem CPU-Kern völlig ausreicht. Für den professionellen Einsatz mit mehreren gleichzeitigen Verbindungen empfehlen wir allerdings mindestens 1 GB RAM und zwei CPU-Kerne.</p>
+
+<p>Als Betriebssystem eignen sich aktuelle Linux-Distributionen besonders gut, da WireGuard direkt im Kernel integriert ist. Besonders empfehlenswert sind Ubuntu 24.04 LTS, Debian 12, Rocky Linux 9 oder AlmaLinux 9. Diese Distributionen bieten aktuelle Kernel-Versionen und stabile Pakete für WireGuard.</p>
+
+<p>Bei der Standortwahl des Servers solltest du darauf achten, dass dieser geografisch möglichst nah an deinen häufigsten Nutzungsorten liegt, um die Latenz gering zu halten. Zusätzlich ist ein Anbieter mit DDoS-Schutz und stabiler Netzwerkanbindung empfehlenswert. Viele Hoster bieten mittlerweile auch spezielle WireGuard-Tarife an, bei denen das Protokoll bereits vorkonfiguriert ist.</p>
+
+<p>Wenn du mehrere Standorte gleichzeitig nutzen möchtest, empfiehlt sich der Aufbau eines Mesh-VPNs mit mehreren WireGuard-Servern. So kannst du je nach Bedarf den nächstgelegenen Server auswählen und von optimaler Performance profitieren.</p>
+
+<table>
+<caption>Empfohlene Server-Spezifikationen für WireGuard 2026</caption>
+<thead>
+<tr>
+<th>Szenario</th>
+<th>CPU</th>
+<th>RAM</th>
+<th>Speicher</th>
+<th>Traffic/Monat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Privat (1-5 Geräte)</td>
+<td>1 vCore</td>
+<td>512 MB</td>
+<td>10 GB SSD</td>
+<td>1-2 TB</td>
+</tr>
+<tr>
+<td>Familie (5-15 Geräte)</td>
+<td>2 vCores</td>
+<td>1 GB</td>
+<td>20 GB SSD</td>
+<td>3-5 TB</td>
+</tr>
+<tr>
+<td>Unternehmen (50+ Geräte)</td>
+<td>4+ vCores</td>
+<td>4 GB</td>
+<td>40 GB NVMe</td>
+<td>10+ TB</td>
+</tr>
+<tr>
+<td>Mesh-Netzwerk (Multi-Server)</td>
+<td>2 vCores pro Knoten</td>
+<td>2 GB pro Knoten</td>
+<td>20 GB NVMe</td>
+<td>Variabel</td>
+</tr>
+</tbody>
+</table>
+
+<h2>3. WireGuard Installation auf dem Server</h2>
+
+<p>Die Installation von WireGuard ist auf modernen Linux-Systemen denkbar einfach und in wenigen Minuten erledigt. Auf Ubuntu und Debian genügt ein einfacher apt-Befehl, da das Paket in den offiziellen Repositories enthalten ist. Stelle zunächst sicher, dass dein System auf dem aktuellen Stand ist.</p>
+
+<p>Nach der Installation der Pakete solltest du überprüfen, ob das Kernel-Modul korrekt geladen wurde. WireGuard benötigt entweder das im Kernel integrierte Modul oder das Backport-Modul, das über das Paket wireguard-dkms verfügbar ist. Auf neueren Systemen ab Kernel 5.6 ist das Modul bereits fester Bestandteil des Kernels.</p>
+
+<p>Nach der erfolgreichen Installation kannst du mit <code>wg --version</code> die installierte Version überprüfen und mit <code>ip link</code> prüfen, ob das WireGuard-Interface verfügbar ist. Diese Schritte sind wichtig, um sicherzustellen, dass alle Komponenten korrekt funktionieren, bevor du mit der Konfiguration beginnst.</p>
+
+<p>Für CentOS, RHEL und Fedora-basierte Systeme ist die Installation ähnlich unkompliziert. Dort wird WireGuard über die Distribution-spezifischen Paketmanager wie dnf oder yum installiert. Auch Arch Linux und Manjaro bieten WireGuard in den offiziellen Repositories an.</p>
+
+<pre><code># Ubuntu / Debian Installation
+sudo apt update &amp;&amp; sudo apt upgrade -y
+sudo apt install wireguard wireguard-tools qrencode -y
+
+# Überprüfung der Installation
+wg --version
+sudo modprobe wireguard
+lsmod | grep wireguard
+
+# CentOS / RHEL / Fedora Installation
+sudo dnf install epel-release elrepo-release -y
+sudo dnf install kmod-wireguard wireguard-tools qrencode -y
+
+# Kernel-Modul laden
+sudo modprobe wireguard
+</code></pre>
+
+<h2>4. Schlüsselpaar generieren und Server-Schlüssel erstellen</h2>
+
+<p>WireGuard arbeitet mit kryptografischen Schlüsselpaaren, die aus einem privaten (Private Key) und einem öffentlichen Schlüssel (Public Key) bestehen. Der private Schlüssel verbleibt ausschließlich auf dem jeweiligen Gerät, während der öffentliche Schlüssel an die Gegenstelle übermittelt wird. Diese asymmetrische Verschlüsselung gewährleistet eine maximale Sicherheit.</p>
+
+<p>Die Generierung der Schlüssel erfolgt direkt auf dem Server mit dem Befehl <code>wg genkey</code> und <code>wg pubkey</code>. Diese Befehle erzeugen die entsprechenden Schlüssel im Base64-Format. Wichtig ist, dass der private Schlüssel niemals an Dritte weitergegeben wird und in einer sicheren Datei mit eingeschränkten Zugriffsrechten gespeichert wird.</p>
+
+<p>Für jeden Client (Smartphone, Laptop, Tablet) wird ein eigenes Schlüsselpaar benötigt. Das bedeutet, dass du für jedes Gerät, das sich mit deinem WireGuard-Server verbinden soll, einen separaten privaten und öffentlichen Schlüssel generieren musst. Der öffentliche Schlüssel des Clients wird in der Server-Konfiguration hinterlegt, der öffentliche Schlüssel des Servers in der Client-Konfiguration.</p>
+
+<p>Eine Best Practice ist es, die Schlüssel auf einer separaten Maschine zu generieren, die nicht öffentlich zugänglich ist. So stellst du sicher, dass selbst bei einer Kompromittierung des Servers die privaten Clients-Schlüssel nicht in falsche Hände geraten. In professionellen Umgebungen kommt dafür häufig eine Offline-CA zum Einsatz.</p>
+
+<pre><code># Server-Schlüsselpaar generieren
+cd /etc/wireguard
+umask 077
+wg genkey | tee server_private.key | wg pubkey &gt; server_public.key
+
+# Client-Schlüsselpaar generieren
+wg genkey | tee client1_private.key | wg pubkey &gt; client1_public.key
+wg genkey | tee client2_private.key | wg pubkey &gt; client2_public.key
+
+# Schlüssel anzeigen
+cat server_private.key
+cat server_public.key
+cat client1_public.key
+
+# Dateiberechtigungen setzen
+sudo chmod 600 /etc/wireguard/*_private.key
+</code></pre>
+
+<h2>5. Server-Konfiguration: wg0.conf erstellen</h2>
+
+<p>Die zentrale Konfigurationsdatei für den WireGuard-Server befindet sich standardmäßig unter <code>/etc/wireguard/wg0.conf</code>. In dieser Datei werden alle relevanten Parameter wie der private Schlüssel, die IP-Adresse des Servers, der Port und die zugelassenen Clients definiert. Die Konfiguration ist im INI-Format aufgebaut und dadurch leicht lesbar.</p>
+
+<p>Ein wichtiger Parameter ist der UDP-Port, auf dem WireGuard lauscht. Standardmäßig wird Port 51820 verwendet, du kannst aber jeden beliebigen freien UDP-Port nutzen. Achte darauf, dass dein Provider diesen Port nicht blockiert und dass er in deiner Firewall freigegeben ist.</p>
+
+<p>Für jeden Client wird in der Server-Konfiguration ein eigener [Peer]-Abschnitt angelegt. Hier wird der öffentliche Schlüssel des Clients, die zugewiesene interne IP-Adresse und optional die erlaubten IP-Bereiche definiert. Mit der Direktive <code>PersistentKeepalive</code> sorgst du dafür, dass die Verbindung hinter NAT-Routern stabil bleibt.</p>
+
+<p>Eine typische Konfiguration enthält auch Parameter wie <code>MTU</code> für die maximale Paketgröße, <code>SaveConfig</code> für die automatische Speicherung von Peers bei laufendem Betrieb und <code>PostUp</code>/<code>PostDown</code>-Skripte, um z. B. Firewall-Regeln automatisch zu setzen. Diese erweiterten Optionen sind besonders in professionellen Setups nützlich.</p>
+
+<pre><code># /etc/wireguard/wg0.conf
+[Interface]
+Address = 10.0.0.1/24
+ListenPort = 51820
+PrivateKey = &lt;SERVER_PRIVATE_KEY&gt;
+MTU = 1420
+SaveConfig = true
+PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+
+# Client 1 - Smartphone
+[Peer]
+PublicKey = &lt;CLIENT1_PUBLIC_KEY&gt;
+AllowedIPs = 10.0.0.2/32
+PersistentKeepalive = 25
+
+# Client 2 - Laptop
+[Peer]
+PublicKey = &lt;CLIENT2_PUBLIC_KEY&gt;
+AllowedIPs = 10.0.0.3/32
+PersistentKeepalive = 25
+
+# Client 3 - Tablet
+[Peer]
+PublicKey = &lt;CLIENT3_PUBLIC_KEY&gt;
+AllowedIPs = 10.0.0.4/32
+PersistentKeepalive = 25
+</code></pre>
+
+<h2>6. Client-Konfiguration für verschiedene Geräte</h2>
+
+<p>Nach der Server-Konfiguration müssen die Clients eingerichtet werden. WireGuard bietet offizielle Apps für Windows, macOS, Linux, iOS und Android, die alle das gleiche Konfigurationsformat verwenden. Die Client-Konfiguration enthält den privaten Schlüssel des Clients, die Server-Adresse und den öffentlichen Schlüssel des Servers.</p>
+
+<p>Für mobile Geräte ist es besonders praktisch, die Konfiguration als QR-Code zu teilen. Mit dem Befehl <code>qrencode -t ansiutf8 &lt; client.conf</code> wird die Konfiguration in der Konsole als QR-Code angezeigt, der dann mit der WireGuard-App gescannt werden kann. Das spart Tippaufwand und vermeidet Fehler bei der manuellen Eingabe.</p>
+
+<p>Auf Linux-Systemen kann der WireGuard-Client mit dem Befehl <code>wg-quick up wg0</code> gestartet werden. Diese Methode lädt die Konfiguration aus <code>/etc/wireguard/wg0.conf</code> und richtet automatisch alle erforderlichen Routen und DNS-Einstellungen ein. Mit <code>wg-quick down wg0</code> wird die Verbindung wieder getrennt.</p>
+
+<p>Für die Verbindung mit dem Server benötigst du die öffentliche IP-Adresse oder den Hostnamen des Servers. Wenn du einen DNS-Namen verwendest, achte darauf, dass dieser in den Dynamic-DNS-Einstellungen korrekt konfiguriert ist, falls du eine dynamische IP-Adresse hast. Viele Anbieter wie Cloudflare, DynDNS oder No-IP bieten entsprechende Clients an.</p>
+
+<pre><code># /etc/wireguard/wg0.conf (Client-Konfiguration)
+[Interface]
+PrivateKey = &lt;CLIENT_PRIVATE_KEY&gt;
+Address = 10.0.0.2/24
+DNS = 1.1.1.1, 9.9.9.9
+
+[Peer]
+PublicKey = &lt;SERVER_PUBLIC_KEY&gt;
+Endpoint = deinserver.example.com:51820
+AllowedIPs = 0.0.0.0/0, ::/0
+PersistentKeepalive = 25
+
+# QR-Code für mobile Geräte generieren
+sudo qrencode -t ansiutf8 &lt; client1.conf
+
+# WireGuard starten
+sudo wg-quick up wg0
+
+# WireGuard stoppen
+sudo wg-quick down wg0
+
+# Status anzeigen
+sudo wg show
+</code></pre>
+
+<h2>7. Firewall und Routing richtig konfigurieren</h2>
+
+<p>Eine korrekt konfigurierte Firewall ist das A und O für einen sicheren VPN-Server. WireGuard selbst nutzt UDP und benötigt nur einen einzigen offenen Port – das reduziert
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

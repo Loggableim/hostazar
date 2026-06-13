@@ -759,6 +759,247 @@
     </div>
 
 <h1>Plausible Analytics – Selbstgehostetes Web-Analytics auf VPS 2026</h1>
+<h2>Warum Plausible Analytics selbst hosten? Die wichtigsten Vorteile 2026</h2>
+
+<p>Die Entscheidung, Plausible Analytics auf einem eigenen VPS zu betreiben, bringt zahlreiche strategische und technische Vorteile mit sich. Während die gehostete Variante auf plausible.io bereits monatliche Kosten verursacht – diese staffeln sich je nach Traffic zwischen 9 und 69 Dollar – entfallen diese Gebühren bei der Self-Hosted-Version vollständig. Du zahlst lediglich deine Server-Infrastruktur, behältst aber die volle Kontrolle über deine Daten und kannst das System beliebig skalieren.</p>
+
+<p>Ein weiterer entscheidender Vorteil ist der <strong>Datenschutz</strong>. Da alle Daten ausschließlich auf deinem eigenen Server gespeichert werden, gibt es keine Drittanbieter, die Zugriff auf die Rohdaten erhalten. Gerade für europäische Unternehmen, die unter die DSGVO fallen, ist dies ein unschätzbarer Vorteil. Du benötigst keinen Cookie-Banner, keine Datenschutzerklärung für externe Tracker und kannst das Analytics-Tracking ohne rechtliche Bedenken in vollem Umfang nutzen.</p>
+
+<p>Die technische Unabhängigkeit ist ein drittes starkes Argument. Du bestimmst selbst, welche Version du einsetzt, wann Updates eingespielt werden und kannst das System nach deinen Wünschen anpassen. Auch die Integration eigener Skripte, benutzerdefinierter Dashboards oder zusätzlicher Module ist problemlos möglich. Die aktive Open-Source-Community rund um Plausible sorgt zudem für regelmäßige Updates, neue Features und schnellen Bugfixes.</p>
+
+<table>
+<thead>
+<tr>
+<th>Kriterium</th>
+<th>Plausible Cloud</th>
+<th>Plausible Self-Hosted</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Monatliche Kosten</td>
+<td>9 – 69 USD</td>
+<td>Nur VPS-Gebühren (ab 4 €/Monat)</td>
+</tr>
+<tr>
+<td>Datenspeicherung</td>
+<td>EU-Server von Plausible</td>
+<td>Eigener Server, volle Kontrolle</td>
+</tr>
+<tr>
+<td>Updates</td>
+<td>Automatisch</td>
+<td>Manuell oder per Auto-Update</td>
+</tr>
+<tr>
+<td>Anpassbarkeit</td>
+<td>Eingeschränkt</td>
+<td>Vollständig anpassbar</td>
+</tr>
+<tr>
+<td>Skalierung</td>
+<td>Pläne abhängig</td>
+<td>Beliebig per Server-Upgrade</td>
+</tr>
+<tr>
+<td>DSGVO-Konformität</td>
+<td>Ja (mit AVV)</td>
+<td>Ja (volle Datenhoheit)</td>
+</tr>
+</tbody>
+</table>
+
+<p>Nicht zuletzt profitierst du von der <strong>Performance</strong>. Plausible ist im Vergleich zu Google Analytics 4 bis zu 45-mal leichter, da kein aufwendiges JavaScript-Snippet geladen werden muss. Das wirkt sich positiv auf die Ladezeit deiner Website aus, verbessert die Core Web Vitals und sorgt für ein besseres Ranking in den Suchmaschinen. Gerade in Kombination mit einem schlanken VPS-Setup erreichst du 2026 Bestwerte bei PageSpeed und User Experience.</p>
+
+<h2>Systemanforderungen: Was braucht dein VPS für Plausible?</h2>
+
+<p>Plausible Analytics ist überraschend genügsam, was die Hardware-Anforderungen angeht. Für kleine bis mittelgroße Websites mit bis zu 100.000 Seitenaufrufen pro Monat reicht bereits ein <strong>VPS mit 2 vCPUs, 2 GB RAM und 20 GB SSD-Speicher</strong> völlig aus. Das offizielle Repository empfiehlt mindestens einen Single-Core-Server mit 1 GB RAM für sehr kleine Projekte, wobei für den produktiven Einsatz mindestens 2 GB RAM empfohlen werden, um auch bei Lastspitzen stabil zu laufen.</p>
+
+<p>Als Betriebssystem empfiehlt sich ein aktuelles <strong>Ubuntu 22.04 LTS oder Ubuntu 24.04 LTS</strong>, da die offiziellen Installationsanleitungen primär auf Debian-basierte Systeme ausgelegt sind. Alternativ funktionieren auch Debian 12 (Bookworm) und Rocky Linux 9 problemlos. Du benötigst root-Zugriff auf den Server sowie eine öffentliche Domain oder Subdomain, unter der das Plausible-Dashboard später erreichbar sein wird.</p>
+
+<p>Für die Installation sind zudem <strong>Docker und Docker Compose</strong> zwingend erforderlich, da Plausible offiziell als Container-Image ausgeliefert wird. Die Verwendung von Docker vereinfacht Updates, Backup und Skalierung erheblich. Zusätzlich solltest du einen SMTP-Server (z. B. Mailgun, Postmark oder ein lokaler Postfix) bereitstellen, damit Plausible E-Mail-Berichte und Einladungs-Mails versenden kann.</p>
+
+<table>
+<thead>
+<tr>
+<th>Komponente</th>
+<th>Mindestanforderung</th>
+<th>Empfohlen</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPU</td>
+<td>1 vCPU</td>
+<td>2+ vCPUs</td>
+</tr>
+<tr>
+<td>RAM</td>
+<td>1 GB</td>
+<td>2 – 4 GB</td>
+</tr>
+<tr>
+<td>Speicher</td>
+<td>10 GB SSD</td>
+<td>40 GB SSD</td>
+</tr>
+<tr>
+<td>OS</td>
+<td>Ubuntu 22.04 LTS</td>
+<td>Ubuntu 24.04 LTS</td>
+</tr>
+<tr>
+<td>Docker</td>
+<td>20.10+</td>
+<td>Aktuelle Stable-Version</td>
+</tr>
+<tr>
+<td>Docker Compose</td>
+<td>v2.0+</td>
+<td>Aktuelle v2.x-Version</td>
+</tr>
+</tbody>
+</table>
+
+<p>Bei der Wahl des Hosting-Providers solltest du auf Standorte in der EU achten, um auch hier datenschutzkonform zu agieren. Anbieter wie Hetzner, Netcup, IONOS oder OVH bieten preiswerte VPS-Tarife mit ausreichender Leistung und DSGVO-konformen Rechenzentren in Deutschland, Finnland oder Frankreich. Achte zudem auf eine garantierte Bandbreite und DDoS-Schutz, um Ausfälle zu vermeiden.</p>
+
+<h2>Die besten VPS-Anbieter für Plausible Analytics 2026</h2>
+
+<p>Die Wahl des richtigen VPS-Anbieters ist entscheidend für die Performance und Zuverlässigkeit deiner Plausible-Installation. 2026 hat sich der Markt stark weiterentwickelt, und es gibt zahlreiche Anbieter, die spezielle Tarife für Self-Hosting-Workloads anbieten. Besonders hervorzuheben sind europäische Provider, die nicht nur günstige Preise, sondern auch kurze Latenzzeiten für deutschsprachige Besucher bieten.</p>
+
+<p><strong>Hetzner Cloud</strong> ist seit Jahren die erste Wahl für preisbewusste Selbst-Hoster. Bereits für 4,35 € monatlich erhältst du einen CX22-Tarif mit 2 vCPUs, 4 GB RAM und 40 GB SSD – mehr als ausreichend für Plausible. Die Rechenzentren in Falkenstein und Helsinki sind DSGVO-konform, die Anbindung ist hervorragend, und das Snapshot-System erleichtert Backups enorm.</p>
+
+<p><strong>Netcup</strong> bietet ähnliche Leistungen zu vergleichbaren Preisen und überzeugt durch flexible Tarifstrukturen. Der „VPS 1000 G9" mit 4 vCPUs, 8 GB RAM und 80 GB SSDNVMe ist für rund 9 € monatlich erhältlich und eignet sich auch für größere Projekte. Auch Netcup betreibt seine Infrastruktur ausschließlich in deutschen Rechenzentren.</p>
+
+<table>
+<thead>
+<tr>
+<th>Anbieter</th>
+<th>Tarif</th>
+<th>vCPU</th>
+<th>RAM</th>
+<th>SSD</th>
+<th>Preis/Monat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hetzner Cloud</td>
+<td>CX22</td>
+<td>2</td>
+<td>4 GB</td>
+<td>40 GB</td>
+<td>4,35 €</td>
+</tr>
+<tr>
+<td>Netcup</td>
+<td>VPS 1000 G9</td>
+<td>4</td>
+<td>8 GB</td>
+<td>80 GB</td>
+<td>9,49 €</td>
+</tr>
+<tr>
+<td>IONOS</td>
+<td>VPS XS</td>
+<td>2</td>
+<td>4 GB</td>
+<td>80 GB</td>
+<td>5,00 €</td>
+</tr>
+<tr>
+<td>OVH</td>
+<td>Starter</td>
+<td>2</td>
+<td>4 GB</td>
+<td>40 GB</td>
+<td>6,00 €</td>
+</tr>
+<tr>
+<td>Contabo</td>
+<td>VPS 4</td>
+<td>4</td>
+<td>8 GB</td>
+<td>100 GB</td>
+<td>7,99 €</td>
+</tr>
+</tbody>
+</table>
+
+<p>Für Einsteiger empfiehlt sich zudem <strong>IONOS</strong> mit einer breiten Tarifpalette und einem besonders günstigen Einstiegsangebot. Wer mehr Leistung benötigt und gleichzeitig Wert auf einen sehr guten Support legt, ist bei <strong>Contabo</strong> oder <strong>OVH</strong> gut aufgehoben. Alle genannten Anbieter bieten KVM-Virtualisierung, was für Plausible die beste Performance liefert. Achte bei der Auswahl darauf, dass der Anbieter IPv6 unterstützt und Backups als Snapshot- oder Backup-Feature anbietet.</p>
+
+<h2>Vorbereitung: VPS einrichten und Docker installieren</h2>
+
+<p>Bevor du mit der eigentlichen Installation von Plausible beginnst, musst du deinen VPS grundlegend konfigurieren. Stelle zunächst sicher, dass dein Server über einen aktuellen Patch-Stand verfügt und alle Sicherheitsupdates eingespielt sind. Ein minimaler Ubuntu-24.04-Server, den du bei Hetzner oder Netcup bereitstellst, bildet die ideale Basis. Verbinde dich per SSH mit deinem Server und führe die folgenden Schritte aus.</p>
+
+<p>Aktualisiere zunächst die Paketquellen und installiere die wichtigsten Grundpakete:</p>
+
+<pre><code>apt update && apt upgrade -y
+apt install -y curl wget git ufw software-properties-common apt-transport-https ca-certificates gnupg
+</code></pre>
+
+<p>Anschließend richtest du eine <strong>Firewall</strong> mit UFW ein, um nur die notwendigen Ports freizugeben. SSH (Port 22), HTTP (Port 80) und HTTPS (Port 443) sollten zugänglich sein, alle anderen Ports bleiben geschlossen:</p>
+
+<pre><code>ufw allow OpenSSH
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw enable
+</code></pre>
+
+<p>Im nächsten Schritt installierst du <strong>Docker und Docker Compose</strong>. Docker wird in einer aktuellen Version über das offizielle Repository bereitgestellt:</p>
+
+<pre><code>curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+apt update
+apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+</code></pre>
+
+<p>Überprüfe die erfolgreiche Installation, indem du die Docker-Version ausgeben lässt. Wenn du eine Versionsnummer wie „Docker version 27.x" siehst, ist alles korrekt installiert. Optional kannst du einen separaten Benutzer für Docker anlegen, um nicht als root arbeiten zu müssen. Für Produktivumgebungen empfiehlt sich außerdem die Einrichtung von <strong>fail2ban</strong>, um SSH-Brute-Force-Angriffe zu unterbinden.</p>
+
+<h2>Plausible Analytics installieren: Schritt-für-Schritt-Anleitung</h2>
+
+<p>Die Installation von Plausible Analytics erfolgt über das offizielle Docker-Image und ist in wenigen Minuten erledigt. Klone zunächst das Plausible-Repository auf deinen Server und wechsle in das Konfigurationsverzeichnis:</p>
+
+<pre><code>git clone https://github.com/plausible/hosting.git /opt/plausible
+cd /opt/plausible
+</code></pre>
+
+<p>Im Verzeichnis findest du eine <code>docker-compose.yml</code> sowie eine <code>.env.example</code>. Kopiere die Beispielkonfiguration und passe sie an deine Umgebung an:</p>
+
+<pre><code>cp .env.example .env
+nano .env
+</code></pre>
+
+<p>In der <code>.env</code>-Datei musst du mindestens die folgenden Variablen setzen:</p>
+
+<pre><code>BASE_URL=https://analytics.deinedomain.de
+SECRET_KEY_BASE=$(openssl rand -base64 64 | tr -d '
+')
+DATABASE_URL=postgresql://plausible:dbpass@plausible_db:5432/plausible
+DISABLE_AUTH=false
+SMTP_HOST=smtp.eu.mailgun.org
+SMTP_PORT=587
+SMTP_USER=api
+SMTP_PASSWORD=mailgun-api-key
+SMTP_HOST_ADDRESS=analytics@deinedomain.de
+</code></pre>
+
+<p>Der <code>SECRET_KEY_BASE</code> wird für die Verschlüsselung von Session-Daten verwendet und sollte unbedingt zufällig generiert werden. Den Datenbank-Benutzer und das Passwort solltest du ebenfalls durch sichere Werte ersetzen. Für den Mailversand kannst du Mailgun, Postmark, Amazon SES oder einen eigenen Postfix-Server verwenden.</p>
+
+<p>Starte nun den Container-Stack mit Docker Compose:</p>
+
+<pre><code>docker compose up -d
+</code></pre>
+
+<p>Docker lädt nun die Images herunter, startet die PostgreSQL-Datenbank sowie die Plausible-Anwendung. Nach wenigen Sekunden ist der Container betriebsbereit. Du kannst den Status mit <code>docker compose ps</code> überprüfen. Die Logs findest du unter <code>docker compose logs -f plausible</code>. Sobald im Log die Meldung „Listening on http://0.0.0.0:8000" erscheint, ist die Anwendung erfolgreich gestartet.</p>
+
+<h2>Reverse Proxy einrichten: Nginx und Traefik im Vergleich</h2>
+
+<p>Damit deine Plausible-Instanz unter einer sauberen URL und mit gültigem SSL-Zertifikat erreichbar ist, benötigst du einen <strong>Reverse Proxy</strong>. Dieser nimmt die HTTP(S)-Anfragen entgegen, leitet sie an den Plausible-Container weiter und kümmert sich um TLS-Terminierung. Die zwei populärsten Lösungen sind Nginx und Traefik, beide mit eigenen Stärken.</p>
+
+<p><strong>Traefik</strong> ist die modernere Wahl und bringt eine automatische Let's-Encrypt-Integration mit. Wenn du Traefik als Reverse Proxy einsetzt, musst du lediglich Labels in der <code>docker-compose.yml</code> setzen. Besonders in Docker-nativen Setups ist Traefik die erste Wahl, da es Container automatisch erkennt und Zertifikate ohne weitere Konfiguration bezieht.</p>
+
+<p><strong>Nginx</strong> ist der Klassiker unter den Reverse Proxies und bietet maximale
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

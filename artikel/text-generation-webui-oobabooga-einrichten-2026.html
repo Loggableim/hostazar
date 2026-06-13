@@ -759,6 +759,107 @@
     </div>
 
 <h1>Text Generation WebUI (oobabooga) einrichten – Setup-Guide 2026</h1>
+<h2 id="was-ist">Was ist die Text Generation WebUI von oobabooga?</h2>
+
+<p>Die <strong>Text Generation WebUI</strong> ist ein Open-Source-Frontend, das ursprünglich von <em>oobabooga</em> entwickelt wurde und mittlerweile von einer aktiven Community gepflegt wird. Sie ermöglicht es, verschiedenste Large Language Models (LLMs) wie Llama, Mistral, Qwen oder Phi lokal über eine komfortable Browser-Oberfläche zu betreiben – ohne Cloud-Abhängigkeit und ohne Daten an externe Server zu senden.</p>
+
+<p>Im Kern basiert die Software auf <strong>transformers</strong>, <strong>llama.cpp</strong> und <strong>ExLlamaV2</strong> als Backends, wodurch sowohl klassische PyTorch-Modelle als auch quantisierte GGUF- und EXL2-Formate unterstützt werden. Die WebUI bietet dabei nicht nur eine simple Chat-Oberfläche, sondern auch Funktionen für Text-Komplettierung, Instruction-Tuning, Roleplay und API-Endpoints.</p>
+
+<p>Besonders interessant für professionelle Anwender: Die Plattform unterstützt <strong>LoRA-Adapter</strong>, <strong>Custom-Prompts</strong> und lässt sich durch Extensions nahezu beliebig erweitern. Damit ist sie 2026 die erste Wahl für alle, die maximale Kontrolle über ihre KI-Inferenz behalten möchten.</p>
+
+<p>Im Gegensatz zu cloudbasierten Lösungen wie ChatGPT oder Claude behalten Sie bei der lokalen Nutzung die volle Datenhoheit. Texte, Code und sensible Informationen verlassen niemals Ihren Rechner – ein entscheidender Vorteil für Unternehmen, Entwickler und datenschutzbewusste Anwender.</p>
+
+<h2 id="systemanforderungen">Systemanforderungen 2026 im Überblick</h2>
+
+<p>Bevor Sie mit der Installation beginnen, sollten Sie prüfen, ob Ihr System die <strong>Mindestanforderungen</strong> erfüllt. Die Text Generation WebUI selbst ist ressourcenschonend, doch die zu ladenden Modelle bestimmen den tatsächlichen Hardware-Bedarf erheblich. Ein 7B-Modell in voller Präzision benötigt etwa 14 GB VRAM, während quantisierte Varianten mit 6 GB auskommen.</p>
+
+<p>Für ein optimales Erlebnis im Jahr 2026 empfehlen wir folgende Konfiguration als <strong>Mindeststandard</strong>:</p>
+
+<ul>
+<li><strong>GPU:</strong> NVIDIA mit mindestens 8 GB VRAM (RTX 3060 oder besser), AMD mit ROCm 6.0+ Unterstützung oder Apple Silicon M2/M3/M4</li>
+<li><strong>CPU:</strong> Moderne Multi-Core-CPU (mindestens 8 Kerne), AVX2-Unterstützung empfohlen</li>
+<li><strong>RAM:</strong> 16 GB System-RAM, bei großen Modellen 32 GB oder mehr</li>
+<li><strong>Speicher:</strong> SSD mit mindestens 50 GB freiem Speicher für Modelle und Cache</li>
+<li><strong>Betriebssystem:</strong> Windows 10/11, Ubuntu 22.04/24.04, macOS 14+</li>
+</ul>
+
+<p>Für fortgeschrittene Anwender, die 70B-Modelle oder Mischmodelle wie Mixtral betreiben möchten, ist eine <strong>NVIDIA RTX 4090 (24 GB)</strong> oder eine <strong>RTX 5090 (32 GB)</strong> empfehlenswert. Auch Multi-GPU-Setups werden offiziell unterstützt und können die Inferenzgeschwindigkeit deutlich steigern.</p>
+
+<p>Falls Sie keine dedizierte GPU besitzen, können Sie die WebUI auch im <strong>CPU-Modus</strong> oder mit <strong>Apple Metal</strong> betreiben. Die Geschwindigkeit ist zwar geringer, aber für gelegentliche Tests und kleinere Modelle (bis 7B) durchaus ausreichend.</p>
+
+<h2 id="vorbereitung">Vorbereitung: Hardware und Software-Check</h2>
+
+<p>Eine gründliche Vorbereitung spart später viel Zeit bei der Fehlersuche. Beginnen Sie mit einem <strong>System-Update</strong>, um sicherzustellen, dass alle Treiber aktuell sind. Für NVIDIA-GPUs laden Sie die neuesten Studio- oder Game-Ready-Treiber von der offiziellen Website herunter und installieren Sie das CUDA-Toolkit 12.4 oder höher.</p>
+
+<p>Installieren Sie als Nächstes <strong>Python 3.11</strong> – dies ist 2026 die empfohlene Version für maximale Kompatibilität mit den aktuellen Extensions. Achten Sie darauf, Python nicht aus dem Microsoft Store zu beziehen, sondern den offiziellen Installer von python.org zu verwenden. Aktivieren Sie während der Installation die Option <em>"Add Python to PATH"</em>.</p>
+
+<p>Prüfen Sie nach der Installation die korrekte Einrichtung, indem Sie in der Kommandozeile folgende Befehle ausführen:</p>
+
+<pre><code>python --version
+pip --version
+nvidia-smi
+</code></pre>
+
+<p>Wenn alle drei Befehle korrekte Ausgaben liefern, ist die Basis bereit. Zusätzlich empfehlen wir die Installation von <strong>Git</strong>, <strong>Visual Studio Build Tools</strong> (unter Windows) und <strong>ffmpeg</strong> für multimediale Erweiterungen. Diese Tools werden für verschiedene Extensions benötigt und sollten vorab eingerichtet werden.</p>
+
+<p>Ein weiterer wichtiger Punkt ist die <strong>Speicherplatzverwaltung</strong>: Legen Sie ein dediziertes Verzeichnis für Modelle an, idealerweise auf einer schnellen NVMe-SSD. Modelle sind zwischen 4 GB und 200 GB groß, und eine durchdachte Ordnerstruktur erleichtert die spätere Verwaltung erheblich.</p>
+
+<h2 id="installation-windows">Installation unter Windows</h2>
+
+<p>Die Installation unter <strong>Windows 11</strong> ist dank des mitgelieferten One-Click-Installers besonders einsteigerfreundlich. Öffnen Sie zunächst die <a href="https://github.com/oobabooga/text-generation-webui" rel="nofollow" target="_blank">offizielle GitHub-Seite</a> des Projekts und laden Sie das aktuelle Release als ZIP-Archiv herunter. Alternativ klonen Sie das Repository mit <code>git clone https://github.com/oobabooga/text-generation-webui.git</code>.</p>
+
+<p>Entpacken Sie das Archiv in ein Verzeichnis Ihrer Wahl – wir empfehlen <code>C:\AI\text-generation-webui</code> zu vermeiden, da Leerzeichen im Pfad zu Problemen führen können. Navigieren Sie anschließend in den entpackten Ordner und führen Sie die Datei <code>start_windows.bat</code> aus. Das Skript erkennt automatisch Ihre GPU und installiert die passenden Abhängigkeiten.</p>
+
+<p>Während der Installation werden Sie möglicherweise gefragt, ob Sie die <strong>CUDA-Bibliotheken</strong> für NVIDIA oder die <strong>ROCm-Bibliotheken</strong> für AMD herunterladen möchten. Bestätigen Sie die für Ihre Hardware passende Option. Der Vorgang dauert je nach Internetverbindung zwischen 10 und 30 Minuten, da mehrere Gigabyte an Paketen heruntergeladen werden.</p>
+
+<p>Nach Abschluss der Installation startet automatisch ein Browser-Fenster mit der WebUI unter <code>http://127.0.0.1:7860</code>. Falls dies nicht geschieht, können Sie den Server manuell über die Konsole starten. Speichern Sie das Startskript als Desktop-Verknüpfung, um zukünftige Starts zu vereinfachen.</p>
+
+<p>Für erfahrene Nutzer bietet sich die <strong>Portable-Installation</strong> an, bei der die gesamte Umgebung in einem einzigen Ordner gekapselt wird. Dies erleichtert Backups und die Nutzung auf mehreren Rechnern erheblich.</p>
+
+<h2 id="installation-linux-macos">Installation unter Linux und macOS</h2>
+
+<p>Unter <strong>Linux</strong> ist die Installation etwas technischer, dafür aber oft stabiler. Klonen Sie zunächst das Repository und navigieren Sie in das Verzeichnis. Führen Sie anschließend <code>start_linux.sh</code> aus, das die erforderlichen Pakete über pip und apt installiert. Ubuntu 24.04 LTS wird 2026 offiziell als Referenzdistribution empfohlen.</p>
+
+<p>Für Distributionen wie <strong>Fedora</strong>, <strong>Arch Linux</strong> oder <strong>openSUSE</strong> müssen Sie möglicherweise die Paketmanager-Befehle im Startskript anpassen. Die Community bietet auf der GitHub-Seite aktualisierte Skripte für alle gängigen Distributionen. Achten Sie besonders auf die korrekte Installation von <code>python3-dev</code>, <code>build-essential</code> und den CUDA-Toolkits.</p>
+
+<p>Besitzer eines <strong>Apple Silicon Macs</strong> (M2, M3, M4) profitieren von der optimierten Metal-Backend-Unterstützung. Führen Sie <code>start_macos.sh</code> aus, und die WebUI konfiguriert sich automatisch für die Nutzung der Unified Memory Architecture. Modelle bis 70B können auf einem Mac Studio mit 128 GB RAM lokal betrieben werden – eine Konfiguration, die 2026 preislich attraktiver ist als vergleichbare NVIDIA-Workstations.</p>
+
+<p>Ein Vorteil der Linux-Installation ist die Möglichkeit, die WebUI als <strong>Systemd-Service</strong> einzurichten. So startet die Anwendung automatisch beim Bootvorgang und ist über das Netzwerk erreichbar. Dies ist besonders nützlich für Home-Server oder dedizierte KI-Workstations, die als Familien- oder Team-Ressource dienen.</p>
+
+<p>Beachten Sie, dass die macOS-Variante einige Extensions nicht unterstützt, da diese auf Windows- oder Linux-spezifische Bibliotheken angewiesen sind. Die Kernfunktionalität – Modellladung, Inferenz, API – funktioniert jedoch reibungslos und erreicht auf M3-Max-Chips durchaus vergleichbare Token-Raten wie eine RTX 4090.</p>
+
+<h2 id="erststart">Erststart und Grundkonfiguration</h2>
+
+<p>Beim ersten Start der WebUI sehen Sie die Standard-Oberfläche mit vier Hauptbereichen: <strong>Model</strong>, <strong>Parameters</strong>, <strong>Text Generation</strong> und <strong>Training</strong>. Im Bereich Model laden Sie Ihre Sprachmodelle, unter Parameters konfigurieren Sie die Inferenz-Einstellungen, und der Text Generation-Tab ist Ihr primärer Arbeitsbereich für Prompts und Generationen.</p>
+
+<p>Öffnen Sie zunächst die <strong>Einstellungen</strong> über das Zahnrad-Symbol oben rechts. Hier legen Sie das Standard-Modellverzeichnis fest, definieren die maximale Kontextlänge und passen das Theme an. Wir empfehlen die Aktivierung von <em>dark mode</em> für augenschonendes Arbeiten sowie die Einstellung <em>chat style</em> auf <strong>ChatML</strong> oder <strong>Llama3</strong>, je nach verwendetem Modell.</p>
+
+<p>Ein besonders wichtiger Parameter ist die <strong>Context Length</strong>. Während ältere Modelle auf 2048 Tokens beschränkt waren, unterstützen moderne Modelle 2026 Kontextlängen von 32k bis 128k Tokens. Allerdings steigt mit zunehmender Kontextlänge auch der VRAM-Verbrauch exponentiell, weshalb Sie einen Kompromiss zwischen Funktionalität und Performance finden sollten.</p>
+
+<p>Konfigurieren Sie außerdem den <strong>Auto-Launch</strong>-Parameter, damit die WebUI direkt nach dem Systemstart verfügbar ist. Falls Sie die Anwendung auf einem Server betreiben, aktivieren Sie zusätzlich die Option <em>"Listen on all interfaces"</em>, um den Zugriff aus dem lokalen Netzwerk zu ermöglichen. In Produktionsumgebungen sollten Sie zwingend eine Authentifizierung mit Benutzername und Passwort einrichten.</p>
+
+<p>Speichern Sie alle Änderungen über den <strong>Save Settings</strong>-Button, der die Konfiguration in der Datei <code>settings.yaml</code> persistiert. Diese Datei können Sie bei Bedarf auch manuell bearbeiten – etwa um erweiterte Parameter wie <code>truncation_length</code> oder <code>stream</code> anzupassen, die nicht in der GUI verfügbar sind.</p>
+
+<h2 id="modelle-laden">Modelle herunterladen und laden</h2>
+
+<p>Das Herzstück der Text Generation WebUI sind die <strong>Sprachmodelle</strong>, die Sie lokal betreiben. 2026 stehen hunderte vortrainierte Modelle auf Plattformen wie <a href="https://huggingface.co" rel="nofollow" target="_blank">Hugging Face</a> zur Verfügung. Die Auswahl hängt von Ihrem Use-Case, Ihrer Hardware und Ihren Qualitätsansprüchen ab.</p>
+
+<p>Für Einsteiger empfehlen wir folgende Modelle als <strong>solide Basis</strong>:</p>
+
+<table>
+<thead>
+<tr><th>Modell</th><th>Größe</th><th>Stärke</th><th>RAM-Bedarf</th></tr>
+</thead>
+<tbody>
+<tr><td>Llama 3.1 8B Instruct</td><td>8B Parameter</td><td>Allrounder, Code</td><td>6 GB (Q4)</td></tr>
+<tr><td>Mistral 7B Instruct</td><td>7B Parameter</td><td>Schnell, kompakt</td><td>5 GB (Q4)</td></tr>
+<tr><td>Qwen 2.5 14B</td><td>14B Parameter</td><td>Mehrsprachig, Reasoning</td><td>10 GB (Q4)</td></tr>
+<tr><td>Phi-4 14B</td><td>14B Parameter</td><td>Wissenschaft, Mathe</td><td>10 GB (Q4)</td></tr>
+<tr><td>Mixtral 8x7B</td><td>47B (12B aktiv)</td><td>Hohe Qualität</td><td>24 GB (Q4)</td></tr>
+</tbody>
+</table>
+
+<p>Um ein Modell herunterzuladen, nutzen Sie am einfachsten den integrierten <strong>Model-Download-Tab</strong> in der WebUI. Tragen Sie den Hugging-Face-Identifier ein (z.
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

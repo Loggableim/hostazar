@@ -759,6 +759,216 @@
     </div>
 
 <h1>Terraria Server hosten – Komplettanleitung für Multiplayer 2026</h1>
+<h2>Was ist Terraria und warum einen eigenen Server hosten?</h2>
+
+<p>Terraria ist ein 2D-Sandbox-Spiel, das 2011 von Re-Logic veröffentlicht wurde und bis heute eine treue Community besitzt. Es kombiniert Elemente aus Erkundung, Crafting, Bauen und Bosskämpfen in einer prozedural generierten Welt. Multiplayer ist seit jeher ein zentraler Bestandteil des Spiels.</p>
+
+<p>Wer einen eigenen Terraria-Server hostet, hat die volle Kontrolle: Welche Spieler beitreten dürfen, welche Mods geladen werden, wie groß die Welt ist und welche Regeln gelten. Zudem lassen sich Savegames sichern und über Jahre hinweg fortführen.</p>
+
+<p>2026 ist Terraria aktueller denn je. Nach dem Erfolg von Journey's End und Labor of Appearance genießt das Spiel regelmäßige Updates. Viele Spieler suchen nach stabilen Servern mit aktueller Version, DDoS-Schutz und gutem Support – das perfekte Angebot für Hoster wie hostazar.com.</p>
+
+<h2>Systemanforderungen für einen Terraria-Server</h2>
+
+<p>Ein Terraria-Server ist erstaunlich genügsam. Für eine kleine Gruppe von 4 bis 8 Spielern reicht ein vServer mit 2 vCPUs, 4 GB RAM und 20 GB SSD. Für 16 bis 32 Spieler sollte man 4 vCPUs und 8 GB RAM einplanen. Die Weltgröße ist entscheidend – große Welten mit vielen Chests und NPCs benötigen deutlich mehr RAM.</p>
+
+<p>Die wichtigsten Ressourcen-Faktoren:</p>
+
+<ul>
+<li>Spieleranzahl: +50 bis 100 MB RAM pro Spieler</li>
+<li>Weltgröße: small, medium, large – small ist Standard</li>
+<li>Mods: tModLoader benötigt mehr CPU und RAM</li>
+<li>Backup-Strategie: zusätzlicher Speicher für Saves</li>
+</ul>
+
+<p>Moderne Hosting-Angebote basieren auf NVMe-SSDs, was Ladezeiten drastisch verkürzt.</p>
+
+<h2>Vanilla vs. tModLoader – Welche Variante passt?</h2>
+
+<p>Der Vanilla-Server nutzt die offizielle TerrariaServer.exe und unterstützt nur die Standard-Features. Er ist stabil, schlank und eignet sich für klassische Multiplayer-Runden.</p>
+
+<p>Der tModLoader hingegen ist eine Mod-Erweiterung, mit der Spieler Inhalte wie Calamity, Thorium oder Starlight River installieren können. Damit verändert sich die Spielmechanik erheblich, weshalb der Ressourcenbedarf steigt. tModLoader-Server benötigen mindestens 6 GB RAM und eine moderne CPU.</p>
+
+<table>
+<thead>
+<tr>
+<th>Variante</th>
+<th>RAM</th>
+<th>CPU</th>
+<th>Einsatz</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vanilla</td>
+<td>2–4 GB</td>
+<td>2 vCPUs</td>
+<td>Klassische Runden</td>
+</tr>
+<tr>
+<td>tModLoader</td>
+<td>6–12 GB</td>
+<td>4+ vCPUs</td>
+<td>Modpacks, Custom Content</td>
+</tr>
+<tr>
+<td>Calamity</td>
+<td>8+ GB</td>
+<td>4+ vCPUs</td>
+<td>Endgame-Bosskämpfe</td>
+</tr>
+</tbody>
+</table>
+
+<h2>Schritt-für-Schritt: Terraria-Server unter Linux starten</h2>
+
+<p>Wer einen Terraria-Server auf einem vServer betreibt, kann das mit wenigen Befehlen tun. Zuerst werden die benötigten Pakete installiert, dann wird der Server entpackt und gestartet.</p>
+
+<pre><code># Terraria-Server herunterladen
+wget https://terraria.org/system/dedicated_servers/archives/000/000/045/original/terraria-server-1449-linux.zip
+
+# Entpacken und in Serverordner wechseln
+unzip terraria-server-1449-linux.zip -d terraria-server
+cd terraria-server/1449/Linux
+
+# Server starten
+chmod +x TerrariaServer.bin.x86_64
+./TerrariaServer.bin.x86_64
+</code></pre>
+
+<p>Beim ersten Start wird man nach der Weltgröße, dem Schwierigkeitsgrad, dem Server-Namen und dem Passwort gefragt. Diese Einstellungen lassen sich später in der serverconfig.txt anpassen.</p>
+
+<h2>Wichtige Konfigurationsoptionen</h2>
+
+<p>Die serverconfig.txt ist das Herzstück der Server-Konfiguration. Hier lassen sich Maximalzahl der Spieler, Passwort, Weltabschnitt, PvP, Schwierigkeit und vieles mehr einstellen.</p>
+
+<p>Beispiel für eine produktive Konfiguration:</p>
+
+<pre><code># serverconfig.txt
+maxplayers=16
+password=supersecret
+worldpath=/home/terraria/worlds/world1.wld
+worldname=MeinTerrariaServer
+autocreate=2
+difficulty=0
+port=7777
+secure=1
+language=de-DE
+</code></pre>
+
+<p>Mit secure=1 wird ausschließlich der offizielle Client zugelassen, was Cheatern den Zugang erschwert.</p>
+
+<h2>tModLoader-Server einrichten</h2>
+
+<p>Der tModLoader-Server wird über das Steam Workshop mit Mods versorgt. Man startet das tModLoader-Server-Binary, loggt sich einmalig mit Steam ein und kann dann ein Modpack aktivieren. Die Mods werden automatisch heruntergeladen.</p>
+
+<p>Eine typische Installation unter Linux:</p>
+
+<pre><code># Steam-CMD installieren
+sudo apt install steamcmd
+
+# Terraria + tModLoader herunterladen
+steamcmd +login anonymous +force_install_dir ./terraria-modded +app_update 1281930 validate +quit
+
+# Server starten
+cd terraria-modded
+./start-tModLoaderServer.sh
+</code></pre>
+
+<p>Mods wie Calamity, Thorium oder Fargo's Soul Mod erweitern das Spiel um Hunderte Stunden Content.</p>
+
+<h2>Backups und Weltsicherung</h2>
+
+<p>Eine regelmäßige Sicherung der Welten ist Pflicht. Terraria speichert die Welt in .wld- und .bak-Dateien. Ein Cronjob kann stündlich ein Backup erstellen und auf einen S3-Bucket oder einen externen Speicher kopieren.</p>
+
+<p>Beispiel für ein automatisches Backup:</p>
+
+<pre><code># /etc/cron.hourly/terraria-backup
+#!/bin/bash
+DATE=$(date +%Y%m%d-%H%M)
+tar -czf /backup/terraria-$DATE.tar.gz /home/terraria/worlds
+find /backup -name "terraria-*.tar.gz" -mtime +7 -delete
+</code></pre>
+
+<p>Bei hostazar.com sind tägliche Backups standardmäßig inklusive und lassen sich mit einem Klick im Webinterface wiederherstellen.</p>
+
+<h2>Performance-Tuning für große Server</h2>
+
+<p>Ab 16 Spielern wird Performance-Tuning wichtig. Dazu gehören das Verkleinern der Welt, das Begrenzen von NPC-Spawns und das Reduzieren von unnötigen Mods. Auch das Setzen der serverconfig-Variable npcstream auf einen niedrigen Wert kann Wunder wirken.</p>
+
+<p>Wichtige Tuning-Schrauben:</p>
+
+<ul>
+<li>npchousing: nur benötigte NPCs zulassen</li>
+<li>rangecheck: aktive Spieler zählen in die Performance</li>
+<li>npcstream: flüssiges Spawnen der NPCs</li>
+<li>Amdahl's Law: Single-Thread-Performance der CPU ist entscheidend</li>
+</ul>
+
+<p>Wer einen Terraria-Server mietet, sollte auf hohe Single-Thread-Leistung achten, da das Spiel nicht multithreaded skaliert.</p>
+
+<h2>Häufige Fehler und Problemlösungen</h2>
+
+<p>Einer der häufigsten Fehler ist eine zu kleine CPU. Selbst wenn 16 GB RAM verfügbar sind, kann ein Single-Core mit 2,0 GHz zum Bottleneck werden. Achten Sie auf moderne Prozessoren wie AMD EPYC oder Intel Xeon der 4. Generation.</p>
+
+<p>Ein zweiter Klassiker: Vergessene Portfreigaben. Der Standardport 7777 muss in der Firewall geöffnet sein. Ebenso sollte der UDP-Port, nicht TCP, freigegeben werden, da Terraria UDP nutzt.</p>
+
+<p>Mod-Inkompatibilitäten sind ein drittes Risiko. Vor dem Update einer Mod sollte man ein Backup der Welt anlegen, da manche Mods den Weltspeicher verändern und bei Updates zu Korruptionen führen können.</p>
+
+<h2>Anbietervergleich: Terraria-Server mieten 2026</h2>
+
+<p>Zahlreiche Hoster bieten mittlerweile fertige Terraria-Server-Pakete an. Zu den etablierten Anbietern zählen hostazar.com, Nitrado, 4Netplayers und Zap-Hosting. Sie unterscheiden sich vor allem in Preis, Performance und Service.</p>
+
+<table>
+<thead>
+<tr>
+<th>Anbieter</th>
+<th>Slots</th>
+<th>RAM</th>
+<th>Preis/Monat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>hostazar.com Starter</td>
+<td>8</td>
+<td>4 GB</td>
+<td>4,99 €</td>
+</tr>
+<tr>
+<td>hostazar.com Pro</td>
+<td>24</td>
+<td>8 GB</td>
+<td>12,99 €</td>
+</tr>
+<tr>
+<td>Nitrado XL</td>
+<td>16</td>
+<td>8 GB</td>
+<td>13,90 €</td>
+<h2>Terraria im Multiplayer – Voraussetzungen 2026</h2>
+<p>Terraria zählt zu den meistverkauften Indie-Spielen überhaupt und erfreut sich auch 2026 einer riesigen Community. Wer das Sandbox-Abenteuer gemeinsam mit Freunden erleben möchte, kann entweder über Re-Logic-Server spielen oder einen eigenen dedizierten Server betreiben. Letzteres bietet volle Kontrolle über Welten, Mods und Spielerzahlen.</p>
+<p>Für einen reibungslosen Terraria-Server werden bestimmte Mindestanforderungen empfohlen. Während der Singleplayer-Modus mit 2 GB RAM auskommt, sollte ein dedizierter Server für 8 bis 16 Spieler mindestens 4 GB Arbeitsspeicher und einen schnellen SSD-Speicher besitzen. Die CPU-Last ist moderat, sodass auch ältere Prozessoren problemlos funktionieren.</p>
+<p>Die offiziellen Systemvoraussetzungen für einen Terraria-Dedicated-Server sind:</p>
+<table>
+<thead>
+<tr><th>Spielerzahl</th><th>CPU</th><th>RAM</th><th>Speicher</th><th>Netzwerk</th></tr>
+</thead>
+<tbody>
+<tr><td>1–4 Spieler</td><td>2 vCPU</td><td>2 GB</td><td>10 GB SSD</td><td>10 Mbit/s</td></tr>
+<tr><td>5–8 Spieler</td><td>2 vCPU</td><td>4 GB</td><td>20 GB SSD</td><td>25 Mbit/s</td></tr>
+<tr><td>9–16 Spieler</td><td>4 vCPU</td><td>6 GB</td><td>30 GB SSD</td><td>50 Mbit/s</td></tr>
+<tr><td>16+ Spieler (Mods)</td><td>4+ vCPU</td><td>8 GB+</td><td>50 GB SSD</td><td>100 Mbit/s</td></tr>
+</tbody>
+</table>
+
+<h2>Hosting-Varianten: vServer, Root-Server oder Gameserver</h2>
+<p>Für das Hosten eines Terraria-Servers stehen verschiedene Optionen zur Verfügung. Die kostengünstigste Variante ist ein vServer (VPS) bei Anbietern wie Hetzner, Contabo oder Netcup. Diese bieten ausreichend Leistung für kleine bis mittelgroße Runden, erfordern aber manuelle Einrichtung inklusive Updates und Backups.</p>
+<p>Root-Server sind die richtige Wahl, wenn maximale Performance und dedizierte Hardware gefragt sind. Sie eignen sich besonders für große Communitys oder stark modifizierte Server mit tModLoader. Allerdings sind auch höhere Kosten und mehr Administrationsaufwand zu erwarten.</p>
+<p>Die komfortabelste Lösung sind spezialisierte Gameserver-Hoster. Diese bieten ein Web-Interface, automatische Updates, DDoS-Schutz und oft auch Mod-Unterstützung out of the box. Bei Hostazar können Terraria-Server in wenigen Klicks bereitgestellt und über ein übersichtliches Panel verwaltet werden.</p>
+
+<h2>Terraria Dedicated Server unter Linux installieren</h2>
+<p>Die Installation des offiziellen Terraria-Servers auf einem Linux-System ist unkompliziert. Zunächst werden die Abhängigkeiten wie Mono oder .NET installiert, da Terraria ursprünglich auf .NET basiert. Ab Werk-Server-Version 1.4 nutzt Terraria .NET 6, weshalb die Installation etwas anders aussieht als bei älteren Versionen.</p>
+<p>Nach dem Download des Server-Archivs von der offiziellen Re-Logic-Seite wird dieses
   <a href="/artikel/valheim-server-vps-mieten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/valheim-server-vps-mieten-2026.webp" alt="Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026" loading="lazy" width="400" height="200"></div>
   </a>

@@ -759,6 +759,25 @@
     </div>
 
 <h1>Grafana Loki Log-Aggregation auf VPS 2026 – Installations-Guide</h1>
+<h2>Grafana Loki Log-Aggregation auf VPS 2026: Vollständiger Setup-Leitfaden</h2>
+<p>Grafana Loki hat sich als führende Lösung für Cloud-native Log-Aggregation etabliert. In Kombination mit Grafana für die Visualisierung und einem VPS als Hosting-Plattform entsteht eine kosteneffiziente, skalierbare Logging-Pipeline. Dieser Leitfaden zeigt Ihnen Schritt für Schritt, wie Sie 2026 ein produktionsreifes Setup aufsetzen.</p>
+<p>Anders als klassische ELK-Stacks (Elasticsearch, Logstash, Kibana) verfolgt Loki einen anderen Ansatz: Statt Volltextindizes zu erstellen, werden Logs komprimiert und mit Labels versehen. Das macht Loki deutlich ressourcenschonender und kostengünstiger, besonders bei hohen Log-Volumina.</p>
+<p>hostazar.com bietet speziell optimierte VPS-Konfigurationen für Loki-Workloads an, die mit vorkonfigurierten Storage-Backends und überwachter Performance überzeugen.</p>
+
+<h2>Was ist Grafana Loki und wie funktioniert es?</h2>
+<p>Grafana Loki wurde von Grafana Labs entwickelt und 2018 erstmals veröffentlicht. Inspiriert von Prometheus verfolgt Loki den Ansatz, Logs ähnlich wie Metriken zu behandeln: Durch Labels indexiert, aber nicht inhaltlich indiziert. Diese Designentscheidung hat weitreichende Konsequenzen für Architektur und Kosten.</p>
+<p>Die Kernkomponenten von Loki sind:</p>
+<ul>
+<li><strong>Loki:</strong> Der Hauptserver, der Logs speichert und Abfragen verarbeitet.</li>
+<li><strong>Promtail / Vector / Fluent Bit:</strong> Agents, die Logs von Quellen einsammeln und an Loki senden.</li>
+<li><strong>Grafana:</strong> Visualisierungsschicht, die LogQL-Abfragen ermöglicht.</li>
+<li><strong>Object Storage:</strong> S3-kompatibler Speicher für die eigentlichen Log-Daten (S3, GCS, Azure Blob, MinIO).</li>
+<li><strong>Index Store:</strong> Optional, für die Label-Indizes (BoltdB, Cassandra, Bigtable, DynamoDB).</li>
+</ul>
+<p>Die Architektur ist horizontal skalierbar: Jede Komponente kann unabhängig skaliert werden, was eine flexible Anpassung an wachsende Log-Volumina ermöglicht.</p>
+
+<h2>Vorbereitung: VPS-Anforderungen und Auswahl</h2>
+<p>B
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

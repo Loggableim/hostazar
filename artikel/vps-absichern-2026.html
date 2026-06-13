@@ -759,6 +759,285 @@
     </div>
 
 <h1>VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</h1>
+<h2>VPS absichern 2026: Der umfassende Leitfaden für maximale Serversicherheit</h2>
+<p>Die Absicherung eines Virtual Private Servers (VPS) ist im Jahr 2026 wichtiger denn je. Mit der Zunahme von Cyberangriffen, automatisierten Bot-Netzwerken und immer raffinierteren Exploit-Techniken reicht eine einfache Standardkonfiguration bei Weitem nicht mehr aus. Administratoren müssen proaktiv handeln und eine mehrschichtige Sicherheitsstrategie implementieren, um ihre Server und Daten zu schützen.</p>
+<p>Im Durchschnitt werden pro Minute über 2.000 automatisierte Angriffe auf ungeschützte Server im Internet durchgeführt. Diese Angriffe zielen auf bekannte Schwachstellen, schwache Passwörter und fehlkonfigurierte Dienste ab. Ein einziger ungesicherter SSH-Port kann ausreichen, um einem Angreifer vollständigen Zugriff auf das System zu ermöglichen. Daher ist eine systematische Herangehensweise an die Serversicherheit unerlässlich.</p>
+<p>Dieser Leitfaden richtet sich an Systemadministratoren, DevOps-Engineers und technisch versierte Anwender, die ihren VPS nach modernsten Standards absichern möchten. Die hier vorgestellten Maßnahmen basieren auf den Best Practices führender Sicherheitsexperten und werden kontinuierlich an die aktuelle Bedrohungslage angepasst. Jeder Schritt trägt dazu bei, die Angriffsfläche zu minimieren und die Integrität des Systems zu gewährleisten.</p>
+
+<h2>Erste Schritte: System-Update und Härtung des Betriebssystems</h2>
+<p>Der erste und wichtigste Schritt bei der Absicherung eines VPS ist ein vollständiges System-Update. Im Jahr 2026 werden monatlich hunderte Sicherheitspatches für gängige Linux-Distributionen veröffentlicht. Ein veraltetes System enthält bekannte Schwachstellen, die von Angreifern automatisiert ausgenutzt werden können. Daher sollte das Update unmittelbar nach der initialen Bereitstellung des Servers durchgeführt werden.</p>
+<p>Nach dem Update empfiehlt sich die Konfiguration automatischer Sicherheitsupdates. Diese stellen sicher, dass kritische Patches zeitnah eingespielt werden, ohne dass ein manueller Eingriff erforderlich ist. Bei Debian-basierten Systemen wie Ubuntu kann das Paket unattended-upgrades verwendet werden, während bei RHEL-basierten Distributionen dnf-automatic zum Einsatz kommt. Die Konfiguration sollte so erfolgen, dass nur Sicherheitsupdates automatisch installiert werden.</p>
+<p>Die Härtung des Betriebssystems umfasst das Deaktivieren nicht benötigter Dienste, das Entfernen unnötiger Softwarepakete und die Konfiguration sicherer Grundeinstellungen. CIS-Benchmarks und DISA-STIGs bieten umfassende Richtlinien für die Systemhärtung. Tools wie Lynis oder OpenSCAP können dabei helfen, den Sicherheitsstatus des Systems zu bewerten und Verbesserungspotenziale aufzuzeigen.</p>
+
+<pre><code># Automatische Sicherheitsupdates auf Ubuntu 24.04 konfigurieren
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y unattended-upgrades apt-listchanges
+
+# Konfiguration bearbeiten
+sudo nano /etc/apt/apt.conf.d/50unattended-upgrades
+
+# Folgende Zeilen anpassen/aktivieren:
+Unattended-Upgrade::Allowed-Origins {
+    "${distro_id}:${distro_codename}-security";
+    "${distro_id}ESMApps:${distro_codename}-apps-security";
+    "${distro_id}ESM:${distro_codename}-infra-security";
+};
+
+Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+Unattended-Upgrade::MinimalSteps "true";
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Unattended-Upgrade::Automatic-Reboot "false";
+
+# Cron-Job für regelmäßige Updates
+sudo dpkg-reconfigure -plow unattended-upgrades
+</code></pre>
+
+<h2>SSH-Sicherheit: Der kritischste Angriffspunkt</h2>
+<p>SSH ist der am häufigsten angegriffene Dienst auf einem VPS und stellt gleichzeitig den wichtigsten Zugangspunkt für Administratoren dar. Die Standardkonfiguration mit Port 22 und Passwort-Authentifizierung ist im Jahr 2026 ein absolutes No-Go. Ein Angreifer kann innerhalb weniger Stunden durch Brute-Force-Angriffe Zugriff auf das System erlangen, wenn keine zusätzlichen Schutzmaßnahmen getroffen werden.</p>
+<p>Die wichtigste Maßnahme ist die Umstellung auf Public-Key-Authentifizierung. Dabei wird auf dem Server ein Schlüsselpaar generiert, und der öffentliche Schlüssel des Clients wird in der Datei authorized_keys hinterlegt. Bei jeder Anmeldung muss der Client den passenden privaten Schlüssel vorweisen, was Brute-Force-Angriffe praktisch unmöglich macht. Zusätzlich sollte die Passwort-Authentifizierung komplett deaktiviert werden.</p>
+<p>Die Änderung des Standard-SSH-Ports von 22 auf einen hohen, unauffälligen Port kann die Anzahl automatisierter Angriffe deutlich reduzieren. Zwar ist dies keine echte Sicherheitsmaßnahme, da Port-Scans den Dienst trotzdem finden, jedoch erschwert es die automatisierte Erkennung und reduziert die Log-Einträge erheblich. Ergänzend sollte die Konfiguration der kryptografischen Algorithmen auf moderne, sichere Standards aktualisiert werden.</p>
+
+<pre><code># /etc/ssh/sshd_config - Sichere SSH-Konfiguration 2026
+Port 51820
+AddressFamily inet
+Protocol 2
+
+# Authentifizierung
+PermitRootLogin no
+PubkeyAuthentication yes
+PasswordAuthentication no
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+KerberosAuthentication no
+GSSAPIAuthentication no
+UsePAM yes
+AuthenticationMethods publickey
+
+# Schlüssel-basierte Einstellungen
+LoginGraceTime 30
+MaxAuthTries 3
+MaxSessions 5
+
+# Sicherheits-Header
+X11Forwarding no
+AllowTcpForwarding no
+AllowAgentForwarding no
+PermitUserEnvironment no
+
+# Moderne Kryptografie
+KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com
+
+# Login-Banner und Logging
+Banner /etc/issue.net
+SyslogFacility AUTH
+LogLevel VERBOSE
+
+# Restriktive Zugriffsliste
+AllowGroups ssh-users
+</code></pre>
+
+<h2>Firewall-Konfiguration und Netzwerksegmentierung</h2>
+<p>Eine professionell konfigurierte Firewall ist das Fundament jeder VPS-Sicherheitsstrategie. Im Jahr 2026 setzen Administratoren dabei auf einen mehrschichtigen Ansatz: Eine externe Firewall beim Cloud-Provider, eine hostbasierte Firewall wie UFW oder firewalld, und optional eine WAF für Webanwendungen. Jede Schicht erfüllt eine spezifische Funktion und ergänzt die anderen.</p>
+<p>Das Prinzip der minimalen Rechte gilt auch für die Firewall: Nur Ports, die tatsächlich benötigt werden, sollten geöffnet sein. SSH, HTTP und HTTPS sind die häufigsten Anwendungsfälle, jedoch sollten auch hier nur die spezifischen Quell-IP-Adressen zugelassen werden, die Zugriff benötigen. Tools wie fail2ban können zusätzlich verdächtige Anmeldeversuche erkennen und die Quell-IP-Adressen temporär blockieren.</p>
+<p>Für komplexere Setups empfiehlt sich die Netzwerksegmentierung mit separaten Subnetzen für öffentliche Dienste, Datenbanken und interne Services. Linux-namespace oder Docker-Netzwerke ermöglichen eine granulare Kontrolle der Kommunikation zwischen Komponenten. Die folgende Tabelle zeigt eine empfohlene Basis-Firewall-Konfiguration für typische Webserver-Szenarien.</p>
+
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Dienst</th>
+<th>Protokoll</th>
+<th>Empfohlene Quellen</th>
+<th>Notwendigkeit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>22 (ändern!)</td>
+<td>SSH</td>
+<td>TCP</td>
+<td>Admin-IPs / VPN</td>
+<td>Erforderlich für Administration</td>
+</tr>
+<tr>
+<td>80</td>
+<td>HTTP</td>
+<td>TCP</td>
+<td>0.0.0.0/0</td>
+<td>Nur für Redirect zu HTTPS</td>
+</tr>
+<tr>
+<td>443</td>
+<td>HTTPS</td>
+<td>TCP</td>
+<td>0.0.0.0/0</td>
+<td>Öffentlicher Webtraffic</td>
+</tr>
+<tr>
+<td>3306</td>
+<td>MySQL</td>
+<td>TCP</td>
+<td>Nur localhost / App-Server</td>
+<td>Nur bei lokaler DB nötig</td>
+</tr>
+<tr>
+<td>5432</td>
+<td>PostgreSQL</td>
+<td>TCP</td>
+<td>Nur localhost / App-Server</td>
+<td>Nur bei lokaler DB nötig</td>
+</tr>
+<tr>
+<td>6379</td>
+<td>Redis</td>
+<td>TCP</td>
+<td>Nur localhost</td>
+<td>Niemals öffentlich!</td>
+</tr>
+<tr>
+<td>51820</td>
+<td>WireGuard</td>
+<td>UDP</td>
+<td>Admin-IPs</td>
+<td>Für VPN-Zugang</td>
+</tr>
+</tbody>
+</table>
+
+<h2>Intrusion Detection und Prevention Systems</h2>
+<p>Intrusion Detection Systems (IDS) und Intrusion Prevention Systems (IPS) sind essenzielle Komponenten einer modernen Sicherheitsarchitektur. Während ein IDS verdächtige Aktivitäten erkennt und meldet, kann ein IPS aktiv in den Datenstrom eingreifen und Angriffe blockieren. Im Open-Source-Bereich haben sich vor allem Suricata, OSSEC und Wazuh etabliert, die jeweils unterschiedliche Stärken aufweisen.</p>
+<p>Fail2ban ist ein leichtgewichtiges Tool, das Log-Dateien in Echtzeit überwacht und bei verdächtigen Mustern automatisch IP-Adressen sperrt. Es eignet sich besonders gut als erste Verteidigungslinie gegen SSH- und Webserver-Brute-Force-Angriffe. Die Konfiguration erfolgt über Filter und Actions, die je nach erkanntem Angriffsmuster angepasst werden können. Die Integration mit einer zentralen Firewall ermöglicht eine systemweite Durchsetzung der Sperrungen.</p>
+<p>Für umfassendere Sicherheitsüberwachung empfiehlt sich der Einsatz von Wazuh, das auf OSSEC basiert und umfangreiche Funktionen für File Integrity Monitoring, Vulnerability Detection und Compliance Management bietet. Wazuh kann auch mit Elastic Stack und Kibana kombiniert werden, um aussagekräftige Dashboards und Alarme zu erstellen. Die zentrale Verwaltung mehrerer Server über einen Wazuh-Manager vereinfacht das Security Monitoring in größeren Infrastrukturen.</p>
+
+<h2>Schutz vor DDoS-Angriffen und Brute-Force-Attacken</h2>
+<p>DDoS-Angr
+<h2>Warum VPS-Sicherheit 2026 wichtiger denn je ist</h2>
+<p>Die Bedrohungslage für virtuelle Server hat sich in den letzten Jahren dramatisch zugespitzt. Automatisierte Scan-Tools durchforsten das Internet rund um die Uhr nach ungeschützten Servern, und die Zeit zwischen Veröffentlichung einer Schwachstelle und der ersten Ausnutzung ist auf wenige Stunden geschrumpft. Ein VPS ohne grundlegende Absicherung ist heute eine Einladung an Angreifer.</p>
+<p>Gleichzeitig steigen die regulatorischen Anforderungen. Die DSGVO, der Digital Operational Resilience Act (DORA) und branchenspezifische Standards wie PCI DSS setzen strenge Maßstäbe für die IT-Sicherheit. Unternehmen, die diese Anforderungen ignorieren, riskieren empfindliche Bußgelder und einen erheblichen Reputationsschaden.</p>
+<p>Die gute Nachricht: Mit einer systematischen Herangehensweise lässt sich ein VPS auch ohne tiefgreifende Sicherheitsexpertise wirksam absichern. Die meisten Angriffe sind opportunistisch und zielen auf leicht verwundbare Systeme. Wer die Grundlagen beherrscht und konsequent umsetzt, ist bereits deutlich besser geschützt als der Durchschnitt.</p>
+<p>Dieser Leitfaden richtet sich an Administratoren und DevOps-Engineers, die einen Linux-VPS sicher betreiben möchten. Die vorgestellten Maßnahmen sind praxiserprobt und folgen den Empfehlungen des BSI, des NIST und der CIS-Benchmarks. Alle Schritte lassen sich auch in automatisierte Setups wie Ansible, Puppet oder Terraform integrieren.</p>
+
+<h2>Erste Schritte: SSH-Zugang richtig absichern</h2>
+<p>Der SSH-Zugang ist das wichtigste Einfallstor zu einem VPS und daher der erste Punkt, der abgesichert werden muss. Die Standardkonfiguration vieler Distributionen erlaubt Root-Login per Passwort, was ein enormes Sicherheitsrisiko darstellt. Diese Einstellung sollte als Erstes geändert werden.</p>
+<p>Zunächst wird ein neuer Benutzer mit Sudo-Rechten angelegt. Direkter Root-Login wird danach deaktiviert. Die Konfiguration erfolgt in der Datei <code>/etc/ssh/sshd_config</code>. Folgende Parameter sollten angepasst werden:</p>
+<pre><code># Root-Login deaktivieren
+PermitRootLogin no
+
+# Passwort-Authentifizierung deaktivieren
+PasswordAuthentication no
+
+# Nur Public-Key-Authentifizierung erlauben
+PubkeyAuthentication yes
+
+# Authentifizierungsversuche begrenzen
+MaxAuthTries 3
+
+# Leerlaufzeit begrenzen
+ClientAliveInterval 300
+ClientAliveCountMax 2</code></pre>
+<p>Nach diesen Änderungen muss der SSH-Dienst neu gestartet werden. Wichtig: Vor dem Neustart sollte unbedingt eine zweite SSH-Session offen bleiben, falls etwas schiefgeht. Andernfalls kann man sich selbst aussperren.</p>
+<p>Zusätzlich empfiehlt sich der Einsatz von fail2ban, einem Tool, das wiederholt fehlgeschlagene Login-Versuche erkennt und die entsprechenden IP-Adressen temporär sperrt. fail2ban lässt sich über die Paketverwaltung der jeweiligen Distribution installieren und mit minimaler Konfiguration in Betrieb nehmen.</p>
+
+<h2>Firewall-Konfiguration mit UFW oder nftables</h2>
+<p>Eine korrekt konfigurierte Firewall ist das Rückgrat jeder Server-Sicherheit. Sie bestimmt, welche Ports von außen erreichbar sind und blockiert standardmäßig alles Unnötige. Bei Linux-VPS stehen im Wesentlichen zwei Optionen zur Verfügung: UFW (Uncomplicated Firewall) für Einsteiger und nftables für Fortgeschrittene.</p>
+<p>UFW ist auf Ubuntu vorinstalliert und besticht durch seine einfache Syntax. Die Grundregel lautet: Alles blockieren, was nicht explizit erlaubt ist. SSH (Port 22) muss als Erstes freigegeben werden, sonst sperrt man sich selbst aus:</p>
+<pre><code># Standardrichtlinien setzen
+ufw default deny incoming
+ufw default allow outgoing
+
+# SSH erlauben
+ufw allow 22/tcp
+
+# HTTP und HTTPS für Webserver
+ufw allow 80/tcp
+ufw allow 443/tcp
+
+# Firewall aktivieren
+ufw enable
+
+# Status anzeigen
+ufw status verbose</code></pre>
+<p>Für komplexere Setups ist nftables die mächtigere Wahl. Es unterstützt moderne Features wie Sets, Maps und Connection Tracking mit deutlich besserer Performance als sein Vorgänger iptables. Die Konfiguration erfolgt in der Datei <code>/etc/nftables.conf</code>.</p>
+<p>Unabhängig von der Wahl der Firewall-Software sollte das Prinzip des Least Privilege gelten: Nur die Ports öffnen, die tatsächlich benötigt werden. Ein reiner Datenbankserver braucht keinen offenen Port 80 oder 443. Auch das Absichern ausgehender Verbindungen (Egress-Filtering) wird oft vernachlässigt, kann aber verhindern, dass ein kompromittierter Server mit Command-and-Control-Servern kommuniziert.</p>
+
+<h2>Automatische Sicherheitsupdates einrichten</h2>
+<p>Ungepatchte Software ist eine der häufigsten Einfallstore für Angreifer. Die meisten erfolgreichen Angriffe nutzen bekannte Schwachstellen, für die längst Patches verfügbar sind. Ein System ohne automatisches Update-Management ist daher ein leichtes Ziel.</p>
+<p>Auf Debian-basierten Systemen übernimmt <code>unattended-upgrades</code> diese Aufgabe. Es installiert Sicherheitsupdates automatisch im Hintergrund und kann so konfiguriert werden, dass es bei Problemen Benachrichtigungen versendet. Die Installation erfolgt mit:</p>
+<pre><code>apt install unattended-upgrades
+dpkg-reconfigure -plow unattended-upgrades</code></pre>
+<p>Die Konfigurationsdatei <code>/etc/apt/apt.conf.d/50unattended-upgrades</code> erlaubt es, festzulegen, welche Updates automatisch eingespielt werden. In den meisten Fällen ist es sinnvoll, nur Sicherheitsupdates automatisch zu installieren und reguläre Updates manuell zu prüfen.</p>
+<p>Auf RHEL-basierten Systemen wie Rocky Linux oder AlmaLinux ist <code>dnf-automatic</code> das Mittel der Wahl. Für CentOS Stream und Fedora existieren entsprechende Pakete. Bei Arch Linux übernimmt <code>pacman</code> mit dem Hook-System ähnliche Aufgaben.</p>
+<p>Unabhängig von der Distribution ist es ratsam, einen Cronjob einzurichten, der wöchentlich einen Bericht über verfügbare Updates generiert. So behält man den Überblick, welche Pakete auf dem Server laufen, und kann bei Bedarf manuell eingreifen.</p>
+
+<h2>Intrusion Detection mit AIDE und Fail2ban</h2>
+<p>Intrusion Detection Systems (IDS) helfen dabei, verdächtige Aktivitäten auf dem Server zu erkennen. Sie sind eine sinnvolle Ergänzung zu Firewall und Updates, da sie auch Angriffe erkennen können, die bereits eine Schwachstelle ausnutzen, bevor Patches verfügbar sind.</p>
+<p>AIDE (Advanced Intrusion Detection Environment) überwacht die Integrität des Dateisystems. Es erstellt eine Datenbank mit Hashes und Metadaten aller relevanten Dateien und vergleicht diese regelmäßig mit dem aktuellen Zustand. Änderungen werden gemeldet und können so frühzeitig erkannt werden.</p>
+<p>Die Erstkonfiguration umfasst die Erstellung der Referenzdatenbank:</p>
+<pre><code>aideinit
+mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db
+aide --check</code></pre>
+<p>Ein Cronjob führt <code>aide --check</code> täglich aus und versendet das Ergebnis per E-Mail. Wichtig ist, die Datenbank an einem sicheren Ort zu speichern, da ein Angreifer, der Zugriff auf die Datenbank hat, sie manipulieren könnte, um seine Spuren zu verwischen.</p>
+<p>Fail2ban ergänzt AIDE um eine netzwerkbasierte Komponente. Es analysiert Logdateien wie <code>/var/log/auth.log</code> und sperrt IP-Adressen, die wiederholt fehlschlagen. Standardmäßig sind bereits Filter für SSH, Apache und Nginx enthalten. Eigene Filter lassen sich einfach hinzufügen.</p>
+
+<h2>Benutzer- und Berechtigungsmanagement</h2>
+<p>Das Prinzip der geringsten Privilegien (Principle of Least Privilege) ist eine der wichtigsten Sicherheitsregeln. Jeder Benutzer und jeder Prozess sollte nur die minimal notwendigen Berechtigungen erhalten. Auf einem VPS bedeutet dies konkret: Kein dauerhaftes Arbeiten als Root, sondern nur gezielte Rechteerweiterung per Sudo.</p>
+<p>Bei der Erstellung neuer Benutzer sollte darauf geachtet werden, dass jeder Benutzer eine eigene Shell und ein eigenes Home-Verzeichnis erhält. Gemeinsame Arbeitsverzeichnisse können mit Gruppenrechten realisiert werden. Wichtig ist auch die regelmäßige Überprüfung, welche Benutzer noch aktiv sind und welche Konten gelöscht werden können.</p>
+<p>Die Datei <code>/etc/passwd</code> zeigt alle Benutzerkonten. <code>/etc/shadow</code> enthält die verschlüsselten Passwörter und sollte nur für Root lesbar sein. Ein regelmäßiger Audit mit Tools wie <code>lynis</code> hilft, vergessene Konten oder zu lockere Berechtigungen zu identifizieren.</p>
+<p>Für Sudo selbst empfiehlt sich die Verwendung von <code>visudo</code> statt eines direkten Editierens der <code>/etc/sudoers</code>. Nur so wird sichergestellt, dass Syntaxfehler erkannt werden, die den Superuser-Zugang komplett blockieren könnten. Die Sudo-Logs unter <code>/var/log/auth.log</code> (Debian) bzw. <code>/var/log/secure</code> (RHEL) geben Aufschluss über privilegierte Aktionen.</p>
+
+<h2>Netzwerksegmentierung und VPNs</h2>
+<p>Gerade bei mehreren VPS oder einer Kombination aus VPS und anderen Diensten ist Netzwerksegmentierung ein mächtiges Sicherheitswerkzeug. Sie isoliert einzelne Dienste voneinander, sodass ein kompromittiertes System nicht zwangsläufig den Zugriff auf andere Komponenten ermöglicht.</p>
+<p>Cloud-Anbieter wie Hetzner, DigitalOcean oder AWS bieten Private Networks an, mit denen VPS im selben Rechenzentrum über interne IPs miteinander kommunizieren können. Diese Netzwerke sind nicht öffentlich erreichbar und bieten eine zusätzliche Schutzebene.</p>
+<p>Für die Administration kann ein VPN wie WireGuard eingesetzt werden. Statt SSH auf einer öffentlichen IP zu exponieren, wird der SSH-Port an die VPN-Adresse gebunden. Angreifer sehen den Server dann gar nicht erst im Internet, und Brute-Force-Angriffe werden nahezu unmöglich.</p>
+<p>Die Konfiguration eines WireGuard-VPN ist mit wenigen Befehlen erledigt:</p>
+<pre><code># Server
+wg genkey | tee /etc/wireguard/server.key
+wg pubkey < /etc/wireguard/server.key > /etc/wireguard/server.pub
+# Konfiguration in /etc/wireguard/wg0.conf</code></pre>
+<p>Nach der Aktivierung mit <code>wg-quick up wg0</code> ist der VPN-Tunnel einsatzbereit. Die Firewall sollte so angepasst werden, dass SSH nur noch über die VPN-Adresse erreichbar ist. Das eliminiert einen Großteil der automatisierten Angriffe.</p>
+
+<h2>Sichere Konfiguration von Webservern</h2>
+<p>Wer auf seinem VPS einen Webserver betreibt, muss diesen zusätzlich absichern. Nginx und Apache sind die häufigsten Vertreter, und beide bieten zahlreiche Optionen, um die Sicherheit zu erhöhen. TLS 1.2 und 1.3 sollten als einzige Protokollversionen erlaubt sein.</p>
+<p>Eine moderne TLS-Konfiguration mit Mozilla-empfohlenen Ciphersuites sieht für Nginx wie folgt aus:</p>
+<pre><code>ssl_protocols TLSv1.2 TLSv1.3;
+ssl_ciphers ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+ssl_prefer_server_ciphers off;
+ssl_session_cache shared:SSL:10m;
+ssl_session_timeout 1d;
+ssl_session_tickets off;</code></pre>
+<p>Zusätzlich empfiehlt sich der Einsatz von HSTS (HTTP Strict Transport Security), um Downgrade-Angriffe zu verhindern. Auch das Hinzufügen von Security-Headern wie Content-Security-Policy, X-Frame-Options und X-Content-Type-Options ist Pflicht für eine zeitgemäße Webserver-Konfiguration.</p>
+<p>Reverse Proxies wie Nginx oder Traefik können auch zur Lastverteilung und als zusätzliche Sicherheitsschicht dienen. Ein in Docker Compose bereitgestellter Service lauscht auf einem privaten Netzwerkport, und nur der Reverse-Proxy exponiert ihn nach außen. So lassen sich auch Dienste ohne eigene Authentifizierung sicher betreiben.</p>
+
+<h2>Container-Sicherheit mit Docker und Podman</h2>
+<p>Container sind aus modern
+<h2>VPS absichern 2026: Der komplette Security-Leitfaden</h2>
+<p>Die Absicherung eines Virtual Private Servers (VPS) ist im Jahr 2026 komplexer denn je. Cyberangriffe nehmen zu, automatisierte Bots durchsuchen das Internet rund um die Uhr, und Zero-Day-Schwachstellen werden schneller ausgenutzt. Wer seinen VPS nicht systematisch härtet, riskiert Datenverlust, Kryptomining-Überfälle oder gar den kompletten Verlust der Server-Kontrolle.</p>
+<p>Ein gehärteter VPS bildet das Fundament für jede produktive Anwendung – sei es eine Webseite, eine API, ein Datenbank-Server oder ein selbstgehostetes KI-System. Die gute Nachricht: Mit einer klaren Checkliste und bewährten Tools lässt sich die Sicherheit deutlich erhöhen, oft in weniger als einem Tag.</p>
+<p>Dieser Leitfaden führt dich durch alle relevanten Schritte: vom ersten Login über SSH-Härtung und Firewalls bis hin zu Intrusion Detection, Logging und Incident Response. Die Empfehlungen basieren auf aktuellen Best Practices für 2026.</p>
+
+<h2>Erste Schritte nach dem Server-Setup</h2>
+<p>Bevor du irgendwelche Dienste installierst oder Ports öffnest, solltest du die Grundkonfiguration absichern. Viele Hoster liefern Images mit veralteter Software oder Standard-Passwörtern aus, die bereits in Bot-Netzwerken bekannt sind.</p>
+<p>Die ersten Minuten auf einem neuen VPS sind entscheidend. Aktualisiere umgehend das System, lege einen administrativen Nutzer mit sudo-Rechten an, deaktiviere den Root-Login und ändere alle Standardpasswörter. Das klingt banal, wird aber erstaunlich oft vergessen.</p>
+<p>Initiales Härtungs-Script:</p>
+<pre><code># System aktualisieren
+apt update &amp;&amp; apt upgrade -y
+
+# Admin-User anlegen
+adduser admin
+usermod -aG sudo admin
+
+# Root-Login verbieten (später)
+passwd -l root
+
+# SSH-Verzeichnis vorbereiten
+mkdir -p /home/admin/.ssh
+chmod 700 /home/admin/.ssh</code></pre>
+
+<h2>SSH-Härtung: Schlüssel statt Passwörter</h2>
+<p>Passwortbasierte SSH-Logins sind 2026 ein absolutes No-Go. Brute-Force
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

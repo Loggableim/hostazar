@@ -759,6 +759,302 @@
     </div>
 
 <h1>Jenkins CI/CD Pipeline auf dem VPS – Automatisierte Builds &amp; Deployments 2026</h1>
+<h2>Was ist Jenkins und warum ist es 2026 noch relevant?</h2>
+<p>Jenkins ist ein Open-Source-Automatisierungsserver, der 2011 als Fork des Hudson-Projekts entstand und sich seitdem zum de-facto-Standard für Continuous Integration und Continuous Delivery (CI/CD) entwickelt hat. Trotz der Konkurrenz durch cloudnative Lösungen wie GitHub Actions, GitLab CI oder CircleCI ist Jenkins auch im Jahr 2026 noch immer eines der am weitesten verbreiteten Werkzeuge zur Automatisierung von Build-, Test- und Deployment-Prozessen.</p>
+<p>Der Hauptgrund für die anhaltende Beliebtheit von Jenkins liegt in seiner enormen Flexibilität. Mit über 1.800 offiziellen Plugins lässt sich Jenkins an nahezu jeden Workflow anpassen – egal ob klassische Java-Anwendungen, moderne Microservices in Container-Clustern, Machine-Learning-Pipelines oder Embedded-Software. Diese Plugin-Vielfalt wird von keinem anderen CI/CD-Tool erreicht.</p>
+<p>Ein weiterer Vorteil ist die vollständige Kontrolle über die eigene Infrastruktur. Während SaaS-Lösungen wie GitHub Actions oft Minuten pro Build abrechnen und in die Abhängigkeit von einem Drittanbieter zwingen, läuft Jenkins auf der eigenen Hardware – oder eben auf einem virtuellen Server wie einem VPS. Für datenschutzsensible Branchen wie das Gesundheitswesen, die Finanzbranche oder die öffentliche Verwaltung ist dies oft ein entscheidendes Kriterium.</p>
+<p>Auch im Hinblick auf die Anschaffungskosten ist Jenkins unschlagbar: Die Software selbst ist kostenlos, es entstehen lediglich Kosten für die zugrundeliegende Infrastruktur. Ein Jenkins CI CD Pipeline VPS bietet hier die perfekte Balance aus Kosteneffizienz, Kontrolle und Skalierbarkeit.</p>
+
+<h2>Jenkins CI/CD Architektur verstehen: Master und Agent</h2>
+<p>Jenkins folgt einer klassischen Master-Agent-Architektur, auch wenn diese Terminologie in den letzten Jahren durch "Controller und Node" ersetzt wurde. Der Controller verwaltet die zentrale Konfiguration, plant Jobs, speichert Build-Historien und bietet das Webinterface. Die Agents – früher "Slaves" – führen die eigentlichen Build- und Test-Aufgaben aus.</p>
+<p>Diese Architektur hat mehrere Vorteile: Die Build-Last wird auf mehrere Maschinen verteilt, unterschiedliche Build-Umgebungen (z. B. Windows, Linux, macOS) können parallel genutzt werden, und der Controller bleibt auch dann verfügbar, wenn einzelne Agents überlastet oder ausgefallen sind. In einer Jenkins CI CD Pipeline VPS-Umgebung werden Controller und Agents oft auf demselben VPS betrieben, können aber bei steigender Last problemlos auf separate Instanzen ausgelagert werden.</p>
+<p>Die Kommunikation zwischen Controller und Agent erfolgt wahlweise über SSH, JNLP (Java Network Launch Protocol) oder WebSockets. SSH ist die sicherste und am weitesten verbreitete Variante, da sie auf standardmäßigen Public-Key-Authentifizierungsverfahren basiert. In der Jenkins-Konfiguration wird ein Agent als dauerhafte Verbindung oder als dynamisch gestarteter Cloud-Agent (z. B. Docker, Kubernetes) registriert.</p>
+<p>Wer mit der Skalierung seiner Pipeline beginnt, sollte frühzeitig auf eine Container-basierte Agent-Strategie setzen. Docker-Agents werden bei Bedarf automatisch gestartet und nach Abschluss des Builds wieder heruntergefahren. Dies spart Ressourcen und ermöglicht es, in Minuten beliebig viele parallele Builds auszuführen, ohne dauerhaft Hardware vorzuhalten.</p>
+
+<h2>Systemanforderungen für einen Jenkins CI CD Pipeline VPS 2026</h2>
+<p>Die Anforderungen an einen Jenkins-Server sind in den letzten Jahren kontinuierlich gestiegen, da Pipelines immer komplexer werden und die Anzahl der Plugins zunimmt. Für eine moderne Jenkins-Installation im Jahr 2026 gelten folgende Mindestanforderungen als Richtwert:</p>
+<table>
+<thead>
+<tr><th>Komponente</th><th>Mindestanforderung</th><th>Empfohlen</th><th>Für Enterprise-Einsatz</th></tr>
+</thead>
+<tbody>
+<tr><td>CPU</td><td>2 vCores</td><td>4 vCores</td><td>8+ vCores</td></tr>
+<tr><td>RAM</td><td>4 GB</td><td>8 GB</td><td>16+ GB</td></tr>
+<tr><td>Storage</td><td>40 GB SSD</td><td>80 GB NVMe</td><td>250+ GB NVMe</td></tr>
+<tr><td>Betriebssystem</td><td>Ubuntu 22.04 LTS</td><td>Ubuntu 24.04 LTS</td><td>Debian 12 / RHEL 9</td></tr>
+</tbody>
+</table>
+<p>Jenkins selbst ist eine Java-Anwendung und benötigt daher eine aktuelle JDK-Installation. OpenJDK 17 oder 21 sind 2026 die empfohlenen Versionen, da sie Performance-Verbesserungen und Long-Term-Support bieten. Ältere Java-Versionen werden von aktuellen Jenkins-Versionen nicht mehr unterstützt.</p>
+<p>Der Speicherbedarf wächst mit der Anzahl der gespeicherten Build-Historien. Standardmäßig behält Jenkins alle Builds und Artefakte dauerhaft, was bei aktiven Projekten schnell mehrere hundert Gigabyte ergeben kann. Eine sinnvolle Archivierungsstrategie – etwa das automatische Löschen von Builds älter als 30 Tage – entlastet das Dateisystem und hält die Backup-Zeiten kurz.</p>
+<p>Für die Netzwerkanbindung empfiehlt sich mindestens 1 Gbit/s, da Jenkins beim Klonen von Repositories, beim Hoch- und Herunterladen von Artefakten und bei der Kommunikation mit Cloud-Diensten teils erhebliche Datenmengen bewegt. Hostazars Jenkins CI CD Pipeline VPS-Tarife bieten durchgängig 1-Gbit/s-Anbindung und unbegrenzten Traffic.</p>
+
+<h2>Installation von Jenkins auf einem Linux-VPS</h2>
+<p>Die Installation von Jenkins auf einem frischen Linux-VPS ist in wenigen Schritten erledigt. Als Grundlage dient ein Ubuntu 24.04 LTS, das auf 95 % aller Jenkins-Server-Deployments weltweit zum Einsatz kommt. Im Folgenden wird die manuelle Installation Schritt für Schritt erläutert.</p>
+<p>Zunächst werden die Systempakete aktualisiert und Java installiert:</p>
+<pre><code>sudo apt update && sudo apt upgrade -y
+sudo apt install -y openjdk-21-jdk-headless curl gnupg</code></pre>
+<p>Anschließend wird der offizielle Jenkins-GPG-Schlüssel und das Repository hinzugefügt:</p>
+<pre><code>curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | \
+  sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+  https://pkg.jenkins.io/debian-stable binary/" | \
+  sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+sudo apt update</code></pre>
+<p>Jetzt kann Jenkins installiert und gestartet werden:</p>
+<pre><code>sudo apt install -y jenkins
+sudo systemctl enable jenkins
+sudo systemctl start jenkins</code></pre>
+<p>Nach der Installation ist Jenkins unter <code>http://&lt;server-ip&gt;:8080</code> erreichbar. Das initiale Admin-Passwort wird in <code>/var/lib/jenkins/secrets/initialAdminPassword</code> abgelegt und sollte umgehend geändert werden. Im Setup-Wizard empfiehlt es sich, zuerst die vorgeschlagenen Plugins zu installieren, um eine solide Grundfunktionalität zu erhalten.</p>
+
+<h2>Die erste Jenkins-Pipeline als Code</h2>
+<p>Pipelines "as Code" sind die moderne Art, Build-Workflows in Jenkins zu definieren. Anstatt Jobs per Klick im Webinterface anzulegen, wird die gesamte Pipeline in einer <code>Jenkinsfile</code> beschrieben, die im Quellcode-Repository versioniert wird. Dies ermöglicht Code-Reviews, Reproduzierbarkeit und eine konsistente Konfiguration über alle Branches und Umgebungen hinweg.</p>
+<p>Eine einfache deklarative Pipeline für eine Node.js-Anwendung könnte so aussehen:</p>
+<pre><code>pipeline {
+  agent any
+  stages {
+    stage('Checkout') {
+      steps {
+        git 'https://github.com/mein-team/mein-projekt.git'
+      }
+    }
+    stage('Install') {
+      steps {
+        sh 'npm ci'
+      }
+    }
+    stage('Test') {
+      steps {
+        sh 'npm test'
+      }
+    }
+    stage('Build') {
+      steps {
+        sh 'npm run build'
+      }
+    }
+    stage('Deploy') {
+      when {
+        branch 'main'
+      }
+      steps {
+        sh 'scp -r dist/* deploy@server:/var/www/app'
+      }
+    }
+  }
+}</code></pre>
+<p>Diese Pipeline definiert fünf Stages: Checkout, Install, Test, Build und Deploy. Die <code>when</code>-Bedingung sorgt dafür, dass das Deployment nur auf dem main-Branch ausgeführt wird – ein wichtiger Schutzmechanismus, um versehentliche Deployments von Feature-Branches zu verhindern.</p>
+<p>Pipelines-as-Code bieten zahlreiche Vorteile: Sie sind versioniert, peer-review-fähig, können in mehreren Repositories wiederverwendet werden (mittels "Shared Libraries") und ermöglichen eine kontinuierliche Verbesserung der Build-Qualität durch sichtbare Änderungshistorie.</p>
+
+<h2>Docker-Agents für parallele Jenkins-Builds</h2>
+<p>Eine der größten Stärken von Jenkins im Jahr 2026 ist die native Docker-Integration. Über das Plugin "Docker Pipeline" oder "Cloud Bees Docker Custom Build Environment" lassen sich Docker-Container als dynamische Agents verwenden. Jeder Build läuft dann in einem frischen, isolierten Container – mit exakt der gewünschten Toolchain.</p>
+<p>Die Konfiguration eines Docker-Cloud-Agents erfolgt in der Jenkins-Systemverwaltung unter "Clouds". Ein typischer Eintrag könnte wie folgt aussehen:</p>
+<pre><code>name: 'docker-cloud'
+dockerHost: 'unix:///var/run/docker.sock'
+containerCap: 10
+image: 'jenkins/agent:latest'
+remoteFs: '/home/jenkins/agent'</code></pre>
+<p>In der Pipeline kann dann explizit ein bestimmter Container als Agent angefordert werden:</p>
+<pre><code>pipeline {
+  agent {
+    docker {
+      image 'node:20-alpine'
+      args '-v /tmp:/tmp'
+    }
+  }
+  stages {
+    stage('Test') {
+      steps {
+        sh 'node --version && npm test'
+      }
+    }
+  }
+}</code></pre>
+<p>Dieses Setup ermöglicht es, Builds in unterschiedlichen Umgebungen auszuführen – etwa Node 18 für Legacy-Projekte und Node 20 für aktuelle Anwendungen – ohne mehrere dedizierte Agent-VMs vorzuhalten. Hostazars Jenkins CI CD Pipeline VPS-Tarife bieten ausreichend CPU- und RAM-Ressourcen, um 5 bis 10 parallele Docker-Agents zu betreiben.</p>
+
+<h2>Security: Jenkins absichern in 2026</h2>
+<p>Die Sicherheit eines Jenkins-Servers ist ein kritischer Aspekt, da er Zugriff auf Quellcode, Build-Artefakte und oft auch auf Production-Systeme hat. Ein kompromittierter Jenkins-Server kann als Sprungbrett für Angriffe auf die gesamte Infrastruktur missbraucht werden. Daher sind mehrschichtige Sicherheitsmaßnahmen unerlässlich.</p>
+<p>Erstens sollte Jenkins niemals ohne Authentifizierung betrieben werden. Die Standardkonfiguration aktiviert zwar eine lokale Benutzerdatenbank, in Produktionsumgebungen sollte jedoch eine Integration mit LDAP, Active Directory oder SAML-SSO erfolgen. Dies ermöglicht eine zentrale Benutzerverwaltung und erleichtert das Onboarding neuer Mitarbeiter.</p>
+<p>Zweitens empfiehlt sich die Aktivierung der rollenbasierten Zugriffskontrolle (Role-Based Access Control) über das Plugin "Role-based Authorization Strategy". Mit RBAC lassen sich granular Berechtigungen vergeben, sodass ein Entwickler nur Zugriff auf seine eigenen Jobs hat, während ein Release-Manager Deployments auslösen darf.</p>
+<p>Drittens ist die Netzwerkisolation entscheidend. Jenkins sollte niemals direkt aus dem Internet erreichbar sein, sondern hinter einem Reverse Proxy (z. B. Nginx) mit TLS-Termination und idealerweise einem VPN oder einer IP-Whitelist betrieben werden. Hostazars Jenkins-VPS-Tarife beinhalten eine private Netzwerkschnittstelle, mit der Jenkins in einem isolierten Subnetz betrieben werden kann.</p>
+<p>Viertens sollten regelmäßige Audits der installierten Plugins durchgeführt werden. Veraltete Plugins sind eine häufige Angriffsquelle. Jenkins bietet einen integrierten "Plugin
+<h2>Jenkins CI/CD Pipeline auf einem VPS einrichten: Der komplette Leitfaden 2026</h2>
+<p>Jenkins zählt seit über einem Jahrzehnt zu den populärsten Open-Source-Automatisierungslösungen weltweit und ist auch im Jahr 2026 aus vielen DevOps-Workflows nicht wegzudenken. Die Software ermöglicht es, Build-, Test- und Deployment-Prozesse vollständig zu automatisieren und sorgt so für reproduzierbare Auslieferungszyklen. Wer seine Pipeline unabhängig von Drittanbietern betreiben möchte, findet in einem eigenen Virtual Private Server (VPS) die ideale Grundlage. Hier behältst du jederzeit die volle Kontrolle über Ressourcen, Daten und Konfiguration.</p>
+<p>Ein selbstgehosteter Jenkins-Server bietet im Vergleich zu SaaS-Lösungen wie GitHub Actions oder CircleCI mehrere entscheidende Vorteile: keine Minutenbeschränkungen, keine Beschränkung der parallelen Jobs, freie Wahl der Build-Umgebung sowie die Möglichkeit, sensible Build-Artefakte im eigenen Netzwerk zu halten. Gerade für Unternehmen mit Compliance-Anforderungen ist dies ein unschätzbarer Mehrwert.</p>
+<p>In diesem Leitfaden zeigen wir dir Schritt für Schritt, wie du Jenkins 2026 auf einem VPS installierst, absicherst und eine produktive CI/CD-Pipeline aufbaust. Dabei gehen wir auf aktuelle Best Practices ein und berücksichtigen die neuesten LTS-Versionen von Jenkins sowie moderne Pipeline-as-Code-Ansätze.</p>
+
+<h2>Systemvoraussetzungen und VPS-Auswahl für Jenkins</h2>
+<p>Bevor du mit der Installation beginnst, solltest du die Mindestanforderungen deines zukünftigen Jenkins-Servers kennen. Die offiziellen Empfehlungen haben sich mit den aktuellen LTS-Versionen leicht verändert und berücksichtigen nun verstärkt containerisierte Workloads.</p>
+<p>Für eine produktive Jenkins-Instanz empfehlen wir im Jahr 2026 folgende Mindestkonfiguration:</p>
+<table>
+<thead>
+<tr><th>Ressource</th><th>Minimum</th><th>Empfohlen</th><th>Produktiv</th></tr>
+</thead>
+<tbody>
+<tr><td>CPU-Kerne</td><td>2 vCPU</td><td>4 vCPU</td><td>8 vCPU</td></tr>
+<tr><td>Arbeitsspeicher</td><td>4 GB RAM</td><td>8 GB RAM</td><td>16 GB RAM</td></tr>
+<tr><td>Speicherplatz</td><td>40 GB SSD</td><td>80 GB SSD</td><td>160 GB NVMe</td></tr>
+<tr><td>Betriebssystem</td><td>Ubuntu 22.04 LTS</td><td>Ubuntu 24.04 LTS</td><td>Ubuntu 24.04 LTS</td></tr>
+<tr><td>Java-Version</td><td>OpenJDK 17</td><td>OpenJDK 21</td><td>OpenJDK 21</td></tr>
+</tbody>
+</table>
+<p>Bei der Wahl des Hostinganbieters solltest du auf einen Standort in der EU achten, um DSGVO-Konformität zu gewährleisten. Anbieter wie Hetzner, Netcup oder IONOS bieten mittlerweile sehr leistungsfähige VPS-Tarife zu attraktiven Preisen. Achte zudem darauf, dass der Anbieter tägliche Snapshots und eine schnelle SSD- oder NVMe-Anbindung bietet, da CI/CD-Workloads stark I/O-limitiert sein können.</p>
+<p>Für die Jenkins-Datenhaltung empfehlen wir den Einsatz einer externen Datenbank wie PostgreSQL statt der eingebauten H2-Datenbank. Dies verbessert die Performance bei großen Projekten erheblich und ermöglicht einfache Backups. Auf hostazar.com findest du eine detaillierte Anleitung zur optimalen VPS-Konfiguration für CI/CD-Workloads.</p>
+
+<h2>Jenkins Installation auf Ubuntu 24.04 LTS</h2>
+<p>Die Installation von Jenkins auf einem aktuellen Ubuntu-System ist dank der offiziellen Paketquellen unkompliziert. Wir verwenden die LTS-Variante, da sie für den Produktiveinsatz empfohlen wird und längere Supportzyklen bietet.</p>
+<p>Zunächst aktualisieren wir das System und installieren die benötigten Abhängigkeiten:</p>
+<pre><code>sudo apt update && sudo apt upgrade -y
+sudo apt install -y curl wget gnupg2 apt-transport-https software-properties-common</code></pre>
+<p>Anschließend fügen wir den offiziellen GPG-Schlüssel und das Jenkins-Repository hinzu:</p>
+<pre><code>curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee \
+  /usr/share/keyrings/jenkins-keyring.asc &gt; /dev/null
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+  /etc/apt/sources.list.d/jenkins.list &gt; /dev/null
+sudo apt update
+sudo apt install -y jenkins</code></pre>
+<p>Nach der Installation starten wir den Dienst und aktivieren den Autostart. Jenkins benötigt Java, das in den meisten Distributionen bereits mitinstalliert wird. Andernfalls kannst du es mit <code>sudo apt install -y openjdk-21-jdk</code> nachinstallieren. Die initiale Konfiguration erfolgt über das Webinterface auf Port 8080.</p>
+
+<h2>Erstkonfiguration und Sicherheits-Hardening</h2>
+<p>Die Standardinstallation von Jenkins ist zwar funktional, aber nicht für den direkten Produktiveinsatz geeignet. Ein systematisches Hardening ist unerlässlich, da Jenkins-Server aufgrund ihrer privilegierten Zugriffe auf Repositories und Build-Umgebungen ein beliebtes Angriffsziel darstellen.</p>
+<p>Die wichtigsten Sofortmaßnahmen nach der Erstinstallation umfassen:</p>
+<ul>
+<li>Änderung des initialen Admin-Passworts</li>
+<li>Aktivierung der Matrix-basierenden Sicherheitsstrategie</li>
+<li>Konfiguration einer Firewall (UFW) mit Beschränkung auf Port 22, 80 und 443</li>
+<li>Einrichtung eines Reverse-Proxy mit Nginx für TLS-Termination</li>
+<li>Aktivierung der CSRF-Schutzmaßnahmen</li>
+</ul>
+<p>Für die sichere Konfiguration empfehlen wir die Verwendung des <code>Configuration as Code</code>-Plugins, mit dem du die gesamte Jenkins-Konfiguration in einer YAML-Datei ablegen und versionieren kannst. Dies ermöglicht reproduzierbare Setups und erleichtert die Migration auf neue Server erheblich. Die Datei wird über die Umgebungsvariable <code>CASC_JENKINS_CONFIG</code> eingebunden und beim Start automatisch angewendet.</p>
+<p>Ein weiterer kritischer Punkt ist die Aktualisierung der Plugins. Veraltete Plugins sind eine der häufigsten Ursachen für Sicherheitsvorfälle. Aktiviere die automatische Update-Benachrichtigung und etabliere einen wöchentlichen Wartungszyklus für Plugin-Updates und Sicherheitspatches.</p>
+
+<h2>Pipeline-as-Code mit Jenkinsfile</h2>
+<p>Das Herzstück jeder modernen Jenkins-Installation ist die Pipeline-as-Code-Funktionalität. Statt Jobs über die Weboberfläche zu konfigurieren, wird die gesamte Build-Logik in einer Jenkinsfile im Repository abgelegt. Dies bringt zahlreiche Vorteile mit sich.</p>
+<p>Eine Jenkinsfile im deklarativen Stil ist übersichtlich, versioniert und kann von allen Teammitgliedern im Code-Review geprüft werden. Sie ermöglicht zudem eine konsistente Ausführung über verschiedene Branches hinweg und erleichtert die Migration zwischen Jenkins-Instanzen. Hier ein Beispiel für eine typische Node.js-Pipeline:</p>
+<pre><code>pipeline {
+  agent any
+  stages {
+    stage('Checkout') {
+      steps {
+        git branch: 'main', url: 'https://github.com/example/app.git'
+      }
+    }
+    stage('Build &amp; Test') {
+      steps {
+        sh 'npm ci'
+        sh 'npm run build'
+        sh 'npm test'
+      }
+    }
+    stage('Docker Build') {
+      steps {
+        sh 'docker build -t myapp:${BUILD_NUMBER} .'
+      }
+    }
+    stage('Deploy') {
+      when {
+        branch 'main'
+      }
+      steps {
+        sh 'kubectl apply -f k8s/deployment.yaml'
+      }
+    }
+  }
+  post {
+    always {
+      junit 'test-results/**/*.xml'
+    }
+  }
+}</code></pre>
+<p>Mit der <code>library</code>-Direktive kannst du wiederverwendbare Pipeline-Schritte aus separaten Repositories laden. Dies fördert die Konsistenz über mehrere Projekte hinweg und reduziert die Duplizierung von Pipeline-Logik erheblich. Auf hostazar.com findest du zahlreiche Vorlagen für gängige Sprachen und Frameworks.</p>
+
+<h2>Shared Libraries und wiederverwendbare Komponenten</h2>
+<p>Wenn dein Team mehrere Projekte mit ähnlichen Anforderungen betreibt, sind Shared Libraries ein mächtiges Werkzeug. Sie ermöglichen es, häufig verwendete Pipeline-Schritte zu zentralisieren und in verschiedenen Repositories wiederzuverwenden.</p>
+<p>Eine Shared Library folgt einer festen Verzeichnisstruktur und wird über das Jenkinsfile mit der <code>@Library</code>-Annotation eingebunden:</p>
+<pre><code>(root)
+├── src                    # Groovy-Quellcode
+├── vars                   # Globale Variablen
+│   ├── buildDockerImage.groovy
+│   └── deployToK8s.groovy
+├── resources              # Nicht-Groovy-Dateien
+└── README.md</code></pre>
+<p>Die in <code>vars</code> definierten Groovy-Skripte stehen automatisch als globale Funktionen in jeder Jenkinsfile zur Verfügung. Dies ermöglicht es, komplexe Build-Logik in wiederverwendbare, gut testbare Module zu kapseln. Für maximale Robustheit empfehlen wir, Shared Libraries mit einer festen Version (Git-Tag) einzubinden, um ungewollte Seiteneffekte durch Änderungen zu vermeiden.</p>
+<p>In größeren Organisationen empfiehlt sich zudem die Einrichtung einer eigenen Library für sicherheitsrelevante Schritte wie Secrets-Management, Container-Scanning und Compliance-Checks. So stellst du sicher, dass alle Projekte die gleichen Standards einhalten.</p>
+
+<h2>Integration mit Git über Webhooks</h2>
+<p>Die nahtlose Integration mit deinem Versionskontrollsystem ist entscheidend für einen effizienten CI/CD-Workflow. Jenkins unterstützt eine Vielzahl von SCM-Systemen, wobei Git und GitHub die häufigsten Einsatzszenarien darstellen.</p>
+<p>Um automatische Builds bei jedem Push auszulösen, musst du Webhooks konfigurieren. Bei GitHub gehst du dazu in die Repository-Einstellungen unter "Webhooks" und fügst eine neue URL im Format <code>http://dein-jenkins-server/github-webhook/</code> hinzu. Für selbstgehostete Gitea- oder GitLab-Instanzen ist die Konfiguration ähnlich.</p>
+<p>Beachte dabei folgende Sicherheitsaspekte:</p>
+<ul>
+<li>Verwende ausschließlich HTTPS für Webhook-URLs</li>
+<li>Konfiguriere ein Shared Secret zur Authentifizierung</li>
+<li>Beschränke die Quell-IPs in der Firewall</li>
+<li>Aktiviere die IP-Allowlist im Jenkins GitHub-Plugin</li>
+</ul>
+<p>Mit dem <code>Git SCM Polling</code>-Plugin kann Jenkins alternativ das Repository in regelmäßigen Abständen auf Änderungen prüfen. Diese Methode ist ressourcenintensiver, aber eine sinnvolle Fallback-Option, falls Webhooks nicht verfügbar sind.</p>
+
+<h2>Build-Agents und verteilte Architektur</h2>
+<p>Für produktive Setups mit vielen parallelen Builds ist der eingebaute Jenkins-Controller schnell überlastet. Die Lösung sind separate Build-Agents, die als Worker-Knoten fungieren und die eigentliche Build-Last tragen.</p>
+<p>Es gibt verschiedene Möglichkeiten, Agents einzubinden:</p>
+<table>
+<thead>
+<tr><th>Agent-Typ</th><th>Vorteile</th><th>Nachteile</th><th>Ideal für</th></tr>
+</thead>
+<tbody>
+<tr><td>SSH-Agent</td><td>Einfache Einrichtung</td><td>Manuelle Wartung</td><td>Kleine Teams</td></tr>
+<tr><td>JNLP-Agent</td><td>Firewall-freundlich</td><td>Konfigurationsaufwand</td><td>Hybride Setups</td></tr>
+<tr><td>Docker-Agent</td><td>Isolierte Umgebungen</td><td>Docker-in-Docker nötig</td><td>Standard-Workloads</td></tr>
+<tr><td>Kubernetes-Agent</td><td>Elastische Skalierung</td><td>Komplexe Konfiguration</td><td>Große Organisationen</td></tr>
+</tbody>
+</table>
+<p>Mit dem <code>Kubernetes Plugin</code> kann Jenkins dynamisch Build-Pods in einem K8s-Cluster starten und nach Abschluss wieder herunterfahren. Dies ermöglicht eine nahezu unbegrenzte horizontale Skalierung und ist besonders kosteneffizient, da Ressourcen nur bei Bedarf allokiert werden. Auf hostazar.com findest du eine detaillierte Anleitung zur Einrichtung des Kubernetes-Plugins.</p>
+<p>Für eine optimale Lastverteilung empfehlen wir die Konfiguration von Labels, mit denen du Agents nach Fähigkeiten gruppieren kannst. So lassen sich spezialisierte Build-Umgebungen (z. B. "linux-docker", "windows-msbuild", "macos-xcode") sauber trennen.</p>
+
+<h2>Secrets-Management und Credential-Speicherung</h2>
+<p>Die sichere Verwaltung von Geheimnissen ist eine der größten Herausforderungen in CI/CD-Pipelines. Jenkins bietet mehrere Mechanismen, die jeweils unterschiedliche Sicherheitsniveaus bieten.</p>
+<p>Die eingebaute <code>Credentials</code>-Funktion verschlüsselt Secrets mit einem Master-Schlüssel und speichert sie in der Jenkins-Konfiguration. Für höhere Sicherheitsanforderungen empfehlen wir die Integration mit externen Secret-Managern:</p>
+<ul>
+<li><strong>HashiCorp Vault:</strong> Industriestandard mit dynamischen Secrets und Audit-Logging</li>
+<li><strong>AWS Secrets Manager:</strong> Native Integration in AWS-Workflows</li>
+<li><strong>Azure Key Vault:</strong> Optimiert für Azure-Cloud-Setups</li>
+<li><strong>Kubernetes Secrets:</strong> Direkter Zugriff aus Pod-Agents</li>
+</ul>
+<p>Das <code>HashiCorp Vault Plugin</code> ermöglicht es, Secrets dynamisch pro Build anzufordern und nach Abschluss automatisch zu widerrufen. Dies minimiert das Risiko kompromittierter Credentials erheblich. Die Pipeline-Syntax ist dabei denkbar einfach:</p>
+<pre><code>withCredentials([string(credentialsId: 'prod-db', variable: 'DB_PASS')]) {
+  sh 'deploy.sh --password=$DB_PASS'
+}</code></pre>
+<p>Achte darauf, niemals Secrets in Logs auszugeben. Jenkins bietet mit der <code>Mask Passwords</code>-Option eine automatische Schwärzung sensibler Werte in der Konsolenausgabe.</p>
+
+<h2>Monitoring, Backup und Disaster Recovery</h2>
+<p>Ein produktiver Jenkins-Server muss kontinuierlich überwacht und regelmäßig gesichert werden. Nur so stellst du sicher, dass Ausfälle schnell erkannt und im Ernstfall zügig behoben werden können.</p>
+<p>Für das Monitoring empfehlen wir den Einsatz von Prometheus in Kombination mit Grafana. Das <code>Prometheus Plugin</strong> für Jenkins exportiert Metriken zu Job-Dauer, Queue-Länge, Agent-Auslastung und vielen weiteren Kennzahlen. Diese Daten lassen sich in übersichtlichen Dashboards visualisieren und als Basis für Alerting-Regeln nutzen.</p>
+<p>Beim Thema Backup ist die <code>ThinBackup</code>-Plugin-Lösung der einfachste Einstieg. Sie erstellt regelmäßig Sicherungen der Jenkins-Konfiguration, Jobs und Plugins. Für produktive Setups empfehlen wir jedoch ein umfassenderes Konzept:</p>
+<table>
+<thead>
+<tr><th>Backup-Typ</th><th>Inhalt</th><th>Frequenz</th><th>Speicherort</th></tr>
+</thead>
+<tbody>
+<tr><td>Konfiguration</td><td>Jobs, Credentials, Plugin-Liste</td><td>Täglich</td><td>Offsite S3</td></tr>
+<tr><td>Plugins</td><td>Binärdateien der Plugins</td><td>Wöchentlich</td><td>Offsite S3</td></tr>
+<tr><td>Build-Artefakte</td><td>Erzeugte Binaries</td><td>Nach Bedarf</td><td>Artifact Registry</td></tr>
+<tr><td>Datenbank</td><td>PostgreSQL-Dump</td><td>Stündlich</td><td>Offsite S3</td></tr>
+</tbody>
+</table>
+<p>Teste deine Backups regelmäßig durch Wiederherstellung in einer separaten Umgebung. Ein nicht getestetes Backup ist im Ernstfall wertlos. Etabliere zudem einen definierten Recovery-Prozess mit klaren Verantwortlichkeiten und maximal tolerierbaren Ausfallzeiten (RTO).</p>
+
+<h2>Best Practices und häufige Fehler vermeiden</h2>
+<p>Nach Jahren Betriebserfahrung haben sich bestimmte Best Practices als Industriestandard etabliert. Die Einhaltung dieser Empfehlungen spart langfristig Zeit, Geld und Nerven.</p>
+<p>Die wichtigsten Grundsätze im Überblick:</p>
+<ul>
+<li><strong>Pipeline-as-Code:</strong> Niemals Jobs über die UI konfigurieren, immer eine Jenkinsfile verwenden</li>
+<li><strong>Immutabile Build-Umgebungen:</strong> Docker-Container statt wachsende VMs nutzen</li>
+<li><strong>Frühzeitige Tests:</strong> Unit-Tests und Linting in jeder Pipeline ausführen</li>
+<li><strong>Sicherheitsscans:</strong> Container-Images und Dependencies regelmäßig prüfen</li>
+<li><strong>Idempotente Deployments:</strong> Deployments müssen wiederholt ausführbar sein</li>
+<li><strong>Versionierte Konfiguration:</strong> Jede Änderung an Jenkins selbst ebenfalls as Code verwalten</li>
+</ul>
+<p>Häufige Fehler, die du vermeiden solltest: das direkte Ausführen von <code>sudo</code> in Pipelines, das Speichern von Secrets in Umgebungsvariablen, die fehlende Begrenzung gleichzeitiger Builds pro Agent sowie das Ignorieren von Plugin-Updates. Auch das Vermischen von Build- und Deployment-Schritten in derselben Stage ist problematisch und sollte zugunsten klarer Verantwortlichkeiten vermieden werden.</p>
+<p>Mit diesen Grundlagen bist du gut aufgestellt, um eine produktive Jenkins-CI/CD-Pipeline auf deinem VPS zu betreiben. Auf hostazar.com findest du weitere Tutorials, Vergleichsanalysen mit GitLab CI und GitHub Actions sowie detaillierte Konfigurationsbeispiele für spezifische Anwendungsfälle.</p>
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

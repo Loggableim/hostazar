@@ -759,6 +759,178 @@
     </div>
 
 <h1>vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention</h1>
+<h2>vLLM auf eigener GPU aufsetzen: Der umfassende Einstiegsguide</h2>
+<p>vLLM ist eine leistungsstarke Open-Source-Bibliothek für effizientes LLM-Serving, die ursprünglich an der UC Berkeley entwickelt wurde. Mit ihr lassen sich Large Language Models wie Llama, Mistral oder Qwen mit beeindruckender Geschwindigkeit und hohem Durchsatz auf eigener Hardware bereitstellen. Im Vergleich zu klassischen Frameworks wie Hugging Face Transformers bietet vLLM durch PagedAttention eine deutlich optimierte Speichernutzung, wodurch mehrere Anfragen parallel verarbeitet werden können, ohne dass die GPU unnötig unter Last steht.</p>
+<p>Wer ein eigenes GPU-System betreibt – sei es auf einem dedizierten Server, einer Workstation oder einem Cloud-GPU-Instance – profitiert von voller Datenkontrolle, niedrigeren Latenzzeiten und der Möglichkeit, beliebige Modelle ohne externe API-Kosten zu betreiben. Besonders in datenschutzkritischen Branchen wie Medizin, Finanzen oder Recht ist ein selbstgehosteter vLLM-Stack die erste Wahl.</p>
+<p>Dieser Leitfaden richtet sich an Entwickler, DevOps-Engineers und KI-Enthusiasten, die ihren ersten vLLM-Server produktiv aufsetzen möchten. Wir begleiten dich Schritt für Schritt – von der Hardware-Auswahl über die Installation bis hin zum produktionsreifen Betrieb mit Monitoring und Skalierung.</p>
+
+<h2>Hardware-Voraussetzungen für vLLM im Überblick</h2>
+<p>Bevor du mit der Installation beginnst, solltest du sicherstellen, dass deine Hardware den Anforderungen entspricht. vLLM nutzt CUDA-Kernels und ist aktuell primär auf NVIDIA-GPUs optimiert. Auch wenn experimentelle AMD- und Intel-Unterstützung existiert, ist NVIDIA nach wie vor der Standard für stabile Produktivsetzung.</p>
+<p>Die wichtigsten Auswahlkriterien sind GPU-Speicher (VRAM), Rechenleistung (Tensor-Cores), CPU-RAM, NVMe-Speicher und Netzwerkanbindung. Für Modelle mit 7 bis 13 Milliarden Parametern empfehlen wir mindestens 16 GB VRAM, während 70B-Modelle 48 bis 80 GB VRAM voraussetzen.</p>
+<p>Hier eine Übersicht typischer Konfigurationen:</p>
+<table>
+<thead>
+<tr><th>Modellgröße</th><th>Min. VRAM</th><th>Empfohlene GPU</th><th>Quantisierung möglich?</th></tr>
+</thead>
+<tbody>
+<tr><td>7B</td><td>8 GB</td><td>RTX 3060, A4000</td><td>Ja (4-bit)</td></tr>
+<tr><td>13B</td><td>16 GB</td><td>RTX 4080, A5000</td><td>Ja (4-bit)</td></tr>
+<tr><td>30B</td><td>24 GB</td><td>RTX 4090, A6000</td><td>Ja (4-bit)</td></tr>
+<tr><td>70B</td><td>48 GB</td><td>A100 80GB, H100</td><td>Ja (4-bit)</td></tr>
+<tr><td>120B+</td><td>80+ GB</td><td>H100 80GB (Multi-GPU)</td><td>Ja (4-bit)</td></tr>
+</tbody>
+</table>
+
+<h2>Betriebssystem und Treiber vorbereiten</h2>
+<p>Als Basis eignet sich ein aktuelles Linux-System. Ubuntu 22.04 LTS oder 24.04 LTS haben sich in der Praxis bewährt, da die CUDA-Treiber-Integration hier am reibungslosesten funktioniert. Windows ist mit WSL2 ebenfalls nutzbar, für Produktionsumgebungen empfehlen wir jedoch native Linux-Installation.</p>
+<p>Stelle zunächst sicher, dass die NVIDIA-Treiber korrekt installiert sind. Der proprietäre Treiber wird über das Paket-Manager-System oder direkt von der NVIDIA-Website installiert. Anschließend prüfst du mit nvidia-smi, ob deine GPU erkannt wird.</p>
+<p>Code-Beispiel für die Treiber-Installation unter Ubuntu:</p>
+<pre><code># System aktualisieren
+sudo apt update &amp;&amp; sudo apt upgrade -y
+
+# NVIDIA-Treiber installieren (automatisch neueste Version)
+sudo apt install -y nvidia-driver-555
+
+# Treiber aktivieren
+sudo reboot
+
+# Prüfen
+nvidia-smi</code></pre>
+
+<h2>CUDA, cuDNN und Python-Umgebung einrichten</h2>
+<p>vLLM benötigt eine passende CUDA-Version. Aktuell unterstützt vLLM 0.6+ CUDA 12.1 bis 12.6. Achte darauf, dass dein NVIDIA-Treiber zur CUDA-Version kompatibel ist. Eine Übersicht liefert die offizielle NVIDIA-Matrix.</p>
+<p>Für die Python-Umgebung empfehlen wir die Verwendung von Conda oder eines venv-Setups. Dadurch vermeidest du Konflikte mit anderen Python-Projekten und kannst vLLM sauber isoliert betreiben.</p>
+<p>Installation der erforderlichen Komponenten:</p>
+<pre><code># CUDA Toolkit installieren
+wget https://developer.download.nvidia.com/compute/cuda/12.4.0/local_installers/cuda_12.4.0_550.54.14_linux.run
+sudo sh cuda_12.4.0_550.54.14_linux.run
+
+# Conda-Umgebung erstellen
+conda create -n vllm-env python=3.11 -y
+conda activate vllm-env
+
+# pip aktualisieren
+pip install --upgrade pip</code></pre>
+
+<h2>vLLM Installation Schritt für Schritt</h2>
+<p>Die Installation von vLLM ist dank PyPI-Paket vergleichsweise einfach. Du installierst es einfach via pip in deiner vorbereiteten Umgebung. Allerdings benötigt vLLM viele GPU-spezifische Bibliotheken, deren Kompilierung beim ersten Start einige Minuten dauern kann.</p>
+<p>Wir empfehlen die Installation in einem dedizierten Verzeichnis, damit du Build-Artefakte einfach verwalten kannst. Für Entwickler ist es sinnvoll, die nightly-Version aus dem GitHub-Repository zu testen, da hier neueste Features früher verfügbar sind.</p>
+<p>Standardinstallation:</p>
+<pre><code># vLLM installieren
+pip install vllm
+
+# Prüfen der Installation
+python -c "import vllm; print(vllm.__version__)"</code></pre>
+<p>Falls du eine bestimmte Version benötigst, kannst du diese explizit angeben. Für Multi-GPU-Systeme ist es ratsam, zusätzlich vllm[ray] zu installieren, da Ray für das Tensor-Parallel-Management benötigt wird.</p>
+
+<h2>Erstes Modell laden und Server starten</h2>
+<p>Nach erfolgreicher Installation kannst du direkt loslegen. vLLM bringt einen eingebauten OpenAI-kompatiblen API-Server mit, der mit Standard-OpenAI-Clients genutzt werden kann. Das macht die Migration bestehender Anwendungen besonders einfach.</p>
+<p>Wir starten mit einem kleineren Modell wie Mistral-7B oder Llama-3-8B, um die Funktion zu testen, bevor wir uns an größere Modelle wagen. Die Modelle werden beim ersten Start automatisch von Hugging Face heruntergeladen.</p>
+<p>Server-Start:</p>
+<pre><code># OpenAI-kompatiblen Server starten
+python -m vllm.entrypoints.openai.api_server \
+  --model meta-llama/Meta-Llama-3-8B-Instruct \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --gpu-memory-utilization 0.9 \
+  --max-model-len 4096</code></pre>
+<p>Der Parameter <code>--gpu-memory-utilization</code> steuert, wie viel VRAM vLLM nutzen darf. Werte zwischen 0.85 und 0.95 sind üblich, lassen aber Platz für KV-Cache-Erweiterungen.</p>
+
+<h2>API testen und Performance messen</h2>
+<p>Sobald der Server läuft, kannst du ihn mit curl oder einem OpenAI-Client testen. vLLM bietet dieselbe Chat-Completion-API wie OpenAI, sodass dein bestehender Code oft unverändert funktioniert.</p>
+<p>Für Performance-Tests empfehlen wir Tools wie vllm-benchmark oder hey. Diese messen Tokens pro Sekunde, Time-to-First-Token (TTFT) und Latenz unter Last.</p>
+<p>Test-Aufruf:</p>
+<pre><code>curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+    "messages": [{"role": "user", "content": "Erkläre PagedAttention in 3 Sätzen."}],
+    "temperature": 0.7
+  }'</code></pre>
+<p>Erwarte bei einer A100 GPUs Antwortzeiten von 30-50 Tokens pro Sekunde für ein 8B-Modell. Mit H100 oder Multi-GPU-Setups lassen sich diese Werte vervielfachen.</p>
+
+<h2>Optimierung: Quantisierung, Batching und Speicher</h2>
+<p>Um die Effizienz zu maximieren, stehen dir verschiedene Optimierungsoptionen zur Verfügung. Quantisierung reduziert den VRAM-Bedarf drastisch, während kontinuierliches Batching die GPU-Auslastung verbessert.</p>
+<p>vLLM unterstützt GPTQ, AWQ und BitsAndBytes-Quantisierung nativ. Mit AWQ-Quantisierung kannst du die Modellgröße oft um den Faktor 4 reduzieren, ohne dass die Qualität merklich leidet.</p>
+<p>Wichtige Tuning-Parameter:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Funktion</th><th>Empfehlung</th></tr>
+</thead>
+<tbody>
+<tr><td>--dtype</td><td>Präzision (float16/bfloat16)</td><td>bfloat16 für H100, float16 für A100</td></tr>
+<tr><td>--quantization</td><td>awq, gptq, bitsandbytes</td><td>awq für 4-bit, beste Qualität</td></tr>
+<tr><td>--max-num-batched-tokens</td><td>Batch-Größe</td><td>8192–16384</td></tr>
+<tr><td>--swap-space</td><td>CPU-Swap in GB</td><td>4–8 GB bei kleinem VRAM</td></tr>
+<tr><td>--block-size</td><td>PagedAttention Blockgröße</td><td>16 Standard, 8 bei langen Kontexten</td></tr>
+</tbody>
+</table>
+
+<h2>Multi-GPU-Betrieb mit Tensor-Parallelismus</h2>
+<p>Für größere Modelle oder höheren Durchsatz kannst du vLLM im Multi-GPU-Modus betreiben. Tensor-Parallelismus verteilt die Modellgewichte auf mehrere GPUs, sodass selbst 70B+ Modelle auf Consumer-Hardware mit 2× RTX 4090 laufen können.</p>
+<p>Der Ray-Cluster-Manager übernimmt die GPU-Koordination automatisch. Du musst lediglich die Anzahl der GPUs und die Parallelstrategie angeben. Auch NVLink und PCIe-Topologien werden berücksichtigt.</p>
+<p>Multi-GPU-Start:</p>
+<pre><code>python -m vllm.entrypoints.openai.api_server \
+  --model meta-llama/Meta-Llama-3-70B-Instruct \
+  --tensor-parallel-size 2 \
+  --gpu-memory-utilization 0.92 \
+  --max-model-len 8192</code></pre>
+<p>Für 4+ GPUs empfiehlt sich zusätzlich Pipeline-Parallelismus, der die Layer sequenziell auf GPUs verteilt. Damit lassen sich auch 200B+ Modelle auf Clustern betreiben.</p>
+
+<h2>Produktions-Deployment mit Docker und Systemd</h2>
+<p>Für den produktiven Einsatz empfehlen wir ein containerisiertes Setup mit Docker. Das offizielle vLLM-Image enthält alle Abhängigkeiten und CUDA-Versionen und sorgt für reproduzierbare Deployments.</p>
+<p>Ein typisches docker-compose-Setup umfasst den vLLM-Container, ein Reverse-Proxy wie Nginx und ein Monitoring-Stack. Mit Systemd kannst du den Container als Service verwalten und automatisch beim Boot starten lassen.</p>
+<p>Docker-Compose-Beispiel:</p>
+<pre><code>version: '3.8'
+services:
+  vllm:
+    image: vllm/vllm-openai:latest
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/root/.cache/huggingface
+    command: --model meta-llama/Meta-Llama-3-8B-Instruct --host 0.0.0.0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]</code></pre>
+
+<h2>Monitoring, Logging und Skalierung</h2>
+<p>Im Produktivbetrieb sind Monitoring und Logging unverzichtbar. vLLM liefert Prometheus-Metriken out-of-the-box, die du in Grafana visualisieren kannst. Wichtige Metriken sind aktive Requests, KV-Cache-Nutzung, Token-Durchsatz und GPU-Auslastung.</p>
+<p>Für die Skalierung stehen dir mehrere Optionen zur Verfügung. Lastausgleichsstrategien wie Round-Robin, Least-Connections oder Token-basiertes Routing sorgen für gleichmäßige Verteilung. Mit Kubernetes und dem vLLM-Operator kannst du sogar autoskalierende Cluster bauen.</p>
+<p>Best Practices für den Produktivbetrieb:</p>
+<ul>
+<li>Health-Checks alle 10–30 Sekunden konfigurieren</li>
+<li>Rate-Limiting pro API-Key aktivieren</li>
+<li>Request-Logging mit Trace-IDs für Debugging</li>
+<li>Regelmäßige VRAM-Snapshots für Speicherlecks</li>
+<li>Backup der Model-Checkpoints auf Object-Storage</li>
+</ul>
+
+<h2>Häufige Fehler und Troubleshooting</h2>
+<p>Auch bei sorgfältiger Planung können Fehler auftreten. Die häufigsten Probleme sind OOM-Errors (Out of Memory), CUDA-Mismatches und Performance-Bottlenecks durch ineffiziente Batch-Verarbeitung.</p>
+<p>Bei OOM-Fehlern solltest du zunächst die gpu-memory-utilization reduzieren, kleinere Modelle verwenden oder Quantisierung aktivieren. Ein weiterer Trick ist das Aktivieren von Swap-Space, um Spitzen abzufangen.</p>
+<p>Typische Fehlermeldungen und Lösungen:</p>
+<table>
+<thead>
+<tr><th>Fehler</th><th>Ursache</th><th>Lösung</th></tr>
+</thead>
+<tbody>
+<tr><td>CUDA out of memory</td><td>Zu hohe Speichernutzung</td><td>--gpu-memory-utilization 0.8</td></tr>
+<tr><td>RuntimeError: No GPU found</td><td>Treiber nicht geladen</td><td>nvidia-smi prüfen, neu starten</td></tr>
+<tr><td>Model not found</td><td>HF-Token fehlt</td><td>huggingface-cli login</td></tr>
+<tr><td>Slow first token</td><td>Zu hohe max-model-len</td><td>Kontext reduzieren</td></tr>
+</tbody>
+</table>
+
+<h2>Fazit: vLLM produktiv auf eigener GPU betreiben</h2>
+<p>vLLM ist die aktuell leistungsfähigste Open-Source-Lösung für LLM-Serving und bietet Enterprise-Features kostenlos. Mit der richtigen Hardware-Konfiguration, sauberem Setup und gezieltem Tuning lassen sich produktive Systeme betreiben, die mit kommerziellen APIs konkurrieren können.</p>
+<p>Der Einstieg ist dank der OpenAI-kompatiblen API besonders einfach, und die Community wächst rasant. Wer jetzt in vLLM investiert, baut sich eine zukunftssichere, datenschutzkonforme KI-Infrastruktur auf – unabhängig von Cloud-Anbietern und API-Preisen.</p>
+<p>Für den nächsten Schritt empfehlen wir, mit einem 7B- oder 13B-Modell zu starten, die Performance zu benchmarken und dann schrittweise zu skalieren. Bei hostazar.com findest du passende GPU-Server-Konfigurationen, die optimal für vLLM-Workloads dimensioniert sind.</p>
   <a href="/artikel/mistral-modelle-lokal-hosten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/mistral-modelle-lokal-hosten-2026.webp" alt="Mistral Large &amp; Mixtral 8x22B lokal hosten – MoE-Modelle selbst betreiben 2026" loading="lazy" width="400" height="200"></div>
   </a>

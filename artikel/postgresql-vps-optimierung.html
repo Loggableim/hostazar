@@ -759,6 +759,188 @@
     </div>
 
 <h1>PostgreSQL auf dem VPS optimieren – Tuning-Guide 2026</h1>
+<h2>PostgreSQL auf einem VPS optimal betreiben – Einführung 2026</h2>
+<p>PostgreSQL zählt seit Jahren zu den leistungsfähigsten und am weitesten verbreiteten relationalen Datenbankmanagementsystemen der Welt. Auf einem Virtual Private Server (VPS) betrieben, bildet es das Rückgrat unzähliger Webanwendungen, CMS-Systeme, E-Commerce-Plattformen und analytischer Workloads. Die richtige Konfiguration und Optimierung entscheidet jedoch darüber, ob Ihre Datenbank stabil, schnell und ressourcenschonend arbeitet.</p>
+<p>Im Jahr 2026 hat sich PostgreSQL 17 als aktuelle stabile Hauptversion etabliert und bringt zahlreiche Performance-Verbesserungen mit. Dazu gehören optimierte Vacuum-Operationen, ein verbesserter Query Planner, erweiterte Partitionierungsfunktionen sowie native Unterstützung für SQL/JSON-Erweiterungen. Wer eine neue PostgreSQL-Instanz aufsetzt, sollte immer die aktuellste stabile Version wählen.</p>
+<p>Die Standardkonfiguration von PostgreSQL ist auf maximale Kompatibilität und minimale Ressourcen ausgelegt – nicht auf Performance. Auf einem VPS mit dedizierten Ressourcen können und sollten Sie daher einige zentrale Parameter anpassen, um das volle Potenzial der Hardware auszuschöpfen. Genau hier setzt dieser umfassende Leitfaden von hostazar.com an.</p>
+<p>In den folgenden Abschnitten erfahren Sie, welche Konfigurationsparameter die größte Wirkung entfalten, wie Sie Indizes strategisch einsetzen, welche Monitoring-Strategien sinnvoll sind und wie Sie typische Performance-Engpässe identifizieren und beheben.</p>
+
+<h2>Hardware-Anforderungen für PostgreSQL auf einem VPS</h2>
+<p>Die Wahl der richtigen Hardware ist die Grundlage jeder PostgreSQL-Optimierung. Anders als bei NoSQL-Datenbanken ist PostgreSQL stark von schnellem Disk-I/O, ausreichend RAM und einer modernen CPU abhängig. Die folgenden Empfehlungen basieren auf Erfahrungswerten aus hunderten produktiven Setups.</p>
+<p>RAM ist der wichtigste Faktor für die Datenbank-Performance. PostgreSQL nutzt den verfügbaren Arbeitsspeicher intensiv für den Shared Buffer Cache, in dem häufig gelesene Daten und Indizes vorgehalten werden. Eine Faustregel besagt: Für einen dedizierten Datenbank-VPS sollten 25 Prozent des gesamten RAMs als <code>shared_buffers</code> konfiguriert werden, mindestens jedoch 2 GB.</p>
+<p>CPU-Kerne spielen vor allem bei parallelen Queries, Index-Builds und Vakuum-Operationen eine wichtige Rolle. PostgreSQL skaliert mit der Anzahl der Kerne, profitiert dabei aber stärker von höherer Single-Core-Performance als von vielen Kernen. Für die meisten Anwendungen sind 4 bis 8 moderne vCPUs ein guter Ausgangspunkt.</p>
+<p>Storage ist der zweitwichtigste Faktor. Nutzen Sie ausschließlich NVMe-SSDs – herkömmliche SATA-SSDs sind um ein Vielfaches langsamer. Achten Sie bei Cloud-Anbietern auf garantierte IOPS-Werte. Für schreibintensive Workloads empfiehlt sich ein Raid-10 aus mehreren NVMe-Disks, um IOPS und Redundanz zu kombinieren.</p>
+<table border="1" cellpadding="8" cellspacing="0">
+<thead>
+<tr><th>Workload</th><th>vCPUs</th><th>RAM</th><th>Storage</th><th>IOPS</th></tr>
+</thead>
+<tbody>
+<tr><td>Kleines CMS / Blog</td><td>2</td><td>4 GB</td><td>40 GB NVMe</td><td>3.000+</td></tr>
+<tr><td>Mittlere Webapp</td><td>4</td><td>8 GB</td><td>80 GB NVMe</td><td>5.000+</td></tr>
+<tr><td>E-Commerce / KMU</td><td>8</td><td>16 GB</td><td>160 GB NVMe</td><td>10.000+</td></tr>
+<tr><td>Analytics / Data Warehouse</td><td>16</td><td>32 GB</td><td>500 GB NVMe</td><td>20.000+</td></tr>
+</tbody>
+</table>
+<p>Netzwerkbandbreite ist meistens der übersehene Engpass. Wenn Ihre Anwendung auf einem separaten VPS läuft und per Netzwerk mit der Datenbank kommuniziert, achten Sie auf eine geringe Latenz und hohe Bandbreite zwischen den Hosts. Idealerweise nutzen Sie ein privates internes Netz mit 10 Gbit/s statt öffentlichem Traffic.</p>
+
+<h2>Die wichtigsten postgresql.conf Parameter verstehen und setzen</h2>
+<p>Die zentrale Konfigurationsdatei von PostgreSQL ist <code>postgresql.conf</code>. Im Jahr 2026 sind dutzende Parameter verfügbar, aber nur eine Handvoll davon hat signifikanten Einfluss auf die Performance. Wir konzentrieren uns auf die essenziellen Einstellungen.</p>
+<p><strong>shared_buffers</strong> bestimmt, wie viel RAM PostgreSQL für gecachte Daten und Indizes nutzt. Die alte Empfehlung von 25 Prozent des RAMs gilt auch heute noch als guter Startpunkt. Auf einem 16-GB-VPS wären das 4 GB. Höhere Werte bringen ab einer bestimmten Grenze keinen zusätzlichen Nutzen, da das Betriebssystem zusätzlich das Page-Cache verwaltet.</p>
+<p><strong>effective_cache_size</strong> informiert den Query Planner über den gesamten für Caching verfügbaren Speicher (inkl. OS-Page-Cache). Ein zu niedriger Wert führt zu falschen Planner-Entscheidungen und suboptimalen Index-Nutzungen. Setzen Sie diesen Wert auf etwa 70 bis 75 Prozent des gesamten RAMs, also etwa 11 GB auf einem 16-GB-VPS.</p>
+<p><strong>work_mem</strong> legt fest, wie viel RAM für einzelne Sortier- und Hash-Operationen zur Verfügung steht. Der Standardwert von 4 MB ist oft zu niedrig. Vorsicht: <code>work_mem</code> wird pro Operation und pro Session multipliziert. Auf einem 16-GB-VPS mit etwa 50 aktiven Sessions können Sie <code>work_mem</code> bedenkenlos auf 64 MB setzen, ohne in OOM-Situationen zu geraten.</p>
+<p><strong>maintenance_work_mem</strong> beschleunigt Vacuum, Index-Erstellungen und ähnliche Wartungsoperationen. Setzen Sie diesen Wert großzügig, etwa auf 1 bis 2 GB. Diese Operationen laufen selten parallel, sodass der Speicherbedarf überschaubar bleibt.</p>
+<p>Eine optimierte <code>postgresql.conf</code> für einen 16-GB-VPS könnte so aussehen:</p>
+<code>
+# Speicher
+shared_buffers = 4GB
+effective_cache_size = 11GB
+work_mem = 64MB
+maintenance_work_mem = 2GB
+
+# WAL und Checkpoints
+wal_buffers = 64MB
+checkpoint_completion_target = 0.9
+max_wal_size = 4GB
+min_wal_size = 1GB
+
+# Planner
+random_page_cost = 1.1
+effective_io_concurrency = 200
+
+# Connections
+max_connections = 200
+
+# Logging
+log_min_duration_statement = 500ms
+log_checkpoints = on
+log_connections = on
+log_disconnections = on
+</code>
+<p>Starten Sie PostgreSQL nach jeder Änderung mit <code>sudo systemctl restart postgresql</code> neu oder verwenden Sie <code>SELECT pg_reload_conf();</code> für Parameter, die kein Neustart erfordern.</p>
+
+<h2>Indizes strategisch einsetzen – B-Tree, GIN, BRIN und mehr</h2>
+<p>Indizes sind das mächtigste Werkzeug zur Performance-Optimierung, aber ein Zuviel kann auch schaden. Jeder Index verlangsamt INSERT-, UPDATE- und DELETE-Operationen, da er bei jeder Änderung aktualisiert werden muss. Die Kunst liegt darin, die richtige Balance zu finden.</p>
+<p><strong>B-Tree-Indizes</strong> sind der Standard und eignen sich für die meisten Anwendungsfälle: Gleichheitsvergleiche, Bereichsabfragen, Sortierungen und LIKE-Operationen mit Präfix. Ein B-Tree-Index auf einer Spalte mit hoher Selektivität (z. B. <code>user_id</code> in einer großen Tabelle) bringt enorme Performance-Gewinne.</p>
+<p><strong>GIN-Indizes</strong> (Generalized Inverted Index) sind ideal für Volltextsuche, JSONB-Spalten und Array-Spalten. Sie sind größer als B-Tree-Indizes, ermöglichen aber effiziente Suchen innerhalb komplexer Dokumentstrukturen. Für eine <code>posts</code>-Tabelle mit einer <code>tags</code>-Array-Spalte ist ein GIN-Index die richtige Wahl.</p>
+<p><strong>BRIN-Indizes</strong> (Block Range Index) sind extrem kompakt und eignen sich besonders für sehr große Tabellen mit natürlicher Sortierung, etwa Zeitreihen-Daten (Logs, Sensordaten, Events). Ein BRIN-Index auf einer <code>created_at</code>-Spalte belegt nur wenige KB, kann aber Bereichsabfragen dramatisch beschleunigen.</p>
+<p><strong>Partielle Indizes</strong> indizieren nur eine Teilmenge der Zeilen, was Speicherplatz spart und Performance verbessert. Beispiel: Ein Index nur auf nicht-gelöschte Benutzer in einer Tabelle mit Soft-Delete:</p>
+<code>
+CREATE INDEX idx_users_active ON users (email) WHERE deleted_at IS NULL;
+</code>
+<p><strong>Zusammengesetzte Indizes</strong> sind effizienter als einzelne Indizes, wenn Abfragen mehrere Spalten gleichzeitig filtern oder sortieren. Die Reihenfolge der Spalten ist entscheidend: Spalten mit höherer Selektivität und häufiger Gleichheitsfilterung sollten zuerst kommen.</p>
+<p>Die folgende Tabelle zeigt eine Übersicht der Indextypen und ihre idealen Einsatzgebiete:</p>
+<table border="1" cellpadding="8" cellspacing="0">
+<thead>
+<tr><th>Indextyp</th><th>Einsatzgebiet</th><th>Speicherverbrauch</th><th>Beispiel</th></tr>
+</thead>
+<tbody>
+<tr><td>B-Tree</td><td>Gleichheit, Bereiche, Sortierung</td><td>Mittel</td><td>WHERE id = 42</td></tr>
+<tr><td>Hash</td><td>Reine Gleichheit</td><td>Niedrig</td><td>WHERE token = 'abc'</td></tr>
+<tr><td>GIN</td><td>Volltext, JSONB, Arrays</td><td>Hoch</td><td>WHERE tags @> ARRAY['php']</td></tr>
+<tr><td>GiST</td><td>Geodaten, Range-Typen</td><td>Mittel</td><td>WHERE location WITHIN circle</td></tr>
+<tr><td>BRIN</td><td>Zeitreihen, große Tabellen</td><td>Sehr niedrig</td><td>WHERE created_at > '2026
+<h2>Warum PostgreSQL-Tuning auf einem VPS entscheidend ist</h2>
+
+<p>PostgreSQL zählt zu den leistungsfähigsten Open-Source-Datenbanken überhaupt und wird 2026 von unzähligen Webanwendungen, CMS und Microservices als primäres Datenspeicher-Backend eingesetzt. Während die Standardinstallation auf einem lokalen Entwicklungsrechner völlig unauffällig funktioniert, sieht die Situation auf einem VPS oft anders aus: suboptimale Defaults, geteilte Ressourcen und fehlende Hardware-Optimierung sorgen dafür, dass PostgreSQL bei weitem nicht das volle Potenzial entfaltet.</p>
+
+<p>Die Ursache liegt in der Architektur der Datenbank-Engine. PostgreSQL geht beim Tuning einen konservativen Weg und wählt Defaults, die auf möglichst vielen Systemen lauffähig sind. Diese Defaults sind mit einer Handvoll aktiver Verbindungen und kleinen Datensätzen vollkommen ausreichend, geraten aber auf einem produktiven VPS mit mehreren hundert oder tausend Anfragen pro Sekunde schnell an ihre Grenzen. Speziell die Default-Werte für <code>shared_buffers</code>, <code>work_mem</code> und <code>effective_cache_size</code> sind in den meisten Produktionsumgebungen deutlich zu niedrig angesetzt.</p>
+
+<p>Ziel dieses Artikels ist es, ein tiefes Verständnis für die wichtigsten Stellschrauben zu vermitteln und eine praxiserprobte Konfiguration vorzustellen, die mit überschaubarem Aufwand zu spürbaren Performance-Verbesserungen führt. Wir konzentrieren uns auf den typischen Anwendungsfall eines VPS mit 4–16 GB RAM, NVMe-Storage und einer Linux-Distribution der Ubuntu-, Debian- oder AlmaLinux-Familie.</p>
+
+<h2>Systemanforderungen und Hardware-Empfehlungen</h2>
+
+<p>Bevor wir uns den Konfigurationsparametern widmen, lohnt ein Blick auf die Hardware. PostgreSQL profitiert besonders von schnellem Storage, ausreichend RAM und einer modernen CPU. Auf einem VPS bedeutet das konkret: NVMe- oder mindestens SSD-Speicher sind Pflicht, klassische HDDs führen selbst bei einfachen Workloads zu inakzeptablen Latenzen.</p>
+
+<table>
+<thead>
+<tr><th>VPS-Klasse</th><th>RAM</th><th>vCores</th><th>Storage</th><th>Typische Workloads</th></tr>
+</thead>
+<tbody>
+<tr><td>Klein (4 GB)</td><td>4 GB</td><td>2</td><td>40 GB NVMe</td><td>Blogs, kleine Webshops</td></tr>
+<tr><td>Mittel (8 GB)</td><td>8 GB</td><td>4</td><td>80 GB NVMe</td><td>WooCommerce, Foren, APIs</td></tr>
+<tr><td>Groß (16 GB)</td><td>16 GB</td><td>6</td><td>160 GB NVMe</td><td>Mid-Traffic SaaS, Analytics</td></tr>
+<tr><td>XL (32 GB+)</td><td>32 GB+</td><td>8+</td><td>320 GB+ NVMe</td><td>Hochfrequenz-Handel, Data Warehouse</td></tr>
+</tbody>
+</table>
+
+<p>Neben der reinen Speichermenge spielt die IOPS-Performance eine zentrale Rolle. NVMe-SSDs erreichen problemlos 50.000–500.000 IOPS, was im Vergleich zu SATA-SSDs mit 5.000–20.000 IOPS einen signifikanten Unterschied macht. Auch die CPU-Architektur ist nicht zu vernachlässigen: PostgreSQL kann Single-Threaded-Operationen nicht parallelisieren, daher ist eine CPU mit hohem Single-Core-Takt (z. B. AMD EPYC oder Intel Xeon der neueren Generation) vorteilhaft.</p>
+
+<p>Für eine optimale Konfiguration sollte der VPS-Anbieter KVM-Virtualisierung mit garantierten Ressourcen anbieten. Anbieter wie Hetzner, Netcup, OVH oder IONOS garantieren dedizierte vCores und reservierten RAM, sodass benachbarte Instanzen die Performance nicht beeinträchtigen. Bei sehr günstigen „Shared"-VPS sollte man vorsichtig sein, da Overcommitment zu unvorhersehbaren Latenzspitzen führen kann.</p>
+
+<h2>Die wichtigsten Konfigurationsparameter</h2>
+
+<p>PostgreSQL speichert seine Konfiguration in der Datei <code>postgresql.conf</code>, die üblicherweise unter <code>/etc/postgresql/16/main/</code> zu finden ist. Wir öffnen die Datei mit einem Editor unserer Wahl und passen die folgenden Parameter an. Vor jeder Änderung empfiehlt es sich, die Originaldatei zu sichern:</p>
+
+<pre><code>sudo cp /etc/postgresql/16/main/postgresql.conf /etc/postgresql/16/main/postgresql.conf.bak
+sudo nano /etc/postgresql/16/main/postgresql.conf</code></pre>
+
+<p>Die zentralen Parameter sind:</p>
+
+<pre><code># Speicher
+shared_buffers = 2GB                    # 25% des RAM (bei 8 GB VPS)
+effective_cache_size = 6GB              # 70-75% des RAM
+work_mem = 64MB                         # pro Sortier-/Hash-Operation
+maintenance_work_mem = 512MB            # für VACUUM, ANALYZE, Index-Builds
+huge_pages = try                        # große Pages nutzen, falls verfügbar
+
+# Connection-Pooling &amp; Worker
+max_connections = 200                   # nicht zu hoch wählen
+max_worker_processes = 4                # Anzahl vCores
+max_parallel_workers_per_gather = 2
+max_parallel_workers = 4
+
+# WAL und Checkpoints
+wal_buffers = 64MB
+checkpoint_completion_target = 0.9
+max_wal_size = 2GB
+min_wal_size = 512MB
+random_page_cost = 1.1                  # für SSD/NVMe optimiert
+
+# Logging
+log_min_duration_statement = 1000      # Queries &gt; 1s loggen
+log_checkpoints = on
+log_connections = off
+log_disconnections = off</code></pre>
+
+<p>Die Wahl von <code>shared_buffers = 25% des RAM</code> ist eine alte Faustregel, die in der modernen PostgreSQL-Welt jedoch differenzierter betrachtet wird. Für dedizierte Datenbankserver empfehlen manche Experten sogar 40% des RAM, da das Betriebssystem ohnehin über den Page Cache effizient auf die Daten zugreift. Bei kleinen VPS mit 4 GB RAM sollte man konservativ bei 1 GB bleiben, um nicht in OOM-Situationen zu geraten.</p>
+
+<p>Besonders wichtig ist <code>work_mem</code>. Dieser Wert wird pro Sortier- und Hash-Operation verwendet und multipliziert sich mit der Anzahl paralleler Operationen. Ein zu hoher Wert in Verbindung mit vielen gleichzeitigen Queries kann zu Speicherdruck führen. Die Faustregel lautet: <code>(RAM × 0.7) / max_connections</code> ist der maximale Wert, mit dem man sicher arbeiten kann. Bei 8 GB RAM und 200 Connections wären das maximal 28 MB pro Operation.</p>
+
+<h2>Connection-Pooling mit PgBouncer einsetzen</h2>
+
+<p>PostgreSQL öffnet für jede Verbindung einen separaten Backend-Prozess, was bei mehreren hundert gleichzeitigen Verbindungen zu erheblichem Overhead führt. Die Standardempfehlung lautet, <code>max_connections</code> auf 100–200 zu begrenzen und stattdessen ein Connection-Pooling-Tool wie PgBouncer davorzuschalten. PgBouncer fungiert als schlanker Proxy, der eine kleine Anzahl tatsächlicher Datenbankverbindungen für eine große Anzahl von Clients bereitstellt.</p>
+
+<p>Die Installation von PgBouncer ist auf Debian-basierten Systemen mit einem Befehl erledigt:</p>
+
+<pre><code>sudo apt install pgbouncer</code></pre>
+
+<p>Die Konfigurationsdatei <code>/etc/pgbouncer/pgbouncer.ini</code> wird wie folgt angepasst:</p>
+
+<pre><code>[databases]
+appdb = host=127.0.0.1 port=5432 dbname=appdb
+reports = host=127.0.0.1 port=5432 dbname=reports
+
+[pgbouncer]
+listen_addr = 127.0.0.1
+listen_port = 6432
+auth_type = md5
+auth_file = /etc/pgbouncer/userlist.txt
+
+# Pooling-Modus
+pool_mode = transaction
+max_client_conn = 1000
+default_pool_size = 20
+min_pool_size = 5
+reserve_pool_size = 5
+reserve_pool_timeout = 3
+
+# Timeouts
+server_idle_timeout = 600
+client_idle_timeout = 0
+query_timeout = 0
+client_login_timeout = 60</code></pre>
+
+<p>Mit <code>pool_mode = transaction</code> wird eine Verbindung nach jeder Transaktion an den Pool zurückgegeben. Dies ist für die meisten Web-Anwendungen optimal, da Transaktionen in der Regel
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

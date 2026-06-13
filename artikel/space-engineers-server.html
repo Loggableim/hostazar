@@ -759,6 +759,246 @@
     </div>
 
 <h1>Space Engineers Server mieten oder selbst hosten 2026</h1>
+<h2>Space Engineers Server: Eigenen dedizierten Gameserver hosten – Komplettanleitung 2026</h2>
+<p>Space Engineers gehört zu den beliebtesten Sandbox-Spielen, in denen Spieler ganze Raumschiffe konstruieren, Asteroiden abbauen und komplexe Industrieanlagen errichten. Wer seine Welt dauerhaft mit Freunden teilen möchte, kommt um einen eigenen Server nicht herum. Ein selbst gehosteter Space Engineers Server bietet maximale Kontrolle über Spielregeln, Mods, Performance und Speicherplatz. Anders als bei kurzlebigen P2P-Sitzungen läuft dein Bauwerk 24/7 weiter, selbst wenn der Host offline ist.</p>
+<p>Die technische Basis bildet ein Windows- oder Linux-Server, auf dem die dedizierte Server-Anwendung von Keen Software House läuft. Aktuell unterstützt das Spiel sowohl die klassische als auch die VR-Version. Die Server-Binary wird über SteamCMD heruntergeladen und benötigt je nach Weltgröße zwischen 8 GB und 32 GB Arbeitsspeicher.</p>
+<p>Für ein stabiles Spielerlebnis empfehlen wir mindestens einen vServer mit 4 vCPUs, 16 GB RAM und NVMe-SSD. Größere Communitys mit über 20 Spielern sollten auf dedizierte Hardware mit 6+ Kernen und 32 GB RAM zurückgreifen. Die Netzwerkanbindung sollte mindestens 1 Gbit/s betragen, um Latenzspitzen zu vermeiden.</p>
+
+<h2>Systemanforderungen im Überblick</h2>
+<p>Die offiziellen Mindestanforderungen von Keen Software House wirken auf den ersten Blick moderat, spiegeln aber nicht die Realität eines gut besuchten Servers wider. Faktoren wie Mod-Last, Spielerkonzentration in bestimmten Sektoren und die Größe der Welt erhöhen den Ressourcenbedarf erheblich.</p>
+<p>Während eine Solo-Welt mit 4 Spielern auf einem 4-Kern-Server flüssig läuft, benötigen Mod-Projekte wie "Decorative Pack" oder "Modular Forcefields" deutlich mehr CPU-Power. Auch die Anzahl der aktiven Grid-Einheiten, also der funktionsfähigen Schiffe und Stationen, wirkt sich direkt auf die Tick-Rate aus.</p>
+<p>Die folgende Tabelle zeigt realistische Konfigurationen für verschiedene Spielerszenarien:</p>
+<table>
+<thead>
+<tr><th>Spieleranzahl</th><th>Weltgröße</th><th>Mods</th><th>CPU-Kerne</th><th>RAM</th><th>Speicher</th></tr>
+</thead>
+<tbody>
+<tr><td>2–4</td><td>Klein</td><td>0–10</td><td>4 vCPUs</td><td>16 GB</td><td>50 GB SSD</td></tr>
+<tr><td>5–10</td><td>Mittel</td><td>10–30</td><td>6 vCPUs</td><td>24 GB</td><td>100 GB SSD</td></tr>
+<tr><td>11–20</td><td>Groß</td><td>30–60</td><td>8 vCPUs</td><td>32 GB</td><td>200 GB NVMe</td></tr>
+<tr><td>20+</td><td>Extrem</td><td>60+</td><td>12+ vCPUs</td><td>64 GB</td><td>500 GB NVMe</td></tr>
+</tbody>
+</table>
+
+<h2>Installation über SteamCMD auf einem Linux-Server</h2>
+<p>SteamCMD ist das offizielle Kommandozeilen-Tool von Valve, mit dem du Steam-Server-Dienste ohne grafische Oberfläche installieren und aktualisieren kannst. Für Space Engineers benötigst du die App-ID 298740, die du nach der Anmeldung mit deinem Steam-Konto herunterlädst.</p>
+<p>Zunächst musst du die notwendigen Abhängigkeiten installieren und einen eigenen Benutzer für den Server anlegen. Dies verbessert die Sicherheit und ermöglicht einen reibungslosen Betrieb ohne Root-Rechte.</p>
+<p>Die Installation erfolgt anschließend mit wenigen Befehlen:</p>
+<pre><code># Benutzer anlegen
+sudo useradd -m -s /bin/bash steamserver
+sudo su - steamserver
+
+# SteamCMD herunterladen
+mkdir -p ~/steamcmd && cd ~/steamcmd
+wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+tar -xvzf steamcmd_linux.tar.gz
+
+# Space Engineers Dedicated Server installieren
+./steamcmd.sh +login anonymous +force_install_dir ~/spaceengineers +app_update 298740 validate +quit</code></pre>
+<p>Nach erfolgreicher Installation findest du die Server-Binärdatei im Verzeichnis ~/spaceengineers/DedicatedServer64. Bevor du den Server startest, musst du die Konfigurationsdateien anpassen.</p>
+
+<h2>Konfiguration der Server-Einstellungen</h2>
+<p>Die zentrale Konfigurationsdatei heißt "SpaceEngineers-Dedicated.cfg" und befindet sich im Unterordner "Instance" deines Server-Verzeichnisses. Hier definierst du Welteinstellungen, Spielerlimits, Mod-IDs und Netzwerkparameter.</p>
+<p>Wichtig sind insbesondere der Servername, das Passwort, die maximale Spieleranzahl und die Angabe, ob die Lobby öffentlich in der Serverliste sichtbar sein soll. Auch die Weltgröße und das Szenario lassen sich hier festlegen.</p>
+<p>Eine typische Konfiguration könnte so aussehen:</p>
+<pre><code>&lt;?xml version="1.0"?&gt;
+&lt;MyConfigDedicated&gt;
+  &lt;SessionName&gt;Mein Space Engineers Server&lt;/SessionName&gt;
+  &lt;ServerPassword&gt;sicheres-passwort-2026&lt;/ServerPassword&gt;
+  &lt;WorldName&gt;Industrie-Eroberer&lt;/WorldName&gt;
+  &lt;MaxPlayers&gt;16&lt;/MaxPlayers&gt;
+  &lt;ServerPort&gt;27016&lt;/ServerPort&gt;
+  &lt;GamePort&gt;27017&lt;/GamePort&gt;
+  &lt;SteamPort&gt;27018&lt;/SteamPort&gt;
+  &lt;AsteroidAmount&gt;50&lt;/AsteroidAmount&gt;
+  &lt;InventorySizeMultiplier&gt;10&lt;/InventorySizeMultiplier&gt;
+  &lt;AssemblerSpeedMultiplier&gt;3&lt;/AssemblerSpeedMultiplier&gt;
+  &lt;RefinerySpeedMultiplier&gt;3&lt;/RefinerySpeedMultiplier&gt;
+&lt;/MyConfigDedicated&gt;</code></pre>
+<p>Speichere die Datei ab und starte den Server neu, damit alle Änderungen wirksam werden. Komplexere Modifikationen lassen sich über die Datei "Sandbox_config.sbc" im jeweiligen Saves-Ordner vornehmen.</p>
+
+<h2>Mod-Installation und Workshop-Integration</h2>
+<p>Mods sind das Herzstück von Space Engineers und erweitern das Spiel um neue Bauteile, Waffen, Skripte und Spielmechaniken. Damit deine Mitspieler dieselben Mods nutzen, müssen diese serverseitig geladen und auf der Workshop-Seite veröffentlicht werden.</p>
+<p>Die Aktivierung erfolgt über den Parameter "WorkshopIds" in der Serverkonfiguration, in den du die Workshop-IDs der gewünschten Mods einträgst. Bei Serverstart lädt Space Engineers diese Mods automatisch herunter und validiert sie.</p>
+<p>Um Mods zu finden, besuchst du am besten die Steam-Workshop-Kategorie für Space Engineers. Beliebte Mods wie "Modular Forcefields", "Nanobot Build and Repair System" oder "Voice Chat Pro" haben mittlerweile über eine Million Abonnements. Achte darauf, dass alle Mods untereinander kompatibel sind und regelmäßig aktualisiert werden.</p>
+
+<h2>Optimale Hardware-Wahl für deinen Server</h2>
+<p>Die Wahl der richtigen Hardware entscheidet darüber, wie flüssig dein Space Engineers Server läuft. Während CPU und RAM offensichtlich wichtig sind, unterschätzen viele Spieler die Bedeutung schneller SSDs und einer stabilen Netzwerkanbindung.</p>
+<p>Prozessoren mit hoher Single-Thread-Leistung sind entscheidend, da die Space Engineers Engine nicht perfekt multithreaded arbeitet. AMD EPYC und Intel Xeon der aktuellen Generation bieten exzellente Performance pro Kern und sind ideal für Gaming-Server.</p>
+<p>Die Netzwerkanbindung sollte mindestens 1 Gbit/s symmetrisch betragen, idealerweise mit DDoS-Schutz. Da Space Engineers Server-IPs in der öffentlichen Liste auftauchen können, sind Angriffe keine Seltenheit. Professionelle Hoster bieten bereits integrierten Schutz, der automatisch verdächtigen Traffic filtert.</p>
+
+<h2>Automatische Backups einrichten</h2>
+<p>Ein Space Engineers Server enthält oft hunderte Stunden Bauarbeit. Ohne regelmäßige Backups kann ein technischer Defekt, ein fehlerhaftes Update oder ein versehentlicher Löschvorgang zum Totalverlust führen.</p>
+<p>Die Saves werden standardmäßig im Ordner "Saves" innerhalb des Serververzeichnisses abgelegt. Wir empfehlen, diesen Ordner mindestens einmal täglich auf einen externen Speicher zu sichern. Automatisierte Backup-Skripte mit Komprimierung und Rotation sind die beste Lösung.</p>
+<p>Ein einfaches Bash-Skript für tägliche Backups könnte so aussehen:</p>
+<pre><code>#!/bin/bash
+DATE=$(date +%Y-%m-%d)
+SOURCE="/home/steamserver/spaceengineers/Instance/Saves"
+DEST="/backup/spaceengineers/$DATE"
+
+mkdir -p $DEST
+tar -czf $DEST/backup-$DATE.tar.gz $SOURCE
+
+# Alte Backups löschen (älter als 7 Tage)
+find /backup/spaceengineers/ -type d -mtime +7 -exec rm -rf {} \;</code></pre>
+<p>Plane dieses Skript über einen Cronjob, um es täglich um 4 Uhr morgens auszuführen, wenn die Serverlast gering ist.</p>
+
+<h2>Sicherheit und DDoS-Schutz</h2>
+<p>Ein öffentlich gelisteter Server ist zwangsläufig Angriffen ausgesetzt. DDoS-Attacken können den Server komplett lahmlegen, während Cheater die Spielbalance zerstören. Daher sind präventive Sicherheitsmaßnahmen unverzichtbar.</p>
+<p>Wichtigste Grundregeln: Verwende starke Passwörter, aktiviere die Steam-Authentifizierung für Spieler und beschränke den Admin-Zugriff auf vertrauenswürdige Konten. Die Datei " admins.cfg" ermöglicht es, Spieler-IDs als Administratoren festzulegen.</p>
+<p>Für den DDoS-Schutz empfehlen wir professionelle Lösungen wie Cloudflare Spectrum oder spezialisierte Gaming-DDoS-Provider. Diese filtern bösartigen Traffic, bevor er deinen Server erreicht. Viele Hoster bieten entsprechenden Schutz bereits inklusive an.</p>
+
+<h2>Systemd-Service für automatischen Start</h2>
+<p>Damit dein Server nach einem Reboot automatisch startet, empfiehlt sich die Einrichtung eines Systemd-Services. Dies gewährleistet zudem eine saubere Prozessverwaltung und automatische Neustarts bei Abstürzen.</p>
+<p>Die Service-Datei wird unter /etc/systemd/system/spaceengineers.service angelegt und enthält die Startparameter, den Ausführungsbenutzer und die Restart-Policy.</p>
+<p>Hier ein Beispiel:</p>
+<pre><code>[Unit]
+Description=Space Engineers Dedicated Server
+After=network.target
+
+[Service]
+User=steamserver
+WorkingDirectory=/home/steamserver/spaceengineers/DedicatedServer64
+ExecStart=/home/steamserver/spaceengineers/DedicatedServer64/SpaceEngineersDedicated -InstancePath /home/steamserver/spaceengineers/Instance
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=100000
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<p>Aktiviere den Service mit <code>sudo systemctl enable spaceengineers</code> und starte ihn mit <code>sudo systemctl start spaceengineers</code>. Den Status prüfst du jederzeit mit <code>systemctl status spaceengineers</code>.</p>
+
+<h2>Performance-Tuning und Monitoring</h2>
+<p>Um die optimale Leistung zu gewährleisten, solltest du regelmäßig die Performance deines Servers überwachen. Tools wie Netdata, Zabbix oder Prometheus erfassen CPU-Auslastung, RAM-Verbrauch und Netzwerk-Traffic in Echtzeit.</p>
+<p>Die Ingame-Admin-Konsole (erreichbar mit F3) liefert detaillierte Informationen zur aktuellen Tick-Rate. Diese sollte konstant über 60 liegen, andernfalls leidet das Spielerlebnis. Niedrige Tick-Raten deuten meist auf zu viele aktive Grids, zu viele Mods oder unzureichende CPU-Power hin.</p>
+<p>Zusätzliche Tuning-Möglichkeiten umfassen das Reduzieren der Sichtweite, das Verkleinern der Asteroidenmengen und das Deaktivieren ressourcenintensiver Mods. Die Balanced-Sandbox-Einstellungen bieten einen guten Kompromiss zwischen Spielspaß und Performance.</p>
+
+<h2>Häufige Probleme und ihre Lösungen</h2>
+<p>Beim Betrieb eines Space Engineers Servers können verschiedene Probleme auftreten. Die häufigsten sind Verbindungsabbrüche, Ladefehler bei Mods und Performance-Einbrüche bei großen Bauwerken.</p>
+<p>Verbindungsabbrüche haben meist eine der folgenden Ursachen: Firewall-Einstellungen, falsche Portweiterleitung oder unzureichende Bandbreite. Überprüfe, ob die Ports 27016, 27017 und 27018 in deiner Firewall freigegeben sind und ob dein Provider diese Ports nicht blockiert.</p>
+<p>Mod-Ladefehler entstehen oft durch veraltete Mod-Versionen oder fehlende Abhängigkeiten. Aktiviere die Option "Auto-Update Workshop Items" in der Serverkonfiguration, damit Mods automatisch aktualisiert werden. Sollte ein Mod defekt sein, entferne ihn vorübergehend und prüfe die Workshop-Kommentare auf bekannte Probleme.</p>
+
+<h2>Fazit: Space Engineers Server selbst hosten</h2>
+<p>Ein eigener Space Engineers Server bietet dir und deiner Community maximale Freiheit beim Bauen, Erforschen und Überleben im All. Mit der richtigen Hardware, einer sauberen Konfiguration und regelmäßigen Backups steht einem langfristigen Spielspaß nichts im Wege.</p>
+<p>Investiere in einen leistungsstarken vServer oder dedizierten Server, nutze aktuelle Mods mit Bedacht und schütze deine Infrastruktur gegen Angriffe. Mit dieser Anleitung bist du bestens gerüstet, um deinen eigenen Space Engineers Server professionell zu betreiben und langfristig zu pflegen.</p>
+<p>Bei hostazar.com bieten wir speziell konfigurierte Gaming-Server mit DDoS-Schutz, NVMe-Speicher und 24/7-Support an, die optimal für Space Engineers geeignet sind.</p>
+<h2>Space Engineers Multiplayer: Warum ein eigener Server sinnvoll ist</h2>
+<p>Space Engineers gehört zu den beliebtesten Sandbox-Spielen überhaupt und erfreut sich auch 2026 einer treuen Community. Wer mit Freunden oder in einer großen Community Bauwerke erschaffen, Asteroiden abbauen oder Raumschiffe konstruieren möchte, stößt im normalen Mehrspieler-Modus schnell an Grenzen. Lag-Spikes, instabile Verbindungen und fehlende Admin-Rechte sind nur einige der Probleme, die in öffentlichen oder P2P-Sessions auftreten.</p>
+<p>Ein eigener <strong>Dedicated Server</strong> löst diese Probleme zuverlässig. Er läuft rund um die Uhr, sorgt für eine stabile Performance und erlaubt es Administratoren, Regeln, Mods und Welten dauerhaft zu verwalten. Besonders für Clans, Roleplay-Server oder ambitionierte Bauprojekte ist ein eigener Host unverzichtbar.</p>
+<p>Zusätzlich bietet ein eigener Server volle Kontrolle über Backup-Strategien, Whitelists, Passwortschutz und Slot-Limits. Wer einmal einen professionellen Space Engineers Server betrieben hat, möchte die Vorteile nicht mehr missen – sei es für PvE-Kooperation oder intensive PvP-Schlachten im All.</p>
+
+<h2>Space Engineers Dedicated Server: Systemanforderungen 2026</h2>
+<p>Die offiziellen Mindestanforderungen sind zwar relativ niedrig, doch in der Praxis sieht es anders aus. Sobald mehrere Spieler joinen, komplexe Schiffe gebaut werden oder Mods ins Spiel kommen, steigt die Ressourcenlast rapide an. Für 2026 empfehlen wir folgende Hardware als Orientierung:</p>
+<table>
+<thead>
+<tr><th>Spieleranzahl</th><th>CPU</th><th>RAM</th><th>Speicher</th><th>Bandbreite</th></tr>
+</thead>
+<tbody>
+<tr><td>2–4 Spieler</td><td>4 vCPU Cores</td><td>8 GB</td><td>40 GB SSD</td><td>100 Mbit/s</td></tr>
+<tr><td>5–10 Spieler</td><td>6 vCPU Cores</td><td>16 GB</td><td>60 GB SSD</td><td>200 Mbit/s</td></tr>
+<tr><td>11–20 Spieler</td><td>8 vCPU Cores</td><td>32 GB</td><td>80 GB SSD</td><td>300 Mbit/s</td></tr>
+<tr><td>20+ Spieler / Mods</td><td>12+ vCPU Cores</td><td>64 GB</td><td>120 GB NVMe</td><td>500+ Mbit/s</td></tr>
+</tbody>
+</table>
+<p>Wichtig ist vor allem eine schnelle <strong>Single-Thread-CPU-Leistung</strong>, da die Space Engineers Engine nicht optimal multithreaded skaliert. Moderne AMD Ryzen 7/9 oder Intel Core i7/i9 Generationen eignen sich hervorragend.</p>
+<p>Der RAM-Bedarf hängt stark von der Weltengröße und der Anzahl geladener Grids ab. Eine Welt mit dutzenden Spielern, hunderten Schiffen und umfangreichen Modifikationen kann problemlos 32 GB und mehr beanspruchen. Planen Sie daher großzügig und nutzen Sie NVMe-SSDs, um lange Ladezeiten zu vermeiden.</p>
+<p>Beim Netzwerk sollte auf eine <strong>1-Gbit/s-Anbindung</strong> mit DDoS-Schutz geachtet werden. Gerade PvP-Server ziehen häufig Angriffe auf sich, die ohne Schutz den Spielspaß schnell ruinieren.</p>
+
+<h2>Server mieten vs. selbst hosten: Vor- und Nachteile</h2>
+<p>Bevor du dich entscheidest, solltest du die beiden Optionen genau abwägen. Das Mieten eines Servers bei einem spezialisierten Anbieter wie hostazar.com unterscheidet sich grundlegend vom Eigenbetrieb auf einem heimischen PC oder NAS.</p>
+<table>
+<thead>
+<tr><th>Kriterium</th><th>Server mieten</th><th>Selbst hosten</th></tr>
+</thead>
+<tbody>
+<tr><td>Verfügbarkeit</td><td>24/7, garantiert</td><td>Nur bei laufendem PC</td></tr>
+<tr><td>Stromkosten</td><td>Im Preis enthalten</td><td>Bis zu 30 €/Monat</td></tr>
+<tr><td>Internetleitung</td><td>Rechenzentrum, symmetrisch</td><td>Privater Upload oft schwach</td></tr>
+<tr><td>DDoS-Schutz</td><td>Inklusive</td><td>Selbst aufsetzen (teuer)</td></tr>
+<tr><td>Wartung</td><td>Anbieter übernimmt</td><td>Eigenverantwortlich</td></tr>
+<tr><td>Performance</td><td>Skalierbar</td><td>Begrenzt durch Hardware</td></tr>
+<tr><td>Kosten</td><td>ab ca. 8 €/Monat</td><td>Einmalig (Hardware) + Strom</td></tr>
+</tbody>
+</table>
+<p>Ein selbst gehosteter Server ist nur dann sinnvoll, wenn du eine schnelle Internetleitung mit gutem Upload, eine unterbrechungsfreie Stromversorgung und das nötige technische Know-how besitzt. In den meisten Fällen ist das Mieten die komfortablere und oft sogar günstigere Variante.</p>
+<p>Bei hostazar.com erhältst du vorkonfigurierte Space Engineers Server mit sofort einsatzbereitem Setup, automatischen Backups und einem 24/7-Monitoring-Team im Hintergrund. So kannst du dich voll auf das Gameplay konzentrieren.</p>
+
+<h2>Kostenvergleich: Miet-Server vs. Eigenbetrieb</h2>
+<p>Die Kostenfrage ist für viele Spieler das entscheidende Argument. Rechnen wir das einmal konkret durch: Ein eigener Gaming-PC mit ausreichender Leistung (Ryzen 7, 32 GB RAM, NVMe-SSD) kostet in der Anschaffung rund 1.000–1.500 Euro. Hinzu kommen Stromkosten von etwa 200–400 Euro pro Jahr, wenn der PC 24/7 läuft.</p>
+<p>Ein gemieteter Server bei hostazar.com beginnt bei rund <strong>8,99 € pro Monat</strong> für kleinere Setups und liegt für leistungsstarke 20-Slot-Server mit Mods bei etwa 25–40 € monatlich. Über zwei Jahre gerechnet ist der gemietete Server also oft günstiger – und du hast keinerlei Anschaffungskosten.</p>
+<table>
+<thead>
+<tr><th>Position</th><th>Eigenbetrieb (24 Monate)</th><th>Miet-Server (24 Monate)</th></tr>
+</thead>
+<tbody>
+<tr><td>Hardware</td><td>1.200 €</td><td>0 €</td></tr>
+<tr><td>Strom (24/7)</td><td>600 €</td><td>0 €</td></tr>
+<tr><td>Miete</td><td>0 €</td><td>480 €</td></tr>
+<tr><td>Internet (Upgrade)</td><td>240 €</td><td>0 €</td></tr>
+<tr><td>DDoS-Schutz</td><td>120 €</td><td>0 €</td></tr>
+<tr><td><strong>Gesamt</strong></td><td><strong>2.160 €</strong></td><td><strong>480 €</strong></td></tr>
+</tbody>
+</table>
+<p>Diese Rechnung zeigt deutlich: Für die meisten Hobbyspieler ist das Mieten eines Servers die wirtschaftlich klügere Entscheidung. Lediglich wer bereits über leistungsfähige Hardware, eine starke Internetleitung und freien Strom verfügt, kann mit dem Eigenbetrieb sparen.</p>
+
+<h2>Space Engineers Dedicated Server installieren: Schritt-für-Schritt-Anleitung</h2>
+<p>Die Installation eines Dedicated Servers ist auch für Einsteiger machbar, sofern du grundlegende Linux- oder Windows-Kenntnisse mitbringst. Wir zeigen dir den Weg auf einem Linux-Server (Ubuntu 22.04/24.04), da dies die häufigste Wahl für Miet-Server ist.</p>
+<p><strong>Schritt 1: Benutzer und Verzeichnis anlegen.</strong> Aus Sicherheitsgründen solltest du den Server niemals als root betreiben. Lege einen eigenen Benutzer an und wechsle in das gewünschte Installationsverzeichnis:</p>
+<pre><code>sudo adduser seserver
+sudo mkdir -p /opt/spaceengineers
+sudo chown seserver:seserver /opt/spaceengineers
+sudo -u seserver -i
+cd /opt/spaceengineers</code></pre>
+<p><strong>Schritt 2: SteamCMD herunterladen und einrichten.</strong> SteamCMD ist das offizielle Werkzeug von Valve, um Dedicated Server über die Kommandozeile zu installieren und zu aktualisieren. Lade es herunter und entpacke es:</p>
+<pre><code>mkdir ~/steamcmd && cd ~/steamcmd
+wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+tar -xzf steamcmd_linux.tar.gz
+./steamcmd.sh</code></pre>
+<p><strong>Schritt 3: Space Engineers Dedicated Server installieren.</strong> Innerhalb der SteamCMD-Shell loggst du dich anonym ein und installierst die Server-Dateien in das vorbereitete Verzeichnis:</p>
+<pre><code>login anonymous
+force_install_dir /opt/spaceengineers
+app_update 298740 validate
+quit</code></pre>
+<p>Die App-ID 298740 steht für den offiziellen Space Engineers Dedicated Server. Der erste Download kann je nach Leitungsgeschwindigkeit einige Minuten dauern. Mit <code>app_update</code> kannst du den Server später jederzeit auf den neuesten Stand bringen.</p>
+
+<h2>Space Engineers Server starten und konfigurieren</h2>
+<p>Nach der Installation wechselst du in das Server-Verzeichnis und startest den Server das erste Mal. In der Regel wird dabei automatisch eine <code>SpaceEngineers-Dedicated.cfg</code> angelegt, die du anpassen musst.</p>
+<pre><code>cd /opt/spaceengineers
+./SpaceEngineersDedicated -noconsole</code></pre>
+<p>Für den produktiven Betrieb empfehlen wir den Einsatz von <strong>systemd</strong>, um den Server automatisch zu starten, zu überwachen und bei einem Crash neu zu starten. Erstelle dazu eine Service-Datei:</p>
+<pre><code>[Unit]
+Description=Space Engineers Dedicated Server
+After=network.target
+
+[Service]
+User=seserver
+WorkingDirectory=/opt/spaceengineers
+ExecStart=/opt/spaceengineers/SpaceEngineersDedicated -noconsole
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=100000
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<p>Anschließend aktivierst du den Dienst und startest ihn:</p>
+<pre><code>sudo systemctl daemon-reload
+sudo systemctl enable seserver
+sudo systemctl start seserver
+sudo systemctl status seserver</code></pre>
+<p>Die wichtigsten Konfigurationsoptionen in der <code>SpaceEngineers-Dedicated.cfg</code> sind der Servername, das Passwort, die maximale Spieleranzahl, der Welt-Seed, die Weltgröße sowie die Liste der erlaubten Mods. Kommentiere die Datei mit einer Hash-Raute (#) und passe nur die Werte an, die du wirklich benötigst.</p>
+
+<h2>Mods und Plugins für den Space Engineers Server</h2>
+<p>Mods sind das Herzstück vieler Space Engineers Server. Sie reichen von neuen Bauteilen über Wirtschaftssysteme bis hin zu kompletten Spielmechanik-Änderungen. Auf dem Steam Workshop findest du tausende Mods, die du mit wenigen Klicks auf deinen Server bringst.</p>
+<p>Um einen Mod zu nutzen, abonniere ihn im Workshop, kopiere die Workshop-ID und trage sie in die Serverkonfiguration ein. Achte darauf, dass alle Spieler dieselben Mods abonniert haben, da sonst Verbindungsprobleme auftreten.</p>
+<table>
+<thead>
+<tr><th>Mod-Kategorie</th><th>Beliebte Beispiele</th><th>Einsatzgebiet</th></tr>
+</thead>
+<tbody>
+<tr><td>Neue Blöcke</td><td>DSMK, Azimuth Industries</td><td>Mehr Bauteile</td></tr>
+<tr><td>Wirtschaft</td><td>Economy Mod, ISY</td><td>Handel, NPCs</td></tr>
+<tr><td>QoL</td><td>Enhanced Projector, Welding</td><td>Komfortfunktionen</td></tr>
+<tr><td>Admin-Tools</td><td>Admin Helper
   <a href="/artikel/valheim-server-vps-mieten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/valheim-server-vps-mieten-2026.webp" alt="Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026" loading="lazy" width="400" height="200"></div>
   </a>

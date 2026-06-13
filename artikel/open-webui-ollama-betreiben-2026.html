@@ -759,6 +759,97 @@
     </div>
 
 <h1>Open WebUI mit Ollama betreiben – Der bessere ChatGPT-Klon 2026</h1>
+<h2>Open WebUI mit Ollama betreiben 2026: Die komplette Anleitung</h2>
+
+<p>Die Kombination aus Open WebUI und Ollama hat sich bis 2026 als De-facto-Standard für selbstgehostete KI-Assistenz etabliert. Während Ollama die leistungsstarke Inferenz-Engine im Hintergrund bereitstellt, liefert Open WebUI eine moderne, ChatGPT-ähnliche Benutzeroberfläche mit zahlreichen Features, die in reinen Terminal-Setups fehlen. Zusammen bilden sie eine vollwertige, datenschutzfreundliche Alternative zu kommerziellen Cloud-Diensten.</p>
+
+<p>Diese Anleitung führt dich Schritt für Schritt durch die komplette Einrichtung – von der Installation über die Konfiguration bis hin zu fortgeschrittenen Features wie RAG (Retrieval Augmented Generation), Web-Browsing und Multi-User-Setup. Egal ob du einen einfachen Heimserver mit Raspberry Pi betreibst oder eine produktive Unternehmenslösung aufbauen möchtest: Diese Schritt-für-Schritt-Anleitung deckt alle relevanten Aspekte ab.</p>
+
+<p>Bevor wir beginnen, ist es wichtig zu verstehen, dass Open WebUI weit mehr ist als eine simple Chat-Oberfläche. Es unterstützt multimodale Modelle, Sprachausgabe, Bildgenerierung, anpassbare Workspaces, ein mächtiges Berechtigungssystem und sogar die Integration in Slack, Discord oder Microsoft Teams. Wer das volle Potenzial ausschöpfen möchte, sollte daher auch die fortgeschrittenen Kapitel am Ende dieses Artikels lesen.</p>
+
+<h2>Voraussetzungen und Systemanforderungen</h2>
+
+<p>Bevor du mit der Installation beginnst, solltest du sicherstellen, dass dein System die Mindestanforderungen erfüllt. Open WebUI selbst ist ressourcenschonend, da die eigentliche Inferenz durch Ollama erfolgt. Dennoch empfehlen wir mindestens 8 GB RAM, besser 16 GB oder mehr, abhängig von der gewählten Modellgröße. Als CPU reicht ein moderner Multi-Core-Prozessor; für volle Performance ist allerdings eine dedizierte GPU dringend empfohlen.</p>
+
+<table>
+<thead>
+<tr><th>Komponente</th><th>Mindestanforderung</th><th>Empfohlen</th><th>Optimal</th></tr>
+</thead>
+<tbody>
+<tr><td>CPU</td><td>4 Kerne (x86_64 / ARM64)</td><td>8+ Kerne</td><td>16+ Kerne</td></tr>
+<tr><td>RAM</td><td>8 GB</td><td>32 GB</td><td>64 GB+</td></tr>
+<tr><td>GPU</td><td>Integriert / Apple Silicon</td><td>NVIDIA RTX 4070+</td><td>RTX 4090 / A100</td></tr>
+<tr><td>Speicher</td><td>20 GB SSD</td><td>100 GB NVMe</td><td>500 GB+ NVMe</td></tr>
+<tr><td>OS</td><td>Linux, macOS, Windows</td><td>Ubuntu 22.04 LTS</td><td>Ubuntu 24.04 LTS</td></tr>
+</tbody>
+</table>
+
+<p>Als Software-Abhängigkeiten benötigst du Docker (empfohlen) oder eine direkte Python-Installation. Für Linux-Nutzer ist Docker die bevorzugte Variante, da es Updates vereinfacht und ein sauberes Trennen der Komponenten ermöglicht. macOS- und Windows-Nutzer können alternativ auf Docker Desktop zurückgreifen oder Open WebUI nativ installieren, wobei wir für Produktionsumgebungen klar zu Docker raten.</p>
+
+<p>Eine Besonderheit gilt für Apple-Silicon-Nutzer: Ollama läuft auf M1/M2/M3/M4-Chips hervorragend und nutzt die Neural Engine sowie die Unified-Memory-Architektur optimal aus. Open WebUI kann in diesem Fall nativ oder als Docker-Container (mit experimenteller ARM-Unterstützung) betrieben werden. Beide Varianten funktionieren in der Praxis zuverlässig, wobei die native Installation tendenziell etwas ressourcenschonender ist.</p>
+
+<h2>Schritt 1: Ollama installieren</h2>
+
+<p>Die Installation von Ollama bildet die Grundlage des gesamten Setups. Auf einem Linux-System genügt ein einzelner Befehl, der das offizielle Installationsskript ausführt. Das Skript erkennt automatisch die Distribution und installiert alle benötigten Abhängigkeiten, einschließlich CUDA-Treibern auf NVIDIA-Systemen.</p>
+
+<p><code>curl -fsSL https://ollama.com/install.sh | sh</code></p>
+
+<p>Nach der Installation wird der Ollama-Dienst automatisch gestartet und ist unter <code>http://localhost:11434</code> erreichbar. Mit dem Befehl <code>systemctl status ollama</code> kannst du den Status überprüfen. Auf macOS und Windows installierst du Ollama am bequemsten über die offiziellen Installer, die auf der Website <a href="https://ollama.com">ollama.com</a> zum Download bereitstehen.</p>
+
+<p>Im nächsten Schritt lädst du ein erstes Modell herunter. Wir empfehlen für den Einstieg <code>llama3.1</code> in der 8B-Variante, da es ein guter Kompromiss aus Qualität und Ressourcenbedarf ist. Für leistungsstärkere Setups eignen sich <code>llama3.1:70b</code>, <code>mistral-large</code> oder <code>qwen2.5:32b</code>.</p>
+
+<p><code>ollama pull llama3.1</code></p>
+
+<h2>Schritt 2: Open WebUI mit Docker starten</h2>
+
+<p>Nachdem Ollama läuft, starten wir Open WebUI als Docker-Container. Der folgende Befehl konfiguriert das System so, dass Open WebUI auf Port 8080 lauscht und automatisch eine Verbindung zu Ollama herstellt. Die Volume-Mounts sorgen dafür, dass Daten persistent gespeichert werden und Updates den Container ersetzen können, ohne dass Konfigurationen verloren gehen.</p>
+
+<p><code>docker run -d -p 3000:8080 \</code><br>
+<code>  --add-host=host.docker.internal:host-gateway \</code><br>
+<code>  -v open-webui:/app/backend/data \</code><br>
+<code>  --name open-webui \</code><br>
+<code>  --restart always \</code><br>
+<code>  ghcr.io/open-webui/open-webui:main</code></p>
+
+<p>Nachdem der Container gestartet ist, kannst du Open WebUI im Browser unter <code>http://localhost:3000</code> aufrufen. Beim ersten Aufruf wirst du aufgefordert, einen Administrator-Account zu erstellen. Wähle ein sicheres Passwort mit mindestens 12 Zeichen, da dieser Account vollständige administrative Rechte besitzt.</p>
+
+<p>Wichtig: Wenn du Open WebUI und Ollama auf demselben Host betreibst, ist die Standardkonfiguration bereits korrekt. Falls sich die Dienste auf unterschiedlichen Hosts befinden, musst du die Umgebungsvariable <code>OLLAMA_BASE_URL</code> setzen, etwa <code>-e OLLAMA_BASE_URL=http://192.168.1.100:11434</code>. Sofern Ollama nicht auf Localhost lauscht, muss dort zudem <code>OLLAMA_HOST=0.0.0.0</code> gesetzt werden.</p>
+
+<h2>Schritt 3: Erste Konfiguration und Modell-Auswahl</h2>
+
+<p>Nach der Anmeldung gelangst du ins Haupt-Dashboard von Open WebUI. Im linken Seitenmenü findest du den Punkt "Workspace" und "Models", wo du deine lokal verfügbaren Modelle verwalten kannst. Open WebUI erkennt automatisch alle in Ollama installierten Modelle und zeigt diese in einer übersichtlichen Liste an.</p>
+
+<p>Über das Zahnrad-Symbol oben rechts gelangst du zu den globalen Einstellungen. Hier empfehlen wir folgende Anpassungen für den Produktivbetrieb: Aktiviere "Web Search" mit deiner bevorzugten Suchmaschine (DuckDuckGo benötigt keinen API-Key), konfiguriere die Standard-Modellparameter und lege das gewünschte Standardmodell fest. Auch die Sprache der Benutzeroberfläche lässt sich hier auf Deutsch umstellen.</p>
+
+<p>Für Entwickler besonders interessant ist der Bereich "Connections", wo sich benutzerdefinierte Endpunkte für OpenAI-kompatible APIs hinterlegen lassen. So kannst du neben lokalen Ollama-Modellen auch kommerzielle APIs wie OpenAI, Anthropic oder Google Gemini parallel nutzen. Open WebUI abstrahiert die Unterschiede und erlaubt den Wechsel zwischen den Backends mit einem Klick.</p>
+
+<h2>Schritt 4: RAG mit lokalen Dokumenten einrichten</h2>
+
+<p>Eine der mächtigsten Funktionen von Open WebUI ist die integrierte RAG-Pipeline (Retrieval Augmented Generation). Damit kannst du Dokumente, PDFs, Webseiten und sogar komplette Datenbanken als Wissensquelle für die KI nutzen. Die Verarbeitung erfolgt komplett lokal; es werden keine Daten an externe Dienste übertragen.</p>
+
+<p>Um RAG zu aktivieren, öffne die Einstellungen und navigiere zum Bereich "Documents". Lade zunächst ein oder mehrere Dokumente hoch – unterstützt werden PDF, TXT, DOCX, MD, CSV und viele weitere Formate. Open WebUI teilt die Dokumente automatisch in Chunks auf, erstellt Embeddings und speichert diese in einer lokalen Vektor-Datenbank (standardmäßig ChromaDB).</p>
+
+<p>Standardmäßig nutzt Open WebUI ein lokales Sentence-Transformer-Modell für die Embeddings, was eine exzellente Qualität bei minimalem Ressourcenverbrauch liefert. In den Einstellungen lässt sich alternativ ein Ollama-Embedding-Modell wie <code>nomic-embed-text</code> oder <code>mxbai-embed-large</code> konfigurieren, was die Genauigkeit weiter erhöht.</p>
+
+<p><code>ollama pull nomic-embed-text</code></p>
+
+<p>Um RAG im Chat zu nutzen, gib einfach ein #-Zeichen ein und wähle das gewünschte Dokument aus, oder aktiviere den "Knowledge"-Toggle in der Chat-Oberfläche. Die KI bezieht sich dann automatisch auf die hinterlegten Quellen und kennzeichnet relevante Passagen mit Fußnoten. Diese Funktion eignet sich hervorragend für juristische Recherche, technische Dokumentation oder wissenschaftliche Arbeit.</p>
+
+<h2>Schritt 5: Web-Browsing und externe Suchfunktionen</h2>
+
+<p>Open WebUI ermöglicht es deinen Modellen, in Echtzeit auf aktuelle Informationen aus dem Internet zuzugreifen. Diese Funktion ist besonders nützlich, wenn du Fragen zu aktuellen Ereignissen stellen möchtest, deren Wissensstand das Trainingsdatum des Modells übersteigt. Die Implementierung ist modular aufgebaut und unterstützt mehrere Suchanbieter.</p>
+
+<p>Aktiviere zunächst das Feature in den Admin-Einstellungen unter "Web Search". Wir empfehlen die Konfiguration mit SearXNG, einer selbstgehosteten Meta-Suchmaschine, die vollständige Kontrolle über die Suchergebnisse bietet. Alternativ kannst du kommerzielle Anbieter wie Google CSE, Brave Search API oder Tavily verwenden, sofern du API-Keys besitzt.</p>
+
+<p>Für maximale Privatsphäre empfiehlt sich die Kombination mit einem SearXNG-Container. Die nachfolgende docker-compose-Konfiguration zeigt ein vollständiges Setup mit beiden Komponenten:</p>
+
+<p><code>services:</code><br>
+<code>  searxng:</code><br>
+<code>    image: searxng/searxng:latest</code><br>
+<code>    ports: ["8888:8080"]</code><br>
+<code>    volumes: ["./searxng:/etc/searxng"]</code></p>
+
+<p>In den Open WebUI-Einstellungen hinterlegst du anschließend die URL <code>http://searxng:8080</code> als Web-Search-Provider. Ab sofort kann dein lokales Modell aktuelle Informationen abrufen und in seine Antworten einbeziehen – eine enorme Erweiterung
   <a href="/artikel/mistral-modelle-lokal-hosten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/mistral-modelle-lokal-hosten-2026.webp" alt="Mistral Large &amp; Mixtral 8x22B lokal hosten – MoE-Modelle selbst betreiben 2026" loading="lazy" width="400" height="200"></div>
   </a>

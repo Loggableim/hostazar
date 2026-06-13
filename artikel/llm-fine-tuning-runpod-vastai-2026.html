@@ -759,6 +759,198 @@
     </div>
 
 <h1>LLM Fine-Tuning auf gemieteten GPUs 2026 – LoRA, QLoRA &amp; Full-Tuning auf RunPod &amp; Vast.ai</h1>
+<h2>1. Warum gemietete GPUs für LLM Fine-Tuning 2026 unverzichtbar sind</h2>
+
+<p>Die Anforderungen an die Hardware für das Fine-Tuning moderner LLMs sind 2026 enorm gestiegen. Modelle wie Llama 3.3 70B, Mixtral 8x22B oder kommende Architekturen mit mehreren hundert Milliarden Parametern benötigen während des Trainings erheblichen VRAM-Speicher. Eine einzelne NVIDIA H100 mit 80 GB VRAM reicht oft nicht mehr aus, sodass Multi-GPU-Konfigurationen oder NVLink-Cluster notwendig werden.</p>
+
+<p>Die Investitionskosten für eine solche Infrastruktur liegen schnell im sechsstelligen Bereich. Hinzu kommen Stromkosten, Kühlung und Wartung. Für die meisten mittelständischen Unternehmen, Start-ups und unabhängigen Forscher ist der Eigenbetrieb solcher Hardware wirtschaftlich nicht sinnvoll. Cloud-basierte GPU-Anbieter lösen dieses Problem, indem sie elastische Rechenkapazitäten bereitstellen, die nur nach tatsächlichem Verbrauch abgerechnet werden.</p>
+
+<p>Ein weiterer entscheidender Vorteil ist die Skalierbarkeit. Projekte können kurzfristig auf 8x H100 oder sogar 16x H100 Cluster hochskaliert werden, ohne langfristige Verträge einzugehen. Nach Abschluss des Trainings werden die Ressourcen sofort wieder freigegeben. Diese Flexibilität ermöglicht es, experimenteller zu arbeiten und verschiedene Modellkonfigurationen in kurzer Zeit zu testen.</p>
+
+<p>Im Jahr 2026 haben sich zudem Spot-Märkte etabliert, auf denen ungenutzte GPU-Kapazitäten von Privatpersonen, kleinen Rechenzentren und Hobby-Enthusiasten zu deutlich reduzierten Preisen angeboten werden. Vast.ai ist der bekannteste Vertreter dieses Modells, während RunPod eine Mischung aus eigenen Rechenzentren und Drittanbieter-Hardware betreibt.</p>
+</section>
+
+<section>
+<h2>2. LoRA (Low-Rank Adaptation) – Effizientes Parameter-Tuning</h2>
+
+<p>LoRA hat sich seit seiner Einführung durch Microsoft Research als eine der populärsten Methoden für effizientes Fine-Tuning etabliert. Die Grundidee besteht darin, die ursprünglichen Modellgewichte einzufrieren und stattdessen kleine, trainierbare Low-Rank-Matrizen in die Attention-Layer des Modells einzufügen. Diese zusätzlichen Parameter machen typischerweise weniger als 1% der Gesamtparameter des Modells aus.</p>
+
+<p>Durch diese Reduktion der trainierbaren Parameter sinkt der VRAM-Bedarf drastisch. Ein 70B-Modell, das für Full-Tuning mehrere H100-GPUs mit insgesamt 320 GB VRAM benötigen würde, lässt sich mit LoRA auf einer einzelnen A100 mit 80 GB feintunen. Die Trainingszeit verkürzt sich entsprechend, und die Speicherkosten für Checkpoints reduzieren sich ebenfalls erheblich, da nur die kleinen Adapter gespeichert werden müssen.</p>
+
+<p>Die typischen Hyperparameter für LoRA umfassen den Rank (r), den Alpha-Wert und das Dropout. In der Praxis haben sich für 2026 folgende Standardwerte bewährt: r=16 oder r=32 für die meisten Anwendungsfälle, alpha=32 und dropout=0.05. Bei sehr großen Modellen oder besonders komplexen Aufgaben kann r auf 64 oder 128 erhöht werden, was allerdings den VRAM-Verbrauch linear steigert.</p>
+
+<p>Ein wesentlicher Vorteil von LoRA ist die Möglichkeit, mehrere Adapter für unterschiedliche Aufgaben mit einem einzigen Basis-Modell zu trainieren und zur Inferenz dynamisch zu wechseln. Dies ermöglicht ressourcenschonende Multi-Tenant-Setups, bei denen ein Modell viele spezialisierte Varianten abdeckt.</p>
+
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Wert</th>
+<th>Auswirkung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rank (r)</td>
+<td>8 – 128</td>
+<td>Höher = mehr Kapazität, mehr VRAM</td>
+</tr>
+<tr>
+<td>Alpha</td>
+<td>16 – 64</td>
+<td>Skalierungsfaktor der LoRA-Updates</td>
+</tr>
+<tr>
+<td>Dropout</td>
+<td>0.0 – 0.1</td>
+<td>Regularisierung gegen Overfitting</td>
+</tr>
+<tr>
+<td>Target Modules</td>
+<td>q_proj, v_proj, k_proj, o_proj</td>
+<td>Bestimmt, welche Layer angepasst werden</td>
+</tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>3. QLoRA – Quantisiertes LoRA für maximale Speichereffizienz</h2>
+
+<p>QLoRA erweitert das LoRA-Konzept um eine 4-Bit-Quantisierung der Basis-Modellgewichte, wodurch der VRAM-Verbrauch nochmals drastisch reduziert wird. Die Methode wurde 2023 von Tim Dettmers und seinem Team vorgestellt und hat sich bis 2026 als Quasi-Standard für das Fine-Tuning großer Modelle auf Consumer-Hardware etabliert.</p>
+
+<p>Die Kernkomponenten von QLoRA sind die <strong>NF4-Quantisierung</strong> (NormalFloat 4-bit), das <strong>Double-Quantization</strong> und die Verwendung von <strong>Paged Optimizers</strong>. NF4 ist speziell für normalverteilte Gewichte optimiert und liefert eine bessere numerische Genauigkeit als naive 4-Bit-Formate. Double-Quantization quantisiert zusätzlich die Quantisierungskonstanten selbst, was weitere Speicherersparnis bringt.</p>
+
+<p>Praktisch bedeutet dies, dass ein 70B-Paramter-Modell, das normalerweise etwa 140 GB VRAM für die Inferenz benötigt, in QLoRA auf rund 35 GB VRAM trainiert werden kann. Eine einzelne NVIDIA A100 mit 80 GB oder sogar eine RTX 4090 mit 24 GB reicht aus, um solche Modelle zu feintunen. Die Trainingsqualität bleibt dabei nahezu identisch zu herkömmlichem LoRA.</p>
+
+<p>Die beliebteste Implementierung von QLoRA findet sich in der <code>bitsandbytes</code>-Bibliothek in Kombination mit <code>peft</code> (Parameter Efficient Fine-Tuning) von Hugging Face. Im Jahr 2026 sind diese Bibliotheken ausgereift, gut dokumentiert und werden in der Community breit unterstützt. Auch die Integration in Frameworks wie Axolotl, LLaMA-Factory und Unsloth ist nahtlos.</p>
+
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>LoRA</th>
+<th>QLoRA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Basis-Modell VRAM (70B)</td>
+<td>~140 GB</td>
+<td>~35 GB</td>
+</tr>
+<tr>
+<td>Trainierbare Adapter VRAM</td>
+<td>~2 – 8 GB</td>
+<td>~2 – 8 GB</td>
+</tr>
+<tr>
+<td>Minimale GPU (70B)</td>
+<td>2x A100 80GB</td>
+<td>1x A100 80GB</td>
+</tr>
+<tr>
+<td>Trainingsgeschwindigkeit</td>
+<td>Schnell</td>
+<td>~10-20% langsamer</td>
+</tr>
+<tr>
+<td>Modellqualität</td>
+<td>Baseline</td>
+<td>≈ Baseline</td>
+</tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>4. Full-Tuning – Maximale Kontrolle bei höchstem Ressourcenbedarf</h2>
+
+<p>Beim klassischen Full-Tuning werden alle Parameter des Modells aktualisiert. Dies bietet die größtmögliche Flexibilität und liefert bei ausreichend Daten und Rechenkapazität oft die besten Ergebnisse. Insbesondere bei großen Datensätzen mit Millionen von Beispielen oder bei fundamental neuen Aufgaben kann Full-Tuning Vorteile gegenüber parameter-effizienten Methoden zeigen.</p>
+
+<p>Der Nachteil liegt auf der Hand: Der Speicherbedarf ist enorm. Für ein 70B-Modell werden für Full-Tuning typischerweise 4x H100 mit jeweils 80 GB VRAM benötigt, wenn moderne Techniken wie DeepSpeed ZeRO-3 oder Fully Sharded Data Parallel (FSDP) eingesetzt werden. Die Trainingskosten können schnell mehrere tausend Euro pro Lauf betragen.</p>
+
+<p>Im Jahr 2026 haben sich verschiedene Optimierungstechniken etabliert, die Full-Tuning effizienter machen. <strong>FlashAttention 3</strong> reduziert den Speicherbedarf der Attention-Berechnung erheblich, <strong>Gradient Checkpointing</strong> tauscht Rechenzeit gegen Speicher, und <strong>8-Bit-Optimizer</strong> von bitsandbytes halbieren den Speicherbedarf der Optimizer-Zustände. Auch <strong>CPU-Offloading</strong> kann genutzt werden, um Modellteile temporär in den RAM auszulagern.</p>
+
+<p>Für welche Szenarien ist Full-Tuning 2026 noch sinnvoll? Wenn ein Unternehmen ein eigenes Foundation Model aufbauen möchte, das deutlich vom ursprünglichen Modell abweicht, kommt man um Full-Tuning nicht herum. Auch für wissenschaftliche Forschung, bei der maximale Modellqualität erforderlich ist, oder für Anwendungen mit hochspezialisierten Domänen (z.B. juristische Texte, medizinische Diagnostik) kann Full-Tuning die bessere Wahl sein.</p>
+</section>
+
+<section>
+<h2>5. RunPod – Professionelle Cloud-GPUs mit hervorragender UX</h2>
+
+<p>RunPod hat sich 2026 als einer der führenden Anbieter für Cloud-GPUs etabliert. Die Plattform kombiniert eigene Rechenzentren in den USA und Europa mit einer Curated Marketplace für Drittanbieter-Hardware. Der große Vorteil von RunPod ist die hervorragende Benutzerfreundlichkeit: Pods (Container-Instanzen) lassen sich in unter 30 Sekunden starten, und die Web-IDE bietet direkten Zugang zu Jupyter Notebooks.</p>
+
+<p>Für Fine-Tuning-Workflows bietet RunPod vorkonfigurierte Templates mit PyTorch, CUDA, bitsandbytes, peft und allen gängigen Fine-Tuning-Frameworks. Auch der <strong>RunPod Instant Clusters</strong> ermöglicht es, Multi-GPU-Setups mit bis zu 8x H100 mit wenigen Klicks aufzusetzen. Die Abrechnung erfolgt sekundengenau, was besonders für kurze Experimente und Tests attraktiv ist.</p>
+
+<p>Eine besondere Stärke von RunPod ist der <strong>Serverless Inference</strong>-Service, der nach dem Fine-Tuning für die produktive Nutzung des Modells genutzt werden kann. So kann der gesamte Workflow von Training bis Deployment auf einer einzigen Plattform abgebildet werden. Auch die <strong>FlashBoot-Technologie</strong>, die Container-Startzeiten auf unter 5 Sekunden reduziert, ist 2026 ein wichtiger Wettbewerbsvorteil.</p>
+
+<p>Für Entwickler, die ihre Workflows automatisieren möchten, bietet RunPod eine umfangreiche REST-API und ein Python-SDK. Auch die Integration mit GitHub Actions und CI/CD-Pipelines ist gut dokumentiert. Im Enterprise-Segment bietet RunPod dedizierte Instanzen mit garantierter Verfügbarkeit, SOC2-Compliance und Support-Verträgen.</p>
+
+<table>
+<thead>
+<tr>
+<th>GPU-Typ</th>
+<th>VRAM</th>
+<th>RunPod Preis/h</th>
+<th>Eignung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RTX 4090</td>
+<td>24 GB</td>
+<td>~$0.69</td>
+<td>QLoRA bis 13B</td>
+</tr>
+<tr>
+<td>A100 80GB</td>
+<td>80 GB</td>
+<td>~$1.64</td>
+<td>QLoRA bis 70B</td>
+</tr>
+<tr>
+<td>H100 80GB</td>
+<td>80 GB</td>
+<td>~$2.99</td>
+<td>Full-Tuning bis 13B</td>
+</tr>
+<tr>
+<td>8x H100 Cluster</td>
+<td>640 GB</td>
+<td>~$23.92</td>
+<td>Full-Tuning 70B</td>
+</tr>
+<tr>
+<td>B200 (Beta)</td>
+<td>192 GB</td>
+<td>~$5.99</td>
+<td>Full-Tuning 70B+</td>
+</tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>6. Vast.ai – Günstige Spot-Preise durch P2P-Marktplatz</h2>
+
+<p>Vast.ai verfolgt ein grundlegend anderes Geschäftsmodell als RunPod. Die Plattform ist ein Peer-to-Peer-Marktplatz, auf dem Privatpersonen und kleine Anbieter ihre ungenutzten GPUs vermieten können. Dies führt oft zu Preisen, die 30-70% unter denen traditioneller Cloud-Anbieter liegen. Für preisbewusste Entwickler und Forscher ist Vast.ai daher oft die erste Wahl.</p>
+
+<p>Die Auswahl an GPUs auf Vast.ai ist riesig und reicht von Consumer-Karten wie der RTX 3060 bis zu professionellen A100, H100 und sogar H200. Die Plattform bietet einen ausgeklügelten Filter- und Sortiermechanismus, mit dem man nach Preis, GPU-Typ, VRAM, Standort, Verfügbarkeit und Reputation des Anbieters sortieren kann. Auch das automatische SSH-Setup und die Docker-Integration funktionieren reibungslos.</p>
+
+<p>Allerdings hat das Vast.ai-Modell auch Nachteile. Die Verfügbarkeit bestimmter GPU-Typen kann schwanken, und die Netzwerkgeschwindigkeit ist oft geringer als bei professionellen Rechenzentren. Auch der Support ist eingeschränkter – bei Problemen mit der Hardware muss man sich direkt an den Anbieter wenden. Für professionelle Produktionsworkloads mit SLA-Anforderungen ist Vast.ai daher weniger geeignet.</p>
+
+<p>Im Jahr 2026 hat Vast.ai sein Angebot um <strong>Hosted Clusters</strong> erweitert, die professionelle Multi-GPU-Setups mit garantierter Bandbreite und Verfügbarkeit bieten. Diese kosten mehr als die Spot-Instanzen, sind aber immer noch
+Titel: LLM Fine-Tuning auf gemieteten GPUs
+
+Topics:
+1. Wann mieten vs. kaufen
+2. RunPod vs. Vast.ai
+3. LoRA & QLoRA Grundlagen
+4. Frameworks (Axolotl, Unsloth, TRL)
+5. Setup-Tutorial
+6. Kostenkalkulation
+7. Daten-Pipeline
+8. Sicherheit & Compliance
   <a href="/artikel/mistral-modelle-lokal-hosten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/mistral-modelle-lokal-hosten-2026.webp" alt="Mistral Large &amp; Mixtral 8x22B lokal hosten – MoE-Modelle selbst betreiben 2026" loading="lazy" width="400" height="200"></div>
   </a>

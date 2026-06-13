@@ -759,6 +759,511 @@
     </div>
 
 <h1>Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026</h1>
+<h2>Warum ein eigener Valheim-Server auf einem VPS die beste Wahl ist</h2>
+<p>Valheim gehört auch 2026 zu den populärsten Survival-Spielen überhaupt. Nachdem ihr mit Freunden die prozedural generierte Wikingerwelt erkundet, wollt ihr eure Fortschritte dauerhaft speichern, ohne vom Host eines Drittanbieters abhängig zu sein. Ein eigener Valheim-Server auf einem VPS (Virtual Private Server) bietet euch genau diese Freiheit: volle Kontrolle über Konfiguration, Mods, Welten und Spielerzahlen.</p>
+<p>Im Vergleich zu selbst gehosteten Lösungen auf dem heimischen PC habt ihr bei einem VPS den Vorteil, dass der Server 24/7 läuft, auch wenn euer Rechner ausgeschaltet ist. Die Bandbreite professioneller Rechenzentren sorgt für niedrige Latenzen und stabile Verbindungen – ein entscheidender Faktor, wenn bis zu zehn Spieler gleichzeitig auf dem Server unterwegs sind.</p>
+<p>Bei hostazar.com empfehlen wir für Valheim mindestens 4 GB RAM, 2 vCPUs und mindestens 20 GB SSD-Speicher. Diese Ressourcen reichen aus, um ein reibungsloses Spielerlebnis mit moderater Spieleranzahl zu gewährleisten. Wer mit großen Mods oder vielen Spielern plant, sollte 8 GB RAM einplanen.</p>
+<p>Ein weiterer Vorteil: Ihr seid nicht an die oft eingeschränkten Optionen öffentlicher Server gebunden. Eigene Welten, individuelle Schwierigkeitsgrade, Bossreihenfolgen und PvP-Einstellungen lassen sich nach Belieben konfigurieren. So wird jeder Valheim-Server zum Unikat.</p>
+
+<h2>Die optimalen VPS-Anforderungen für Valheim im Detail</h2>
+<p>Valheim skaliert relativ gut mit den verfügbaren Ressourcen, hat aber einige Mindestanforderungen, die ihr nicht unterschätzen solltet. Das Spiel basiert auf einer Unity-Engine, die sowohl CPU- als auch RAM-Leistung beansprucht. Besonders die Weltsynchronisation zwischen den Spielern kostet Performance.</p>
+<p>Für einen Server mit 2-4 Spielern reicht ein kleiner VPS mit 2 vCPUs und 4 GB RAM vollkommen aus. Ab 5-8 Spielern empfehlen wir mindestens 4 vCPUs und 8 GB RAM. Wenn ihr Mods installiert oder eine sehr große Welt mit vielen erkundeten Gebieten spielt, sollten es sogar 8 vCPUs und 16 GB RAM sein.</p>
+<table>
+<thead>
+<tr><th>Spieleranzahl</th><th>CPU</th><th>RAM</th><th>Speicher</th><th>Empfohlener Tarif</th></tr>
+</thead>
+<tbody>
+<tr><td>2-4 Spieler</td><td>2 vCPUs</td><td>4 GB</td><td>20 GB SSD</td><td>Valheim Starter</td></tr>
+<tr><td>5-8 Spieler</td><td>4 vCPUs</td><td>8 GB</td><td>30 GB SSD</td><td>Valheim Standard</td></tr>
+<tr><td>8-10+ Spieler</td><td>8 vCPUs</td><td>16 GB</td><td>50 GB SSD</td><td>Valheim Performance</td></tr>
+</tbody>
+</table>
+<p>Beim Speicher solltet ihr unbedingt auf SSD setzen, da die Welten schnell wachsen. Eine 20-GB-Welt ist nach mehreren Monaten Spielzeit keine Seltenheit. Eine NVMe-SSD beschleunigt Ladezeiten und Backups erheblich.</p>
+<p>Die Netzwerkanbindung spielt ebenfalls eine wichtige Rolle. Valheim überträgt ständig Positions- und Statusdaten zwischen Client und Server. Eine Anbindung von mindestens 1 Gbit/s mit guter Peering-Qualität zu deutschen Internetknoten ist empfehlenswert.</p>
+
+<h2>Valheim Dedicated Server auf Linux einrichten</h2>
+<p>Die meisten VPS-Angebote basieren auf Linux, was die ideale Plattform für einen Valheim-Server ist. Die Einrichtung erfordert etwas technisches Verständnis, ist aber mit den richtigen Befehlen in wenigen Minuten erledigt. Wir verwenden in diesem Beispiel Ubuntu 22.04 LTS, da es langfristigen Support bietet.</p>
+<p>Zunächst aktualisiert ihr das System und installiert die benötigten Abhängigkeiten. Valheim benötigt SteamCMD, ein Werkzeug zum Herunterladen und Verwalten von Steam-Server-Dateien. Erstellt einen separaten Benutzer für den Server, um die Sicherheit zu erhöhen.</p>
+<pre><code>sudo apt update && sudo apt upgrade -y
+sudo apt install lib32gcc-s1 lib32stdc++6 libcurl4-gnutls-dev:i386 -y
+sudo useradd -m -s /bin/bash valheim
+sudo passwd valheim
+sudo -u valheim -i
+</code></pre>
+<p>Anschließend installiert ihr SteamCMD. Erstellt ein Verzeichnis, ladet das Tool herunter und entpackt es. SteamCMD ist die offizielle Methode, um Valheim-Serverdateien zu beziehen und Updates automatisch zu installieren.</p>
+<pre><code>mkdir ~/steamcmd && cd ~/steamcmd
+curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar xzf -
+./steamcmd.sh
+</code></pre>
+<p>Nach der Installation von SteamCMD könnt ihr den Valheim-Server herunterladen. Verwendet die Steam-Anwendungs-ID 896660 für den Valheim Dedicated Server. Der Vorgang kann einige Minuten dauern, da mehrere Gigabyte heruntergeladen werden.</p>
+<pre><code>./steamcmd.sh +login anonymous +force_install_dir ~/valheim +app_update 896660 validate +quit
+</code></pre>
+<p>Startet den Server zunächst testweise, um zu prüfen, ob alles funktioniert. Der erste Start kann etwas länger dauern, da die Spielwelt initial generiert wird. Ihr solltet nun in der Lage sein, euch über den Steam-Client mit dem Server zu verbinden.</p>
+
+<h2>Konfiguration der start_valheim.sh Script-Datei</h2>
+<p>Die Konfiguration des Valheim-Servers erfolgt über ein Shell-Skript, das ihr vor dem ersten Start anlegen müsst. Dieses Skript enthält alle wichtigen Parameter wie Servername, Weltname, Passwort und Spieleranzahl. Eine saubere Konfiguration ist der Schlüssel für einen stabilen Server.</p>
+<p>Erstellt im Valheim-Verzeichnis eine Datei namens start_valheim.sh und macht sie ausführbar. Das Skript ruft die ausführbare Datei des Servers mit den entsprechenden Parametern auf. Die wichtigsten Optionen sind der Weltname, das Serverpasswort und der öffentliche Status.</p>
+<pre><code>cd ~/valheim
+nano start_valheim.sh
+</code></pre>
+<p>Fügt folgenden Inhalt in die Datei ein. Passt die Variablen nach euren Wünschen an. Das Skript exportiert zunächst Steam-spezifische Umgebungsvariablen, die für den ordnungsgemäßen Betrieb erforderlich sind.</p>
+<pre><code>#!/bin/bash
+export SteamAppId=892970
+export SteamGameId=892970
+
+./valheim_server.x86_64 -name "Mein Valheim Server" \
+  -port 2456 -world "Dedicated" \
+  -password "sicherespasswort" \
+  -public 1 -players 10 \
+  -savedir "/home/valheim/.config/unity3d/IronGate/Valheim"
+</code></pre>
+<p>Macht das Skript ausführbar und startet es zum Test. Beobachtet die Konsolenausgabe, um sicherzustellen, dass keine Fehler auftreten. Wenn ihr die Meldung "Game Server connected" seht, läuft der Server korrekt.</p>
+<pre><code>chmod +x start_valheim.sh
+./start_valheim.sh
+</code></pre>
+<p>Beachtet, dass die offiziellen Ports 2456 und 2457 in eurer Firewall freigegeben werden müssen. UDP ist das bevorzugte Protokoll für Valheim. Eine fehlende Portfreigabe ist der häufigste Grund, warum Spieler keine Verbindung herstellen können.</p>
+
+<h2>Valheim-Server als Systemd-Service automatisieren</h2>
+<p>Ein manuell gestarteter Server ist nicht produktiv, da er beim Neustart des VPS verloren geht. Mit einem Systemd-Service sorgt ihr dafür, dass Valheim automatisch beim Hochfahren startet und bei einem Crash neu gestartet wird. Diese Automatisierung ist für den produktiven Einsatz unverzichtbar.</p>
+<p>Erstellt eine neue Service-Datei im Verzeichnis /etc/systemd/system. Systemd ist der Standard-Service-Manager auf modernen Linux-Distributionen und bietet umfangreiche Konfigurationsmöglichkeiten für Prozesse.</p>
+<pre><code>sudo nano /etc/systemd/system/valheim.service
+</code></pre>
+<p>Die Service-Definition enthält mehrere Abschnitte. Im Abschnitt [Unit] definieren wir Abhängigkeiten und Beschreibungen. [Service] enthält die auszuführenden Befehle, und [Install] legt fest, wann der Service gestartet werden soll.</p>
+<pre><code>[Unit]
+Description=Valheim Dedicated Server
+After=network.target
+
+[Service]
+Type=simple
+User=valheim
+Group=valheim
+WorkingDirectory=/home/valheim/valheim
+ExecStart=/home/valheim/valheim/start_valheim.sh
+Restart=always
+RestartSec=10
+StandardInput=null
+StandardOutput=append:/var/log/valheim/valheim.log
+StandardError=append:/var/log/valheim/valheim_error.log
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+<p>Aktiviert und startet den Service. Systemd übernimmt ab jetzt die Verwaltung des Servers. Ihr könnt den Status jederzeit über systemctl status valheim abfragen.</p>
+<pre><code>sudo mkdir -p /var/log/valheim
+sudo chown valheim:valheim /var/log/valheim
+sudo systemctl daemon-reload
+sudo systemctl enable valheim.service
+sudo systemctl start valheim.service
+sudo systemctl status valheim.service
+</code></pre>
+<p>Mit journalctl -u valheim.service -f könnt ihr die Live-Logs verfolgen. Dies ist besonders nützlich, um Verbindungsprobleme zu diagnostizieren oder die Performance zu überwachen. Logs sind euer wichtigstes Werkzeug bei der Fehlersuche.</p>
+
+<h2>Firewall und Sicherheit für den Valheim-Server</h2>
+<p>Ein öffentlich erreichbarer Server ist ein beliebtes Ziel für Angreifer. Eine solide Firewall-Konfiguration ist daher unverzichtbar. UFW (Uncomplicated Firewall) ist ein benutzerfreundliches Tool zur Verwaltung von iptables-Regeln auf Ubuntu-Systemen.</p>
+<p>Aktiviert UFW und erlaubt zunächst SSH, damit ihr nicht ausgesperrt werdet. Valheim benötigt die Ports 2456 und 2457 für den Game- und Query-Port. Verwendet UDP, da Valheim dieses Protokoll bevorzugt.</p>
+<pre><code>sudo ufw allow OpenSSH
+sudo ufw allow 2456/udp
+sudo ufw allow 2457/udp
+sudo ufw enable
+sudo ufw status
+</code></pre>
+<p>Für zusätzliche Sicherheit empfehlen wir, den SSH-Zugang auf einen nicht-Standard-Port zu verlegen und Public-Key-Authentifizierung zu verwenden. Passwortbasierte Logins sind ein erhebliches Sicherheitsrisiko und sollten deaktiviert werden.</p>
+<p>Erstellt regelmäßig Backups eurer Spielwelt. Valheim speichert die Weltdateien im konfigurierten savedir. Ein einfaches Cron-Job, das die Daten täglich komprimiert und auf einen externen Speicher kopiert, schützt vor Datenverlust durch Hardware-Defekte oder versehentliches Löschen.</p>
+<pre><code>0 4 * * * tar -czf /backup/valheim-$(date +\%F).tar.gz /home/valheim/.config/unity3d/IronGate/Valheim
+</code></pre>
+<p>Überwacht euren Server mit Tools wie htop, iotop und netdata. Diese Tools geben euch Einblick in die Ressourcennutzung und helfen, Engpässe frühzeitig zu erkennen. Ein überlasteter Server führt zu Lags und schlechter Spielerfahrung.</p>
+
+<h2>Mods und Performance-Optimierung für Valheim</h2>
+<p>Valheim unterstützt seit dem Mistlands-Update BepInEx als Modding-Framework. Mit Mods wie ValheimPlus oder BepInExPack lassen sich zahlreiche Aspekte des Spiels anpassen. Allerdings steigt mit jeder Mod auch der Ressourcenbedarf des Servers.</p>
+<p>Beliebte Mods sind unter anderem Quality of Life-Verbesserungen wie schnelleres Crafting, erweiterte Kartenansicht und ein verbessertes Inventarsystem. Mods wie AllTameable oder BuildPieceAdder erweitern die Spielmechaniken erheblich. Vor jeder Mod-Installation solltet ihr ein Backup der Welt erstellen.</p>
+<table>
+<thead>
+<tr><th>Mod</th><th>Funktion</th><th>Ressourcenverbrauch</th></tr>
+</thead>
+<tbody>
+<tr><td>ValheimPlus</td><td>QoL, Performance</td><td>Niedrig</td></tr>
+<tr><td>BepInExPack</td><td>Modding-Framework</td><td>Niedrig</td></tr>
+<tr><td>AllTameable</td><td>Alle Tiere zähmbar</td><td>Niedrig</td></tr>
+<tr><td>BuildPieceAdder</td><td>Mehr Baumöglichkeiten</td><td>Mittel</td></tr>
+<tr><td>EpicLoot</td><td>Loot-System erweitert</td><td>Mittel</td></tr>
+</tbody>
+</table>
+<p>Für Performance-Optimierungen könnt ihr verschiedene Linux-Tuning-Maßnahmen ergreifen. Erhöht den Swap-Speicher, passt die Prozesspriorität an und nutzt den CPU-Governor für bessere Single-Core-Performance. Valheim ist stark single-threaded.</p>
+<pre><code>echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+</code></pre>
+<p>Beobachtet die RAM-Nutzung über längere Zeit. Wenn der Server regelmäßig an die RAM-Grenzen stößt, ist ein Upgrade auf den nächstgrößeren VPS-Tarif sinnvoller als ständiges Swapping. Swapping auf SSDs ist möglich, aber deutlich langsamer als RAM.</p>
+
+<h2>Backup-Strategien für Valheim-Welten</h2>
+<p>Eine durchdachte Backup-Strategie schützt euch vor Datenverlust. Valheim speichert kontinuierlich Spielstände, sodass der Verlust einer laufenden Sitzung selten ist. Dennoch können Hardware-Defekte, versehentliche Löschungen oder fehlerhafte Updates zu Datenverlust führen.</p>
+<p>Die Weltdateien befinden sich standardmäßig im Verzeichnis des savedir-Parameters. Eine typische Welt besteht aus mehreren Dateien: .db für die Hauptdaten, .fwl für die Spielerpositionen und .fwl.bak als automatische Sicherung. Alle drei sollten gesichert werden.</p>
+<p>Erstellt lokale Backups auf dem VPS selbst, aber auch externe Backups auf einem Object Storage wie S3-kompatiblen Speicher. Tools wie restic oder borg bieten inkrementelle Backups mit Verschlüsselung und sind einfach über die Kommandozeile zu bedienen.</p>
+<pre><code>sudo apt install restic -y
+restic -r s3:s3.amazonaws.com/bucket-valheim backup /home/valheim/.config/unity3d/IronGate/Valheim
+</code></pre>
+<p>Testet regelmäßig die Wiederherstellung eurer Backups. Ein nicht getestetes Backup ist im Ernstfall wertlos. Erstellt einen Restore-Plan und übt die Wiederherstellung mindestens einmal pro Quartal. Dokumentiert alle Schritte für Notfälle.</p>
+<p>Für Community-Server mit vielen Spielern empfehlen wir, vor jedem Update eine vollständige Sicherung anzulegen. So könnt ihr bei Problemen sofort auf den vorherigen Zustand zurückkehren, ohne Spieler zu verprellen. Versioniert eure Backups sinnvoll.</p>
+
+<h2>Häufige Probleme und Lösungen beim Valheim-Server</h2>
+<p>Auch bei sorgfältiger Konfiguration können Probleme auftreten. Die häufigsten Ursachen für Verbindungsabbrüche, Lags oder Server-Crashes sind meistens auf Ressourcenengpässe, fehlerhafte Konfigurationen oder veraltete Versionen zurückzuführen.</p>
+<p>Wenn Spieler keine Verbindung herstellen können, überprüft zunächst die Firewall-Einstellungen. Sowohl die Software-Firewall auf dem VPS als auch eventuelle externe Firewalls müssen die Ports 2456 und 2457 für UDP-Verkehr freigeben. Auch die IP-Adresse des Servers muss korrekt an die Spieler weitergegeben werden.</p>
+<p>Regelmäßige Server-Crashes deuten oft auf Speicherprobleme hin. Valheim hat in der Vergangenheit unter Memory-Leaks gelitten, die durch Updates behoben wurden. Stellt sicher, dass ihr immer die neueste Version verwendet. SteamCMD aktualisiert den Server automatisch, wenn ihr app_update mit validate ausführt.</p>
+<p>Lags trotz ausreichender Ressourcen können an der Netzwerkverbindung liegen. Überprüft die Latenz zu den Spielern mit Tools wie mtr oder traceroute. Manchmal hilft ein Wechsel des VPS-Anbieters oder Standorts, wenn die Routen zu den Spielern suboptimal sind.</p>
+<p>Sollte der Server nicht mehr starten, überprüft die Log-Dateien in /var/log/valheim. Häufige Fehlermeldungen sind Hinweise auf fehlende Bibliotheken, falsche Pfade oder unzureichende Berechtigungen. Die Lösung ist meist einfach, wenn man die genaue Fehlermeldung kennt.</p>
+
+<h2>Kostenvergleich: VPS vs. selbst gehostet vs. öffentliche Server</h2>
+<p>Die Wahl der Hosting-Option hängt von euren individuellen Bedürfnissen ab. Ein eigener VPS bietet die beste Balance aus Kontrolle, Kosten und Komfort. Selbst gehostete Lösungen sind günstiger, aber wartungsintensiver. Öffentliche Server sind am einfachsten, bieten aber kaum Anpassungsmöglichkeiten.</p>
+<p>Ein guter Valheim-VPS kostet je nach Anbieter zwischen 8 und 25 Euro pro Monat. Hoster wie Hetzner, OVH oder netcup bieten attraktive Tarife mit guter Performance. Bei hostazar.com haben wir die besten Angebote für Gaming-VPS verglichen und empfehlen einen Tarif ab 4 GB RAM für Einsteiger.</p>
+<table>
+<thead>
+<tr><th>Option</th><th>Kosten/Monat</th><th>Kontrolle</th><th>Wartung</th><th>Performance</th></tr>
+</thead>
+<tbody>
+<tr><td>VPS bei Hoster</td><td>8-25 €</td><td>Hoch</td><td>Mittel</td><td>Sehr gut</td></tr>
+<tr><td>Heimserver</td><td>5-15 € Strom</td><td>Sehr hoch</td><td>Hoch</td><td>Variabel</td></tr>
+<tr><td>Öffentlicher Server</td><td>0-10 €</td><td>Niedrig</td><td>Keine</td><td>Gut</td></tr>
+</tbody>
+</table>
+<p>Bedenkt bei der Wahl auch die Stromkosten und die Verfügbarkeit eures Heimanschlusses. Wenn euer Internet ausfällt, ist euer Server nicht erreichbar. Ein professionelles Rechenzentrum bietet Redundanz und garantierte Verfügbarkeit von oft über 99,9 Prozent.</p>
+<p>Für Gelegenheitsspieler mit wenigen Stunden pro Woche ist ein öffentlicher Server oft ausreichend. Wer jedoch regelmäßig spielt, Mods nutzt und eine eigene Community aufbauen möchte, profitiert langfristig von einem eigenen VPS. Die Investition lohnt sich bereits nach wenigen Monaten.</p>
+
+<h2>Fazit: Valheim-Server auf VPS als optimale Lösung 2026</h2>
+<p>Ein eigener Valheim-Server auf einem VPS ist auch 2026 die beste Wahl für ernsthafte Wikinger-Abenteurer. Die Kombination aus voller Kontrolle, guter Performance und moderaten Kosten macht diese Option für die meisten Spieler zur ersten Wahl. Mit der richtigen Konfiguration läuft der Server stabil und sicher.</p>
+<p>Bei hostazar.com findet ihr eine sorgfältig zusammengestellte Auswahl an VPS-Anbietern, die sich für Valheim und andere Gameserver eignen. Wir achten auf gute Netzwerkanbindung, faire Preise und zuverlässigen Support. So findet ihr schnell den passenden Tarif für eure Bedürfnisse.</p>
+<p>Die technische Einrichtung ist mit den richtigen Anleitungen auch für Einsteiger machbar. Linux-Grundkenntnisse sind hilfreich, aber nicht zwingend erforderlich. Mit Geduld und den hier gezeigten Schritten steht eurem eigenen Valheim-Reich nichts mehr im Wege. Sammelt eure Freunde und erkundet die Welt von Valheim gemeinsam.</p>
+<h2>Valheim Server auf VPS mieten 2026: Der ultimative Einstiegsguide</h2>
+<p>Valheim hat sich seit seinem Release im Februar 2021 zu einem der beliebtesten Survival-Spiele überhaupt entwickelt. Auch 2026 erfreut sich der Wikinger-Titel einer riesigen Community, die gemeinsam die procedurale generierte Welt erkundet. Wer dauerhaft und ohne Performance-Probleme spielen möchte, kommt um einen eigenen Server nicht herum. Ein gemieteter VPS bietet dabei die perfekte Balance aus Kosten, Leistung und Kontrolle.</p>
+<p>Im Gegensatz zum hosten über einen Heim-PC oder das Spiel selbst, läuft ein Valheim-Server auf einem VPS rund um die Uhr, unabhängig davon, ob dein eigener Computer eingeschaltet ist. Zudem profitierst du von einer stabilen Internetanbindung mit niedrigem Ping, was besonders bei größeren Spielgruppen essenziell ist. Die Konfiguration erfolgt vollständig remote und du behältst die volle Admin-Kontrolle.</p>
+<p>In diesem umfassenden Guide erfährst du alles, was du über das Mieten eines Valheim-Servers auf einem VPS im Jahr 2026 wissen musst. Wir vergleichen Anbieter, zeigen dir die Installation Schritt für Schritt und geben dir wertvolle Tipps zur Optimierung der Performance und Sicherheit.</p>
+
+<h2>Warum ein VPS für Valheim die beste Wahl ist</h2>
+<p>Ein VPS (Virtual Private Server) bietet dedicated Ressourcen, die ausschließlich für deinen Valheim-Server zur Verfügung stehen. Anders als bei einem Shared Hosting, wo du mit hunderten anderen Nutzern um CPU und RAM konkurrierst, bekommst du garantierte Leistung zugewiesen. Das ist besonders wichtig, da Valheim bei vielen Spielern und großen Bauwerken spürbar mehr Ressourcen benötigt.</p>
+<p>Die größten Vorteile eines VPS im Überblick: garantierte CPU-Kerne dediziert für deinen Server, dedizierter Arbeitsspeicher ohne Swapping, NVMe-SSD-Speicher für schnelle Ladezeiten, 24/7 Verfügbarkeit ohne Strom- oder Internetkosten zu Hause, Skalierbarkeit bei wachsender Spielerzahl und vollständige Root-Rechte für individuelle Konfiguration.</p>
+<p>Gerade für mittelgroße bis große Wikinger-Siedlungen mit 10 bis 20 gleichzeitigen Spielern ist ein VPS die einzig sinnvolle Lösung, um Ruckler, Lags und Verbindungsabbrüche zu vermeiden. Die Investition von wenigen Euro pro Monat zahlt sich durch ein deutlich verbessertes Spielerlebnis aus.</p>
+
+<h2>Technische Anforderungen an einen Valheim-VPS</h2>
+<p>Valheim ist zwar kein besonders hardwarehungriges Spiel, stellt aber dennoch gewisse Mindestanforderungen an einen Server. Die offiziellen Angaben von Iron Gate empfehlen mindestens 4 GB RAM und einen Dual-Core-Prozessor, allerdings beziehen sich diese Werte auf den Dedicated Server mit wenigen Spielern.</p>
+<p>Für ein optimales Spielerlebnis im Jahr 2026 empfehlen wir folgende Konfiguration als Mindeststandard: 4 vCPUs auf Basis von AMD EPYc oder Intel Xeon, mindestens 8 GB RAM (besser 16 GB für 10+ Spieler), 80 GB NVMe-SSD-Speicher, 1 GBit/s Netzwerkanbindung mit DDoS-Schutz und Standort in Europa für niedrige Latenz.</p>
+<p>Die folgende Tabelle zeigt die empfohlenen Spezifikationen in Abhängigkeit der Spielerzahl und Spielweise:</p>
+<table>
+<thead>
+<tr><th>Spielerzahl</th><th>CPU</th><th>RAM</th><th>Speicher</th><th>Monatlicher Preis (ca.)</th></tr>
+</thead>
+<tbody>
+<tr><td>2-4 Spieler</td><td>2 vCPUs</td><td>4 GB</td><td>50 GB SSD</td><td>5-8 €</td></tr>
+<tr><td>5-10 Spieler</td><td>4 vCPUs</td><td>8 GB</td><td>80 GB SSD</td><td>10-15 €</td></tr>
+<tr><td>10-20 Spieler</td><td>6 vCPUs</td><td>16 GB</td><td>120 GB SSD</td><td>20-30 €</td></tr>
+<tr><td>20+ Spieler / Modded</td><td>8+ vCPUs</td><td>32 GB</td><td>200 GB SSD</td><td>35-50 €</td></tr>
+</tbody>
+</table>
+
+<h2>Die besten VPS-Anbieter für Valheim im Vergleich 2026</h2>
+<p>Der Markt für VPS-Hosting ist groß und die Auswahl kann überwältigend sein. Wir haben die wichtigsten Anbieter für Valheim-Server getestet und verglichen. Besonderes Augenmerk haben wir auf Preis-Leistung, Standort-Verfügbarkeit in Deutschland und Österreich, Support-Qualität und die Verfügbarkeit von SteamCMD auf den Servern gelegt.</p>
+<p>Hetzner Cloud gehört seit Jahren zu den Favoriten der Gaming-Community. Mit Standorten in Falkenstein und Helsinki, exzellentem Support und einem unschlagbaren Preis-Leistungs-Verhältnis ist Hetzner die erste Wahl für viele Spieler. Die Server sind in unter einer Minute provisioniert und SteamCMD ist in den Standard-Images enthalten.</p>
+<p>Netcup bietet ähnlich gute Konditionen mit Standorten in Wien und Nürnberg. Besonders die günstigen Einstiegstarife und die hohe Netzwerkqualität machen Netcup zu einer starken Alternative. IONOS, OVHcloud und Contabo runden das Feld mit ebenfalls soliden Angeboten ab, wobei Contabo besonders durch seine großzügigen Ressourcen-Bundles punktet.</p>
+
+<table>
+<thead>
+<tr><th>Anbieter</th><th>Standorte</th><th>Preis ab</th><th>CPU</th><th>RAM</th><th>DDoS-Schutz</th><th>Besonderheiten</th></tr>
+</thead>
+<tbody>
+<tr><td>Hetzner Cloud</td><td>DE, FI</td><td>ca. 4,85 €</td><td>2 vCPUs</td><td>4 GB</td><td>Optional</td><td>Top Preis-Leistung</td></tr>
+<tr><td>Netcup</td><td>DE, AT</td><td>ca. 5,99 €</td><td>2 vCPUs</td><td>4 GB</td><td>Inklusive</td><td>Wien-Standort</td></tr>
+<tr><td>IONOS</td><td>DE, ES, UK</td><td>ca. 5,00 €</td><td>2 vCPUs</td><td>4 GB</td><td>Inklusive</td><td>1 GBit/s garantiert</td></tr>
+<tr><td>Contabo</td><td>DE</td><td>ca. 4,50 €</td><td>4 vCPUs</td><td>8 GB</td><td>Optional</td><td>Viel RAM fürs Geld</td></tr>
+<tr><td>OVHcloud</td><td>DE, FR</td><td>ca. 6,00 €</td><td>2 vCPUs</td><td>4 GB</td><td>Inklusive</td><td>Game-Server-Spezialist</td></tr>
+</tbody>
+</table>
+
+<h2>Valheim Dedicated Server installieren: Schritt-für-Schritt-Anleitung</h2>
+<p>Die Installation des Valheim Dedicated Servers auf einem Linux-VPS ist auch für Einsteiger machbar. Wir verwenden in diesem Guide Ubuntu 22.04 LTS als Betriebssystem, da es weit verbreitet ist und über eine ausgezeichnete Dokumentation verfügt. Die gesamte Installation dauert etwa 20 bis 30 Minuten.</p>
+<p>Zunächst verbindest du dich per SSH mit deinem frisch provisionierten Server. Hetzner, Netcup und Co. liefern die Zugangsdaten direkt nach der Bestellung per E-Mail. Verwende einen modernen SSH-Client wie Termius oder das in Windows 11 integrierte OpenSSH. Sobald du verbunden bist, aktualisierst du zunächst das System und installierst die benötigten Pakete.</p>
+<p>SteamCMD ist das offizielle Werkzeug von Valve, um dedizierte Server für Steam-Spiele herunterzuladen und zu verwalten. Erstelle zunächst einen dedizierten Benutzer für den Server, um die Sicherheit zu erhöhen. Wir empfehlen, den Server niemals als Root auszuführen, da dies ein erhebliches Sicherheitsrisiko darstellt.</p>
+
+<pre><code># System aktualisieren
+sudo apt update && sudo apt upgrade -y
+
+# Benötigte Pakete installieren
+sudo apt install -y software-properties-common apt-transport-https curl
+
+# SteamCMD installieren
+sudo dpkg --add-architecture i386
+sudo apt update
+sudo apt install -y steamcmd
+
+# Dedizierten Benutzer anlegen
+sudo useradd -m -s /bin/bash valheim
+sudo passwd valheim
+sudo usermod -aG sudo valheim</code></pre>
+
+<h2>SteamCMD konfigurieren und Valheim herunterladen</h2>
+<p>Nach der Installation von SteamCMD wechselst du in das Verzeichnis des erstellten Benutzers und lädst den Valheim Dedicated Server herunter. Der Vorgang ist unkompliziert, erfordert aber eine gültige Steam-Anmeldung. Du kannst entweder deinen eigenen Steam-Account verwenden oder einen anonymen Login durchführen.</p>
+<p>Wichtig: Für den anonymen Login wird ein Update-Script benötigt, das du separat herunterladen musst. Alternativ empfehlen wir die Verwendung eines dedizierten Steam-Accounts, da dies die Update-Verwaltung erheblich vereinfacht. Erstelle dir am besten einen kostenlosen Steam-Account nur für den Server-Betrieb.</p>
+<p>Die initiale Installation von Valheim über SteamCMD dauert je nach Internetverbindung etwa 5 bis 15 Minuten. Die Dateigröße des Spiels beträgt aktuell rund 1,2 GB. Nach dem Download findest du die Server-Files unter /home/valheim/valheim_server/.</p>
+
+<pre><code># Als valheim-User anmelden
+su - valheim
+
+# Valheim-Server-Verzeichnis erstellen
+mkdir -p ~/valheim_server
+cd ~/valheim_server
+
+# Steam-Login (anonym)
+steamcmd +login anonymous +force_install_dir ~/valheim_server +app_update 896660 validate +quit</code></pre>
+
+<h2>Konfiguration des Valheim-Servers</h2>
+<p>Die Konfiguration des Valheim-Servers erfolgt über zwei zentrale Dateien: start_valheim.sh zum Starten des Servers und die auto-generated world files für die Spielwelt. Standardmäßig generiert der Server beim ersten Start eine neue Welt mit dem Namen "Dedicated".</p>
+<p>Für eine individuelle Konfiguration erstellst du am besten eigene Startparameter. Diese steuern den Servernamen, die Spielerzahl, das Passwort und die Welt-Einstellungen. Die wichtigsten Parameter sind -name (Servername), -port (Standard 2456), -world (Weltname), -password (Join-Passwort) und -public (öffentlich oder privat).</p>
+<p>Wir empfehlen außerdem, die Welt regelmäßig zu sichern. Valheim speichert die Welt automatisch alle 20 Minuten, aber ein zusätzliches Backup schützt vor Datenverlust. Die Save-Files befinden sich unter ~/.config/unity3d/IronGate/Valheim/worlds/.</p>
+
+<pre><code>#!/bin/bash
+export SteamAppId=892970
+export LD_LIBRARY_PATH=/home/valheim/valheim_server/linux64:$LD_LIBRARY_PATH
+
+/home/valheim/valheim_server/valheim_server.x86_64 \
+  -name "Mein Wikinger-Reich" \
+  -port 2456 \
+  -world "Welt1" \
+  -password "GeheimesPasswort" \
+  -public 0 \
+  -savedir "/home/valheim/valheim_data"</code></pre>
+
+<h2>Systemd-Service für automatischen Start einrichten</h2>
+<p>Damit dein Valheim-Server automatisch beim Boot startet und bei einem Crash neu startet, richtest du einen Systemd-Service ein. Dies ist die professionellste Methode und ermöglicht dir eine einfache Verwaltung über systemctl-Befehle. Der Service läuft im Hintergrund und verbraucht nur minimale Ressourcen.</p>
+<p>Erstelle eine neue Service-Datei unter /etc/systemd/system/valheim.service und definiere alle notwendigen Parameter. Achte darauf, dass der Service unter dem valheim-Benutzer ausgeführt wird und die WorkingDirectory korrekt gesetzt ist. Nach dem Erstellen der Datei aktivierst du den Service und startest ihn.</p>
+<p>Die Verwaltung des Servers erfolgt dann über einfache Befehle: systemctl start valheim zum Starten, systemctl stop valheim zum Stoppen, systemctl restart valheim zum Neustarten und systemctl status valheim zur Status-Anzeige. Mit journalctl -u valheim -f kannst du die Live-Logs verfolgen.</p>
+
+<pre><code>[Unit]
+Description=Valheim Dedicated Server
+After=network.target
+
+[Service]
+Type=simple
+User=valheim
+Group=valheim
+WorkingDirectory=/home/valheim/valheim_server
+ExecStart=/home/valheim/valheim_server/start_valheim.sh
+Restart=always
+RestartSec=10
+StandardInput=null
+StandardOutput=append:/var/log/valheim/valheim.log
+StandardError=append:/var/log/valheim/valheim.log
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+
+<h2>Firewall und Sicherheit konfigurieren</h2>
+<p>Die Absicherung des Servers sollte oberste Priorität haben. Valheim verwendet standardmäßig den UDP-Port 2456 für den Spielverkehr und den TCP-Port 2457 für administrative Verbindungen. Beide Ports müssen in der Firewall freigegeben werden, damit Spieler dem Server beitreten können.</p>
+<p>Verwende UFW (Uncomplicated Firewall) für eine einfache Konfiguration oder iptables für erweiterte Einstellungen. SSH sollte niemals auf Port 22 mit Root-Login betrieben werden. Ändere den SSH-Port, deaktiviere die Passwort-Authentifizierung und verwende ausschließlich SSH-Keys. Dies blockiert 99% der automatisierten Angriffe.</p>
+<p>Ein DDoS-Schutz ist besonders für öffentliche Server empfehlenswert. Die meisten deutschen Hoster bieten mittlerweile einen Basisschutz inklusive, für professionelle Setups empfiehlt sich jedoch der Einsatz von Cloudflare Spectrum oder OVH-Game-DDoS-Schutz. Backups der Welt solltest du täglich auf einen externen Speicher wie Hetzner Storage Box oder Amazon S3 sichern.</p>
+
+<h2>Performance-Optimierung für große Spielerzahlen</h2>
+<p>Valheim skaliert nicht perfekt mit der Spielerzahl, daher sind Performance-Optimierungen essenziell für ein flüssiges Spielerlebnis. Die größten Performance-Faktoren sind die Anzahl der gebauten Strukturen, die aktiven NPCs und die Häufigkeit der automatischen Saves. Mods wie Valheim Plus können hier Wunder wirken, erfordern aber, dass alle Spieler die gleichen Mods verwenden.</p>
+<p>Auf Server-Seite kannst du die Garbage Collection von Unity beeinflussen, um Memory-Leaks zu reduzieren. Auch das Deaktivieren unnötiger Logging-Ausgaben reduziert die I/O-Last auf der Festplatte. Bei sehr großen Welten empfiehlt sich der Umstieg auf eine größere Server-Konfiguration, da die Performance mit der Weltgröße exponentiell abnimmt.</p>
+<p>Die Wichtigsten Optimierungen in der Übersicht: Garbage Collection Tuning mit -gc 0 in den Startparametern, dedizierte NVMe-SSD für Weltspeicher, ausreichend RAM-Puffer (mindestens doppelt so viel wie das Spiel tatsächlich benötigt), Reduzierung der Save-Häufigkeit bei großen Gruppen, regelmäßiges Entfernen verlassener Strukturen und Verwendung der neuesten Unity-Version.</p>
+
+<h2>Häufige Probleme und ihre Lösungen</h2>
+<p>Auch wenn die Einrichtung eines Valheim-Servers mittlerweile gut dokumentiert ist, können immer wieder Probleme auftreten. Die häufigsten Ursachen für Verbindungsprobleme sind falsche Firewall-Einstellungen, ein nicht erreichbarer Server oder eine fehlerhafte Port-Weiterleitung bei Docker-Setups.</p>
+<p>Ein sehr häufiges Problem ist die Meldung "Server antwortet nicht", obwohl der Server-Prozess läuft. Dies liegt meist an einer fehlenden Freigabe des UDP-Ports 2456 in der Firewall. Überprüfe mit sudo ufw status und sudo netstat -ulnp | grep 2456, ob der Port korrekt geöffnet ist und auf den richtigen Prozess zeigt.</p>
+<p>Speicherprobleme äußern sich in plötzlichen Crashes, besonders bei großen Bauwerken oder Boss-Kämpfen. Valheim benötigt wesentlich mehr RAM als von den Entwicklern offiziell angegeben. Plane mindestens 2-3 GB zusätzlichen RAM ein, um Puffer für Spitzenlasten zu haben. Die Fehlermeldung "Out of Memory" im Log gibt hier Aufschluss.</p>
+
+<h2>Kosten-Nutzen-Analyse: VPS vs. Gameserver-Anbieter</h2>
+<p>Neben klassischen VPS-Anbietern gibt es spezialisierte Gameserver-Hoster, die fertig konfigurierte Valheim-Server anbieten. Anbieter wie Nitrado, G-Portal oder Zap-Hosting sind hier die bekanntesten. Diese bieten oft ein Web-Interface zur einfachen Verwaltung, kosten aber in der Regel mehr als ein vergleichbarer VPS.</p>
+<p>Ein typischer Valheim-Gameserver mit 10 Slots kostet bei Nitrado etwa 15-20 Euro pro Monat, während du auf einem vergleichbaren VPS nur 10-15 Euro zahlst. Dafür sparst du dir bei Gameserver-Anbietern die initiale Einrichtung, Updates und Backups, da diese automatisch verwaltet werden. Die Wahl hängt von deinen technischen Fähigkeiten und deinem Kontrollbedürfnis ab.</p>
+<p>Für technisch versierte Spieler, die maximale Kontrolle und Mods installieren möchten, ist ein VPS klar die bessere Wahl. Für Einsteiger, die einfach nur spielen wollen, kann ein Gameserver-Anbieter die bequemere Lösung sein. Die mittlere Variante sind Managed-VPS-Angebote, bei denen du einen vorkonfigurierten Server mit Wartung erhältst.</p>
+
+<h2>Fazit: Valheim-VPS als optimale Spiele-Plattform</h2>
+<p>Ein gemieteter VPS ist 2026 die beste Wahl, um einen Valheim-Server dauerhaft, performant und sicher zu betreiben. Die Investition von 10-30 Euro pro Monat ist gut angelegt, wenn man bedenkt, dass man mit Freunden und Familie hunderte Stunden in die Wikinger-Welt investiert. Die Flexibilität und Kontrolle eines VPS ist durch nichts zu ersetzen.</p>
+<p>Mit der hier gezeigten Anleitung bist du in der Lage, in unter einer Stunde einen vollständig funktionsfähigen Valheim-Server aufzusetzen. Hetzner, Netcup und IONOS bieten alle eine 30-Tage-Geld-zurück-Garantie, sodass du risikofrei testen kannst. Wir empfehlen, mit einem kleinen Server zu starten und bei Bedarf zu skalieren.</p>
+<p>Die Valheim-Community ist auch 2026 noch sehr aktiv, und neue Updates sowie Mods halten das Spiel frisch. Mit einem eigenen Server bist du unabhängig von offiziellen Servern und kannst deine Wikinger-Siedlung nach Herzenslust aufbauen. Viel Spaß beim Erkunden der zehnten Welt!</p>
+<h2>Warum ein Valheim-VPS die beste Wahl für Wikinger-Fans ist</h2>
+<p>Valheim hat die Gaming-Welt im Sturm erobert. Das Survival-Spiel der schwedischen Entwickler Iron Gate hat sich mittlerweile über 15 Millionen Mal verkauft und zählt 2026 zu den absoluten Dauerbrennern auf Steam. In der prozedural generierten Welt der nordischen Mythologie kämpfst du, baust, segelst und kämpfst gegen mächtige Bosse – am besten gemeinsam mit Freunden.</p>
+<p>Wer ein stabiles und lagfreies Spielerlebnis möchte, kommt um einen eigenen Server nicht herum. Die offiziellen Valheim-Server sind oft überlaufen, unflexibel und bieten keine Möglichkeit, Mods zu installieren. Ein eigener VPS gibt dir die volle Kontrolle.</p>
+<p>Bei Hostazar kannst du deinen Valheim-Server in unter 5 Minuten startklar machen. Wir bieten dedizierte VPS-Server, die speziell für Valheim optimiert sind. Du bekommst eine eigene IP-Adresse, vollen Root-Zugriff und die Möglichkeit, alle erdenklichen Mods zu installieren.</p>
+<p>Im Gegensatz zu klassischen Game-Server-Angeboten bietet ein VPS deutlich mehr Flexibilität. Du kannst nicht nur Valheim, sondern auch beliebige andere Dienste auf dem gleichen Server betreiben – von Webseiten bis zu Datenbanken.</p>
+
+<h2>Valheim VPS-Anforderungen: Was braucht dein Server wirklich?</h2>
+<p>Valheim ist grundsätzlich ein relativ genügsames Spiel, aber wenn du mit einer größeren Wikinger-Schar spielst, steigen die Anforderungen schnell. Wir empfehlen mindestens 4 GB RAM und 2 vCPUs für eine Gruppe von 5-10 Spielern.</p>
+<p>Die offiziellen Mindestanforderungen sind zwar niedriger, aber wer Spaß am Spiel haben will, sollte nicht an der Hardware sparen. Besonders wichtig ist eine schnelle SSD, da die Welt-Daten ständig geladen und gespeichert werden.</p>
+<table>
+<thead>
+<tr><th>Spieleranzahl</th><th>vCPUs</th><th>RAM</th><th>Speicher</th><th>Netzwerk</th><th>Empfehlung</th></tr>
+</thead>
+<tbody>
+<tr><td>2-5 Spieler</td><td>2</td><td>4 GB</td><td>40 GB SSD</td><td>1 Gbit/s</td><td>VPS XS</td></tr>
+<tr><td>5-10 Spieler</td><td>4</td><td>8 GB</td><td>60 GB SSD</td><td>1 Gbit/s</td><td>VPS S</td></tr>
+<tr><td>10-20 Spieler</td><td>6</td><td>12 GB</td><td>80 GB NVMe</td><td>1 Gbit/s</td><td>VPS M</td></tr>
+<tr><td>20-40 Spieler</td><td>8</td><td>16 GB</td><td>120 GB NVMe</td><td>1 Gbit/s</td><td>VPS L</td></tr>
+<tr><td>40+ Spieler</td><td>12+</td><td>32 GB</td><td>200 GB NVMe</td><td>10 Gbit/s</td><td>VPS XL</td></tr>
+</tbody>
+</table>
+<p>Wichtig: Valheim speichert die Welt-Daten im RAM, daher ist ausreichend Arbeitsspeicher entscheidend für die Performance. Bei zu wenig RAM beginnt der Server, Daten auf die Festplatte auszulagern, was zu starken Lags führt.</p>
+<p>Hostazar setzt auf NVMe-SSDs, die bis zu 7-mal schneller sind als herkömmliche SATA-SSDs. Gerade bei großen Welten mit vielen Gebäuden und Strukturen macht sich dieser Unterschied deutlich bemerkbar.</p>
+
+<h2>Valheim-VPS einrichten: Schritt-für-Schritt-Tutorial</h2>
+<p>Die Einrichtung eines Valheim-Servers auf einem VPS ist auch für Einsteiger machbar. Mit unserer Schritt-für-Schritt-Anleitung hast du deinen Server in maximal 20 Minuten startklar.</p>
+<p>Schritt 1: Verbinde dich per SSH mit deinem VPS. Unter Windows nutzt du am besten das Tool PuTTY oder die Windows PowerShell. Unter macOS und Linux öffnest du einfach das Terminal.</p>
+<code>
+ssh root@deine-server-ip
+</code>
+<p>Schritt 2: Installiere die nötigen Pakete und erstelle einen dedizierten Benutzer für Valheim:</p>
+<code>
+# System aktualisieren
+apt update && apt upgrade -y
+
+# Benutzer anlegen
+adduser valheim
+# SteamCMD installieren
+apt install -y software-properties-common
+dpkg --add-architecture i386
+apt update
+apt install -y steamcmd
+</code>
+<p>Schritt 3: Lade Valheim Dedicated Server über SteamCMD herunter:</p>
+<code>
+# Als Benutzer valheim anmelden
+su - valheim
+
+# SteamCMD starten
+steamcmd
+
+# In SteamCMD:
+login anonymous
+force_install_dir /home/valheim/valheim-server
+app_update 896660 validate
+quit
+</code>
+<p>Schritt 4: Erstelle eine Startdatei, um den Server mit den gewünschten Parametern zu starten:</p>
+<code>
+#!/bin/bash
+export SteamAppId=892970
+/home/valheim/valheim-server/valheim_server.x86_64 \
+  -name "Hostazar Wikinger-Reich" \
+  -port 2456 \
+  -world "Wikinger" \
+  -password "geheimes-passwort" \
+  -public 1
+</code>
+<p>Schritt 5: Mache die Datei ausführbar und starte den Server im Hintergrund mit einem Tool wie <code>tmux</code> oder <code>systemd</code>.</p>
+<p>Herzlichen Glückwunsch, dein Valheim-Server läuft! Teile die IP-Adresse mit deinen Freunden und das Abenteuer kann beginnen.</p>
+
+<h2>Die besten Valheim-Mods für deinen VPS</h2>
+<p>Die Modding-Community für Valheim ist riesig und bietet unzählige Möglichkeiten, das Spielerlebnis zu erweitern. Besonders beliebt sind BepInEx-basierte Mods, die sich leicht über Thunderstore (Modmanager) installieren lassen.</p>
+<p>Unsere Top-Empfehlungen für 2026:</p>
+<ul>
+<li><strong>Valheim Plus</strong> - Das Schweizer Taschenmesser unter den Mods mit über 100 Optionen, von Map-Erweiterungen bis zu Bau-Hilfen</li>
+<li><strong>BuildCam</strong> - Kamera-Tool für beeindruckende Screenshots deiner Burgen</li>
+<li><strong>PlantEverything</strong> - Erlaubt das Pflanzen in allen Biomen</li>
+<li><strong>EquipmentAndQuickSlots</strong> - Zusätzliche Schnellauswahl-Slots</li>
+<li><strong>Jotunn</strong> - Performance-Mod für große Spielgruppen</li>
+</ul>
+<p>Die Installation auf einem VPS funktioniert etwas anders als auf einem normalen Game-Server. Du musst BepInEx manuell herunterladen und in das Valheim-Server-Verzeichnis entpacken:</p>
+<code>
+# BepInEx herunterladen
+wget https://github.com/BepInEx/BepInEx/releases/download/v5.4.23.2/BepInEx_x64_5.4.23.2.zip
+
+# Entpacken
+unzip BepInEx_x64_5.4.23.2.zip -d /home/valheim/valheim-server/
+
+# Mods in den Plugins-Ordner kopieren
+cp moddatei.dll /home/valheim/valheim-server/BepInEx/plugins/
+</code>
+<p>Wichtig: Teste neue Mods immer auf einem Test-Server, bevor du sie auf deinem Hauptserver installierst. Nicht alle Mods sind miteinander kompatibel und manche können die Savegames beschädigen.</p>
+
+<h2>Valheim-Server absichern: Best Practices</h2>
+<p>Sicherheit sollte auch bei einem Valheim-Server nicht vernachlässigt werden. Auch wenn das Spiel selbst keine sensiblen Daten speichert, ist der Server trotzdem ein potenzielles Ziel für Angreifer.</p>
+<p>Erste Priorität: Aktiviere eine Firewall. Auf Linux bietet sich <code>ufw</code> an, das du mit wenigen Befehlen konfigurieren kannst:</p>
+<code>
+# Firewall aktivieren
+ufw allow 22/tcp
+ufw allow 2456/udp
+ufw allow 2457/udp
+ufw allow 2458/udp
+ufw enable
+</code>
+<p>Valheim nutzt drei Ports: 2456 (Spiel), 2457 (Query) und 2458 (Steam). Diese müssen in der Firewall freigeschaltet sein, damit Spieler dem Server beitreten können.</p>
+<p>Zweite Priorität: SSH absichern. Ändere den Standard-Port, deaktiviere die Root-Login und nutze SSH-Keys statt Passwörtern:</p>
+<code>
+# SSH-Key generieren (auf deinem lokalen PC)
+ssh-keygen -t ed25519
+
+# Public Key auf den Server kopieren
+ssh-copy-id -i ~/.ssh/id_ed25519.pub valheim@deine-server-ip
+
+# Auf dem Server: Root-Login deaktivieren
+nano /etc/ssh/sshd_config
+# PermitRootLogin no setzen
+# PasswordAuthentication no setzen
+systemctl restart sshd
+</code>
+<p>Dritte Priorität: Halte das System aktuell. Aktiviere automatische Sicherheitsupdates:</p>
+<code>
+apt install -y unattended-upgrades
+dpkg-reconfigure -plow unattended-upgrades
+</code>
+<p>Mit diesen Maßnahmen ist dein Valheim-VPS gut gegen die häufigsten Angriffe geschützt. Bei Hostazar ist DDoS-Schutz bereits standardmäßig aktiviert.</p>
+
+<h2>Backup-Strategien für deinen Valheim-VPS</h2>
+<p>Die Valheim-Welt ist das Herzstück deines Spiels. Ein Verlust wäre eine Katastrophe. Deshalb ist eine durchdachte Backup-Strategie Pflicht. Wir empfehlen die 3-2-1-Regel: 3 Kopien, auf 2 verschiedenen Medien, 1 davon extern.</p>
+<p>Bei Hostazar kannst du über das Web-Interface Snapshots erstellen, die den kompletten Server-Zustand einfrieren. Ideal vor großen Updates oder Mod-Installationen:</p>
+<code>
+# Manuelles Backup erstellen
+cp -r /home/valheim/valheim-server/worlds /backup/welten-$(date +%Y%m%d)
+
+# Backup komprimieren
+tar -czf /backup/valheim-backup-$(date +%Y%m%d).tar.gz /home/valheim/valheim-server/worlds
+</code>
+<p>Für automatische Backups kannst du einen Cronjob einrichten, der täglich ein Backup erstellt und auf einen externen Speicher (z.B. S3-kompatiblen Cloud-Speicher) hochlädt:</p>
+<code>
+# Cronjob bearbeiten
+crontab -e
+
+# Tägliches Backup um 3 Uhr nachts
+0 3 * * * /usr/local/bin/valheim-backup.sh
+</code>
+<p>Das Backup-Skript könnte so aussehen:</p>
+<code>
+#!/bin/bash
+BACKUP_DIR="/backup/valheim"
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+tar -czf $BACKUP_DIR/valheim-$TIMESTAMP.tar.gz /home/valheim/valheim-server/worlds
+# Alte Backups löschen (älter als 7 Tage)
+find $BACKUP_DIR -type f -mtime +7 -delete
+</code>
+<p>Teste deine Backups regelmäßig, indem du sie auf einem Test-System wiederherstellst. Ein nicht getestetes Backup ist kein Backup.</p>
+
+<h2>Performance-Optimierung: Valheim-VPS tunen</h2>
+<p>Ein gut konfigurierter VPS läuft auch mit 20+ Spielern flüssig. Es gibt jedoch einige Stellschrauben, mit denen du die Performance weiter optimieren kannst.</p>
+<p>Die wichtigste Einstellung ist die <code>World Generation Speed</code>. Standardmäßig generiert Valheim neue Gebiete in einem Radius um den Spieler. Bei vielen Spielern auf einer großen Karte kann dies die CPU stark belasten.</p>
+<p>In der Datei <code>adminlist.txt</code> kannst du Server-Admins festlegen. Diese haben Zugriff auf spezielle Konsolenbefehle, mit denen du Performance-Probleme diagnostizieren kannst:</p>
+<code>
+# In der Konsole
+"ping"
+"info"
+"loglevel info"
+</code>
+<p>Für fortgeschrittene Optimierungen kannst du die <code>valheim_server.x86_64</code> mit zusätzlichen Parametern starten. Besonders wichtig ist der Parameter <code>-crossplay</code>, den du aktivieren solltest, wenn auch Xbox-Spieler mitspielen möchten.</p>
+<p>Bei Performance-Problemen kannst du auch die Savegame-Komprimierung anpassen. Valheim komprimiert die Welt-Daten automatisch, was CPU-Last verursacht, aber Speicherplatz spart. Für maximale Performance kannst du die Komprimierung reduzieren.</p>
+<p>Hostazar-Kunden können zudem jederzeit mit einem Klick auf einen größeren VPS upgraden, falls die Ressourcen knapp werden. So zahlst du nie mehr als nötig und bist trotzdem flexibel.</p>
+
+<h2>Valheim-VPS: Häufige Probleme und Lösungen</h2>
+<p>Auch bei einem professionell gehosteten VPS kann es gelegentlich zu Problemen kommen. Wir haben die häufigsten Probleme zusammengetragen und zeigen dir, wie du sie selbst lösen kannst.</p>
+<p><strong>Problem 1: Server startet nicht</strong> - Überprüfe die Logs unter <code>/home/valheim/valheim-server/logs/</code>. Häufige Ursache sind fehlende Bibliotheken. Lösung: <code>apt install -y lib32gcc-s1 lib32stdc++6 libsdl2-2.0-0</code></p>
+<p><strong>Problem 2: Spieler können nicht joinen</strong> - Überprüfe die Firewall-Einstellungen und ob der Server tatsächlich läuft. Nutze <code>netstat -tulpn | grep 2456</code>, um zu prüfen, ob der Port geöffnet ist.</p>
+<p><strong>Problem 3: Welt korrupt</strong> - Dies passiert häufig nach Serverabstürzen. Versuche, die Welt aus dem letzten Backup wiederherzustellen. Alternativ kannst du versuchen, die Welt mit dem Tool "Valheim World Viewer" zu reparieren.</p>
+<p><strong>Problem 4: Hohe Latenz</strong> - Wähle einen Server-Standort in der Nähe deiner Spieler. Hostazar bietet Server in Frankfurt, Amsterdam und Wien an. Spieler aus Deutschland, Österreich und der Schweiz erreichen alle drei Standorte mit niedriger Latenz.</p>
+<p><strong>Problem 5: Mods funktionieren nicht</strong> - Stelle sicher, dass BepInEx korrekt installiert ist und die Mods im richtigen Verzeichnis liegen. Überprüfe auch, ob die Mod-Version mit deiner Valheim-Version kompatibel ist.</p>
+<p>Bei allen anderen Problemen steht dir unser 24/7-Support zur Verfügung. Unser Team kennt sich mit Valheim bestens aus und kann die meisten Probleme innerhalb weniger Minuten lösen.</p>
+
+<h2>Valheim-VPS Kosten: Was kostet das Wikinger-Abenteuer?</h2>
+<p>Die Kosten für einen Valheim-VPS variieren je nach Anbieter und Leistung stark. Günstige Angebote beginnen bei etwa 5 Euro pro Monat, professionelle Lösungen kosten zwischen 15 und 50 Euro monatlich.</p>
+<p>Bei Hostazar bieten wir verschiedene Tarife an, die sich nach der Spieleranzahl richten:</p>
+<table>
+<thead>
+<tr><th>Tarif</th><th>Spieler</th><th>Monatlich</th><th>Jährlich (pro Monat)</th><th>Setup</th></tr>
+</thead>
+<tbody>
+<tr><td>VPS S</td><td>bis 10</td><td>9,99 €</td><td>7,99 €</td><td>kostenlos</td></tr>
+<tr><td
   <a href="/artikel/fivem-server-mieten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/fivem-server-mieten-2026.webp" alt="FiveM (GTA V) Server mieten – Roleplay-Server Hosting Guide 2026" loading="lazy" width="400" height="200"></div>
   </a>

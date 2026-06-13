@@ -759,6 +759,90 @@
     </div>
 
 <h1>MySQL &amp; MariaDB optimieren – Performance-Guide 2026</h1>
+<h2>Grundlagen der MySQL- und MariaDB-Architektur verstehen</h2>
+<p>MySQL und MariaDB basieren auf einer mehrschichtigen Architektur, die aus dem Connection Layer, dem SQL Layer und dem Storage Engine Layer besteht. Das Verständnis dieser Schichten ist entscheidend, um Performance-Probleme gezielt zu diagnostizieren und zu beheben. Der SQL Layer verarbeitet die eingehenden Queries, optimiert sie und leitet sie an die Storage Engine weiter.</p>
+<p>Die Standard-Storage-Engine InnoDB hat sich in beiden Datenbanksystemen durchgesetzt, da sie ACID-Konformität, Transaktionssicherheit und Row-Level-Locking bietet. Im Gegensatz zur älteren MyISAM-Engine unterstützt InnoDB Foreign Keys, MVCC und Crash Recovery. Für die meisten Anwendungsfälle ist InnoDB die richtige Wahl.</p>
+<p>MariaDB bringt einige zusätzliche Storage Engines mit, darunter ColumnStore für analytische Workloads und Spider für verteilte Datenbanken. Diese Erweiterungen machen MariaDB besonders attraktiv für hybride Szenarien, in denen transaktionale und analytische Anfragen auf derselben Datenbank laufen.</p>
+<p>Der Query Optimizer analysiert eingehende SQL-Statements und wählt den effizientesten Ausführungsplan aus. Dazu nutzt er Statistiken über die Datenverteilung, die in den Tabellen gespeichert sind. Veraltete Statistiken führen häufig zu suboptimalen Ausführungsplänen, weshalb ein regelmäßiges ANALYZE TABLE empfehlenswert ist.</p>
+
+<h2>InnoDB-Tuning: Buffer Pool und I/O-Optimierung</h2>
+<p>Der InnoDB Buffer Pool ist der wichtigste Performance-Hebel überhaupt, da er die Datenseiten im Speicher hält und somit Festplattenzugriffe minimiert. Die Faustregel lautet, den Buffer Pool auf 70-80% des verfügbaren RAMs zu konfigurieren. Bei einem dedizierten Datenbankserver mit 64 GB RAM sollten also etwa 50 GB für den Buffer Pool reserviert werden.</p>
+<pre><code># my.cnf Konfiguration für InnoDB
+[mysqld]
+innodb_buffer_pool_size = 50G
+innodb_buffer_pool_instances = 16
+innodb_log_file_size = 4G
+innodb_log_buffer_size = 256M
+innodb_flush_log_at_trx_commit = 1
+innodb_flush_method = O_DIRECT
+innodb_io_capacity = 2000
+innodb_io_capacity_max = 4000</code></pre>
+<p>Die Anzahl der Buffer Pool Instances sollte der Anzahl der CPU-Kerne entsprechen, um Lock-Contention zu vermeiden. Bei einem 16-Kern-System sind 16 Instances optimal. Jede Instance verwaltet ihren eigenen Free List und LRU-Mechanismus, was die Parallelität deutlich erhöht.</p>
+<p>Das innodb_flush_log_at_trx_commit-Verhalten hat erhebliche Auswirkungen auf die Performance. Der Wert 1 bietet maximale Sicherheit (ACID-Konformität), flusht aber bei jeder Transaktion auf die Festplatte. Der Wert 2 flusht nur einmal pro Sekunde und ist ein guter Kompromiss für die meisten Anwendungen, da Daten höchstens eine Sekunde verloren gehen können.</p>
+<p>Die I/O-Konfiguration mit O_DIRECT umgeht das OS-Cache und verhindert doppeltes Caching. Auf Linux-Systemen mit modernen NVMe-SSDs ist dies die empfohlene Einstellung. Die innodb_io_capacity sollte an die tatsächliche Disk-Performance angepasst werden, was sich mit Tools wie fio messen lässt.</p>
+
+<h2>Index-Strategien für maximale Query-Performance</h2>
+<p>Indizes sind der Schlüssel zu schnellen Queries, können aber bei falscher Anwendung auch zum Performance-Killer werden. Ein gut konzipierter Index kann die Performance einer Query um den Faktor 1000 verbessern, während ein schlechter Index Schreiboperationen verlangsamt und Speicherplatz verschwendet.</p>
+<p>Der B-Tree-Index ist der Standard für die meisten Anwendungsfälle und wird automatisch für PRIMARY KEY und UNIQUE Constraints erstellt. Bei zusammengesetzten Indizes ist die Reihenfolge der Spalten entscheidend: Spalten mit hoher Selektivität sollten zuerst kommen, gefolgt von Spalten, die in ORDER BY oder GROUP BY verwendet werden.</p>
+<table>
+<thead>
+<tr><th>Index-Typ</th><th>Anwendungsfall</th><th>Vorteil</th><th>Nachteil</th></tr>
+</thead>
+<tbody>
+<tr><td>B-Tree</td><td>Gleichheits- und Bereichsabfragen</td><td>Universell einsetzbar</td><td>Großer Speicherbedarf</td></tr>
+<tr><td>Hash</td><td>Nur Gleichheitsabfragen</td><td>Sehr schnell</td><td>Keine Range-Queries</td></tr>
+<tr><td>Fulltext</td><td>Volltextsuche</td><td>Relevanz-Sortierung</td><td>Begrenzte Sprachen</td></tr>
+<tr><td>Composite</td><td>Mehrspaltige WHERE-Klauseln</td><td>Covering Index möglich</td><td>Reihenfolge kritisch</td></tr>
+<tr><td>Descending</td><td>ORDER BY DESC</td><td>Optimierte Sortierung</td><td>MySQL 8.0+ benötigt</td></tr>
+</tbody>
+</table>
+<p>Covering Indizes enthalten alle Spalten, die eine Query benötigt, sodass die Datenseiten nicht aus der Tabelle geladen werden müssen. Dies ist besonders effektiv für SELECT-Statements, die nur wenige Spalten aus einer großen Tabelle abrufen. EXPLAIN zeigt an, ob ein Index als "Using index" markiert ist.</p>
+<p>Überflüssige Indizes sind eine häufige Ursache für langsame Schreiboperationen. Jeder Index muss bei INSERT, UPDATE und DELETE aktualisiert werden. Das Tool pt-duplicate-key-checker von Percona identifiziert redundante Indizes und schlägt Optimierungen vor. Eine regelmäßige Index-Analyse gehört zum Pflichtprogramm jedes DBAs.</p>
+
+<h2>Query-Optimierung mit EXPLAIN und Performance Schema</h2>
+<p>Das EXPLAIN-Statement ist das wichtigste Werkzeug zur Query-Analyse. Es zeigt den vom Optimizer gewählten Ausführungsplan, einschließlich der verwendeten Indizes, der Join-Reihenfolge und der geschätzten Zeilenzahlen. In MySQL 8.0 und MariaDB 10.6 liefert EXPLAIN FORMAT=JSON oder EXPLAIN ANALYZE noch detailliertere Informationen.</p>
+<p>Warnzeichen in EXPLAIN sind full table scans (type: ALL), temporäre Tabellen (Extra: Using temporary) und filesort-Operationen (Extra: Using filesort). Diese deuten auf fehlende oder ungeeignete Indizes hin. Die geschätzte Zeilenzahl in der rows-Spalte sollte mit der tatsächlichen Zeilenzahl übereinstimmen, andernfalls sind veraltete Statistiken die Ursache.</p>
+<pre><code># EXPLAIN einer komplexen Query
+EXPLAIN ANALYZE
+SELECT u.username, COUNT(o.id) AS order_count, SUM(o.total) AS total_spent
+FROM users u
+LEFT JOIN orders o ON o.user_id = u.id
+WHERE u.created_at >= '2025-01-01'
+  AND u.status = 'active'
+GROUP BY u.id
+ORDER BY total_spent DESC
+LIMIT 100;
+
+-- Ergebnis analysieren
+-> Limit: 100 row(s)  
+  -> Sort: total_spent DESC
+    -> Stream results
+      -> Group aggregate
+        -> Index range scan on u using idx_created_status
+          -> Nested loop left join
+            -> Index lookup on o using idx_user_id</code></pre>
+<p>Das Performance Schema ist seit MySQL 5.5 verfügbar und bietet detaillierte Einblicke in die Datenbankaktivität. Mit der events_statements_summary_by_digest-Tabelle lassen sich die zeitintensivsten Queries identifizieren. Das sys-Schema, das auf dem Performance Schema aufbaut, stellt komfortable Views bereit, die komplexe Abfragen vereinfachen.</p>
+<p>Slow Query Logs sind eine weitere wichtige Diagnosequelle. Die Konfiguration erfolgt über slow_query_log, long_query_time (in Sekunden) und log_slow_extra. Percona Toolkit bietet mit pt-query-digest ein leistungsfähiges Tool zur Aggregation und Analyse der Slow Logs, das die problematischsten Queries schnell identifiziert.</p>
+
+<h2>Schreiboptimierung: Bulk-Inserts und Replication</h2>
+<p>Schreiboperationen sind häufig der Engpass in datenintensiven Anwendungen. Bulk-Inserts sind wesentlich schneller als einzelne INSERT-Statements, da sie den Overhead pro Zeile reduzieren. Mit LOAD DATA INFILE lassen sich Millionen von Zeilen in wenigen Sekunden importieren, vorausgesetzt die Tabelle ist richtig vorbereitet.</p>
+<p>Während eines Bulk-Imports sollten alle nicht benötigten Indizes deaktiviert werden, da jeder Index aktualisiert werden muss. AUTO_INCREMENT-Spalten beschleunigen den Import, da der Wert nicht aus dem Index abgerufen werden muss. Die Konfiguration von innodb_autoinc_lock_mode auf 2 (interleaved) ist für die meisten Anwendungen optimal.</p>
+<pre><code># Bulk-Import mit LOAD DATA INFILE
+LOAD DATA INFILE '/tmp/users.csv'
+INTO TABLE users
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '
+'
+IGNORE 1 ROWS
+(username, email, created_at);
+
+# Alternative mit INSERT ... VALUES
+INSERT INTO users (username, email, created_at) VALUES
+('user1', 'user1@example.com', NOW()),
+('user2', 'user2@example.com', NOW()),
+('user3', 'user3@example.com', NOW());</code></pre>
+<p>Für kontinuierlich hohe Schreiblasten ist die asynchrone Replication ein bewährtes Mittel zur Lastverteilung. Writes gehen an den Master, Reads an einen oder mehrere Slaves. MariaDB bietet zusätzlich die Galera-Cluster-Technologie für synchrone Multi-Master-Replication, die bei Bedarf auch Writes auf
   <a href="/artikel/hugo-astro-static-site-vergleich-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/hugo-astro-static-site-vergleich-2026.webp" alt="Hugo vs. Astro – Static Site Generator Hosting Vergleich 2026" loading="lazy" width="400" height="200"></div>
   </a>

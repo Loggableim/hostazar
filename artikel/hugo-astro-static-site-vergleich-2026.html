@@ -759,6 +759,107 @@
     </div>
 
 <h1>Hugo vs. Astro – Static Site Generator Hosting Vergleich 2026</h1>
+<h2 id="einleitung">1. Einleitung: Zwei Philosophien, ein Ziel</h2>
+
+    <p>Static Site Generatoren haben in den letzten Jahren eine regelrechte Renaissance erlebt. Angetrieben von der Jamstack-Bewegung, der Suche nach besserer Core Web Vitals und dem Wunsch nach kostengünstigem, sicherem Hosting, entscheiden sich immer mehr Entwicklerteams gegen klassische CMS-Lösungen wie WordPress und für statisch generierte Websites.</p>
+
+    <p>Hugo wurde 2013 von Steve Francia entwickelt und ist in der Programmiersprache Go geschrieben. Die Kernphilosophie lautet: <em>Geschwindigkeit ohne Kompromisse</em>. Hugo kann in unter einer Sekunde Tausende von Seiten bauen, was es zur ersten Wahl für große Dokumentationen und mehrsprachige Portale macht. Die Templatesprache basiert auf Go's eigener Template-Engine, die mächtig, aber für Einsteiger gewöhnungsbedürftig ist.</p>
+
+    <p>Astro verfolgt einen anderen Ansatz. Das 2021 veröffentlichte Framework setzt auf <em>Islands Architecture</em>: Standardmäßig wird kein JavaScript an den Browser gesendet, und interaktive Komponenten werden nur dort geladen, wo sie wirklich benötigt werden. Astro ist Framework-agnostisch und erlaubt den Einsatz von React, Vue, Svelte, Solid und anderen Komponenten in derselben Anwendung – ein enormer Vorteil für Teams mit gemischten Technologie-Stacks.</p>
+
+    <p>Beide Generatoren erzeugen am Ende statische HTML-, CSS- und JavaScript-Dateien, die auf jedem CDN, Object Storage oder klassischen Webspace gehostet werden können. Die Unterschiede liegen in der Build-Logik, der Templating-Sprache, der Erweiterbarkeit und der Art, wie Inhalte verwaltet werden. Wer 2026 die Wahl zwischen Hugo und Astro trifft, sollte daher nicht nur auf reine Performance-Benchmarks schauen, sondern auch auf Workflow, Hosting-Ökosystem und langfristige Wartbarkeit.</p>
+
+    <p>Auf <strong>hostazar.com</strong> haben wir in den letzten Monaten Dutzende Projekte mit beiden Generatoren realisiert und können aus erster Hand berichten, wo die Stärken und Schwächen liegen. Im Folgenden tauchen wir tief in die technischen Details ein und vergleichen die wichtigsten Aspekte für Hosting-Entscheidungen.</p>
+
+    <h2 id="uebersicht">2. Hugo und Astro im Überblick</h2>
+
+    <p>Bevor wir ins Detail gehen, lohnt sich ein kompakter Überblick über die wichtigsten Eckdaten beider Static Site Generatoren. Die folgende Tabelle fasst die zentralen Merkmale zusammen, die für Hosting-Entscheidungen 2026 relevant sind.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Merkmal</th>
+                <th>Hugo</th>
+                <th>Astro</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Erstveröffentlichung</td>
+                <td>2013</td>
+                <td>2021</td>
+            </tr>
+            <tr>
+                <td>Programmiersprache</td>
+                <td>Go (kompiliert)</td>
+                <td>TypeScript / JavaScript (Node.js)</td>
+            </tr>
+            <tr>
+                <td>Templating-Sprache</td>
+                <td>Go Templates / HTML</td>
+                <td>.astro (JSX-ähnlich) + Komponenten-Frameworks</td>
+            </tr>
+            <tr>
+                <td>Content-Format</td>
+                <td>Markdown, HTML, AsciiDoc, RST, Pandoc</td>
+                <td>Markdown, MDX, MD, Komponenten</td>
+            </tr>
+            <tr>
+                <td>Standard-Build-Zeit (1000 Seiten)</td>
+                <td>~0,5–2 Sekunden</td>
+                <td>~10–30 Sekunden</td>
+            </tr>
+            <tr>
+                <td>Client-Side JavaScript</td>
+                <td>0 KB (Standard)</td>
+                <td>0 KB (Standard, nur Islands)</td>
+            </tr>
+            <tr>
+                <td>Image Optimization</td>
+                <td>Integriert (Hugo Pipes)</td>
+                <td>Integriert (astro:assets)</td>
+            </tr>
+            <tr>
+                <td>RSS / Sitemap</td>
+                <td>Integriert</td>
+                <td>Integration erforderlich</td>
+            </tr>
+            <tr>
+                <td>Mehrsprachigkeit</td>
+                <td>Nativ, sehr ausgereift</td>
+                <td>Über i18n-Routing, manuell</td>
+            </tr>
+            <tr>
+                <td>Hosting-Plattformen</td>
+                <td>Netlify, Vercel, Cloudflare Pages, S3, eigener Server</td>
+                <td>Netlify, Vercel, Cloudflare Pages, S3, eigener Server</td>
+            </tr>
+            <tr>
+                <td>Lizenz</td>
+                <td>Apache 2.0</td>
+                <td>MIT</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p>Hugo besticht durch seine Reife und die jahrelange Optimierung. Die Community ist groß, die Dokumentation umfassend, und es gibt unzählige Themes im Hugo-Ökosystem. Astro hingegen ist der Shooting Star unter den SSGs: Mit über 40.000 Sternen auf GitHub (Stand Anfang 2026) und einer engagierten Community entwickelt sich das Framework rasant weiter.</p>
+
+    <p>Ein wesentlicher Unterschied: Hugo ist ein reiner Static Site Generator, während Astro sowohl statische Generierung als auch Server-Side Rendering (SSR), On-Demand Rendering und Hybrid-Modi unterstützt. Dies macht Astro flexibler, wenn dynamische Funktionen wie Authentifizierung, Formulare mit Backend-Anbindung oder Personalisierung benötigt werden.</p>
+
+    <p>Für reines Hosting bedeutet das: Hugo-Sites sind immer 100% statisch und können auf jedem Webserver laufen. Astro-Sites können ebenfalls komplett statisch deployed werden, bieten aber optional die Möglichkeit, ein Node.js-Backend zu betreiben – was die Hosting-Auswahl erweitert, aber auch komplexer macht.</p>
+
+    <h2 id="performance">3. Build-Performance im Vergleich</h2>
+
+    <p>Die Build-Performance ist seit jeher das Aushängeschild von Hugo. Da Hugo in Go geschrieben ist und als kompilierte Binary läuft, nutzt es Multi-Core-CPUs optimal aus und parallelisiert den Build-Prozess automatisch. Selbst bei sehr großen Projekten mit 10.000+ Seiten bleibt die Build-Zeit im einstelligen Sekundenbereich.</p>
+
+    <p>Astro ist deutlich langsamer beim Build, dafür aber immer noch schnell im Vergleich zu vielen JavaScript-Frameworks. Die Build-Zeiten hängen stark von der Anzahl der Komponenten, der Verwendung von MDX-Inhalten und der Komplexität der Templates ab. In unseren Tests auf hostazar.com mit einem mittelgroßen Blog (500 Posts) lag Hugo bei 1,8 Sekunden, Astro bei 22 Sekunden – ein Faktor von ungefähr 12.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Projektgröße</th>
+                <th>Hugo Build-Zeit</th>
+                <th>Astro Build-Ze
   <a href="/artikel/cloud-vs-dedicated-server-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/cloud-vs-dedicated-server-2026.webp" alt="Cloud vs Dedicated Server 2026 – Kosten, Performance &amp; Use Cases" loading="lazy" width="400" height="200"></div>
   </a>

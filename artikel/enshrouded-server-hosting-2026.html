@@ -759,6 +759,167 @@
     </div>
 
 <h1>Enshrouded Server – Hosting-Guide &amp; Setup für Koop 2026</h1>
+<h2>Was ist Enshrouded und warum einen eigenen Server hosten?</h2>
+
+<p>Enshrouded ist ein Open-World-Survival-Crafting-Spiel, das von Keen Games entwickelt und im Januar 2024 in den Early Access gestartet wurde. Die vollständige Version 1.0 erschien im März 2025, und die Entwickler haben bereits eine Roadmap für weitere Inhalte in 2026 angekündigt. Spieler übernehmen die Rolle von "Flameborn", den letzten Überlebenden einer einst blühenden Zivilisation, und müssen in der von Nebel durchzogenen Welt Embervale überleben, Ressourcen sammeln, Basen bauen und die Geheimnisse der Vergangenheit aufdecken.</p>
+
+<p>Das Spiel unterstützt offiziell bis zu <strong>16 Spieler pro Server</strong>, was es zu einer der großzügigsten Koop-Erfahrungen im Survival-Genre macht. Neben dem klassischen Survival-Modus bietet Enshrouded auch ein umfangreiches Crafting-System, das von einfachen Werkzeugen bis hin zu komplexen Gebäuden und magischen Gegenständen reicht. Die einzigartige "Shroud"-Mechanik, bei der Spieler in mysteriöse Nebelregionen vordringen und gegen immer stärkere Gegner kämpfen müssen, verleiht dem Spiel eine besondere taktische Tiefe.</p>
+
+<p>Die Vorteile eines eigenen Enshrouded Servers liegen auf der Hand: Du hast die volle Kontrolle über die Spielwelt, kannst Mods nach Wunsch installieren, bestimmst die Regeln und profitierst von dedizierter Hardware ohne Performance-Einbußen. Während das Hosting über das offizielle Peer-to-Peer-System zwar funktioniert, leidet dabei oft die Performance, besonders wenn der Host-Spieler selbst intensive Aktionen ausführt. Ein dedizierter Server eliminiert dieses Problem komplett.</p>
+
+<p>Ein weiterer wichtiger Aspekt ist die <strong>Persistenz der Spielwelt</strong>. Auf einem dedizierten Server läuft die Welt 24/7 weiter, NPCs respawnen, Events triggern und Ressourcen regenerieren unabhängig davon, ob jemand online ist. Dies ermöglicht es deiner Koop-Gruppe, jederzeit einzusteigen und weiterzuspielen, ohne dass der Fortschritt verloren geht. Für ambitionierte Survival-Spieler, die hunderte Stunden in ihre Basis investieren, ist dies ein entscheidender Vorteil.</p>
+
+<h2>Systemanforderungen für Enshrouded Dedicated Server</h2>
+
+<p>Die korrekte Dimensionierung der Server-Hardware ist entscheidend für ein reibungsloses Spielerlebnis. Enshrouded skaliert sowohl mit der Spielerzahl als auch mit der Größe und Komplexität der gebauten Basen. Ein Server, der für 4 Spieler ausreichend ist, kann bei 16 Spielern schnell an seine Grenzen stoßen. Die folgenden Anforderungen basieren auf den offiziellen Empfehlungen von Keen Games sowie auf Community-Erfahrungen aus 2026.</p>
+
+<p>Die nachstehende Tabelle gibt dir einen schnellen Überblick über die empfohlenen Hardware-Spezifikationen, abhängig von der Anzahl der gleichzeitigen Spieler. Beachte, dass diese Werte für dedizierte Server ohne andere Anwendungen gelten. Wenn du den Server auf deinem Gaming-PC nebenbei laufen lässt, solltest du deutlich mehr Ressourcen einplanen.</p>
+
+<table border="1" cellpadding="8" cellspacing="0">
+<thead>
+<tr>
+<th>Spielerzahl</th>
+<th>CPU</th>
+<th>RAM</th>
+<th>Speicher</th>
+<th>Empfohlener Anbieter</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2-4 Spieler</td>
+<td>4 vCPU Kerne (Intel Xeon E oder AMD EPYC)</td>
+<td>8 GB DDR4</td>
+<td>50 GB NVMe SSD</td>
+<td>hostazar Starter</td>
+</tr>
+<tr>
+<td>5-8 Spieler</td>
+<td>6 vCPU Kerne</td>
+<td>16 GB DDR4/DDR5</td>
+<td>80 GB NVMe SSD</td>
+<td>hostazar Performance</td>
+</tr>
+<tr>
+<td>9-16 Spieler</td>
+<td>8+ vCPU Kerne (High-Frequency)</td>
+<td>32 GB DDR5</td>
+<td>120 GB NVMe SSD</td>
+<td>hostazar Enterprise</td>
+</tr>
+</tbody>
+</table>
+
+<p>Der <strong>Arbeitsspeicher</strong> ist einer der kritischsten Faktoren beim Enshrouded Hosting. Die Engine lädt pro Spieler nicht nur dessen Inventar und Position, sondern muss auch die gesamte umliegende Welt inklusive aller platzierten Bauwerke im RAM halten. Mit zunehmender Spieldauer und wachsenden Basen steigt der RAM-Verbrauch kontinuierlich an. 8 GB sind das absolute Minimum, 16 GB empfehlenswert für kleine Gruppen und 32 GB Pflicht für voll besetzte 16-Spieler-Server.</p>
+
+<p>Bei der <strong>CPU</strong> profitiert Enshrouded stark von hoher Single-Thread-Performance. Daher sind moderne Prozessoren mit hohen Taktraten (3.5+ GHz Boost) einem höheren Kern-Zähler mit niedrigerem Takt vorzuziehen. AMDs EPYC- und Ryzen-Serie sowie Intels Xeon- und Core-i9-Reihen liefern exzellente Ergebnisse. Veraltete CPUs mit weniger als 3.0 GHz Single-Core-Leistung verursachen spürbare Lags und Rubberbanding-Effekte, besonders in stark frequentierten Gebieten.</p>
+
+<p>Der <strong>Speicherplatz</strong> mag mit 50-120 GB zunächst großzügig bemessen erscheinen, ist aber notwendig. Enshrouded speichert neben der Hauptwelt auch regelmäßig automatische Backups, die je nach Konfiguration mehrere Gigabyte pro Sicherung beanspruchen können. Eine schnelle NVMe-SSD ist dabei dringend empfohlen, da herkömmliche SATA-SSDs oder HDDs bei großen Basen zu langen Ladezeiten und Chunk-Lag führen können. Cloud-Server-Anbieter wie hostazar bieten standardmäßig NVMe-Speicher in allen Tarifen an.</p>
+
+<h2>Enshrouded Server mieten vs. selbst hosten</h2>
+
+<p>Bevor du dich an die technische Einrichtung machst, steht die grundlegende Frage: Möchtest du den Server selbst auf eigener Hardware betreiben oder lieber einen gemieteten Server bei einem spezialisierten Anbieter nutzen? Beide Optionen haben ihre Berechtigung, und die richtige Wahl hängt von deinen individuellen Anforderungen, deinem technischen Know-how und deinem Budget ab. In 2026 gibt es zudem hybride Lösungen, die das Beste aus beiden Welten vereinen.</p>
+
+<p>Das <strong>Selbst-Hosting</strong> auf einem heimischen PC oder einem alten Server bietet maximale Kontrolle und kann auf den ersten Blick kostengünstiger erscheinen. Du besitzt die Hardware, kannst sie nach Belieben aufrüsten und hast physischen Zugriff auf die Maschine. Allerdings bringt diese Variante erhebliche Nachteile mit sich: Die Internetanbindung in Privathaushalten ist oft asymmetrisch und hat nur begrenzte Upload-Bandbreite, was zu Lag für alle Spieler führt. Zudem musst du dich um Stromkosten, Hardware-Wartung, Sicherheitsupdates und Verfügbarkeit rund um die Uhr kümmern.</p>
+
+<p>Das <strong>Mieten eines Servers</strong> bei einem Anbieter wie hostazar eliminiert all diese Probleme. Rechenzentren bieten symmetrische Glasfaser-Anbindungen mit 1-10 Gbit/s, redundante Stromversorgung, professionelle Klimatisierung und 24/7-Monitoring. Du zahlst eine monatliche Gebühr, die je nach Tarif zwischen 15 und 100 Euro liegt, und erhältst dafür eine fertig konfigurierte Umgebung mit Web-Interface, automatischen Backups und DDoS-Schutz. Besonders für unerfahrene Nutzer ist dies der deutlich einfachere Weg.</p>
+
+<table border="1" cellpadding="8" cellspacing="0">
+<thead>
+<tr>
+<th>Kriterium</th>
+<th>Selbst hosten</th>
+<th>Server mieten (hostazar)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Anschaffungskosten</td>
+<td>Hoch (Hardware-Kauf)</td>
+<td>Keine (im Abo enthalten)</td>
+</tr>
+<tr>
+<td>Monatliche Kosten</td>
+<td>Strom + Internet (~20-40 €)</td>
+<td>15-100 € je nach Tarif</td>
+</tr>
+<tr>
+<td>Internet-Upload</td>
+<td>Begrenzt (20-100 Mbit/s typisch)</td>
+<td>1-10 Gbit/s symmetrisch</td>
+</tr>
+<tr>
+<td>Verfügbarkeit</td>
+<td>Nur wenn PC läuft</td>
+<td>24/7 garantiert</td>
+</tr>
+<tr>
+<td>DDoS-Schutz</td>
+<td>Selbst zu implementieren</td>
+<td>Inklusive</td>
+</tr>
+<tr>
+<td>Technisches Know-how</td>
+<td>Hoch erforderlich</td>
+<td>Grundkenntnisse ausreichend</td>
+</tr>
+<tr>
+<td>Skalierbarkeit</td>
+<td>Begrenzt durch Hardware</td>
+<td>Flexibel upgradbar</td>
+</tr>
+</tbody>
+</table>
+
+<p>Für die meisten Koop-Gruppen empfiehlt sich 2026 die <strong>Miete eines dedizierten Servers</strong>. Die Vorteile überwiegen klar: bessere Netzwerkanbindung, höhere Verfügbarkeit, professioneller Support und vorhersehbare Kosten. Wenn du hingegen technisch versiert bist, einen guten Internetanschluss mit mindestens 100 Mbit/s Upload hast und den Server als Hobby-Projekt betreiben möchtest, kann das Selbst-Hosting eine lohnende Alternative sein. In beiden Fällen unterstützt dich hostazar mit kompetenter Beratung und optionalen Management-Services.</p>
+
+<h2>Enshrouded Dedicated Server einrichten (Schritt-für-Schritt)</h2>
+
+<p>Die Einrichtung eines Enshrouded Dedicated Servers ist dank der offiziellen Server-Tools von Keen Games deutlich einfacher geworden als noch zum Launch im Jahr 2024. Mit dem 2026 aktuellen Update auf Version 1.4 hat das Entwickler-Team zudem den Installationsprozess weiter optimiert und neue Konfigurationsoptionen hinzugefügt. In diesem Abschnitt führen wir dich durch die komplette Erstinstallation auf einem Linux-Server – die Schritte auf Windows sind analog, unterscheiden sich aber in der Befehlssyntax.</p>
+
+<p>Bevor du beginnst, stelle sicher, dass dein Server die Mindestanforderungen erfüllt und du über Root- oder Administrator-Zugriff verfügst. Du benötigst außerdem einen <strong>Steam-Account</strong> mit gültiger Lizenz für Enshrouded, da der Dedicated Server über SteamCMD heruntergeladen wird. Falls du einen gemieteten Server bei hostazar nutzt, sind diese Voraussetzungen bereits erfüllt und du kannst direkt mit der Konfiguration beginnen.</p>
+
+<p><strong>Schritt 1: SteamCMD installieren</strong><br>
+Verbinde dich per SSH mit deinem Server und lade SteamCMD herunter. SteamCMD ist das offizielle Kommandozeilen-Tool von Valve zum Installieren und Aktualisieren von Steam-Workshop-Inhalten und Dedicated Servern.</p>
+
+<pre><code># Verzeichnis erstellen und SteamCMD herunterladen
+mkdir -p ~/steamcmd && cd ~/steamcmd
+wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+tar -xvzf steamcmd_linux.tar.gz
+
+# SteamCMD initial ausführen
+./steamcmd.sh
+</code></pre>
+
+<p><strong>Schritt 2: Enshrouded Server herunterladen</strong><br>
+Nach der Installation von SteamCMD kannst du den Enshrouded Dedicated Server mit einem einfachen Befehl herunterladen. Die App-ID für Enshrouded Server lautet 2278520 (Stand 2026, bitte vor Installation auf der offiziellen Wiki-Seite prüfen).</p>
+
+<pre><code># Anonyme Anmeldung in SteamCMD
+login anonymous
+
+# Installationsverzeichnis festlegen und Server herunterladen
+force_install_dir ~/enshrouded_server
+app_update 2278520 validate
+
+# SteamCMD beenden
+quit
+</code></pre>
+
+<p><strong>Schritt 3: Server-Verzeichnisstruktur verstehen</strong><br>
+Nach dem Download findest du im Verzeichnis <code>~/enshrouded_server</code> verschiedene Ordner und Dateien. Die wichtigsten sind:</p>
+
+<ul>
+<li><code>enshrouded_server.exe</code> bzw. <code>enshrouded_server</code> – Die ausführbare Server-Datei</li>
+<li><code>enshrouded_server.json</code> – Hauptkonfigurationsdatei (wird beim ersten Start erstellt)</li>
+<li><code>savegame/</code> – Verzeichnis für Spielstände und Welten</li>
+<li><code>logs/</code> – Log-Dateien für Troubleshooting</li>
+<li><code>wine/</code> – Nur auf Linux, für die Windows-Kompatibilität</li>
+</ul>
+
+<p><strong>Schritt 4: Erster Server-Start</strong><br>
+Starte den Server nun zum ersten Mal, damit die Konfigurationsdateien automatisch angelegt werden. Unter Linux verwendest du Wine, da der Server offiziell nur für Windows kompiliert ist. Viele Hoster wie hostazar bieten jedoch native Linux-Binaries an.</p>
+
+<pre><code># Windows-Befehl
   <a href="/artikel/valheim-server-vps-mieten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/valheim-server-vps-mieten-2026.webp" alt="Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026" loading="lazy" width="400" height="200"></div>
   </a>

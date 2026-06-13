@@ -759,6 +759,104 @@
     </div>
 
 <h1>Project Zomboid Server – Hosting &amp; Setup für Multiplayer 2026</h1>
+<h2>Warum ein eigener Project Zomboid Server 2026?</h2>
+<p>Der offizielle Multiplayer-Modus von Project Zomboid erlaubt theoretisch das Mitspielen auf öffentlichen Servern. In der Praxis stoßen Spieler dort jedoch schnell an Grenzen: begrenzte Slot-Zahlen, willkürliche Regelwerke, fehlende Mod-Unterstützung und häufige Restarts. Ein eigener Server löst diese Probleme komplett.</p>
+<p>Mit einem selbst verwalteten <strong>Project Zomboid Dedicated Server</strong> bestimmst du die Regeln: Welche Map gespielt wird (Knox County, Louisville, neue Custom-Maps), wie hoch die Schwierigkeit ist, ob PvP aktiviert ist, wie viele Spieler maximal joinen dürfen und welche Mods installiert sind. Du kontrollierst Savegames, Backups und die Performance selbst – und das alles ohne monatliche Abo-Zwänge bei Drittanbietern.</p>
+<p>Besonders für <strong>private Spielgruppen</strong> mit 4–16 Freunden ist ein eigener Server Pflicht. Die typische Session dauert oft mehrere Stunden, da wollen weder Lags noch unerwartete Neustarts das Erlebnis ruinieren. Wer einmal einen eigenen Zomboid-Server betrieben hat, will nie wieder auf einen öffentlichen Server zurück.</p>
+<p>Zusätzlich bieten selbst gehostete Server die Möglichkeit, <strong>Custom-Mods</strong> zu installieren, die das Gameplay komplett verändern – von neuen Fahrzeugen über Waffen bis hin zu kompletten Gameplay-Overhauls wie “Hydrocraft” oder “Brita’s Weapon Pack”. Mods machen den Wiederspielwert von Project Zomboid praktisch unbegrenzt.</p>
+<p>2026 bringt zudem einige technische Neuerungen mit sich: das Spiel nutzt weiterhin die Java-/Lua-Engine, jedoch mit optimiertem Netzwerkcode und besserer Multi-Core-Unterstützung. Die Anforderungen an die Server-Hardware sind moderat geblieben, weshalb sich ein eigener Server auch für Gamer mit kleinerem Budget lohnt.</p>
+
+<h2>Systemanforderungen für Project Zomboid Server 2026</h2>
+<p>Die Hardware-Anforderungen eines Project Zomboid Servers hängen stark von der Spielerzahl, der Map-Größe und der Anzahl der installierten Mods ab. Die Entwickler von The Indie Stone veröffentlichen regelmäßig aktualisierte Empfehlungen.</p>
+<p>Für einen <strong>kleinen Server mit 4–8 Spielern</strong> reicht bereits ein durchschnittlicher Heim-PC mit modernem Quad-Core-Prozessor, 8 GB RAM und einer SSD. Java profitiert stark von schnellem Speicher, daher ist eine SSD Pflicht – mit einer herkömmlichen HDD wirst du permanent mit Lags kämpfen.</p>
+<p>Bei <strong>16+ Spielern oder großen Mod-Paketen</strong> empfehlen wir mindestens 16 GB RAM, einen modernen 6- oder 8-Kern-Prozessor (Intel i5/i7 der 12. Generation oder AMD Ryzen 5/7 5000+) und eine NVMe-SSD. Die Multi-Core-Unterstützung von Project Zomboid wurde mit Build 41 spürbar verbessert und nutzt mittlerweile bis zu 8 Kerne effizient aus.</p>
+<p>Die <strong>Netzwerkanbindung</strong> wird oft unterschätzt: Für flüssiges Gameplay ohne Lag-Spikes brauchst du mindestens 10 Mbit/s Upstream. Wenn du den Server von zu Hause aus hostest, ist asymmetrisches DSL oft der Flaschenhals. Glasfaser- oder Kabelanschlüsse mit hohem Upstream sind klar im Vorteil.</p>
+
+<table border="1" cellpadding="6" cellspacing="0">
+<caption>Empfohlene Hardware für Project Zomboid Server 2026</caption>
+<thead>
+<tr><th>Spielerzahl</th><th>CPU</th><th>RAM</th><th>Speicher</th><th>Upstream</th></tr>
+</thead>
+<tbody>
+<tr><td>2–4 Spieler</td><td>4 Kerne, 3.0 GHz+</td><td>8 GB</td><td>SSD 50 GB+</td><td>5 Mbit/s</td></tr>
+<tr><td>4–8 Spieler</td><td>4–6 Kerne, 3.5 GHz+</td><td>8–12 GB</td><td>SSD 80 GB+</td><td>10 Mbit/s</td></tr>
+<tr><td>8–16 Spieler</td><td>6–8 Kerne, 4.0 GHz+</td><td>16 GB</td><td>NVMe 120 GB+</td><td>25 Mbit/s</td></tr>
+<tr><td>16–32 Spieler</td><td>8+ Kerne, 4.5 GHz+</td><td>32 GB</td><td>NVMe 250 GB+</td><td>50+ Mbit/s</td></tr>
+<tr><td>32+ Spieler / Mods</td><td>Dedicated Xeon/EPYC</td><td>64 GB</td><td>NVMe 500 GB+</td><td>100+ Mbit/s</td></tr>
+</tbody>
+</table>
+
+<p>Betriebssystem-seitig läuft ein Project Zomboid Server problemlos auf <strong>Windows 10/11, Windows Server 2019/2022 sowie Linux-Distributionen</strong> wie Ubuntu 22.04/24.04 LTS, Debian 12 oder CentOS Stream. Linux-Server benötigen in der Regel weniger RAM und CPU-Ressourcen, da keine Desktop-Umgebung geladen wird.</p>
+
+<h2>Hosting-Optionen im Überblick: Selbst, Dedicated, Managed</h2>
+<p>Wer einen Project Zomboid Server betreiben will, hat 2026 im Wesentlichen drei Optionen: <strong>Self-Hosting</strong> auf dem eigenen Rechner, ein <strong>Virtual/Dedicated Server</strong> bei einem klassischen Hoster oder ein <strong>Managed Game Server Hosting</strong> bei einem spezialisierten Anbieter wie hostazar.com. Jede Variante hat ihre Vor- und Nachteile.</p>
+<p>Beim <strong>Self-Hosting</strong> läuft der Server auf deinem privaten PC. Vorteil: keine laufenden Kosten, volle Kontrolle, einfache Mod-Verwaltung. Nachteil: dein PC muss 24/7 laufen, Stromkosten steigen, Upload-Bandbreite ist oft begrenzt, und du trägst die volle Verantwortung für Sicherheit, Updates und Backups. Für kleine Freundesrunden ist das aber durchaus eine valide Option.</p>
+<p>Ein <strong>Dedicated oder VPS Server</strong> bei einem klassischen Hoster (Hetzner, Contabo, OVH, IONOS) gibt dir dedizierte Ressourcen und eine professionelle Netzwerkanbindung. Du mietest eine Maschine, installierst SteamCMD, Java und startest den Server. Vorteil: skalierbar, oft günstig, 24/7-Betrieb. Nachteil: Du brauchst Linux-Kenntnisse, musst dich selbst um Updates, Firewall und Backups kümmern.</p>
+<p><strong>Managed Game Server Hosting</strong> ist die komfortabelste Variante: Du mietest einen vorkonfigurierten Server, das Webpanel erlaubt Start/Stop, Mod-Upload, Config-Edit, automatische Backups und One-Click-Updates. Anbieter wie hostazar.com kümmern sich um Wartung, DDoS-Schutz und Hardware. Vorteil: kein technisches Know-how nötig, sofort einsatzbereit. Nachteil: monatliche Kosten, weniger Flexibilität.</p>
+
+<table border="1" cellpadding="6" cellspacing="0">
+<caption>Vergleich: Hosting-Optionen für Project Zomboid 2026</caption>
+<thead>
+<tr><th>Kriterium</th><th>Self-Hosting</th><th>VPS / Dedicated</th><th>Managed Hosting (z. B. hostazar.com)</th></tr>
+</thead>
+<tbody>
+<tr><td>Monatliche Kosten</td><td>0 € + Strom</td><td>8–40 €</td><td>12–60 €</td></tr>
+<tr><td>Technikkenntnisse</td><td>Mittel</td><td>Hoch (Linux)</td><td>Gering</td></tr>
+<tr><td>Performance</td><td>Abhängig vom PC</td><td>Sehr gut</td><td>Sehr gut</td></tr>
+<tr><td>DDoS-Schutz</td><td>Nein</td><td>Optional</td><td>Inklusive</td></tr>
+<tr><td>Mod-Verwaltung</td><td>Manuell</td><td>Manuell</td><td>Per Webpanel</td></tr>
+<tr><td>Backups</td><td>Manuell</td><td>Selbst einrichten</td><td>Automatisch</td></tr>
+<tr><td>Verfügbarkeit</td><td>Nur wenn PC läuft</td><td>24/7</td><td>24/7</td></tr>
+</tbody>
+</table>
+
+<p>Für die meisten Spieler – insbesondere für Freundesgruppen mit 4–16 Mitgliedern – ist <strong>Managed Game Server Hosting</strong> die beste Wahl. Du zahlst einen fairen monatlichen Preis, sparst dir stundenlange Konfigurationsarbeit und kannst dich auf das konzentrieren, was zählt: das Überleben in Knox County.</p>
+
+<h2>Project Zomboid Server einrichten: Schritt-für-Schritt-Anleitung</h2>
+<p>Die Einrichtung eines Project Zomboid Servers ist 2026 dank SteamCMD und gut dokumentierter Tools deutlich einfacher geworden. Wir zeigen dir den kompletten Workflow – am Beispiel eines Linux-VPS (Ubuntu 22.04), der identisch auf anderen Systemen funktioniert.</p>
+<p><strong>Schritt 1 – SteamCMD installieren:</strong> Zuerst installierst du SteamCMD, das offizielle Werkzeug zum Verwalten von Steam-Servern. Lege einen eigenen User an, lade SteamCMD herunter und entpacke es in dessen Home-Verzeichnis.</p>
+<pre><code>sudo apt update &amp;&amp; sudo apt install -y lib32gcc-s1 lib32stdc++6 steamcmd
+sudo useradd -m -s /bin/bash zomboid
+sudo -u zomboid -H bash -c "mkdir -p ~/steamcmd &amp;&amp; cd ~/steamcmd &amp;&amp; curl -sqL 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz' | tar xzf -"</code></pre>
+
+<p><strong>Schritt 2 – Project Zomboid Dedicated Server herunterladen:</strong> Über SteamCMD lädst du nun die Server-Dateien. Die App-ID des Project Zomboid Dedicated Servers ist 380870. Du musst den Befehl anonym ausführen oder einen Steam-Account angeben.</p>
+<pre><code>sudo -u zomboid -H bash -c "cd ~/steamcmd &amp;&amp; ./steamcmd.sh +login anonymous +force_install_dir ~/pzserver +app_update 380870 validate +quit"</code></pre>
+
+<p><strong>Schritt 3 – Server starten:</strong> Project Zomboid Server bringt ein eigenes Start-Skript mit. Du findest es unter <code>~/pzserver/start-server.sh</code>. Mit einem ersten Teststart prüfst du, ob alle Abhängigkeiten korrekt installiert sind.</p>
+<pre><code>cd ~/pzserver
+chmod +x start-server.sh
+./start-server.sh</code></pre>
+
+<p><strong>Schritt 4 – Ports freigeben:</strong> Der Server nutzt standardmäßig <strong>UDP 16262</strong> sowie die UDP-Range 16262–16272. Diese musst du in der Firewall öffnen, sonst können Spieler nicht joinen.</p>
+<pre><code>sudo ufw allow 16262:16272/udp
+sudo ufw allow 27015/udp
+sudo ufw reload</code></pre>
+
+<p><strong>Schritt 5 – Server beitreten:</strong> Nach erfolgreichem Start taucht dein Server in der Server-Liste von Project Zomboid auf. Du findest ihn in der Kategorie “LAN” oder über die direkte IP-Eingabe. Für externe Spieler benötigst du deine öffentliche IP-Adresse oder einen Domainnamen.</p>
+
+<h2>Konfiguration: servertest.ini und SandboxConfig.lua</h2>
+<p>Die Konfiguration des Project Zomboid Servers erfolgt über mehrere Dateien im Verzeichnis <code>~/Zomboid/Server/</code>. Die wichtigsten sind <code>servertest.ini</code> (allgemeine Server-Einstellungen) und <code>SandboxConfig.lua</code> (Gameplay-Regeln).</p>
+<p>Die <strong>servertest.ini</strong> steuert Netzwerk, Performance und Spieler-Management. Hier legst du den Servernamen, das Passwort, die maximale Spielerzahl, den Mod-Workshop und Performance-Parameter fest. Wichtig: Project Zomboid liest diese Datei nur beim Start – Änderungen erfordern einen Server-Neustart.</p>
+
+<table border="1" cellpadding="6" cellspacing="0">
+<caption>Wichtige Parameter in servertest.ini</caption>
+<thead>
+<tr><th>Parameter</th><th>Funktion</th><th>Beispielwert</th></tr>
+</thead>
+<tbody>
+<tr><td>PublicName</td><td>Name in der Server-Liste</td><td>My Zomboid Server [DE]</td></tr>
+<tr><td>Password</td><td>Server-Passwort</td><td>geheim123</td></tr>
+<tr><td>MaxPlayers</td><td>Maximale Spielerzahl</td><td>16</td></tr>
+<tr><td>Port</td><td>UDP-Port</td><td>16262</td></tr>
+<tr><td>PauseEmpty</td><td>Server pausiert ohne Spieler</td><td>true</td></tr>
+<tr><td>WorkshopItems</td><td>Steam-Workshop-Mods</td><td>2335362852,2849071532</td></tr>
+<tr><td>Mods</td><td>Lokale Mod-Pfade</td><td>Hydrocraft;Britas</td></tr>
+<tr><td>Map</td><td>Standard-Map</td><td>ProjectZomboid</td></tr>
+</tbody>
+</table>
+
+<p>Die <strong>SandboxConfig.lua</strong> definiert die Gameplay-Einstellungen: Zombie-Population, Loot-Rarity, Fahrzeug-Verfügbarkeit, Nahrungsmittelverderb, Elektrizität, Übertragungswege und vieles mehr. Die Datei nutzt Lua-Syntax und ist sehr umfangreich.</p>
+<pre><code>
   <a href="/artikel/valheim-server-vps-mieten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/valheim-server-vps-mieten-2026.webp" alt="Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026" loading="lazy" width="400" height="200"></div>
   </a>

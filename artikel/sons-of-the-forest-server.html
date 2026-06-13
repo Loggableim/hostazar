@@ -759,6 +759,163 @@
     </div>
 
 <h1>Sons of the Forest Server hosten – Setup-Guide 2026</h1>
+<h2>1. Was ist Sons of the Forest und warum einen eigenen Server hosten?</h2>
+<p>Sons of the Forest ist die Fortsetzung des Kult-Klassikers The Forest und wurde von Endnight Games entwickelt. Das Spiel kombiniert Survival-Mechaniken mit einer düsteren Horror-Story auf einer mysteriösen Insel. Spieler sammeln Ressourcen, bauen Basen, kämpfen gegen Mutanten und überleben gemeinsam mit bis zu acht Mitspielern in einer prozedural generierten Welt.</p>
+<p>Anders als bei vielen Survival-Spielen bietet Sons of the Forest einen offiziellen Dedicated Server. Das bedeutet, dass die Spiellogik auf einem separaten Rechner läuft, während die Clients nur die Visualisierung übernehmen. Dadurch wird nicht nur die Performance massiv verbessert, sondern auch Cheating stark erschwert. Zudem läuft die Welt 24/7 weiter, sodass Basen, Item-Spawns und Spielstände persistent bleiben.</p>
+<p>Die Gründe, einen eigenen Server zu hosten, sind vielfältig: Du hast die volle Kontrolle über Spielregeln, Slot-Anzahl, Tageszeitzyklus, Schwierigkeitsgrad und kannst private Communities oder öffentliche Server mit individuellen Regeln betreiben. Außerdem lassen sich Mods installieren, um das Spielerlebnis zu erweitern, ohne auf externe Anbieter angewiesen zu sein.</p>
+<p>2026 ist das Ökosystem rund um Sons of the Forest ausgereift. Zahlreiche Mods, Tools und Management-Skripte sind verfügbar, und die Server-Software wird regelmäßig gepatcht. Wer also eine langfristige Spielwiese aufbauen möchte, profitiert enorm von einem eigenen Server.</p>
+
+<h2>2. Systemanforderungen für den Sons of the Forest Server 2026</h2>
+<p>Die Server-Software von Sons of the Forest ist deutlich ressourcenschonender als das Client-Spiel, da keine aufwändige 3D-Berechnung stattfindet. Dennoch hängen die Anforderungen stark von der Spieleranzahl, der Weltgröße und den eingesetzten Mods ab. Für kleine private Server mit 2-4 Spielern reicht ein einfacher vServer, für größere Communitys mit 16+ Slots brauchst du deutlich mehr Leistung.</p>
+<p>Die folgende Tabelle gibt dir eine realistische Übersicht für 2026:</p>
+<table border="1" cellpadding="6" cellspacing="0">
+<thead>
+<tr><th>Spieleranzahl</th><th>CPU</th><th>RAM</th><th>Speicher</th><th>Empfohlener Tarif</th></tr>
+</thead>
+<tbody>
+<tr><td>2-4 Spieler</td><td>2 vCPU (Dedicated)</td><td>4 GB</td><td>30 GB SSD</td><td>hostazar Starter</td></tr>
+<tr><td>4-8 Spieler</td><td>4 vCPU (Dedicated)</td><td>8 GB</td><td>50 GB NVMe</td><td>hostazar Performance</td></tr>
+<tr><td>8-16 Spieler</td><td>6 vCPU (Dedicated)</td><td>16 GB</td><td>80 GB NVMe</td><td>hostazar Pro</td></tr>
+<tr><td>16+ Spieler / Mods</td><td>8+ vCPU (Dedicated)</td><td>32 GB</td><td>120 GB NVMe</td><td>hostazar Enterprise</td></tr>
+</tbody>
+</table>
+<p>Wichtig: Sons of the Forest nutzt primär Single-Thread-Leistung, da die Server-Engine nicht perfekt multithreaded ist. Ein moderner Prozessor mit hoher Taktfrequenz (mindestens 3,5 GHz) ist wichtiger als viele Kerne. Zudem sollte der RAM ausreichen, um Welten mit vielen Basen, NPCs und Entities zu puffern.</p>
+<p>Als Betriebssystem empfehlen wir Windows Server 2022 oder 2025 für maximale Kompatibilität mit Mods, oder Ubuntu 22.04/24.04 LTS für erfahrene Linux-Admins. Beide Varianten werden offiziell unterstützt. Für Linux-Container (Docker) gibt es Community-Images, die du bei hostazar.com vorkonfiguriert mieten kannst.</p>
+
+<h2>3. Die beste Hosting-Option: Dedicated Server vs. vServer vs. Heimserver</h2>
+<p>Bevor du mit der Installation beginnst, musst du entscheiden, wo dein Server laufen soll. Jede Option hat Vor- und Nachteile, die wir hier objektiv gegenüberstellen.</p>
+<table border="1" cellpadding="6" cellspacing="0">
+<thead>
+<tr><th>Kriterium</th><th>Heimserver (Eigener PC)</th><th>vServer / VPS</th><th>Game-Server-Hoster (hostazar)</th></tr>
+</thead>
+<tbody>
+<tr><td>Einrichtung</td><td>Einfach, aber Strom-/Internetabhängig</td><td>Mittel, Linux-Kenntnisse nötig</td><td>Sehr einfach, oft One-Click-Setup</td></tr>
+<tr><td>Performance</td><td>Schwankend, geteilt mit Client</td><td>Gut, dedizierte Ressourcen</td><td>Sehr gut, Gaming-optimiert</td></tr>
+<tr><td>Erreichbarkeit</td><td>Abhängig von Upload-Bandbreite</td><td>24/7, oft mit DDoS-Schutz</td><td>24/7, garantierte Uptime</td></tr>
+<tr><td>DDoS-Schutz</td><td>Keiner</td><td>Teilweise</td><td>Inklusive</td></tr>
+<tr><td>Stromkosten</td><td>Hoch (24/7-Betrieb)</td><td>Inklusive</td><td>Inklusive</td></tr>
+<tr><td>Wartung</td><td>Komplett selbst</td><td>Selbst</td><td>Updates oft automatisch</td></tr>
+<tr><td>Kosten/Monat</td><td>0 € (nur Strom ~15-30 €)</td><td>15-50 €</td><td>12-80 €</td></tr>
+</tbody>
+</table>
+<p>Ein Heimserver eignet sich gut, wenn du bereits einen starken PC hast und nur gelegentlich mit Freunden spielst. Allerdings sind Heimanschlüsse oft asymmetrisch – der Upload ist meist langsam (20-50 Mbit/s), was bei vielen gleichzeitigen Spielern zu Lag führen kann. Außerdem brauchst du eine stabile Stromversorgung und musst Port-Forwarding am Router einrichten.</p>
+<p>Ein vServer oder Root-Server bietet mehr Kontrolle, erfordert aber Linux-Kenntnisse und kontinuierliche Wartung. Du bist selbst für Sicherheitsupdates, Backups und Monitoring verantwortlich.</p>
+<p>Ein professioneller Game-Server-Hoster wie hostazar.com kombiniert die Vorteile beider Welten: dedizierte Ressourcen, 24/7-Erreichbarkeit, DDoS-Schutz, automatisierte Backups und oft ein Webinterface mit One-Click-Updates. Für die meisten Spieler ist das die beste Wahl, besonders wenn man keinen eigenen Server betreiben will.</p>
+
+<h2>4. Sons of the Forest Dedicated Server offiziell einrichten</h2>
+<p>Seit 2024 bietet Endnight Games den Sons of the Forest Dedicated Server offiziell über Steam an. Du lädst ihn dir entweder direkt über Steam (Tools) oder über SteamCMD herunter. Beide Wege führen zum gleichen Ergebnis.</p>
+<p>Schritt 1 – SteamCMD installieren (Linux):</p>
+<pre><code>sudo apt update
+sudo apt install lib32gcc-s1 lib32stdc++6 steamcmd
+sudo useradd -m -s /bin/bash steam
+sudo -u steam -s
+cd ~
+mkdir -p steamcmd && cd steamcmd
+wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+tar -xvzf steamcmd_linux.tar.gz
+</code></pre>
+<p>Schritt 2 – Server herunterladen:</p>
+<pre><code>./steamcmd.sh
+login anonymous
+force_install_dir /home/steam/sotf
+app_update 2409580 validate
+quit
+</code></pre>
+<p>Die App-ID 2409580 ist die offizielle Dedicated-Server-App im Steam-Depot. Nach erfolgreichem Download findest du im Verzeichnis /home/steam/sotf die ausführbaren Dateien und Konfigurationsdateien.</p>
+<p>Schritt 3 – Server starten (Linux):</p>
+<pre><code>cd /home/steam/sotf
+chmod +x SonsOfTheForestDS
+./SonsOfTheForestDS -batchmode -nographics -port 8766 -players 8
+</code></pre>
+<p>Unter Windows startest du den Server über die EXE-Datei SonsOfTheForestDS.exe mit denselben Parametern. Der erste Start erzeugt automatisch die Konfigurationsdateien server.cfg und settings.json im Installationsverzeichnis.</p>
+<p>Tipp: Auf hostazar.com ist die Installation bereits mit einem Klick erledigt – du wählst einfach den gewünschten Slot, das Betriebssystem und den Speicherort (Frankfurt, Helsinki, Singapur etc.), und der Server ist in unter 60 Sekunden online.</p>
+
+<h2>5. Server-Konfiguration: settings.json und server.cfg erklärt</h2>
+<p>Die Konfiguration deines Sons-of-the-Forest-Servers erfolgt über zwei Hauptdateien: settings.json (Gameplay-Optionen) und server.cfg (Netzwerk- und Slot-Einstellungen). Beide Dateien liegen im Server-Hauptverzeichnis und werden beim Start geladen.</p>
+<p>Beispiel settings.json:</p>
+<pre><code>{
+  "GameSettings": {
+    "Difficulty": "Normal",
+    "DayLengthMinutes": 40,
+    "StartingSeason": "Spring",
+    "WeatherFrequency": "Normal",
+    "AnimalSpawnRate": 1.0,
+    "EnemySpawnRate": 1.0,
+    "PlayerDamage": 1.0,
+    "StructureDamage": 1.0,
+    "SaveIntervalSeconds": 300
+  },
+  "World": {
+    "WorldSize": "Medium",
+    "Seed": 1234567890,
+    "RegrowVegetation": true
+  },
+  "Multiplayer": {
+    "MaxPlayers": 8,
+    "FriendsOnly": false,
+    "PasswordProtected": true,
+    "ServerName": "hostazar SOTF Server",
+    "ServerDescription": "Survival pur – Willkommen!"
+  }
+}
+</code></pre>
+<p>Beispiel server.cfg:</p>
+<pre><code>server_name "Mein Sons of the Forest Server"
+server_password "geheimespasswort"
+server_admin_password "adminpasswort"
+port 8766
+query_port 27016
+max_players 8
+save_interval 300
+tick_rate 30
+log_file "server.log"
+</code></pre>
+<p>Wichtige Parameter im Überblick:</p>
+<table border="1" cellpadding="6" cellspacing="0">
+<thead>
+<tr><th>Parameter</th><th>Funktion</th><th>Empfehlung</th></tr>
+</thead>
+<tbody>
+<tr><td>Difficulty</td><td>Peaceful / Normal / Hard</td><td>Normal für gutes Balancing</td></tr>
+<tr><td>DayLengthMinutes</td><td>Länge eines Ingame-Tages</td><td>30-40 Min. für realistisches Gameplay</td></tr>
+<tr><td>MaxPlayers</td><td>Maximale Spieleranzahl</td><td>4-8 für stabile Performance</td></tr>
+<tr><td>SaveIntervalSeconds</td><td>Auto-Save-Frequenz</td><td>300-600 Sekunden</td></tr>
+<tr><td>WorldSize</td><td>Kartengröße</td><td>Medium/Large für 8+ Spieler</td></tr>
+</tbody>
+</table>
+<p>Änderungen werden in der Regel nach einem Server-Neustart übernommen. Plane regelmäßige Wartungsfenster ein und kündige sie in deiner Community an.</p>
+
+<h2>6. Ports freigeben und Firewall konfigurieren</h2>
+<p>Sons of the Forest nutzt mehrere Ports für Gameplay, Query und Steam-Server-Browser. Damit dein Server von außen erreichbar ist, musst du diese Ports in der Firewall und ggf. am Router freigeben.</p>
+<p>Standardports:</p>
+<table border="1" cellpadding="6" cellspacing="0">
+<thead>
+<tr><th>Port</th><th>Protokoll</th><th>Verwendung</th></tr>
+</thead>
+<tbody>
+<tr><td>8766</td><td>UDP</td><td>Gameplay (Hauptport)</td></tr>
+<tr><td>27016</td><td>UDP</td><td>Steam Query / Server-Browser</td></tr>
+<tr><td>27015</td><td>UDP</td><td>Steam Master Server</td></tr>
+</tbody>
+</table>
+<p>Linux – UFW-Firewall konfigurieren:</p>
+<pre><code>sudo ufw allow 8766/udp
+sudo ufw allow 27016/udp
+sudo ufw allow 27015/udp
+sudo ufw reload
+sudo ufw status
+</code></pre>
+<p>Windows – PowerShell-Firewall-Regeln:</p>
+<pre><code>New-NetFirewallRule -DisplayName "SOTF Game" -Direction Inbound -LocalPort 8766 -Protocol UDP -Action Allow
+New-NetFirewallRule -DisplayName "SOTF Query" -Direction Inbound -LocalPort 27016 -Protocol UDP -Action Allow
+New-NetFirewallRule -DisplayName "SOTF Steam" -Direction Inbound -LocalPort 27015 -Protocol UDP -Action Allow
+</code></pre>
+<p>Falls du den Server hinter einem Router betreibst (Heimserver), musst du zusätzlich Port-Forwarding einrichten. Logge dich in dein Router-Interface ein (meist 192.168.1.1 oder 192.168.0.1), lege eine statische IP für deinen Server-PC fest und forwarde die oben genannten Ports an diese IP.</p>
+<p>Profi-Tipp: Bei hostazar.com entfällt dieser Schritt komplett – die Firewall ist bereits optimal konfiguriert, DDoS-Schutz ist aktiv, und die Ports sind automatisch offen.</p>
+
+<h2>7. Performance-Tuning für flüssiges Gameplay</h2>
+<p>Ein gut optimierter Sons-of-the-Forest-Server bietet stabiles Gameplay ohne Lag-Spitzen. Die Performance hängt von mehreren Faktoren ab, die du gezielt beeinflussen kannst.</p>
+<p>Weltgröße und Save-Größe: Jede Minute Spielzeit vergrößert die Save-Datei. Nach 50+ Spielstunden können Saves mehrere Hundert MB groß sein. Setze die Save-Intervalle nicht zu kurz (mind. 300 Sekunden), um I/O-Last zu reduzieren. Komprimiere reg
   <a href="/artikel/valheim-server-vps-mieten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/valheim-server-vps-mieten-2026.webp" alt="Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026" loading="lazy" width="400" height="200"></div>
   </a>

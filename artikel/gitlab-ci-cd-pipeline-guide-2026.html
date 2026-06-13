@@ -759,6 +759,179 @@
     </div>
 
 <h1>GitLab CI/CD Pipeline einrichten – Schritt-für-Schritt Guide 2026</h1>
+<h2>Was ist GitLab CI/CD und warum ist es 2026 noch relevant?</h2>
+<p>GitLab CI/CD ist die in GitLab integrierte Continuous-Integration- und Continuous-Deployment-Lösung, die Build-, Test- und Deployment-Prozesse direkt im Repository automatisiert. Auch 2026 gehört sie zu den meistgenutzten Pipelines weltweit, weil sie ohne externe Tools auskommt, eine starke YAML-Syntax bietet und sowohl Self-Hosted als auch SaaS funktioniert. Gerade für Teams, die Wert auf Datenschutz, europäische Server und reproduzierbare Deployments legen, ist GitLab CI/CD die erste Wahl.</p>
+<p>Im Vergleich zu GitHub Actions, Jenkins oder CircleCI punktet GitLab vor allem mit eingebauter Container-Registry, Security-Scanning, Review-Apps und einer granularen Rollenverwaltung. Wer DevSecOps wirklich leben will, bekommt hier Static Application Security Testing (SAST), Dependency Scanning und Container Scanning fast gratis dazu.</p>
+<p>Für hostazar.com-Kunden ergibt sich daraus ein klarer Vorteil: Ein gehosteter GitLab-Runner in einem deutschen Rechenzentrum, kombiniert mit schnellen VPS- oder Dedicated-Servern, schafft eine DSGVO-konforme Pipeline ohne Vendor-Lock-in nach US-Recht.</p>
+
+<h2>Voraussetzungen für deine erste Pipeline</h2>
+<p>Bevor du loslegst, brauchst du ein GitLab-Projekt (öffentlich oder privat), Schreibrechte auf die <code>.gitlab-ci.yml</code> und optional einen eigenen Runner, falls du Builds unabhängig von den geteilten <code>shared runners</code> ausführen willst. Auf deinem lokalen System sollten außerdem Git, ein SSH-Client und je nach Stack Docker oder Node.js installiert sein.</p>
+<p>Wenn du vorhabst, Docker-Images zu bauen und in die GitLab-Registry zu pushen, lege unter <em>Settings → CI/CD → Container Registry</em> einen Access Token an oder nutze die eingebaute <code>$CI_REGISTRY</code>-Variable, die GitLab automatisch setzt. Das erspart dir manuelle Login-Schritte und hält deine Secrets sicher im Secret-Vault.</p>
+<p>Empfehlenswert ist zudem ein zweiter Branch namens <code>develop</code>, in dem du Änderungen vorab testest. Production-Deployments laufen später nur über <code>main</code> oder getaggte Releases – so trennst du Feature-Entwicklung und Live-Betrieb sauber voneinander.</p>
+
+<h2>Die .gitlab-ci.yml verstehen</h2>
+<p>Die Datei <code>.gitlab-ci.yml</code> im Projekt-Root ist das Herzstück deiner Pipeline. Sie besteht aus globalen Schlüsselwörtern wie <code>stages</code>, <code>variables</code>, <code>include</code> und <code>default</code>, gefolgt von einzelnen <code>jobs</code>, die jeweils einen <code>script</code>-Block enthalten. Jeder Job läuft in einem frischen Container, basierend auf dem gewählten <code>image</code>.</p>
+<p>Stages geben die Reihenfolge vor (z. B. <code>build</code>, <code>test</code>, <code>deploy</code>), während Jobs innerhalb einer Stage parallel laufen. Wenn ein Job fehlschlägt, bricht die Pipeline standardmäßig ab, sofern du nicht <code>allow_failure: true</code> setzt. Das macht Pipelines deterministisch und nachvollziehbar.</p>
+<p>Ein minimales Beispiel für eine Node.js-App siehst du hier. Wir verwenden Caching für <code>node_modules</code> und publizieren das gebaute Verzeichnis als Artifact, damit es in der nächsten Stage verwendet werden kann.</p>
+<pre><code># .gitlab-ci.yml
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  NODE_VERSION: "20"
+  APP_DIR: "dist"
+
+default:
+  image: node:${NODE_VERSION}-alpine
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
+
+build:
+  stage: build
+  script:
+    - npm ci --prefer-offline
+    - npm run build
+  artifacts:
+    paths:
+      - ${APP_DIR}
+    expire_in: 1 hour
+
+test:
+  stage: test
+  script:
+    - npm ci --prefer-offline
+    - npm run lint
+    - npm run test:unit
+  needs: ["build"]
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploying ${APP_DIR} to production"
+  environment:
+    name: production
+    url: https://example.com
+  rules:
+    - if: $CI_COMMIT_TAG
+  when: manual
+</code></pre>
+
+<h2>Stages, Jobs und Parallelisierung clever nutzen</h2>
+<p>Eine ausgewachsene Pipeline lebt davon, dass Stages sequentiell laufen, Jobs innerhalb einer Stage aber parallel. So kannst du Unit-Tests, Linting, Security-Scans und Build-Tests gleichzeitig ausführen und die Gesamtlaufzeit drastisch reduzieren. Mit dem Schlüsselwort <code>needs</code> umgehst du die strikte Stage-Reihenfolge und startest Jobs schon dann, wenn ihre konkreten Abhängigkeiten fertig sind – das nennt GitLab DAG (Directed Acyclic Graph).</p>
+<p>Gerade bei monorepos mit vielen Paketen ist das ein riesiger Performance-Gewinn. Du kannst pro Paket einen Job anlegen, jeder Job hat seine eigenen <code>needs</code> und <code>dependencies</code>. Das verhindert, dass eine kleine Änderung an einem Package den kompletten Test-Suite-Lauf auslöst.</p>
+<p>Achte darauf, jeden Job mit aussagekräftigen <code>tags</code> zu versehen, wenn du mehrere Runner mit unterschiedlichen Labels hast (z. B. <code>linux</code>, <code>docker</code>, <code>gpu</code>, <code>windows</code>). GitLab matched diese Tags und wählt den passenden Runner aus. So bekommt ein GPU-Job automatisch deinen teuren GPU-Runner, ein normaler Lint-Job aber den günstigen shared Runner.</p>
+
+<h2>Variablen, Secrets und Protected Branches</h2>
+<p>Sensible Daten wie API-Keys, Datenbank-Passwörter oder SSH-Keys haben in einer <code>.gitlab-ci.yml</code> nichts zu suchen. Stattdessen speicherst du sie als CI/CD-Variablen im Projekt-, Gruppen- oder Instance-Settings. Du kannst sie als <em>Protected</em> (nur für Protected Branches/Tags sichtbar) und <em>Masked</em> (im Log ausgeblendet) markieren.</p>
+<p>Für komplexere Szenarien empfiehlt sich HashiCorp Vault, das GitLab nativ integriert. Über <code>vault://path/to/secret/key</code> referenzierst du Secrets direkt in deinem Script – GitLab holt sie zum Job-Start ab, ohne sie im Runner-Image zu persistieren.</p>
+<p>Typische Variablen für eine Production-Pipeline sind in der folgenden Tabelle zusammengefasst. Passe sie an dein Projekt an und ergänze pro Environment eigene Werte.</p>
+<table>
+<thead>
+<tr><th>Variable</th><th>Typ</th><th>Sichtbarkeit</th><th>Verwendung</th></tr>
+</thead>
+<tbody>
+<tr><td>CI_REGISTRY_USER</td><td>Auto</td><td>Protected</td><td>Login GitLab Container Registry</td></tr>
+<tr><td>CI_REGISTRY_PASSWORD</td><td>Auto</td><td>Protected</td><td>Login GitLab Container Registry</td></tr>
+<tr><td>SSH_PRIVATE_KEY</td><td>File</td><td>Protected + Masked</td><td>Deploy via SSH</td></tr>
+<tr><td>DATABASE_URL</td><td>Secret</td><td>Protected</td><td>Migration- und Test-Jobs</td></tr>
+<tr><td>SLACK_WEBHOOK</td><td>Secret</td><td>Masked</td><td>Pipeline-Notifications</td></tr>
+</tbody>
+</table>
+
+<h2>Caching und Artifacts – die heimlichen Performance-Helden</h2>
+<p>Wer viel mit <code>npm</code>, <code>pip</code>, <code>maven</code> oder <code>composer</code> arbeitet, sollte Caching unbedingt aktivieren. GitLab legt damit kompilierte Pakete in einem verteilten Cache ab und stellt sie in nachfolgenden Jobs schnell wieder her. Cache-Keys kannst du auf <code>$CI_COMMIT_REF_SLUG</code>, <code>$CI_PIPELINE_ID</code> oder eine Kombination aus Datei-Hash und Branch setzen.</p>
+<p>Artifacts sind im Gegensatz zum Cache dateibasierte Outputs, die explizit weitergereicht werden (z. B. ein JAR, ein Docker-Image-Tar, ein Test-Report). Sie haben ein Verfallsdatum (<code>expire_in</code>) und können in der Merge-Request-View heruntergeladen werden, was das Debugging erheblich erleichtert.</p>
+<p>Beispiel für einen Build-Job, der sowohl Cache als auch Artifact nutzt:</p>
+<pre><code>build:
+  stage: build
+  image: maven:3.9-eclipse-temurin-21
+  cache:
+    key: maven-${CI_COMMIT_REF_SLUG}
+    paths:
+      - .m2/repository
+  script:
+    - mvn -B clean package -DskipTests
+  artifacts:
+    name: "app-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - target/*.jar
+    expire_in: 7 days
+    reports:
+      junit: target/surefire-reports/TEST-*.xml
+</code></pre>
+
+<h2>Docker in Docker, Kaniko und Container-Deployments</h2>
+<p>Wenn du innerhalb deines Jobs ein Docker-Image bauen willst, hast du mehrere Optionen. Die klassische Variante <code>docker:dind</code> läuft als <code>--privileged</code> Container, was bei shared Runnern oft deaktiviert ist. Sicherer und schneller ist <code>kaniko</code>, das Images ohne Docker-Daemon baut – perfekt für unprivileged Runner.</p>
+<p>Eine moderne GitLab-CI/CD-Pipeline baut das Image, scannt es mit Trivy, schiebt es in die eigene Registry und triggert anschließend ein Deployment auf einem Kubernetes-Cluster oder einem klassischen VPS. Hier ein bewährtes Snippet, das du in eigene Pipelines übernehmen kannst.</p>
+<pre><code>docker-build:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:v1.21.0-debug
+    entrypoint: [""]
+  script:
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
+      --cache=true
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+</code></pre>
+
+<h2>Deployment-Strategien: Rolling, Blue/Green und Canary</h2>
+<p>Eine gute Pipeline endet nicht mit <code>kubectl apply -f</code>. Für produktive Systeme willst du Zero-Downtime, automatisches Rollback und eine möglichst geringe Fehlerrate. GitLab unterstützt dafür <em>Environments</em>, <em>Deploy Boards</em> und <em>Deploy Keys</em>. Kombiniert mit Review-Apps bekommt jede Merge-Request eine eigene URL, was QA-Teams das Leben enorm erleichtert.</p>
+<p>Strategien im Überblick:</p>
+<ul>
+<li><strong>Rolling Update:</strong> Alte Pods werden nach und nach ersetzt, kein Ausfall, gut für Standard-Apps.</li>
+<li><strong>Blue/Green:</strong> Zwei identische Environments, Switch per Loadbalancer, schnelles Rollback.</li>
+<li><strong>Canary:</strong> 5–10 % Traffic gehen auf die neue Version, Metriken beobachten, dann voller Rollout.</li>
+<li><strong>Feature Flags:</strong> Neue Features unabhängig vom Release aktivieren (z. B. Unleash, LaunchDarkly).</li>
+</ul>
+<p>Auf einem VPS ohne Kubernetes erreichst du Blue/Green mit zwei Reverse-Proxy-Backends und einem einfachen <code>switch</code>-Script, das per SSH die aktive Site tauscht. Für die meisten kleinen bis mittelgroßen Projekte ist das vollkommen ausreichend.</p>
+
+<h2>Security und Compliance direkt in der Pipeline</h2>
+<p>DevSecOps bedeutet, Security-Tests nicht am Ende, sondern in jeder Stage mitlaufen zu lassen. GitLab liefert dafür eingebaute Templates, die du per <code>include</code> einbindest. SAST prüft deinen Quellcode, Dependency Scanning schaut auf bekannte CVEs in <code>package.json</code> oder <code>requirements.txt</code>, Container Scanning untersucht das gebaute Image.</p>
+<p>Ein vollständiger Compliance-Stack könnte so aussehen:</p>
+<pre><code>include:
+  - template: Jobs/SAST.gitlab-ci.yml
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+  - template: Jobs/Container-Scanning.gitlab-ci.yml
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+  - template: Jobs/IaC-Scanning.gitlab-ci.yml
+</code></pre>
+<p>Die Ergebnisse landen im Merge-Request-Widget und blockieren Merges, wenn der Schweregrad <em>Critical</em> überschritten wird. So erzwingst du Security-Gates, ohne den Flow auszubremsen.</p>
+
+<h2>Eigene Runner betreiben – wann und wie</h2>
+<p>Shared Runner sind super, um schnell zu starten, haben aber Limitierungen bei GPU, großen Caches oder speziellen Tools. Ein eigener Runner ist schnell aufgesetzt: <code>gitlab-runner register</code>, Token aus den Projekt- oder Group-Settings holen, Executor wählen (am häufigsten <code>docker</code>), fertig. Auf einem hostazar-VPS mit 4 vCPU, 8 GB RAM und 100 GB NVMe läuft ein kleiner Runner-Tarif problemlos für 5–10 Projekte.</p>
+<p>Für produktive Setups empfehlen wir den <code>docker+machine</code> oder <code>autoscaler</code>-Modus, der Jobs dynamisch auf frischen Containern startet und sie nach dem Job wieder zerstört. Das hält die Umgebung sauber und verhindert State-Leaks zwischen Builds.</p>
+<p>Konfigurationsbeispiel für einen privaten Runner mit Cache-Server:</p>
+<pre><code>concurrent = 4
+check_interval = 0
+[[runners]]
+  name = "hostazar-runner-01"
+  url = "https://gitlab.com/"
+  token = "REDACTED-RUNNER-TOKEN"
+  executor = "docker"
+  [runners.docker]
+    image = "alpine:3.20"
+    privileged = false
+    pull_policy = "if-not-present"
+    volumes = ["/cache", "/etc/ssl/certs:/etc/ssl/certs:ro"]
+  [runners.cache]
+    Type = "s3"
+    [runners.cache.s3]
+      ServerAddress = "s3.eu-central-1.hostazar.com"
+      AccessKey = "REDACTED"
+      SecretKey = "REDACTED"
+      BucketName = "gitlab-runner-cache"
+</code></pre>
+
+<h2>Best Practices und typische Fehlerquellen</h2>
+<p>Die häufigsten Stolperfallen in GitLab-CI/CD-Pipelines sind fehlende Caches,
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

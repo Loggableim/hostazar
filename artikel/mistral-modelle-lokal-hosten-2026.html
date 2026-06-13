@@ -759,6 +759,195 @@
     </div>
 
 <h1>Mistral Large &amp; Mixtral 8x22B lokal hosten – MoE-Modelle selbst betreiben 2026</h1>
+<h2>Warum Mistral-Modelle 2026 die beste Wahl für lokales Hosting sind</h2>
+<p>Die Mistral-Familie hat sich 2026 als eine der führenden Open-Source-KI-Modellreihen etabliert. Im Gegensatz zu proprietären Lösungen wie GPT-4 oder Claude bietet Mistral vollständige Transparenz, nachvollziehbare Trainingsdaten und die Freiheit, Modelle auf eigener Hardware zu betreiben. Dies ist besonders für Unternehmen relevant, die aus Compliance-Gründen ihre Daten nicht an externe API-Dienste übermitteln dürfen.</p>
+<p>Die neueste Generation umfasst Modelle wie Mistral Large 3, Mistral Medium und die spezialisierten Varianten Codestral für Programmieraufgaben sowie Pixtral für multimodale Anwendungen. Jedes Modell bringt unterschiedliche Anforderungen an VRAM, RAM und Rechenleistung mit, was eine kluge Ressourcenplanung erforderlich macht.</p>
+<p>Ein wesentlicher Vorteil des lokalen Hostings ist die vollständige Kontrolle über die Datenverarbeitung. Kein Token verlässt die eigene Infrastruktur, was besonders im europäischen Rechtsraum mit strengen DSGVO-Vorgaben von unschätzbarem Wert ist. Zudem entfallen laufende API-Kosten, die bei intensiver Nutzung schnell in die Tausende gehen können.</p>
+<p>Die Community rund um Mistral wächst rasant, und mittlerweile gibt es zahlreiche Quantisierungsformate wie GGUF, AWQ und GPTQ, die es ermöglichen, auch leistungsstarke Modelle auf Consumer-Hardware zu betreiben. Dies senkt die Einstiegshürde erheblich und macht lokales Hosting für Privatanwender wie für KMUs gleichermaßen attraktiv.</p>
+
+<h2>Hardware-Anforderungen für verschiedene Mistral-Modelle</h2>
+<p>Die Hardware-Anforderungen variieren stark je nach Modellgröße und Quantisierung. Während die kleineren 7B-Modelle bereits auf einer RTX 3060 mit 12 GB VRAM lauffähig sind, benötigen die 70B-Varianten deutlich mehr Ressourcen. Hier ein Überblick über die gängigsten Konfigurationen:</p>
+<table>
+<thead>
+<tr><th>Modell</th><th>Quantisierung</th><th>VRAM (GPU)</th><th>RAM (CPU)</th><th>Empfohlene GPU</th></tr>
+</thead>
+<tbody>
+<tr><td>Mistral 7B</td><td>Q4_K_M</td><td>6 GB</td><td>8 GB</td><td>RTX 3060, RX 6700 XT</td></tr>
+<tr><td>Mistral 8x7B (Mixtral)</td><td>Q4_K_M</td><td>24 GB</td><td>32 GB</td><td>RTX 4090, A5000</td></tr>
+<tr><td>Mistral 22B</td><td>Q4_K_M</td><td>14 GB</td><td>16 GB</td><td>RTX 4080, RTX 3090</td></tr>
+<tr><td>Mistral Large 3 (70B)</td><td>Q4_K_M</td><td>40 GB</td><td>64 GB</td><td>A100 40GB, 2x RTX 4090</td></tr>
+<tr><td>Mistral Large 3 (123B)</td><td>Q3_K_S</td><td>80 GB</td><td>128 GB</td><td>H100, 2x A100 80GB</td></tr>
+</tbody>
+</table>
+<p>Für reines CPU-Inferencing sind die Anforderungen an den Arbeitsspeicher deutlich höher. Ein Mistral 7B in Q4-Quantisierung benötigt etwa 5 GB RAM, während ein 70B-Modell bereits 40 GB RAM beansprucht. Hier lohnt sich der Einsatz von llama.cpp mit AVX2- oder AVX512-Optimierung, um die Tokens-pro-Sekunde-Rate zu maximieren.</p>
+<p>Apple-Silicon-Nutzer profitieren von der Unified-Memory-Architektur, die es ermöglicht, große Modelle direkt auf dem M3 Max oder M4 Ultra mit bis zu 192 GB gemeinsamem Speicher zu betreiben. Die Performance ist dabei oft vergleichbar mit dedizierten GPU-Lösungen der Mittelklasse.</p>
+
+<h2>Software-Stack: Ollama, vLLM und llama.cpp im Vergleich</h2>
+<p>Für das lokale Hosting von Mistral-Modellen stehen drei populäre Softwarelösungen zur Verfügung. Ollama hat sich als benutzerfreundlichste Variante etabliert und ermöglicht es, Modelle mit einem einzigen Befehl herunterzuladen und zu starten. vLLM richtet sich an produktive Umgebungen mit hohem Durchsatz und llama.cpp ist die Referenzimplementierung für maximale Kompatibilität.</p>
+<p>Ollama bietet eine REST-API, die mit der OpenAI-API kompatibel ist. Dies ermöglicht eine nahtlose Integration in bestehende Anwendungen, ohne dass der Code angepasst werden muss. Die Installation erfolgt auf Linux, macOS und Windows mit jeweils einem einzigen Installationsbefehl.</p>
+<pre><code># Installation unter Ubuntu/Debian
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Modell herunterladen und starten
+ollama run mistral-large:123b-instruct-240k-q4_K_M
+
+# API testen
+curl http://localhost:11434/api/generate -d '{
+  "model": "mistral-large",
+  "prompt": "Erkläre mir Quantencomputing in einfachen Worten."
+}'</code></pre>
+<p>vLLM ist die bevorzugte Wahl für produktive Deployments, da es PagedAttention nutzt und dadurch den VRAM-Verbrauch optimiert. Die Serving-Performance ist bei Batch-Anfragen um ein Vielfaches höher als bei Ollama. Die Konfiguration erfolgt über Python-Skripte oder eine Kommandozeilen-Schnittstelle.</p>
+<p>llama.cpp bleibt die Referenz für alle, die maximale Kontrolle über die Inferenz wünschen. Es unterstützt eine Vielzahl von Hardware-Backends, darunter CUDA, ROCm, Metal, Vulkan und sogar reine CPU-Ausführung. Die Kompilierung aus dem Quellcode ermöglicht es, spezifische Optimierungen für die eigene Hardware zu aktivieren.</p>
+
+<h2>Installation und Konfiguration Schritt für Schritt</h2>
+<p>Die Installation von Mistral auf einem dedizierten Server beginnt mit der Vorbereitung des Betriebssystems. Ubuntu 24.04 LTS hat sich als stabilste Grundlage erwiesen, da es aktuelle Treiber für NVIDIA- und AMD-GPUs mitbringt. Nach der Installation der Grundkomponenten sollten die proprietären Treiber aktiviert werden.</p>
+<p>Für NVIDIA-GPUs ist die Installation des CUDA-Toolkits 12.6 oder höher erforderlich. ROCm 6.2 wird für AMD-GPUs der RX-7000-Serie und der Instinct-Karten empfohlen. Intel-Nutzer können auf IPEX-LLM zurückgreifen, das für die Xeon-Prozessoren mit integrierter GPU optimiert ist.</p>
+<pre><code># NVIDIA-Treiber und CUDA installieren
+sudo apt update
+sudo apt install -y nvidia-driver-560 nvidia-cuda-toolkit
+
+# Docker installieren
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+
+# NVIDIA Container Toolkit
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+sudo apt update
+sudo apt install -y nvidia-container-toolkit
+sudo systemctl restart docker</code></pre>
+<p>Nach der Treiberinstallation wird Ollama oder vLLM als Docker-Container ausgeführt. Dies vereinfacht das Update-Management und sorgt für eine reproduzierbare Umgebung. Die Konfiguration erfolgt über Umgebungsvariablen, die in einer docker-compose-Datei definiert werden.</p>
+<p>Ein typischer docker-compose-Stack für Ollama mit GPU-Unterstützung sieht wie folgt aus. Die Konfiguration ermöglicht es, das Modell automatisch zu laden und über die OpenAI-kompatible API anzusprechen. Ein Healthcheck sorgt für die automatische Wiederherstellung im Fehlerfall.</p>
+
+<h2>Performance-Tuning für maximale Tokens pro Sekunde</h2>
+<p>Die Performance eines lokal gehosteten Mistral-Modells hängt von zahlreichen Faktoren ab. Die Tokens-pro-Sekunde-Rate (TPS) variiert je nach Modellgröße, Quantisierung, Hardware und Software-Konfiguration. Für interaktive Anwendungen sind mindestens 20 TPS empfehlenswert, für Batch-Verarbeitung reichen oft 5-10 TPS aus.</p>
+<p>Bei NVIDIA-GPUs ist die Aktivierung von Flash-Attention ein Muss, da diese Technik die Speicherbandbreite optimiert und den Durchsatz deutlich erhöht. vLLM und llama.cpp unterstützen Flash-Attention 2 ab CUDA 12.2. Die Konfiguration erfolgt über die Kommandozeile oder eine YAML-Datei.</p>
+<p>Die Wahl der richtigen Quantisierung ist ein Kompromiss zwischen Qualität und Performance. Q4_K_M bietet das beste Verhältnis für die meisten Anwendungsfälle, während Q8_0 nur minimal schneller als FP16 ist, dafür aber nahezu verlustfreie Ergebnisse liefert. Q2_K sollte nur in Ausnahmefällen verwendet werden, da die Qualitätseinbußen erheblich sind.</p>
+<table>
+<thead>
+<tr><th>Quantisierung</th><th>Qualität</th><th>VRAM-Bedarf</th><th>TPS (RTX 4090, 70B)</th></tr>
+</thead>
+<tbody>
+<tr><td>FP16</td><td>100%</td><td>140 GB</td><td>n/a</td></tr>
+<tr><td>Q8_0</td><td>99%</td><td>75 GB</td><td>8 TPS</td></tr>
+<tr><td>Q6_K</td><td>98%</td><td>58 GB</td><td>12 TPS</td></tr>
+<tr><td>Q4_K_M</td><td>96%</td><td>42 GB</td><td>18 TPS</td></tr>
+<tr><td>Q3_K_S</td><td>93%</td><td>33 GB</td><td>24 TPS</td></tr>
+<tr><td>Q2_K</td><td>85%</td><td>27 GB</td><td>30 TPS</td></tr>
+</tbody>
+</table>
+<p>Für Multi-GPU-Systeme ist der Tensor-Parallelismus aktiviert, der die Inferenz auf mehrere GPUs verteilt. Bei zwei RTX 4090 kann so ein 123B-Modell mit etwa 12 TPS betrieben werden, was für die meisten Anwendungen ausreichend ist. Wichtig ist die Verwendung von NVLink oder zumindest PCIe 4.0 x16 für die GPU-zu-GPU-Kommunikation.</p>
+
+<h2>Sicherheit und Isolation im Self-Hosting-Betrieb</h2>
+<p>Beim lokalen Hosting von KI-Modellen müssen verschiedene Sicherheitsaspekte berücksichtigt werden. Zunächst ist der Netzwerkzugriff zu beschränken, sodass die API nur von autorisierten Clients erreicht werden kann. Eine Firewall-Konfiguration mit UFW oder nftables ist dabei der erste Schritt.</p>
+<p>Die Authentifizierung sollte zwingend über API-Keys oder ein Reverse-Proxy mit OAuth2-Integration erfolgen. Nginx in Kombination mit dem Modul nginx-auth-lua bietet eine flexible Lösung, die auch Ratenbegrenzung und IP-Filterung ermöglicht. Für produktive Setups empfiehlt sich der Einsatz von Traefik mit Let's Encrypt.</p>
+<pre><code># Nginx Konfiguration mit Authentifizierung
+server {
+    listen 443 ssl http2;
+    server_name llm.example.com;
+
+    ssl_certificate /etc/letsencrypt/live/llm.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/llm.example.com/privkey.pem;
+
+    location / {
+        auth_basic "KI API";
+        auth_basic_user_file /etc/nginx/.htpasswd;
+        proxy_pass http://127.0.0.1:11434;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_read_timeout 300s;
+    }
+}</code></pre>
+<p>Prometheus und Grafana ermöglichen ein umfassendes Monitoring der Inferenz-Performance, des VRAM-Verbrauchs und der API-Nutzung. vLLM exportiert von Haus aus Prometheus-Metriken, während für Ollama ein eigener Exporter erforderlich ist. Die Visualisierung der Auslastung hilft dabei, Engpässe frühzeitig zu erkennen.</p>
+<p>Backups der Konfiguration und der Modellgewichte sind unerlässlich. Die Modellgewichte selbst sind zwar öffentlich verfügbar, aber die Feintuning-Datenbanken und die Konfiguration des Inference-Servers sollten regelmäßig gesichert werden. Ein automatisiertes Backup mit BorgBackup oder Restic schützt vor Datenverlust.</p>
+
+<h2>Fine-Tuning und Customization eigener Mistral-Modelle</h2>
+<p>Das Fine-Tuning ermöglicht es, Mistral-Modelle an spezifische Anwendungsfälle anzupassen. Mit QLoRA und der HuggingFace TRL-Bibliothek ist es möglich, auch auf Consumer-Hardware ein 70B-Modell zu feintunen. Der VRAM-Bedarf reduziert sich durch 4-Bit-Quantisierung und Low-Rank-Adaptation auf etwa 24 GB.</p>
+<p>Für die Datenaufbereitung eignet sich das Format von ChatML, das auch Mistral nativ unterstützt. Die Trainingsdaten sollten als JSONL-Datei vorliegen, wobei jeder Eintrag aus einem System-Prompt, einer User-Nachricht und der erwarteten Assistant-Antwort besteht. Eine gute Datenqualität ist wichtiger als eine große Datenmenge.</p>
+<pre><code># QLoRA Fine-Tuning mit TRL
+from trl import SFTTrainer
+from peft import LoraConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+import torch
+
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.bfloat16,
+    bnb_4bit_use_double_quant=True
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    "mistralai/Mistral-Large-3-70B",
+    quantization_config=bnb_config,
+    device_map="auto"
+)
+
+lora_config = LoraConfig(
+    r=64,
+    lora_alpha=128,
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM"
+)
+
+trainer = SFTTrainer(
+    model=model,
+    train_dataset=dataset,
+    peft_config=lora_config,
+    args=training_args
+)
+trainer.train()</code></pre>
+<p>Nach dem Training werden die LoRA-Adapter in das Basismodel gemerged, sodass ein eigenständiges Modell entsteht. Dieses kann dann wieder in GGUF konvertiert und über Ollama oder vLLM ausgeliefert werden. Die Versionierung der Adapter ist dabei essenziell, um verschiedene Experimente reproduzieren zu können.</p>
+<p>Eine Alternative zum vollständigen Fine-Tuning ist das Prompt-Tuning oder das In-Context-Learning, bei dem Beispiele direkt im Prompt mitgegeben werden. Diese Methoden sind ressourcenschonender und eignen sich besonders für kleinere Anpassungen wie Tonalität, Formatierung oder domänenspezifisches Vokabular.</p>
+
+<h2>Kosten-Nutzen-Analyse: Self-Hosting vs. Cloud-APIs</h2>
+<p>Die Entscheidung zwischen Self-Hosting und Cloud-APIs hängt von mehreren Faktoren ab. Bei einem mittleren Nutzungsvolumen von 10 Millionen Tokens pro Monat liegen die Kosten für GPT-4-Klasse-Modelle bei etwa 300-600 Euro, während Mistral Large 3 über Mistral AI etwa 200-400 Euro kostet. Mit Self-Hosting amortisiert sich die Hardware typischerweise nach 6-12 Monaten.</p>
+<table>
+<thead>
+<tr><th>Szenario</th><th>Cloud-API (Monat)</th><th>Self-Hosting Setup</th><th>Amortisation</th></tr>
+</thead>
+<tbody>
+<tr><td>Klein (1M Tokens)</td><td>30 Euro</td><td>1.500 Euro Hardware</td><td>42 Monate</td></tr>
+<tr><td>Mittel (10M Tokens)</td><td>300 Euro</td><td>3.500 Euro Hardware</td><td>12 Monate</td></tr>
+<tr><td>Groß (100M Tokens)</td><td>3.000 Euro</td><td>8.000 Euro Hardware</td><td>3 Monate</td></tr>
+<tr><td>Enterprise (1B+ Tokens)</td><td>30.000+ Euro</td><td>25.000+ Euro Hardware</td><td>&lt; 1 Monat</td></tr>
+</tbody>
+</table>
+<p>Nicht-monetäre Faktoren spielen ebenfalls eine wichtige Rolle. Datenschutz und Compliance sind für viele Unternehmen der entscheidende Grund für Self-Hosting, da Cloud-APIs je nach Anbieter in Drittländern gehostet werden. Auch die Verfügbarkeit ist ein Aspekt: Ein eigener Server mit redundanter Stromversorgung kann ausfallsicherer sein als eine externe API.</p>
+<p>Die laufenden Betriebskosten umfassen Strom, Kühlung, Hardware-Wartung und gelegentliche Upgrades. Ein typischer Server mit 2x RTX 4090 verbraucht etwa 800-1000 Watt und kostet bei einem Strompreis von 30 Cent pro kWh etwa 220 Euro pro Monat. Hinzu kommen Internetkosten und ein Standort mit ausreichender Kühlung.</p>
+
+<h2>Hosting-Anbieter für dedizierte GPU-Server im Vergleich</h2>
+<p>Wer nicht selbst Hardware anschaffen möchte, kann auf dedizierte GPU-Server bei verschiedenen Anbietern zurückgreifen. Hetzner bietet in 2026 neue Server mit NVIDIA H100 und L40S an, die sich besonders für mittelgroße Mistral-Modelle eignen. Netcup hat ebenfalls GPU-Server im Portfolio, allerdings meist mit älteren Karten.</p>
+<p>OVHcloud und IONOS sind die größten europäischen Anbieter mit einer breiten Palette an GPU-Konfigurationen. Beide bieten Colocation in deutschen Rechenzentren an, was für DSGVO-konformes Hosting relevant ist. Die Preise liegen zwischen 200 und 800 Euro pro Monat für eine einzelne A100 oder L40S.</p>
+<table>
+<thead>
+<tr><th>Anbieter</th><th>GPU</th><th>VRAM</th><th>CPU</th><th>RAM</th><th>Preis/Monat</th><th>Standort</th></tr>
+</thead>
+<tbody>
+<tr><td>Hetzner</td><td>2x L40S</td><td>96 GB</td><td>AMD EPYC 9454</td><td>256 GB</td><td>599 Euro</td><td>Falkenstein, DE</td></tr>
+<tr><td>OVHcloud</td><td>A100 80GB</td><td>80 GB</td><td>AMD EPYC 7402</td><td>192 GB</td><td>749 Euro</td><td>Strasbourg, FR</td></tr>
+<tr><td>IONOS</td><td>L40</td><td>48 GB</td><td>Intel Xeon Gold</td><td>128 GB</td><td>449 Euro</td><td>Karlsruhe, DE</td></tr>
+<tr><td>Netcup</td><td>RTX A6000</td><td>48 GB</td><td>AMD EPYC 7402</td><td>128 GB</td><td>399 Euro</td><td>Nürnberg, DE</td></tr>
+<tr><td>Contabo</td><td>RTX 4090</td><td>24 GB</td><td>Intel Xeon W</td><td>96 GB</td><td>249 Euro</td><td>Düsseldorf, DE</td></tr>
+</tbody>
+</table>
+<p>Bei der Wahl des Anbieters sollten nicht nur die reinen Hardwarekosten, sondern auch die Netzwerkbandbreite, die Latenz zu den Endnutzern und die Vertragslaufzeiten berücksichtigt werden. Viele Anbieter verlangen eine Mindestlaufzeit von 12 oder 24 Monaten, was bei selbst gekaufter Hardware entfällt.</p>
+
+<h2>Rechtliche Aspekte und Lizenzierung</h2>
+<p>Die Lizenzierung der Mistral-Modelle erfolgt unter der Apache 2.0 Lizenz für die älteren Modelle und der Mistral Research License (MRL) für die neueren Modelle wie Mistral Large 3. Die MRL erlaubt die kommerzielle Nutzung, schränkt jedoch einige Anwendungsfälle ein, die gegen europäische Gesetze verstoßen.</p>
+<p>Bei der Nutzung als API-Dienst müssen die Acceptable Use Policies (AUP) des Herstellers beachtet werden. Diese untersagen unter anderem die Generierung von illegalen Inhalten, die Verletzung von Urheberrechten und die Erstellung von Malware. Ein regelmäßiges Audit der eigenen Logs hilft dabei, Verstöße frühzeitig zu erkennen.</p>
+<p>Für den Betrieb in der EU ist die DSGVO-Konformität sicherzustellen. Dazu gehören eine Datenschutz-Folgenabschätzung, die Implementierung von Auskunfts- und Löschrechten sowie die Dokumentation der Verarbeitungsprozesse. Bei Self-Hosting sind diese Anforderungen einfacher umzusetzen als bei Cloud-APIs, da die Datenhoheit vollständig beim Betreiber liegt.</p>
+<p>Das Urheberrecht an den Ausgaben des Modells ist noch nicht abschließend geklärt. In einem Grundsatzurteil des EuGH aus 2025 wurde entschieden, dass rein maschinell erstellte Werke ohne menschliche Schöpfungshöhe nicht urheberrechtlich geschützt sind. Für kommerzielle Anwendungen sollte dennoch eine menschliche Nachbearbeitung erfolgen.</p>
+
+<h2>Zukunftsausblick: Wohin entwickelt sich lokales LLM-Hosting?</h2>
+<p>Die Entwicklung im Bereich der lokalen LLMs schreitet rasant voran. Für 2026 sind mehrere Trends absehbar: Die Modellgrößen werden trotz steigender Leistung nicht mehr exponentiell wachsen, da neue Architekturen wie Mixture of Experts (MoE) eine effizientere Nutzung der Parameter ermöglichen. Mistral setzt bereits erfolgreich auf MoE mit den Mixtral-Modellen.</p>
+<p>Die Hardware-Entwicklung konzentriert sich auf höhere Speicherbandbreite und effizientere Architekturen. NVIDIA Blackwell, AMD MI400 und Intel Gaudi 4 versprechen deutliche Leistungssteigerungen bei gleichzeitig reduziertem Energieverbrauch. Auch die Integration von NPU-Beschleunigern in Consumer-CPUs wird die Inferenz auf Edge-Devices ermöglichen.</p>
+<p>Die Tooling-Landschaft reift zunehmend heran. Projekte wie LM Studio, Jan und GPT4All machen den Einstieg auch für Laien möglich. Auf der anderen Seite entwickeln sich spezialisierte Plattformen wie Hugging Face TGI (Text Generation Inference) und BentoML für produktive Deployments. Die Wahl der richtigen Plattform wird immer mehr zur Architekturfrage.</p>
+<p>Die Demokratisierung der KI durch Open-Source-Modelle ist ein wesentlicher gesellschaftlicher Trend. Lokales Hosting ermöglicht es, die Vorteile moderner KI zu nutzen, ohne die Kontrolle über die eigenen Daten abzugeben. In den nächsten Jahren ist mit einer weiteren Verbreitung in Bildung, Forschung und Wirtschaft zu rechnen, was die Nachfrage nach Self-Hosting-Lösungen weiter ankurbeln wird.</p>
+</article>
   <a href="/artikel/cloud-gpu-kosten-vergleich-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/cloud-gpu-kosten-vergleich-2026.webp" alt="Cloud GPU Kosten 2026 – Alle Anbieter im Preisvergleich (A100, H100, RTX 4090)" loading="lazy" width="400" height="200"></div>
   </a>

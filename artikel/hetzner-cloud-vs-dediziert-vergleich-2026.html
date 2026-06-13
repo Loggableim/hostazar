@@ -759,6 +759,234 @@
     </div>
 
 <h1>Hetzner Cloud vs. Dedizierter Server – Vergleich 2026</h1>
+<h2>Inhaltsverzeichnis</h2>
+<ul>
+<li><a href="#einfuehrung">Einführung: Zwei Welten bei Hetzner</a></li>
+<li><a href="#was-ist-cloud">Was ist die Hetzner Cloud?</a></li>
+<li><a href="#was-ist-dedicated">Was ist ein Hetzner Dedizierter Server?</a></li>
+<li><a href="#hauptunterschiede">Hauptunterschiede im Überblick</a></li>
+<li><a href="#preisvergleich">Preisvergleich 2026</a></li>
+<li><a href="#performance">Performance-Vergleich: CPU, RAM und Storage</a></li>
+<li><a href="#skalierbarkeit">Skalierbarkeit und Flexibilität</a></li>
+<li><a href="#sicherheit">Sicherheit und Zuverlässigkeit</a></li>
+<li><a href="#verwaltung">Verwaltung und Bedienkomfort</a></li>
+<li><a href="#anwendungsfaelle">Anwendungsfälle in der Praxis</a></li>
+<li><a href="#api">API und Automatisierung mit Codebeispielen</a></li>
+<li><a href="#migration">Migration zwischen Cloud und Dedicated</a></li>
+<li><a href="#fazit">Fazit: Welche Lösung passt zu Ihnen?</a></li>
+</ul>
+</nav>
+
+<section id="einfuehrung">
+<h2>Einführung: Zwei Welten bei Hetzner</h2>
+<p>Hetzner Online bietet seit Jahrzehnten Hosting-Lösungen an und hat sich besonders im deutschsprachigen Raum einen exzellenten Ruf erarbeitet. Mit der Einführung der Hetzner Cloud im Jahr 2017 hat das Unternehmen den Spagat zwischen klassischem Hosting und moderner Cloud-Infrastruktur geschafft.</p>
+<p>Während dedizierte Server seit jeher das Rückgrat des Angebots bilden, richtet sich die Cloud an Entwickler, Start-ups und Unternehmen, die flexible Ressourcen benötigen. Beide Welten teilen sich die hochwertige Infrastruktur der Hetzner-Rechenzentren in Frankfurt, Falkenstein, Helsinki und Singapur.</p>
+<p>Die Wahl zwischen Cloud und Dedicated ist keine Frage von „besser" oder „schlechter", sondern eine Frage der individuellen Anforderungen. In diesem Artikel vergleichen wir beide Optionen systematisch und geben Ihnen das Rüstzeug für eine fundierte Entscheidung im Jahr 2026.</p>
+</section>
+
+<section id="was-ist-cloud">
+<h2>Was ist die Hetzner Cloud?</h2>
+<p>Die Hetzner Cloud ist eine Infrastructure-as-a-Service-Plattform (IaaS), die auf moderner Virtualisierung basiert. Kunden mieten virtuelle Maschinen (Cloud-Server), die innerhalb weniger Sekunden bereitgestellt werden können. Die Abrechnung erfolgt minutengenau – ein großer Vorteil gegenüber dedizierten Servern mit monatlicher Fixpreis-Struktur.</p>
+<p>Das Angebot umfasst verschiedene Produkte: Cloud-Server, Cloud-Volumes (Netzwerkspeicher), Load Balancer, Floating IPs, Snapshots und ein privates Netzwerk zwischen den Instanzen. Steuerung und Konfiguration erfolgen bequem über die Cloud-Konsole im Browser, die offizielle API oder die Kommandozeile mit dem <code>hcloud</code>-Tool.</p>
+<p>Besonders attraktiv ist die transparente Preisgestaltung: Schon der kleinste Cloud-Server (CX22) ist ab etwa 4,35 € pro Monat erhältlich, während größere Instanzen mit bis zu 64 vCPUs und 256 GB RAM verfügbar sind. Damit eignet sich die Hetzner Cloud sowohl für kleine Projekte als auch für produktive Unternehmensanwendungen.</p>
+<p>Die Architektur basiert auf KVM-Virtualisierung und garantiert isolierte Ressourcen. Anders als bei vielen Mitbewerbern teilen sich Cloud-Server bei Hetzner den physischen Host nicht mit hunderten anderer Instanzen – die Performance bleibt dadurch konstant hoch.</p>
+</section>
+
+<section id="was-ist-dedicated">
+<h2>Was ist ein Hetzner Dedizierter Server?</h2>
+<p>Ein dedizierter Server (auch Bare-Metal-Server genannt) ist eine physische Maschine, die exklusiv einem einzigen Kunden zur Verfügung steht. Bei Hetzner bedeutet das: Die gesamte CPU, der gesamte RAM, die gesamte Storage-Kapazität und die Netzwerkbandbreite gehören allein Ihnen – ohne Virtualisierungsschicht zwischen Hardware und Betriebssystem.</p>
+<p>Das Portfolio reicht vom Einstiegsmodell <strong>AX41</strong> mit AMD Ryzen 5 3600 bis hin zu Hochleistungsservern wie dem <strong>AX162</strong> mit zwei AMD EPYC 9454P Prozessoren und 512 GB RAM. Für besonders speicherintensive Workloads gibt es die <strong>SX</strong>-Serie mit NVMe-SSDs oder HDD-Konfigurationen, während die <strong>EX</strong>-Serie Intel-basierte Premium-Hardware bietet.</p>
+<p>Die Bereitstellung dauert in der Regel zwischen wenigen Minuten und mehreren Stunden, je nach Modell und Verfügbarkeit. Nach der Bereitstellung haben Sie vollen Root-Zugriff auf das System und können jedes beliebige Betriebssystem installieren – von Ubuntu, Debian und CentOS bis hin zu FreeBSD, Windows Server oder eigenen Custom-ISOs.</p>
+<p>Die Abrechnung erfolgt monatlich per Festpreis, in vielen Fällen auch jährlich mit Rabatt. Im Vergleich zur Cloud entstehen keine Kosten für nicht genutzte Ressourcen – Sie zahlen genau die Hardware, die Ihnen dauerhaft zur Verfügung steht.</p>
+</section>
+
+<section id="hauptunterschiede">
+<h2>Hauptunterschiede im Überblick</h2>
+<p>Bevor wir ins Detail gehen, zeigt die folgende Tabelle die wichtigsten Unterschiede zwischen Hetzner Cloud und Dedizierten Servern auf einen Blick. Diese Übersicht hilft Ihnen, die grundlegenden Philosophien beider Ansätze zu verstehen.</p>
+<table border="1" cellpadding="8" cellspacing="0">
+<thead>
+<tr>
+<th>Merkmal</th>
+<th>Hetzner Cloud</th>
+<th>Hetzner Dedizierter Server</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bereitstellung</td>
+<td>Sekunden</td>
+<td>Minuten bis Stunden</td>
+</tr>
+<tr>
+<td>Abrechnung</td>
+<td>Stundengenau</td>
+<td>Monatlich (Festpreis)</td>
+</tr>
+<tr>
+<td>Skalierbarkeit</td>
+<td>Sofort vertikal/horizontal</td>
+<td>Neukonfiguration nötig</td>
+</tr>
+<tr>
+<td>Ressourcen</td>
+<td>Shared physisch, isoliert virtuell</td>
+<td>Exklusiv physisch</td>
+</tr>
+<tr>
+<td>API-Zugriff</td>
+<td>Vollständig (hcloud)</td>
+<td>Eingeschränkt (Rescue, Reset)</td>
+</tr>
+<tr>
+<td>Snapshots</td>
+<td>Inklusive</td>
+<td>Nicht direkt verfügbar</td>
+</tr>
+<tr>
+<td>Load Balancer</td>
+<td>Ja, eigenes Produkt</td>
+<td>Manuell einzurichten</td>
+</tr>
+<tr>
+<td>IPv4-Adressen</td>
+<td>1 pro Server, Floating IP optional</td>
+<td>1 inklusive, zusätzliche kostenpflichtig</td>
+</tr>
+<tr>
+<td>Verfügbare Standorte</td>
+<td>FSN, NBG, HEL, SIN, ASH, HIL</td>
+<td>FSN, NBG, HEL, SIN</td>
+</tr>
+<tr>
+<td>Support</td>
+<td>24/7 per Ticket</td>
+<td>24/7 per Ticket und Telefon</td>
+</tr>
+</tbody>
+</table>
+<p>Die Tabelle macht deutlich: Die Cloud ist auf Agilität und Automatisierung ausgelegt, während dedizierte Server maximale Kontrolle und vorhersehbare Performance bieten. Welche Eigenschaft wichtiger ist, hängt vollständig vom Einsatzzweck ab.</p>
+<p>Ein wichtiger Punkt ist die Frage der <strong>Skalierbarkeit</strong>. Während Sie in der Cloud einen Server per Mausklick von 4 auf 32 GB RAM hochstufen können, erfordert ein Upgrade beim dedizierten Server in der Regel eine Migration auf ein größeres Modell. Bei kurzfristigen Lastspitzen ist die Cloud klar im Vorteil.</p>
+</section>
+
+<section id="preisvergleich">
+<h2>Preisvergleich 2026</h2>
+<p>Die Preisgestaltung ist bei Hetzner traditionell einer der größten Pluspunkte. Beide Produktlinien bieten ein ausgezeichnetes Preis-Leistungs-Verhältnis im Vergleich zu internationalen Hyperscalern wie AWS, Google Cloud oder Microsoft Azure. Dennoch gibt es deutliche Unterschiede in der Preisstruktur.</p>
+<table border="1" cellpadding="8" cellspacing="0">
+<thead>
+<tr>
+<th>Modell</th>
+<th>vCPUs / Cores</th>
+<th>RAM</th>
+<th>Storage</th>
+<th>Preis/Monat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cloud CX22</td>
+<td>2 vCPUs (Intel/AMD shared)</td>
+<td>4 GB</td>
+<td>40 GB SSD</td>
+<td>ca. 4,35 €</td>
+</tr>
+<tr>
+<td>Cloud CX32</td>
+<td>4 vCPUs</td>
+<td>8 GB</td>
+<td>80 GB SSD</td>
+<td>ca. 8,90 €</td>
+</tr>
+<tr>
+<td>Cloud CX52</td>
+<td>8 vCPUs</td>
+<td>16 GB</td>
+<td>160 GB SSD</td>
+<td>ca. 17,85 €</td>
+</tr>
+<tr>
+<td>Cloud CCX63</td>
+<td>48 vCPUs (dedicated)</td>
+<td>192 GB</td>
+<td>240 GB SSD</td>
+<td>ca. 219,00 €</td>
+</tr>
+<tr>
+<td>Dedicated AX41</td>
+<td>6 Cores (Ryzen 5 3600)</td>
+<td>64 GB</td>
+<td>2 × 512 GB NVMe</td>
+<td>ca. 51,00 €</td>
+</tr>
+<tr>
+<td>Dedicated AX41-NVMe</td>
+<td>8 Cores (Ryzen 7 PRO 3700)</td>
+<td>64 GB</td>
+<td>2 × 512 GB NVMe</td>
+<td>ca. 66,00 €</td>
+</tr>
+<tr>
+<td>Dedicated AX162</td>
+<td>96 Cores (2× EPYC 9454P)</td>
+<td>512 GB</td>
+<td>2 × 1,92 TB NVMe</td>
+<td>ca. 379,00 €</td>
+</tr>
+<tr>
+<td>Dedicated SX64</td>
+<td>8 Cores (Ryzen 7)</td>
+<td>64 GB</td>
+<td>4 × 16 TB HDD</td>
+<td>ca. 75,00 €</td>
+</tr>
+</tbody>
+</table>
+<p>Was sofort auffällt: Für Workloads, die dauerhaft viel Rechenleistung benötigen, sind dedizierte Server preislich oft unschlagbar. Ein AX41 mit 64 GB RAM und dedizierten 6 Cores kostet mit etwa 51 € pro Monat weniger als eine Cloud-Instanz mit vergleichbarer RAM-Ausstattung – dafür allerdings ohne die Flexibilität der Cloud.</p>
+<p>In der Cloud profitieren Sie von der stundengenauen Abrechnung: Ein Server, der nur für ein dreistündiges Batch-Processing benötigt wird, kostet im Cloud-Tarif nur Bruchteile eines Monatspreises. Diese Flexibilität macht die Cloud besonders für variable Workloads, Entwicklungsumgebungen und kurzfristige Projekte attraktiv.</p>
+<p>Für dauerhaft produktive Systeme mit konstant hoher Last lohnt sich hingegen fast immer der dedizierte Server. Die fixen monatlichen Kosten ermöglichen zudem eine bessere Budgetplanung, da keine Überraschungen durch plötzlich gestiegenen Ressourcenverbrauch drohen.</p>
+</section>
+
+<section id="performance">
+<h2>Performance-Vergleich: CPU, RAM und Storage</h2>
+<p>In puncto Roh-Performance haben dedizierte Server naturgemäß die Nase vorn. Ohne Virtualisierungsschicht und mit exklusivem Zugriff auf die Hardware erreichen sie konsistent hohe Werte in Benchmarks. Allerdings hat Hetzner die Cloud in den letzten Jahren deutlich optimiert.</p>
+<p>Die Cloud-Server der <strong>CX-Serie</strong> nutzen Shared-CPU-Kerne, die je nach Auslastung des Hosts mehr oder weniger stark konkurrieren. In der Praxis bedeutet das: Bei rechenintensiven Single-Threaded-Aufgaben kann es zu leichten Performance-Schwankungen kommen. Für die meisten Web-Workloads, Datenbanken und Container-Setups ist die Performance aber absolut ausreichend.</p>
+<p>Die <strong>CCX-Serie</strong> der Hetzner Cloud bietet dedizierte CPU-Kerne an – ein Hybrid zwischen Cloud und Dedicated. Hier erhalten Sie die Vorteile der Cloud (API, Skalierbarkeit, minutengenaue Abrechnung) kombiniert mit der garantierten Performance dedizierter Hardware. Modelle wie der CCX63 mit 48 dedizierten vCPUs richten sich an anspruchsvolle Workloads.</p>
+<table border="1" cellpadding="8" cellspacing="0">
+<thead>
+<tr>
+<th>Benchmark</th>
+<th>Cloud CX52 (8 vCPU shared)</th>
+<th>CCX33 (16 vCPU ded.)</th>
+<th>AX41 (6 Cores Ryzen)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Geekbench 6 Single-Core</td>
+<td>~1400</td>
+<td>~1700</td>
+<td>~1900</td>
+</tr>
+<tr>
+<td>Geekbench 6 Multi-Core</td>
+<td>~5500</td>
+<td>~12000</td>
+<td>~7500</td>
+</tr>
+<tr>
+<td>NVMe Read (4K random)</td>
+<td>~80.000 IOPS</td>
+<td>~90.000 IOPS</td>
+<td>~200.000 IOPS</td>
+</tr>
+<tr>
+<td>Netzwerk-Bandbreite</td>
+<td>bis 20 GBit/s</td>
+<td>bis 20 GBit/s</td>
+<td>bis 1 GBit/s</td>
+</tr>
+</tbody>
+</table>
+<p>Die Storage-Performance ist ein
   <a href="/artikel/hugo-astro-static-site-vergleich-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/hugo-astro-static-site-vergleich-2026.webp" alt="Hugo vs. Astro – Static Site Generator Hosting Vergleich 2026" loading="lazy" width="400" height="200"></div>
   </a>

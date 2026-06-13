@@ -759,6 +759,86 @@
     </div>
 
 <h1>Free LLMs 2026 – Der ultimative Benchmark: 20 Modelle, 5 Kategorien, 100 Tests</h1>
+<h2>Free LLM Benchmarks 2026: Die besten kostenlosen Test-Suiten für KI-Modelle</h2>
+<p>Die Auswahl an Large Language Models wächst 2026 explosionsartig. Mit OpenAI, Anthropic, Mistral, DeepSeek, Meta und unzähligen Open-Source-Projekten verliert man schnell den Überblick. Wer das beste Modell für seine Anwendung finden will, kommt an <strong>LLM Benchmarks</strong> nicht vorbei.</p>
+<p>Glücklicherweise gibt es eine Vielzahl an kostenlosen Benchmark-Suiten, die Modelle objektiv vergleichen. In diesem Artikel stellen wir die wichtigsten Open-Source- und Free-Tier-Benchmarks vor und zeigen, wie du sie lokal oder in der Cloud ausführen kannst.</p>
+<p>Egal ob du Chatbots, Codings-Assistenten, RAG-Pipelines oder Agenten evaluierst – die richtige Benchmark entscheidet, ob dein Produkt wirklich funktioniert.</p>
+
+<h2>Was ist ein LLM-Benchmark?</h2>
+<p>Ein LLM-Benchmark ist eine standardisierte Aufgabensammlung, mit der die Leistung von Sprachmodellen gemessen wird. Typische Aufgaben sind Multiple-Choice-Fragen, Codierungsprobleme, mathematische Rätsel, Übersetzungen oder mehrstufige Reasoning-Aufgaben.</p>
+<p>Ziel ist es, Modelle vergleichbar zu machen. Ein hoher Score in <em>MMLU</em> bedeutet zum Beispiel, dass ein Modell in vielen Wissensdomänen stark ist. Ein hoher <em>HumanEval</em>-Score deutet auf gute Code-Generierung hin.</p>
+<p>Für 2026 reicht ein einzelner Benchmark nicht mehr aus. Empfohlen wird eine Kombination aus Reasoning-, Code-, Instruction-Following- und Multilingual-Benchmarks.</p>
+
+<h2>Die wichtigsten Free LLM Benchmarks 2026</h2>
+<table>
+<thead>
+<tr><th>Benchmark</th><th>Schwerpunkt</th><th>Modi</th><th>Lizenz</th></tr>
+</thead>
+<tbody>
+<tr><td>MMLU-Pro</td><td>Wissen, Reasoning</td><td>Multiple-Choice</td><td>Apache 2.0</td></tr>
+<tr><td>HumanEval+</td><td>Code-Generierung</td><td>Python-Funktionen</td><td>MIT</td></tr>
+<tr><td>GSM8K</td><td>Mathematik (Grundschule)</td><td>Text</td><td>MIT</td></tr>
+<tr><td>BBH (Big Bench Hard)</td><td>Reasoning</td><td>Multiple-Choice</td><td>MIT</td></tr>
+<tr><td>AlpacaEval</td><td>Instruction-Following</td><td>Pairwise</td><td>Apache 2.0</td></tr>
+<tr><td>IFEval</td><td>Format-Treue</td><td>Regex-Check</td><td>Apache 2.0</td></tr>
+<tr><td>MT-Bench</td><td>Multi-Turn Chat</td><td>GPT-4 Judge</td><td>Apache 2.0</td></tr>
+</tbody>
+</table>
+<p>Alle genannten Benchmarks sind kostenlos nutzbar. Einige wie <em>MT-Bench</em> benötigen ein GPT-4-Modell als Richter, was Kosten verursachen kann. Alternativen wie <em>Prometheus</em> sind komplett lokal ausführbar.</p>
+
+<h2>MMLU-Pro: Das Universalgenie unter den Benchmarks</h2>
+<p>MMLU-Pro ist die Weiterentwicklung des Klassikers MMLU und umfasst über 12.000 Fragen aus 14 Wissensbereichen. Im Vergleich zum Original sind die Fragen schwieriger, mit zehn statt vier Antwortmöglichkeiten.</p>
+<p>Top-Modelle erreichen 2026 über 85 % auf MMLU-Pro. Der Benchmark eignet sich besonders, um die <em>allgemeine Intelligenz</em> eines Modells zu testen. Wer ein Modell für breite Anwendungen sucht, sollte hier einen hohen Score anstreben.</p>
+<p>Du kannst MMLU-Pro lokal mit <code>lm-eval-harness</code> ausführen:</p>
+<pre><code>pip install lm-eval
+lm_eval --model hf --model_args pretrained=mistralai/Mistral-7B-v0.3 --tasks mmlu_pro --batch_size 8
+</code></pre>
+
+<h2>HumanEval+ für Code-Generierung</h2>
+<p>HumanEval ist der bekannteste Benchmark für Code, doch inzwischen als gelöst zu betrachten. HumanEval+ erweitert die Aufgaben um zusätzliche Testfälle, sodass Modelle wie GPT-4o nicht mehr in 100 % der Fälle bestehen.</p>
+<p>Für Entwickler ist HumanEval+ ein Muss, wenn sie ein Modell für Code-Completion oder Code-Generierung bewerten wollen. Spezialisierte Modelle wie <em>DeepSeek-Coder</em> oder <em>CodeLlama</em> schlagen Generalisten wie GPT-4 in vielen Teilbereichen.</p>
+
+<h2>GSM8K: Mathe-Benchmark für Grundschulaufgaben</h2>
+<p>GSM8K enthält 8.500 Matheaufgaben im Stil amerikanischer Grundschulen. Trotz der einfachen Aufgabenstellung benötigten die ersten LLMs viel Training, um konstant über 80 % zu kommen.</p>
+<p>Heute erreichen Top-Modelle 95 % und mehr. Für mathematische Reasoning-Aufgaben ist GSM8K ein nützlicher Schnelltest, der innerhalb weniger Minuten Ergebnisse liefert.</p>
+<p>Der Datensatz ist offen auf GitHub verfügbar und kann in eigene Evaluationen integriert werden.</p>
+
+<h2>Big Bench Hard: Reasoning unter Druck</h2>
+<p>Big Bench Hard filtert die schwierigsten Aufgaben aus dem riesigen BIG-Bench-Projekt. 23 Aufgaben mit zusammen 6.500 Beispielen testen logisches Denken, Planung und kausales Schließen.</p>
+<p>Modelle mit starkem Chain-of-Thought-Prompting schneiden hier deutlich besser ab. Wer Modelle für Agenten oder mehrstufige Aufgaben sucht, sollte BBH in seine Evaluation einbeziehen.</p>
+
+<h2>AlpacaEval und MT-Bench für Chat-Qualität</h2>
+<p>Während klassische Benchmarks objektiv messbare Antworten erwarten, bewerten <em>AlpacaEval</em> und <em>MT-Bench</em> die subjektive Qualität von Chat-Antworten. AlpacaEval nutzt einen GPT-4-Richter, MT-Bench verwendet multiple GPT-4-Bewertungen pro Antwort.</p>
+<p>Beide Benchmarks sind <strong>kostenpflichtig</strong> in der Nutzung, da der Richter GPT-4 API-Kosten verursacht. Alternativen wie <em>Prometheus 2</em> oder <em>Auto-J</em> bieten lokal laufende Richter, die AlpacaEval ebenbürtig sind.</p>
+
+<h2>Open-Source-Tools für die Benchmark-Suite</h2>
+<p>Mehrere Tools helfen dabei, Benchmarks komfortabel auszuführen:</p>
+<ul>
+<li><strong>lm-evaluation-harness</strong> – das Schweizer Taschenmesser, unterstützt über 200 Benchmarks</li>
+<li><strong>OpenCompass</strong> – aufstrebende Suite aus China mit Fokus auf asiatische Modelle</li>
+<li><strong>HELM</strong> – Stanford-Projekt mit Fokus auf Transparenz und Multi-Metric</li>
+<li><strong>OpenLLM Leaderboard</strong> – öffentliches Ranking, betrieben von Hugging Face</li>
+</ul>
+<p>Alle Tools sind quelloffen, kostenlos und laufen sowohl auf CPU als auch auf GPU. Für reproduzierbare Ergebnisse empfehlen wir <code>lm-evaluation-harness</code> mit deterministischen Generation-Parametern.</p>
+
+<h2>Beispiel-Evaluation mit Python</h2>
+<pre><code>from lm_eval import simple_evaluate
+import torch
+
+result = simple_evaluate(
+    model="hf",
+    model_args="pretrained=meta-llama/Meta-Llama-3-8B",
+    tasks=["mmlu_pro", "gsm8k", "humaneval"],
+    batch_size=4,
+    device="cuda"
+)
+
+print(result["results"])
+</code></pre>
+<p>Dieses Skript lädt das Modell direkt von Hugging Face, führt drei Benchmarks aus und gibt die Ergebnisse als Python-Dict zurück. Für 8B-Modelle benötigst du mindestens 16 GB VRAM; größere Modelle wie Llama-3-70B laufen quantisiert auf 2×24 GB.</p>
+
+<h2>Bewertung der Ergebnisse</h2>
+<p>Ein hoher Benchmark-Score bedeutet nicht automatisch, dass ein Modell für deinen Anwendungsfall das beste ist. Benchmarks messen <em>generelle</em> Fähigkeiten, nicht domänenspezifische Stärken. Ein 70B-Modell mit 85 % MMLU-Pro kann trotzdem
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

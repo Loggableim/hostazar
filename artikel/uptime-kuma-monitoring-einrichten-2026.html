@@ -759,6 +759,262 @@
     </div>
 
 <h1>Uptime Kuma einrichten – Status Pages &amp; Server-Monitoring 2026</h1>
+<h2>Inhaltsverzeichnis</h2>
+<ul>
+<li><a href="#was-ist-uptime-kuma">Was ist Uptime Kuma?</a></li>
+<li><a href="#systemanforderungen">Systemanforderungen &amp; Voraussetzungen</a></li>
+<li><a href="#installation-docker">Installation mit Docker</a></li>
+<li><a href="#installation-manuell">Manuelle Installation ohne Docker</a></li>
+<li><a href="#erste-schritte">Erste Schritte &amp; Konfiguration</a></li>
+<li><a href="#monitore-hinzufuegen">Monitore hinzufügen</a></li>
+<li><a href="#status-pages">Status Pages einrichten</a></li>
+<li><a href="#benachrichtigungen">Benachrichtigungen &amp; Alerts</a></li>
+<li><a href="#reverse-proxy">Reverse Proxy &amp; SSL</a></li>
+<li><a href="#backup-wartung">Backup &amp; Wartung</a></li>
+<li><a href="#best-practices">Best Practices 2026</a></li>
+<li><a href="#troubleshooting">Troubleshooting &amp; FAQ</a></li>
+</ul>
+</nav>
+
+<h2 id="was-ist-uptime-kuma">Was ist Uptime Kuma?</h2>
+
+<p>Uptime Kuma ist eine <strong>self-hosted Monitoring-Lösung</strong>, die unter der MIT-Lizenz als Open-Source-Projekt veröffentlicht wird. Das Tool wurde ursprünglich von Louis (louislam) entwickelt und hat sich seit der ersten Veröffentlichung im Jahr 2021 zu einer der populärsten Alternativen zu kommerziellen Diensten wie UptimeRobot, Pingdom oder StatusPage.io entwickelt. Im Jahr 2026 zählt das Repository auf GitHub über 60.000 Stars und wird kontinuierlich von einer aktiven Community weiterentwickelt.</p>
+
+<p>Die Kernfunktion von Uptime Kuma besteht darin, die Verfügbarkeit von Diensten, Servern und Webseiten in Echtzeit zu überwachen. Dabei werden in regelmäßigen Intervallen Prüfungen durchgeführt und bei Ausfällen oder Performance-Problemen sofortige Benachrichtigungen versendet. Neben dem reinen Uptime-Monitoring bietet die Software auch die Möglichkeit, öffentliche <strong>Status Pages</strong> zu erstellen, die Ihren Kunden die aktuelle Verfügbarkeit Ihrer Dienste anzeigen.</p>
+
+<p>Im Gegensatz zu vielen kommerziellen Monitoring-Diensten behalten Sie bei Uptime Kuma die vollständige Kontrolle über Ihre Daten. Es gibt keine Beschränkungen hinsichtlich der Anzahl der Monitore, der Monitoring-Intervalle oder der Benachrichtigungen. Zudem entfallen laufende Kosten, da die Software kostenlos auf Ihrem eigenen Server betrieben wird. Die Architektur basiert auf Node.js, SQLite (oder MariaDB/MySQL) und nutzt einen modernen, responsiven Web-Frontend, das auf allen Endgeräten optimal dargestellt wird.</p>
+
+<p>Ein weiterer entscheidender Vorteil ist die <strong>Multi-User-Fähigkeit</strong>. Administratoren können verschiedene Benutzer mit unterschiedlichen Berechtigungsstufen anlegen, sodass Teams gemeinsam an der Überwachung komplexer Infrastrukturen arbeiten können. Die Zwei-Faktor-Authentifizierung (2FA) sorgt dabei für maximale Sicherheit.</p>
+
+<h2 id="systemanforderungen">Systemanforderungen &amp; Voraussetzungen</h2>
+
+<p>Bevor Sie mit der Installation beginnen, sollten Sie sicherstellen, dass Ihr Server die grundlegenden Anforderungen erfüllt. Uptime Kuma ist ressourcenschonend und kann auch auf kleinen VPS-Instanzen zuverlässig betrieben werden. Dennoch sollten Sie die folgenden Mindestanforderungen beachten:</p>
+
+<table>
+<thead>
+<tr>
+<th>Ressource</th>
+<th>Minimal</th>
+<th>Empfohlen (10–50 Monitore)</th>
+<th>Empfohlen (50+ Monitore)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPU</td>
+<td>1 vCore</td>
+<td>2 vCores</td>
+<td>4+ vCores</td>
+</tr>
+<tr>
+<td>RAM</td>
+<td>512 MB</td>
+<td>1 GB</td>
+<td>2 GB+</td>
+</tr>
+<tr>
+<td>Speicher</td>
+<td>2 GB SSD</td>
+<td>10 GB SSD</td>
+<td>20 GB+ SSD</td>
+</tr>
+<tr>
+<td>Betriebssystem</td>
+<td>Linux, Windows, macOS</td>
+<td>Ubuntu 22.04/24.04 LTS, Debian 12</td>
+<td>Ubuntu 24.04 LTS</td>
+</tr>
+<tr>
+<td>Node.js</td>
+<td>18.x</td>
+<td>20.x LTS</td>
+<td>22.x LTS</td>
+</tr>
+<tr>
+<td>Docker</td>
+<td>20.10+</td>
+<td>24.x</td>
+<td>26.x</td>
+</tr>
+</tbody>
+</table>
+
+<p>Neben der reinen Server-Hardware benötigen Sie für den produktiven Betrieb einen <strong>Reverse Proxy</strong> (z. B. Nginx, Apache oder Caddy), um SSL-Verschlüsselung über Let's Encrypt zu ermöglichen. Außerdem sollten Sie eine statische IP-Adresse oder einen DynDNS-Dienst einrichten, damit Ihre Status Page unter einer festen URL erreichbar ist. Für die Benachrichtigungen empfiehlt sich die vorherige Einrichtung von Zugangsdaten zu einem SMTP-Server, einem Telegram-Bot oder einem Discord-Webhook.</p>
+
+<p>Die Standard-Datenbank ist <strong>SQLite</strong>, was für die meisten Setups völlig ausreichend ist. Bei sehr großen Setups mit mehreren tausend Monitoren oder wenn Sie Hochverfügbarkeit benötigen, können Sie alternativ auf MariaDB oder MySQL umsteigen. Beachten Sie, dass die Datenmigration zwischen Datenbank-Backends mit den mitgelieferten Tools problemlos möglich ist.</p>
+
+<p>Planen Sie außerdem den <strong>Speicherort</strong> Ihres Monitorings sorgfältig. Idealerweise betreiben Sie Uptime Kuma auf einem anderen Server als die zu überwachenden Dienste, damit ein Ausfall des Hauptservers nicht gleichzeitig das Monitoring lahmlegt. Bei kleinen Setups kann auch ein zweiter kleiner VPS (z. B. bei einem anderen Anbieter) als Standby-Monitoring sinnvoll sein.</p>
+
+<h2 id="installation-docker">Installation mit Docker</h2>
+
+<p>Die empfohlene Installationsmethode für Uptime Kuma im Jahr 2026 ist die Bereitstellung über <strong>Docker</strong>. Diese Variante bietet maximale Portabilität, vereinfacht Updates und isoliert die Anwendung sauber vom Host-System. Vorausgesetzt, Sie haben Docker und Docker Compose auf Ihrem Server installiert, ist die Einrichtung in wenigen Minuten abgeschlossen.</p>
+
+<p>Erstellen Sie zunächst ein dediziertes Verzeichnis für Uptime Kuma und navigieren Sie in dieses:</p>
+
+<pre><code>mkdir -p /opt/uptime-kuma
+cd /opt/uptime-kuma
+</code></pre>
+
+<p>Anschließend erstellen Sie eine <code>docker-compose.yml</code> mit folgendem Inhalt:</p>
+
+<pre><code>version: "3.8"
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - TZ=Europe/Berlin
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional: MariaDB als externe Datenbank
+  # db:
+  #   image: mariadb:11
+  #   restart: unless-stopped
+  #   environment:
+  #     - MARIADB_ROOT_PASSWORD=SecurePassword123!
+  #     - MARIADB_DATABASE=uptimekuma
+  #     - MARIADB_USER=kuma
+  #     - MARIADB_PASSWORD=SecureDbPass456!
+  #   volumes:
+  #     - ./db:/var/lib/mysql
+</code></pre>
+
+<p>Starten Sie nun den Container mit Docker Compose:</p>
+
+<pre><code>docker compose up -d
+</code></pre>
+
+<p>Nach wenigen Sekunden ist Uptime Kuma unter <code>http://IHRE-SERVER-IP:3001</code> erreichbar. Beim ersten Aufruf werden Sie aufgefordert, einen Administrator-Account anzulegen. Wählen Sie ein sicheres Passwort und aktivieren Sie idealerweise direkt die Zwei-Faktor-Authentifizierung. Das eingebundene Docker-Socket-Volume ermöglicht es Uptime Kuma, auch <strong>Docker-Container</strong> direkt zu überwachen – ein großer Vorteil in containerisierten Umgebungen.</p>
+
+<p>Für ein Update auf eine neuere Version führen Sie einfach die folgenden Befehle aus:</p>
+
+<pre><code>cd /opt/uptime-kuma
+docker compose pull
+docker compose up -d
+</code></pre>
+
+<p>Dabei bleiben Ihre Daten und Konfigurationen erhalten, da diese im <code>./data</code>-Verzeichnis persistiert werden. Wir empfehlen, vor jedem Update ein Backup anzulegen, wie wir im entsprechenden Abschnitt noch zeigen werden.</p>
+
+<h2 id="installation-manuell">Manuelle Installation ohne Docker</h2>
+
+<p>Wenn Sie Uptime Kuma lieber direkt auf dem Host-System installieren möchten, ist auch dies problemlos möglich. Diese Variante eignet sich besonders für dedizierte Monitoring-Server oder wenn Sie keinen Docker einsetzen möchten. Die manuelle Installation erfordert <strong>Node.js 20 LTS</strong> (oder neuer) sowie den Paketmanager <code>npm</code>.</p>
+
+<p>Installieren Sie zunächst die benötigten Abhängigkeiten auf einem Debian/Ubuntu-System:</p>
+
+<pre><code>sudo apt update
+sudo apt install -y curl git
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash -
+sudo apt install -y nodejs
+</code></pre>
+
+<p>Klone Sie anschließend das Repository und installieren Sie die Dependencies:</p>
+
+<pre><code>git clone https://github.com/louislam/uptime-kuma.git
+cd uptime-kuma
+npm run setup
+</code></pre>
+
+<p>Starten Sie die Anwendung im Hintergrund mit dem integrierten PM2-Prozessmanager:</p>
+
+<pre><code>npm install pm2 -g
+pm2 install pm2-logrotate
+pm2 start server/server.js --name uptime-kuma
+pm2 save
+pm2 startup
+</code></pre>
+
+<p>Uptime Kuma ist nun dauerhaft als <strong>Systemd-Service</strong> registriert und startet automatisch nach einem Reboot. Die Anwendung hört standardmäßig auf Port <code>3001</code>. Falls Sie einen anderen Port verwenden möchten, können Sie diesen über die Umgebungsvariable <code>PORT</code> konfigurieren:</p>
+
+<pre><code>pm2 delete uptime-kuma
+PORT=3500 pm2 start server/server.js --name uptime-kuma
+pm2 save
+</code></pre>
+
+<p>Für ein Update der manuellen Installation führen Sie folgende Schritte aus:</p>
+
+<pre><code>cd uptime-kuma
+git pull
+npm run setup
+pm2 restart uptime-kuma
+</code></pre>
+
+<p>Die manuelle Installation bietet den Vorteil einer etwas besseren Performance, da kein Container-Overhead entsteht. Allerdings müssen Sie sich selbst um die Aktualisierung von Node.js-Sicherheitspatches kümmern und die Konfiguration ist weniger portabel. Für Produktionsumgebungen empfehlen wir weiterhin die Docker-Variante.</p>
+
+<h2 id="erste-schritte">Erste Schritte &amp; Konfiguration</h2>
+
+<p>Nach der erfolgreichen Installation öffnen Sie die Weboberfläche und legen Ihren <strong>Admin-Account</strong> an. Das Dashboard ist übersichtlich in mehrere Bereiche gegliedert: <em>Dashboard</em> mit der Übersicht aller Monitore, <em>Monitore</em> zur Verwaltung, <em>Status Pages</em> für öffentliche Anzeigen, <em>Benachrichtigungen</em> für Alert-Kanäle und <em>Einstellungen</em> für globale Konfigurationen.</p>
+
+<p>Wir empfehlen direkt nach der Ersteinrichtung die folgenden <strong>Basiseinstellungen</strong> vorzunehmen:</p>
+
+<table>
+<thead>
+<tr>
+<th>Einstellung</th>
+<th>Empfehlung</th>
+<th>Begründung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Default Monitor-Typ</td>
+<td>HTTPS</td>
+<td>Realistische Prüfung der Web-Erreichbarkeit</td>
+</tr>
+<tr>
+<td>Heartbeat-Intervall</td>
+<td>60 Sekunden</td>
+<td>Guter Kompromiss zwischen Genauigkeit und Last</td>
+</tr>
+<tr>
+<td>Retry-Intervall</td>
+<td>60 Sekunden</td>
+<td>Vermeidung von Fehlalarmen</td>
+</tr>
+<tr>
+<td>Max. Retries</td>
+<td>3</td>
+<td>Stabilisierung der Erkennung</td>
+</tr>
+<tr>
+<td>Expireierte Benachrichtigungen</td>
+<td>Deaktiviert</td>
+<td>Weniger Rauschen, dafür relevante Alarme</td>
+</tr>
+<tr>
+<td>2FA für alle User</td>
+<td>Aktiviert</td>
+<td>Erhöhte Sicherheit</td>
+</tr>
+<tr>
+<td>Auto-Update Check</td>
+<td>Aktiviert</td>
+<td>Sicherheitspatches zeitnah erhalten</td>
+</tr>
+</tbody>
+</table>
+
+<p>Anschließend legen Sie in den <strong>Einstellungen → Sicherheit</strong> die <em>Two-Factor-Authentifizierung</em> fest. Uptime Kuma unterstützt TOTP-Apps wie Google Authenticator, Authy oder 1Password. Der entsprechende QR-Code wird direkt in der Weboberfläche angezeigt. Notieren Sie sich unbedingt die Backup-Codes an einem sicheren Ort, da Sie ohne diese im Notfall keinen Zugriff mehr auf Ihren Account haben.</p>
+
+<p>Im Bereich <strong>Einstellungen → Erscheinungsbild</strong> können Sie das Logo, die Primärfarbe und die Zeitzone Ihrer Status Page anpassen. Auch eine benutzerdefinierte Domain (z. B. <code>status.ihredomain.de</code>) wird hier konfiguriert. Diese Einstellungen sind global und gelten für alle Status Pages, die Sie erstellen.</p>
+
+<p>Ein wichtiger Aspekt ist die <strong>Sprachkonfiguration</strong>. Uptime Kuma bietet mittlerweile eine vollständige deutsche Lokalisierung, die Sie unter <em>Einstellungen → Allgemein</em> aktivieren können. Damit werden sowohl die Administrator-Oberfläche als auch die öffentlichen Status Pages zweisprachig nutzbar.</p>
+
+<h2 id="monitore-hinzufuegen">Monitore hinzufügen</h2>
+
+<p>Das Herzstück von Uptime Kuma sind die <strong>Monitore</strong>, mit denen Sie die Verfügbarkeit und Performance Ihrer Dienste prüfen. Die Software unterstützt mittlerweile über 60 verschiedene Monitor-Typen, die alle erdenklichen Szenarien abdecken. Im Folgenden stellen wir die wichtigsten Typen und ihre Konfiguration vor.</p>
+
+<p>Um einen neuen Monitor hinzuz
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

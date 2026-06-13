@@ -759,6 +759,135 @@
     </div>
 
 <h1>Discord Bot auf VPS hosten – Komplettanleitung 2026</h1>
+<h2>Warum du deinen Discord Bot auf einem VPS hosten solltest</h2>
+<p>Ein Discord-Bot, der auf einem lokalen Rechner oder einem kostenlosen PaaS-Dienst läuft, ist im Jahr 2026 nicht mehr zeitgemäß. Sobald dein Bot in dutzenden oder hunderten Servern aktiv ist, brauchst du eine Infrastruktur, die Verfügbarkeit, Performance und Kontrolle garantiert. Genau hier kommt ein <strong>Virtual Private Server (VPS)</strong> ins Spiel, wie ihn <a href="https://hostazar.com">hostazar.com</a> anbietet.</p>
+<p>Im Gegensatz zu Free-Tier-Hostern wie Replit oder Glitch hast du bei einem VPS vollen Root-Zugriff. Das bedeutet: Du entscheidest, welche Laufzeitumgebung läuft, wie viel RAM und CPU dein Bot bekommt, und du kannst beliebige Bibliotheken installieren – ohne Restriktionen. Besonders bei rechenintensiven Bots mit Audio-Streaming, KI-Integrationen oder Datenbankanbindungen ist das essenziell.</p>
+<p>Ein weiterer entscheidender Vorteil ist die <strong>Uptime</strong>. Während dein Heim-PC nachts schläft oder Updates installiert, läuft dein VPS 24/7 in einem professionellen Rechenzentrum. Moderne Anbieter wie hostazar.com garantieren eine Verfügbarkeit von 99,9 % und bieten DDoS-Schutz, der gerade für öffentliche Discord-Bots unverzichtbar ist.</p>
+<p>Schließlich sparst du langfristig Geld. Schon für unter 4 € pro Monat erhältst du bei hostazar.com einen VPS, der problemlos mehrere Bots gleichzeitig betreibt. Im Vergleich zu dedizierten Cloud-Lösungen wie AWS oder Google Cloud ist das ein Bruchteil der Kosten – bei voller Transparenz und ohne versteckte API-Gebühren.</p>
+</section>
+
+<section id="anforderungen">
+<h2>Technische Anforderungen für deinen Discord-Bot-VPS</h2>
+<p>Bevor du einen Server mietest, solltest du wissen, welche Ressourcen dein Bot tatsächlich benötigt. Die Anforderungen variieren stark je nach Komplexität, gleichzeitigen Nutzern und externen API-Calls. In den meisten Fällen reicht jedoch ein kleiner VPS völlig aus.</p>
+<p>Für einen <strong>Standard-Bot</strong> mit Slash-Commands, Moderationsfunktionen und einfachen Datenbankabfragen empfehlen wir mindestens 1 vCPU, 1 GB RAM und 20 GB SSD-Speicher. Das ist genug, um Node.js oder Python samt MongoDB-Instanz stabil zu betreiben. Hostazar.com bietet hierfür passende Tarife, die bereits mit NVMe-SSD ausgestattet sind.</p>
+<p>Betreibst du hingegen einen <strong>Multifunktions-Bot</strong> mit Musik-Streaming (z. B. Lavalink), KI-Anbindungen an GPT-4 oder großen SQLite/MySQL-Datenbanken, solltest du auf 2 vCPUs, 4 GB RAM und 40 GB SSD setzen. Auch eine separate IP-Adresse ist empfehlenswert, falls du mehrere Bots auf der gleichen Maschine isolieren möchtest.</p>
+<table>
+<caption>Empfohlene VPS-Spezifikationen nach Bot-Typ</caption>
+<thead>
+<tr><th>Bot-Typ</th><th>vCPU</th><th>RAM</th><th>SSD</th><th>Empfehlung hostazar</th></tr>
+</thead>
+<tbody>
+<tr><td>Klein / Privat</td><td>1</td><td>1 GB</td><td>20 GB</td><td>VPS S</td></tr>
+<tr><td>Standard / Community</td><td>2</td><td>2 GB</td><td>40 GB</td><td>VPS M</td></tr>
+<tr><td>Profi / Musik / KI</td><td>2-4</td><td>4-8 GB</td><td>80 GB</td><td>VPS L</td></tr>
+<tr><td>Enterprise / Multi-Bot</td><td>4+</td><td>8 GB+</td><td>160 GB+</td><td>VPS XL</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="anbieter">
+<h2>VPS-Anbieter im Vergleich 2026: Warum hostazar.com?</h2>
+<p>Der Markt für VPS-Hosting ist 2026 unübersichtlich geworden. Große Hyperscaler wie AWS Lightsail, DigitalOcean, Hetzner und Netcup konkurrieren mit regionalen Anbietern. Für deutschsprachige Discord-Entwickler ist <strong>hostazar.com</strong> eine besonders attraktive Wahl, da der Anbieter DSGVO-konforme Rechenzentren in der EU betreibt und Support auf Deutsch anbietet.</p>
+<p>Im Vergleich zu Hetzner Cloud bietet hostazar.com ähnliche Preise, aber einen deutlich persönlicheren Support. Im Gegensatz zu AWS vermeidest du komplexe Abrechnungsmodelle und zahlst einen festen monatlichen Betrag. Gegenüber Netcup punktet hostazar mit moderneren NVMe-SSDs und einem intuitiveren Kundenportal, das speziell auf Einsteiger zugeschnitten ist.</p>
+<table>
+<caption>Feature-Vergleich: hostazar.com vs. Wettbewerb</caption>
+<thead>
+<tr><th>Feature</th><th>hostazar.com</th><th>Hetzner</th><th>DigitalOcean</th><th>AWS Lightsail</th></tr>
+</thead>
+<tbody>
+<tr><td>Rechenzentrum</td><td>EU (DE/NL)</td><td>EU (DE/FI)</td><td>USA/EU</td><td>Global</td></tr>
+<tr><td>Support auf Deutsch</td><td>Ja, 24/7</td><td>Nein</td><td>Nein</td><td>Nein</td></tr>
+<tr><td>DSGVO-konform</td><td>Ja</td><td>Ja</td><td>Teilweise</td><td>Ja</td></tr>
+<tr><td>Preis ab</td><td>3,99 €/Monat</td><td>3,79 €/Monat</td><td>4,00 $/Monat</td><td>3,50 $/Monat</td></tr>
+<tr><td>DDoS-Schutz inklusive</td><td>Ja</td><td>Ja</td><td>Nein (kostenpflichtig)</td><td>Nein</td></tr>
+<tr><td>NVMe-SSD</td><td>Ja</td><td>Ja</td><td>Ja</td><td>Ja</td></tr>
+<tr><td>Snapshot-Backup</td><td>Kostenlos</td><td>Kostenlos</td><td>Kostenpflichtig</td><td>Kostenpflichtig</td></tr>
+</tbody>
+</table>
+<p>Ein weiterer Pluspunkt: hostazar.com bietet <strong>Sofort-Bereitstellung</strong>. Nach der Bestellung ist dein VPS in unter 60 Sekunden einsatzbereit, inklusive vorinstalliertem Ubuntu 24.04 LTS oder Debian 12. Du kannst sofort per SSH verbinden und mit der Installation beginnen.</p>
+</section>
+
+<section id="setup">
+<h2>Schritt 1: VPS einrichten und erste Konfiguration</h2>
+<p>Nachdem du bei hostazar.com einen Tarif gewählt und dich registriert hast, erhältst du per E-Mail deine Zugangsdaten: eine IP-Adresse, einen Benutzernamen (meistens <code>root</code>) und ein initiales Passwort. Verbinde dich nun per SSH mit deinem neuen Server. Windows-Nutzer verwenden dafür PowerShell oder das Tool PuTTY, macOS- und Linux-User nutzen einfach das Terminal.</p>
+<p>Der erste Login erfolgt mit folgendem Befehl, wobei du <code>DEINE-IP</code> durch die IP-Adresse aus der E-Mail ersetzt:</p>
+<pre><code>ssh root@DEINE-IP
+</code></pre>
+<p>Direkt nach dem ersten Login solltest du das System auf den neuesten Stand bringen. Das ist ein zentraler Sicherheitsschritt, den viele Anfänger überspringen:</p>
+<pre><code>apt update &amp;&amp; apt upgrade -y
+apt install -y curl wget git ufw fail2ban nano
+</code></pre>
+<p>Anschließend legst du einen neuen Benutzer an, unter dem dein Bot später laufen soll. Das ist wichtig, weil du Root-Rechte nur für administrative Aufgaben verwenden solltest – ein kompromittierter Bot-Prozess mit Root-Zugriff wäre ein Desaster.</p>
+<pre><code>adduser botuser
+usermod -aG sudo botuser
+</code></pre>
+<p>Ab sofort loggst du dich mit <code>ssh botuser@DEINE-IP</code> ein. Füge deinen öffentlichen SSH-Schlüssel hinzu, um Passwort-Logins zu deaktivieren – das ist eine der wirksamsten Sicherheitsmaßnahmen überhaupt und wird von hostazar.com ausdrücklich empfohlen.</p>
+</section>
+
+<section id="software">
+<h2>Schritt 2: Node.js und Python installieren</h2>
+<p>Die meisten Discord-Bots in 2026 basieren entweder auf <strong>Node.js</strong> (mit discord.js v14) oder <strong>Python</strong> (mit discord.py v2.3 oder Pycord). Beide Sprachen bringen exzellente Discord-Libraries mit, sodass die Wahl hauptsächlich vom persönlichen Geschmack abhängt. In dieser Anleitung zeigen wir beide Wege.</p>
+<h3>Installation von Node.js 22 LTS</h3>
+<p>Node.js 22 ist die aktuelle LTS-Version und ideal für discord.js. Mit dem offiziellen Nodesource-Repository installierst du sie in wenigen Sekunden:</p>
+<pre><code>curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs
+node -v
+npm -v
+</code></pre>
+<p>Nach der Installation prüfst du mit <code>node -v</code>, ob die Versionsnummer 22.x angezeigt wird. Optional empfehlen wir, <code>pm2</code> als globalen Prozessmanager zu installieren – dazu später mehr.</p>
+<h3>Installation von Python 3.12</h3>
+<p>Python 3.12 ist in Ubuntu 24.04 bereits enthalten, muss aber um <code>pip</code> und das <code>venv</code>-Modul ergänzt werden:</p>
+<pre><code>sudo apt install -y python3 python3-pip python3-venv
+python3 --version
+</code></pre>
+<p>Lege für jedes Bot-Projekt ein eigenes virtuelles Environment an, damit sich Abhängigkeiten nicht gegenseitig in die Quere kommen:</p>
+<pre><code>mkdir ~/mybot &amp;&amp; cd ~/mybot
+python3 -m venv venv
+source venv/bin/activate
+pip install discord.py python-dotenv
+</code></pre>
+</section>
+
+<section id="bot-erstellen">
+<h2>Schritt 3: Discord-Bot im Developer Portal anlegen</h2>
+<p>Bevor du auf deinem hostazar-VPS loslegst, brauchst du ein Bot-Konto im <a href="https://discord.com/developers/applications" target="_blank" rel="noopener">Discord Developer Portal</a>. Logge dich mit deinem Discord-Account ein und klicke auf „New Application". Vergib einen sprechenden Namen – er wird später allen Nutzern angezeigt.</p>
+<p>Wechsle in den Reiter <strong>„Bot"</strong> und klicke auf „Add Bot". Wichtig: Aktiviere alle drei <em>Privileged Gateway Intents</em> (<code>Presence</code>, <code>Server Members</code>, <code>Message Content</code>), sofern dein Bot sie benötigt. Ohne den <code>Message Content Intent</code> kann discord.js ab 2026 keine klassischen Nachrichten-Befehle mehr lesen.</p>
+<p>Klicke anschließend auf „Reset Token" und kopiere den angezeigten Token sofort in einen sicheren Passwort-Manager. <strong>Dieser Token ist wie ein Passwort – wer ihn hat, kontrolliert deinen Bot.</strong> Im Code selbst sollte er niemals hartkodiert werden, sondern über eine <code>.env</code>-Datei geladen werden.</p>
+<table>
+<caption>Wichtige Bot-Einstellungen 2026</caption>
+<thead>
+<tr><th>Einstellung</th><th>Empfehlung</th><th>Begründung</th></tr>
+</thead>
+<tbody>
+<tr><td>Public Bot</td><td>Ja (bei öffentlichem Bot)</td><td>Andere können ihn einladen</td></tr>
+<tr><td>Requires OAuth2 Code Grant</td><td>Nein</td><td>Nur für komplexe Auth-Flows nötig</td></tr>
+<tr><td>Message Content Intent</td><td>Aktiviert</td><td>Slash- und Prefix-Commands</td></tr>
+<tr><td>Server Members Intent</td><td>Aktiviert</td><td>Member-Tracking, Willkommensnachrichten</td></tr>
+<tr><td>Presence Intent</td><td>Aktiviert</td><td>Status-Updates erkennen</td></tr>
+</tbody>
+</table>
+<p>Im Reiter <strong>OAuth2 → URL Generator</strong> erstellst du nun den Einladungslink. Wähle <code>bot</code> und <code>applications.commands</code> als Scopes aus und setze die passenden Permissions – für die meisten Anwendungsfälle reicht <code>Send Messages</code>, <code>Embed Links</code> und <code>Manage Roles</code>.</p>
+</section>
+
+<section id="code">
+<h2>Schritt 4: Den Bot-Code schreiben und deployen</h2>
+<p>Nachdem das Bot-Konto erstellt ist, legst du auf deinem VPS das Projektverzeichnis an und schreibst den eigentlichen Code. Wir starten mit einem minimalistischen Beispiel in Node.js, das du beliebig erweitern kannst.</p>
+<pre><code>mkdir ~/discord-bot &amp;&amp; cd ~/discord-bot
+npm init -y
+npm install discord.js dotenv
+nano .env
+</code></pre>
+<p>In die <code>.env</code>-Datei trägst du deinen Token ein:</p>
+<pre><code>DISCORD_TOKEN=dein-geheimer-token-hier
+CLIENT_ID=123456789012345678
+GUILD_ID=987654321098765432
+</code></pre>
+<p>Anschließend erstellst du die Hauptdatei <code>index.js</code>:</p>
+<pre><code>require('dotenv').config();
+const { Client, GatewayIntentBits, REST, Routes } = require('discord.js');
+
+const client = new Client({
+  intents
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

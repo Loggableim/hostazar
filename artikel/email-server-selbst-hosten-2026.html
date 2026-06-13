@@ -759,6 +759,272 @@
     </div>
 
 <h1>E-Mail-Server selbst hosten – Vor- und Nachteile 2026</h1>
+<h2>Warum einen eigenen E-Mail-Server selbst hosten?</h2>
+
+<p>In Zeiten von Gmail, Outlook und großen Cloud-Anbietern mag das Hosten eines eigenen E-Mail-Servers wie ein Relikt aus vergangenen Tagen wirken. Tatsächlich erlebt das Thema Selfhosting von Mail-Servern jedoch eine Renaissance, getrieben von wachsendem Datenschutzbewusstsein, der DSGVO und dem Wunsch nach Unabhängigkeit von US-amerikanischen Anbietern.</p>
+
+<p>Ein selbst gehosteter E-Mail-Server bietet die vollständige Kontrolle über alle Daten. Weder liest ein großer Anbieter die E-Mails mit, noch werden sie für Werbezwecke analysiert. Gerade für Unternehmen, die mit sensiblen Kundendaten umgehen, ist dies ein entscheidender Vorteil.</p>
+
+<p>Darüber hinaus ermöglicht ein eigener Mailserver die Nutzung einer personalisierten Domain ohne Kompromisse. Während Free-Mail-Anbieter mitunter Beschränkungen bei Versandmengen oder SMTP-Einstellungen haben, hat der Administrator eines eigenen Servers freie Hand bei der Konfiguration. Allerdings sollte man sich der technischen Herausforderungen bewusst sein.</p>
+
+<h2>Technische Grundlagen: Wie funktioniert ein E-Mail-Server?</h2>
+
+<p>Ein E-Mail-Server basiert auf mehreren standardisierten Protokollen, die seit Jahrzehnten stabil sind. Das Simple Mail Transfer Protocol (SMTP) ist für den Versand von E-Mails zuständig, während POP3 oder IMAP für den Empfang und die Verwaltung in Mail-Clients verwendet werden. Ergänzt werden diese Protokolle durch Sicherheitsstandards wie SPF, DKIM und DMARC.</p>
+
+<table>
+<thead>
+<tr><th>Protokoll</th><th>Funktion</th><th>Port (Standard)</th><th>Verschlüsselung</th></tr>
+</thead>
+<tbody>
+<tr><td>SMTP</td><td>Mail-Versand</td><td>25, 587</td><td>STARTTLS, TLS</td></tr>
+<tr><td>IMAP</td><td>Mail-Abruf (Server-seitig)</td><td>143, 993</td><td>STARTTLS, TLS</td></tr>
+<tr><td>POP3</td><td>Mail-Abruf (Client-seitig)</td><td>110, 995</td><td>STARTTLS, TLS</td></tr>
+<tr><td>Submission</td><td>Mail-Einlieferung</td><td>587</td><td>STARTTLS</td></tr>
+</tbody>
+</table>
+
+<p>Der Versand einer E-Mail folgt einem klar definierten Ablauf. SMTP ist ein textbasiertes Protokoll, bei dem der sendende Server eine Verbindung zum empfangenden Mailserver aufbaut, die Empfängeradresse übermittelt und die Mail als Inhalt überträgt. MX-Records im DNS zeigen dabei auf die zuständigen Mailserver einer Domain.</p>
+
+<p>Damit E-Mails beim Empfänger nicht im Spam-Ordner landen, müssen SPF (Sender Policy Framework), DKIM (DomainKeys Identified Mail) und DMARC (Domain-based Message Authentication) korrekt konfiguriert sein. Diese drei Mechanismen bilden die Grundlage der E-Mail-Authentifizierung und sind heute Pflicht für seriöse Mailserver.</p>
+
+<h2>Die wichtigsten Software-Komponenten</h2>
+
+<p>Für das Hosten eines E-Mail-Servers stehen verschiedene Open-Source-Lösungen zur Verfügung. Die bekanntesten sind Postfix als SMTP-Server, Dovecot als IMAP/POP3-Server, SpamAssassin oder Rspamd für die Spamerkennung sowie Roundcube oder SOGo als Webmail-Oberfläche.</p>
+
+<p>Postfix gehört zu den am weitesten verbreiteten Mail Transfer Agents (MTA) und ist bekannt für seine hohe Sicherheit, Performance und Konfigurierbarkeit. Dovecot wiederum ist der Standard-IMAP-Server im Open-Source-Bereich und überzeugt durch eine effiziente Implementierung mit voller IMAP-IDLE-Unterstützung.</p>
+
+<p>Für die Spamerkennung hat sich Rspamd als moderne Alternative zum in die Jahre gekommenen SpamAssassin etabliert. Es nutzt Machine-Learning-Algorithmen, ist ressourcenschonend und lässt sich hervorragend in Postfix integrieren. Rspamd bietet zudem eine eigene Weboberfläche für die Verwaltung und Auswertung.</p>
+
+<h2>Schritt-für-Schritt: Mailserver unter Debian/Ubuntu installieren</h2>
+
+<p>Die Installation eines vollständigen Mailservers erfordert mehrere Schritte. Im Folgenden wird exemplarisch die Einrichtung eines Servers mit Postfix, Dovecot, Rspamd und Let's Encrypt-Zertifikaten auf Debian 12 beschrieben. Diese Kombination hat sich als robust, sicher und wartungsarm bewährt.</p>
+
+<p>Zunächst werden die benötigten Pakete installiert:</p>
+
+<pre><code>sudo apt update
+sudo apt install postfix dovecot-imapd dovecot-lmtpd \
+  rspamd redis-server certbot -y
+</code></pre
+<h2>Warum einen eigenen E-Mail-Server selbst hosten?</h2>
+<p>In Zeiten zunehmender Datenschutzbedenken und Abhängigkeit von großen Tech-Konzernen entscheiden sich immer mehr Privatpersonen und Unternehmen dafür, ihren eigenen E-Mail-Server zu betreiben. Die Gründe sind vielfältig: vollständige Kontrolle über die Daten, Unabhängigkeit von Anbietern, die ihre Preise jederzeit erhöhen können, und die Möglichkeit, die eigene Domain ohne Drittanbieter zu nutzen. Wer seinen E-Mail-Server selbst hostet, behält die volle Hoheit über seine Kommunikation.</p>
+<p>Ein weiterer wichtiger Aspekt ist die Datensouveränität. Bei kommerziellen Anbietern wie Google, Microsoft oder Yahoo liegen die E-Mails auf Servern in den USA oder anderen Ländern, was insbesondere für Unternehmen mit sensiblen Daten problematisch sein kann. Mit einem selbst gehosteten Server in Deutschland oder der EU unterliegen die Daten dem strengen europäischen Datenschutzrecht, was die Compliance mit der DSGVO erheblich vereinfacht.</p>
+<p>Allerdings bringt das Selbst-Hosten auch erhebliche Verantwortung mit sich. Die Zustellbarkeit von E-Mails hängt maßgeblich von der Reputation der IP-Adresse ab, und neue Server haben es schwer, als vertrauenswürdig eingestuft zu werden. Auch die Sicherheit liegt in Ihrer Hand: Ein schlecht konfigurierter Mailserver kann schnell zur Spam-Schleuder werden oder Ziel von Angreifern werden. Wer diese Herausforderungen meistert, wird mit einem Höchstmaß an Kontrolle und Flexibilität belohnt.</p>
+<p>Technisch versierte Anwender schätzen zudem die Möglichkeit, den Mailserver genau an die eigenen Bedürwarten anzupassen. Ob spezielle Filter, individuelle Anti-Spam-Regeln, eigene Webmail-Oberflächen oder Integrationen mit bestehenden Systemen – die Flexibilität ist bei einem selbst gehosteten Server nahezu grenzenlos. Auch die Kosten können langfristig deutlich niedriger sein als bei kommerziellen Anbietern, insbesondere wenn man mehrere Domains oder viele Postfächer betreibt.</p>
+
+<h2>Die wichtigsten Software-Komponenten für den eigenen Mailserver</h2>
+<p>Ein moderner E-Mail-Server besteht aus mehreren Software-Komponenten, die zusammenarbeiten. Postfix ist der mit Abstand am weitesten verbreitete Mail Transfer Agent (MTA) und für die Zustellung und den Versand von E-Mails zuständig. Dovecot ist der Standard für den IMAP- und POP3-Zugriff, sodass Benutzer ihre Mails mit Mail-Clients wie Thunderbird oder Outlook abrufen können. Für die Authentifizierung kommt häufig OpenLDAP oder eine Datenbank zum Einsatz.</p>
+<p>Zur Spam- und Virenabwehr sind SpamAssassin und ClamAV die etablierten Open-Source-Lösungen. SpamAssassin analysiert eingehende Mails anhand zahlreicher Regeln und vergibt einen Spam-Score, während ClamAV nach bekannten Viren und Malware sucht. Beide Tools können direkt in Postfix eingebunden werden, sodass schädliche Mails bereits vor der Zustellung in die Postfächer gefiltert werden. Ergänzend dazu empfiehlt sich die Nutzung von Greylisting und DNS-basierten Blacklists (DNSBL).</p>
+<p>Eine webbasierte Oberfläche für den Zugriff auf Mails von unterwegs bietet Roundcube oder SOGo. Diese Webmail-Clients laufen im Browser und bieten oft Funktionen wie Kalender, Kontakte und Aufgabenverwaltung. Für die serverseitige Verwaltung der Postfächer eignet sich PostfixAdmin, mit dem Administratoren Domains, Postfächer und Aliase komfortabel über eine Weboberfläche anlegen und verwalten können.</p>
+<table>
+<thead>
+<tr>
+<th>Komponente</th>
+<th>Aufgabe</th>
+<th>Empfehlung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MTA (Mail Transfer Agent)</td>
+<td>SMTP-Versand und -Empfang</td>
+<td>Postfix</td>
+</tr>
+<tr>
+<td>IMAP/POP3-Server</td>
+<td>Mailbox-Zugriff</td>
+<td>Dovecot</td>
+</tr>
+<tr>
+<td>Spam-Filter</td>
+<td>Spam-Erkennung</td>
+<td>SpamAssassin, Rspamd</td>
+</tr>
+<tr>
+<td>Virenscanner</td>
+<td>Malware-Schutz</td>
+<td>ClamAV</td>
+</tr>
+<tr>
+<td>Webmail</td>
+<td>Browserbasierter Zugriff</td>
+<td>Roundcube, SOGo</td>
+</tr>
+<tr>
+<td>Verwaltung</td>
+<td>Web-Administration</td>
+<td>PostfixAdmin, Mailcow</td>
+</tr>
+</tbody>
+</table>
+<p>Wer eine All-in-One-Lösung bevorzugt, sollte sich Mailcow oder iRedMail genauer ansehen. Diese Distributionen bündeln alle notwendigen Komponenten in einem einfach zu installierenden Paket und bieten eine moderne Weboberfläche für die Verwaltung. Insbesondere Mailcow hat sich in den letzten Jahren einen Namen gemacht und wird von einer aktiven Community weiterentwickelt.</p>
+
+<h2>Hardware- und Server-Anforderungen für 2026</h2>
+<p>Die Hardware-Anforderungen für einen Mailserver hängen stark von der Anzahl der Postfächer und dem Mailvolumen ab. Für kleine Setups mit bis zu 20 Postfächern und moderatem Mailaufkommen reicht bereits ein vServer mit 4 GB RAM, 2 vCPUs und 50 GB SSD-Speicher. Für mittelgroße Installationen mit 50-200 Postfächern sollten es mindestens 8 GB RAM, 4 vCPUs und 200 GB SSD sein. Große Setups mit mehreren Hundert Postfächern benötigen dedizierte Hardware oder leistungsstarke Cloud-Instanzen.</p>
+<p>Wichtig ist eine stabile, schnelle Internetanbindung mit fester IP-Adresse. Die IP-Adresse sollte möglichst "sauber" sein, also keine Vorgeschichte als Spam-Quelle haben. Viele Anbieter bieten solche IP-Adressen als kostenpflichtige Zusatzleistung an. Achten Sie auch darauf, dass Reverse-DNS-Einträge (PTR-Records) korrekt gesetzt sind – sie sind ein wichtiger Faktor für die Zustellbarkeit.</p>
+<p>Bei der Wahl des Hosting-Anbieters sollten einige Kriterien beachtet werden: Verfügbarkeit von IPv6, Möglichkeit zur Konfiguration von PTR-Records, keine Sperre der ausgehenden SMTP-Ports (Port 25), gute Anbindung an Internetknoten und idealerweise Standorte in Deutschland für optimale Latenz. Einige Anbieter haben sich auf Mailserver-Hosting spezialisiert und bieten entsprechend vorkonfigurierte Lösungen an.</p>
+<table>
+<thead>
+<tr>
+<th>Setup-Größe</th>
+<th>RAM</th>
+<th>CPU</th>
+<th>Speicher</th>
+<th>Beispiel-Anbieter</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Klein (bis 20 Postfächer)</td>
+<td>4 GB</td>
+<td>2 vCPUs</td>
+<td>50 GB SSD</td>
+<td>Netcup, Hetzner</td>
+</tr>
+<tr>
+<td>Mittel (50-200)</td>
+<td>8 GB</td>
+<td>4 vCPUs</td>
+<td>200 GB SSD</td>
+<td>Hetzner, IONOS</td>
+</tr>
+<tr>
+<td>Groß (200+)</td>
+<td>16+ GB</td>
+<td>8+ vCPUs</td>
+<td>500+ GB SSD</td>
+<td>Dedicated Server</td>
+</tr>
+</tbody>
+</table>
+<p>Im Jahr 2026 spielt auch Nachhaltigkeit eine immer größere Rolle. Anbieter, die mit Ökostrom betrieben werden und energieeffiziente Hardware einsetzen, sind nicht nur ökologisch sinnvoll, sondern oft auch kostengünstiger. Einige Mailserver-Betreiber berichten zudem von besseren Zustellraten bei nachhaltigen Anbietern, da diese seltener auf schwarzen Listen auftauchen.</p>
+
+<h2>DNS-Konfiguration – Das A und O der Mail-Zustellung</h2>
+<p>Eine korrekte DNS-Konfiguration ist die Grundvoraussetzung dafür, dass Ihre E-Mails überhaupt zugestellt werden. Die wichtigsten DNS-Einträge für einen Mailserver sind MX-Records, SPF, DKIM und DMARC. Fehlt nur einer dieser Einträge oder ist er fehlerhaft konfiguriert, landen Ihre Mails mit hoher Wahrscheinlichkeit im Spam-Ordner oder werden komplett abgewiesen.</p>
+<p>Der MX-Record (Mail Exchange) legt fest, welcher Server für den Empfang von E-Mails Ihrer Domain zuständig ist. In der Regel zeigt er auf den Hostnamen Ihres Mailservers, nicht auf eine IP-Adresse. Die Priorität im MX-Record ermöglicht die Definition mehrerer Mailserver als Backup-Lösung. Beispiel: <code>mail.example.com. IN MX 10 mail.example.com.</code></p>
+<p>SPF (Sender Policy Framework) definiert, welche IP-Adressen E-Mails im Namen Ihrer Domain versenden dürfen. Ein typischer SPF-Eintrag sieht so aus:</p>
+<pre><code>v=spf1 mx a:mail.example.com ip4:203.0.113.10 -all</code></pre>
+<p>Der Mechanismus -all am Ende bedeutet, dass alle nicht explizit erlaubten Absender als
+<h2>Warum ein eigener Mailserver 2026 wieder an Bedeutung gewinnt</h2>
+<p>In den letzten Jahren haben viele Unternehmen und Privatpersonen ihre E-Mail-Kommunikation in die Hände großer Provider wie Google, Microsoft oder GMX gelegt. Doch 2026 zeichnet sich ein klarer Trend zurück zu selbst gehosteten Lösungen ab. Die Gründe sind vielfältig und reichen von Datenschutzbedenken über steigende Kosten bis hin zu einem wachsenden Bewusstsein für digitale Souveränität.</p>
+<p>Ein eigener Mailserver bedeutet die vollständige Kontrolle über alle ein- und ausgehenden Nachrichten. Weder ein externer Anbieter noch Dritte haben Einblick in die Inhalte, Metadaten oder Kontakte. Gerade für Unternehmen mit sensiblen Geschäftskommunikation, Anwälte, Ärzte oder Journalisten ist dies ein entscheidender Vorteil.</p>
+<p>Hinzu kommen die Lizenzkosten. Während Microsoft 365 oder Google Workspace pro Benutzer und Monat zwischen 5 und 30 Euro kosten, fallen bei einem selbst gehosteten Server lediglich einmalige Investitionen in Hardware sowie moderate Strom- und Internetkosten an. Bei mehreren dutzend Mitarbeitern amortisiert sich der eigene Mailserver meist innerhalb von ein bis zwei Jahren.</p>
+<p>Moderne Open-Source-Software hat die Einstiegshürde zudem drastisch gesenkt. Projekte wie Mailcow, Stalwart oder Mailu bieten fertige Docker-basierte Komplettlösungen, die sich in unter einer Stunde produktiv in Betrieb nehmen lassen. Auch klassische Setups mit Postfix und Dovecot sind dank ausgereifter Dokumentation gut beherrschbar.</p>
+
+<h2>Die wichtigsten technischen Komponenten</h2>
+<p>Ein vollständiger Mailserver setzt sich aus mehreren Bausteinen zusammen, die nahtlos zusammenarbeiten müssen. Das Verständnis dieser Komponenten ist der Schlüssel zu einem stabilen und sicheren Betrieb.</p>
+<p>Der Mail Transfer Agent (MTA) ist für den Transport der E-Mails zwischen Servern zuständig. Postfix ist hier der mit Abstand populärste Open-Source-MTA, dicht gefolgt von Exim. Beide sind ausgereift, sicher und werden in Millionen von Installationen weltweit eingesetzt. Postfix besticht durch seine modulare Architektur und exzellente Dokumentation.</p>
+<p>Der Mail Delivery Agent (MDA) übernimmt die Zustellung an die Postfächer der Benutzer. Dovecot ist der Platzhirsch unter den Open-Source-MDAs und unterstützt neben dem klassischen mbox- und maildir-Format auch moderne Volltextsuche und Indexierung. Eine typische Architektur nutzt Postfix als MTA, der Nachrichten über das LMTP-Protokoll an Dovecot übergibt.</p>
+<p>Für den Zugriff der Endbenutzer kommen Standardprotokolle zum Einsatz:</p>
+<ul>
+<li>IMAP (typischerweise Port 143 oder 993 mit TLS) für den Zugriff auf das Postfach</li>
+<li>POP3 (Port 110 oder 995 mit TLS) als Alternative für klassische Mail-Clients</li>
+<li>SMTP (Port 587 mit STARTTLS oder 465 mit implizitem TLS) für den Versand</li>
+<li>Submission (Port 587) speziell für authentifizierten Versand durch Clients</li>
+</ul>
+<p>Roundcube oder Snappymail als Webmail-Oberfläche runden das Paket ab. Wer Wert auf eine moderne Oberfläche legt, kann auch zu Nextcloud Mail oder SOGo greifen, die sich nahtlos in bestehende Groupware-Umgebungen integrieren.</p>
+
+<h2>Domain, DNS und IP-Adresse als Fundament</h2>
+<p>Bevor der eigentliche Mailserver in Betrieb gehen kann, müssen einige Voraussetzungen auf DNS-Ebene erfüllt sein. Ohne korrekte DNS-Einträge landen ausgehende Mails schnell im Spam-Ordner oder werden komplett abgewiesen. Die folgenden Schritte sind zwingend erforderlich.</p>
+<p>Zunächst wird eine eigene IPv4-Adresse benötigt. Idealerweise handelt es sich um eine dedizierte Adresse, die nicht durch Vorgänger belastet ist. Vor dem produktiven Einsatz empfiehlt sich ein Check bei den bekannten Blacklists wie Spamhaus, Barracuda oder Spamcop. Eine frische, saubere IP-Adresse ist Gold wert.</p>
+<p>Der MX-Record (Mail Exchange) zeigt dem Rest der Welt, welcher Server für die Annahme von E-Mails der Domain zuständig ist. Er hat die niedrigste Priorität der zuständigen Server und sollte auf einen A- oder AAAA-Record verweisen. SPF, DKIM und DMARC sind die drei Pflicht-Einträge für seriöses Mailing.</p>
+<p>SPF (Sender Policy Framework) definiert, welche IP-Adressen E-Mails im Namen der Domain versenden dürfen:</p>
+<pre><code>v=spf1 mx a:mail.example.com ip4:203.0.113.10 -all</code></pre>
+<p>DKIM (DomainKeys Identified Mail) signiert ausgehende Nachrichten kryptografisch. Der öffentliche Schlüssel wird als TXT-Record veröffentlicht. DMARC (Domain-based Message Authentication, Reporting and Conformance) fasst SPF und DKIM zusammen und legt fest, wie Empfänger mit nicht authentifizierten Nachrichten umgehen sollen.</p>
+
+<h2>Installation mit Mailcow – der schnelle Einstieg</h2>
+<p>Mailcow ist eine ausgereifte Docker-basierte Komplettlösung, die Postfix, Dovecot, SOGo, Roundcube, Rspamd und viele weitere Komponenten in einem konsistenten Stack vereint. Dank mitgelieferter Konfiguration und einem komfortablen Web-Interface ist der produktive Betrieb in kürzester Zeit möglich.</p>
+<p>Die Installation beginnt mit der Vorbereitung eines frischen Servers. Als Mindestanforderungen gelten 6 GB RAM, 50 GB SSD-Speicher und eine eigene IPv4-Adresse. Ubuntu 22.04 oder Debian 12 sind die empfohlenen Betriebssysteme. Nach der Installation von Docker und Docker-Composer genügt ein einziger Befehl:</p>
+<pre><code>cd /opt
+git clone https://github.com/mailcow/mailcow-dockerized
+cd mailcow-dockerized
+./generate_config.sh
+docker compose pull
+docker compose up -d</code></pre>
+<p>Nach wenigen Minuten ist die Weboberfläche unter https://server:443 erreichbar. Der Standard-Login erfolgt mit dem Benutzernamen admin und dem während der Installation festgelegten Passwort. Über das übersichtliche Dashboard lassen sich Domains, Postfächer, Aliase und Quotas verwalten.</p>
+<p>Ein großer Vorteil von Mailcow ist das integrierte Rspamd-Modul. Rspamd ist eine moderne, in C geschriebene Spam- und Malware-Engine, die DKIM-Signierung, Greylisting, Antivirus-Integration und Bayes-Filter in einem performanten Daemon vereint. Die Lernkurve ist flach, die Treffergenauigkeit hervorragend.</p>
+
+<h2>Manuelles Setup mit Postfix und Dovecot</h2>
+<p>Wer mehr Kontrolle und Verständnis über die zugrundeliegenden Mechanismen erlangen möchte, sollte sich an einem manuellen Setup versuchen. Der Lernaufwand ist höher, dafür lässt sich jede Komponente optimal auf die eigenen Bedürfnisse abstimmen.</p>
+<p>Postfix wird über die Datei /etc/postfix/main.cf konfiguriert. Die wichtigsten Direktiven für einen produktiven Server umfassen:</p>
+<pre><code>smtpd_banner = $myhostname ESMTP
+myhostname = mail.example.com
+mydomain = example.com
+myorigin = $mydomain
+inet_interfaces = all
+mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
+mynetworks = 127.0.0.0/8
+home_mailbox = Maildir/
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth
+smtpd_sasl_auth_enable = yes
+smtpd_tls_security_level = may
+smtpd_tls_cert_file = /etc/letsencrypt/live/mail.example.com/fullchain.pem
+smtpd_tls_key_file = /etc/letsencrypt/live/mail.example.com/privkey.pem</code></pre>
+<p>Dovecot übernimmt die Zustellung an die Postfächer und stellt IMAP sowie POP3 bereit. Die Konfiguration in /etc/dovecot/dovecot.conf verteilt die Authentifizierung an Postfix und legt das Maildir-Format als Speicherstandard fest. Das folgende Listing zeigt eine minimal funktionsfähige Konfiguration:</p>
+<pre><code>protocols = imap pop3 lmtp
+mail_location = maildir:~/Maildir
+disable_plaintext_auth = yes
+auth_mechanisms = plain login
+passdb {
+  driver = pam
+}
+userdb {
+  driver = passwd
+}
+service auth {
+  unix_listener /var/spool/postfix/private/auth {
+    mode = 0666
+  }
+}</code></pre>
+<p>Nach dem Neustart der Dienste mit systemctl restart postfix dovecot sollte der Server bereit sein, E-Mails entgegenzunehmen. Ein erster Funktionstest lässt sich einfach über die Kommandozeile durchführen:</p>
+<pre><code>echo "Testnachricht" | mail -s "Test" user@example.com</code></pre>
+
+<h2>Sicherheit und Härtung des Mailservers</h2>
+<p>Ein öffentlich erreichbarer Mailserver ist ein beliebtes Ziel für Angreifer. Ohne konsequente Härtung wird der Server schnell zum Spamschleuder oder zur Quelle für Phishing-Kampagnen. Die folgenden Maßnahmen sind unverzichtbar.</p>
+<p>Fail2ban ist das wichtigste Werkzeug gegen Brute-Force-Angriffe auf SMTP- und IMAP-Authentifizierung. Das Tool überwacht Logdateien, erkennt wiederholt fehlgeschlagene Logins und sperrt die Quell-IP automatisch über iptables-Regeln. Eine vorgefertigte Filterregel für Postfix ist im Standardumfang enthalten.</p>
+<p>Die TLS-Konfiguration sollte ausschließlich moderne Cipher-Suites und Protokollversionen erlauben. TLS 1.0 und 1.1 sind seit 2025 de facto ausgemustert, TLS 1.2 muss mindestens aktiv sein. Idealerweise wird TLS 1.3 mit Perfect Forward Secrecy und OCSP-Stapling konfiguriert. Mozilla pflegt eine hervorragende Vorlage, die als SSL-Konfigurationsgenerator zur Verfügung steht.</p>
+<p>Folgende Ports sollten ausschließlich dem Mailserver vorbehalten sein:</p>
+<table>
+<thead>
+<tr><th>Port</th><th>Protokoll</th><th>Zweck</th><th>Empfehlung</th></tr>
+</thead>
+<tbody>
+<tr><td>25</td><td>SMTP</td><td>Server-zu-Server</td><td>Offen für eingehende Mails</td></tr>
+<tr><td>465</td><td>SMTPS</td><td>Client-Versand (implizites TLS)</td><td>Aktivieren</td></tr>
+<tr><td>587</td><td>Submission</td><td>Client-Versand (STARTTLS)</td><td>Aktivieren</td></tr>
+<tr><td>143</td><td>IMAP</td><td>Mail-Abruf (Klartext)</td><td>Deaktivieren</td></tr>
+<tr><td>993</td><td>IMAPS</td><td>Mail-Abruf (TLS)</td><td>Aktivieren</td></tr>
+<tr><td>995</td><td>POP3S</td><td>Mail-Abruf (TLS)</td><td>Optional</td></tr>
+</tbody>
+</table>
+<p>Zusätzlich sollte der Server hinter einer restriktiven Firewall betrieben werden. UFW oder nftables erlauben es, nur die wirklich benötigten Ports freizugeben. SSH-Zugriff sollte ausschließlich per Public-Key-Authentifizierung und idealerweise über einen nicht standardisierten Port erfolgen.</p>
+
+<h2>Spam-Schutz und Filtermechanismen</h2>
+<p>Spam ist seit jeher die größte Plage für Mailserver-Betreiber. Ohne effektive Filtermechanismen landet der eigene Server schnell auf Blacklists und wird für ausgehende Kommunikation unbrauchbar. Ein mehrstufiges Filterkonzept ist deshalb Pflicht.</p>
+<p>Rspamd oder SpamAssassin übernehmen die eigentliche Inhaltsanalyse. Rspamd ist die modernere Wahl und arbeitet deutlich ressourcenschonender. Es nutzt eine Vielzahl von Methoden wie Bayes-Filter, Hash-Lookups, URL-Reputation und kollaborative Datenbanken, um Spam zu identifizieren. Die Lernkurve ist flach und die Standardkonfiguration liefert bereits hervorragende Ergebnisse.</p>
+<p>Ergänzend sollten folgende Maßnahmen implementiert werden:</p>
+<ul>
+<li>Greylisting für unbekannte Absender</li>
+<li>Reverse-DNS-Lookup (PTR-Record) muss zum Mailserver-Hostnamen passen</li>
+<li>HELO/EHLO-String sollte dem FQDN entsprechen</li>
+<li>SMTP-Banner so allgemein wie möglich halten</li>
+<li>Rate-Limiting für ausgehende Verbindungen pro IP und Absender</li>
+</ul>
+<p>ClamAV oder Amavis als zusätzliche Antivirus-Schicht runden das Sicherheitskonzept ab. In Kombination mit ClamAV können signaturbasierte Malware-Filter und heuristische Erkennung gefährlicher Anhänge realisiert werden. Insbesondere für Unternehmen mit erhöhten Compliance-Anforderungen ist diese Schicht unverzichtbar.</p>
+
+<h2>Backup-Strategien für Postfächer und Konfiguration</h2>
+<p>Mailbox-Daten gehören zu den kritischsten Assets eines Unternehmens. Ein Verlust kann rechtliche, geschäftliche und persönliche Konsequenzen haben. Eine durchdachte Backup-Strategie ist deshalb keine Option, sondern Pflicht.</p>
+<p>Maildir als Mail-Storage-Format hat den großen Vorteil, dass jede Nachricht in einer eigenen Datei liegt. Damit lassen sich Backups besonders einfach mit Standardwerkzeugen wie rsync, BorgBackup oder Restic realisieren. Inkrementelle Sicherungen sind effizient und Restore-Operationen granular bis auf einzelne Nachrichten möglich.</p>
+<p>Die folgende Tabelle zeigt eine bewährte Backup-Strategie für mittelgroße Installationen:</p>
+<table>
+<thead>
+<tr><th>Komponente</th><th>Backup-Methode</th><th>Frequenz</th><th>Aufbewahrung</th></tr>
+</thead>
+<tbody>
+<tr><td>Maildir</td><td>BorgBackup mit Deduplizierung</td><td>Stündlich</td><td>30 Tage</td></tr>
+<tr><td>Postfix-Config</td><td>Git-Repository auf separatem Server</td><td>Bei Änderung</td><td>Unbegrenzt</td></tr>
+<tr><td>Dovecot-Config</td><td>Git-Repository auf separatem Server</td><td>Bei Änderung</td><td>Unbegrenzt</td></tr>
+<tr><td>Daten
   <a href="/artikel/hugo-astro-static-site-vergleich-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/hugo-astro-static-site-vergleich-2026.webp" alt="Hugo vs. Astro – Static Site Generator Hosting Vergleich 2026" loading="lazy" width="400" height="200"></div>
   </a>

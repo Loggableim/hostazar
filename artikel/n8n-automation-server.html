@@ -759,6 +759,287 @@
     </div>
 
 <h1>n8n Automation Server hosten – Workflow-Automatisierung 2026</h1>
+<h2>1. Was ist n8n und warum ist es 2026 so relevant?</h2>
+    <p><strong>n8n</strong> (ausgesprochen „n-eight-n" für „nodemation") ist ein Open-Source-Workflow-Automatisierungstool, das 2019 veröffentlicht wurde und sich seither zur populärsten Alternative zu Zapier und Make (ehemals Integromat) entwickelt hat. Mit einer MIT-ähnlichen Lizenz (Sustainable Use License) darf es frei selbst gehostet werden – ein entscheidender Vorteil für europäische Unternehmen unter DSGVO.</p>
+    <p>Bis Anfang 2026 sind über 400 offizielle Nodes verfügbar, darunter Slack, Microsoft 365, Google Workspace, Notion, Airtable, PostgreSQL, MySQL, OpenAI, Anthropic Claude, Hugging Face, Webhooks, MQTT und viele mehr. Durch den modularen Aufbau lassen sich auch eigene Custom Nodes in TypeScript oder Python entwickeln.</p>
+    <p>Im Vergleich zu SaaS-Konkurrenten punktet n8n mit unbegrenzten Workflows, unbegrenzten Ausführungen (im Self-Hosting) und der Möglichkeit, sensible Daten <strong>on-premise</strong> zu verarbeiten. Gerade im KI- und Compliance-Zeitalter 2026 ein strategischer Vorteil.</p>
+    <p>Hosting-Partner wie <strong>hostazar.com</strong> bieten speziell optimierte n8n-Images mit vorinstalliertem Docker, Traefik, PostgreSQL und automatischen Backups an – ideal für den produktiven Einsatz.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Merkmal</th>
+                <th>n8n Self-Hosted</th>
+                <th>Zapier</th>
+                <th>Make</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Lizenzkosten</td>
+                <td>0 € (nur Server)</td>
+                <td>ab 19,99 $/Monat</td>
+                <td>ab 9 $/Monat</td>
+            </tr>
+            <tr>
+                <td>Workflows unbegrenzt</td>
+                <td>✅ Ja</td>
+                <td>❌ Nein (je Plan)</td>
+                <td>❌ Nein</td>
+            </tr>
+            <tr>
+                <td>Custom Nodes</td>
+                <td>✅ Ja</td>
+                <td>❌ Nein</td>
+                <td>❌ Nein</td>
+            </tr>
+            <tr>
+                <td>Datenhoheit</td>
+                <td>✅ Vollständig</td>
+                <td>❌ Cloud-only</td>
+                <td>❌ Cloud-only</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<section>
+    <h2>2. Systemanforderungen für den n8n-Server 2026</h2>
+    <p>Die Anforderungen hängen stark vom Workflow-Volumen ab. Für klassische Büro-Automatisierung mit wenigen hundert Ausführungen pro Tag reicht bereits ein kleiner VPS. Sobald aber Queue-Mode, mehrere Worker und KI-gestützte Agents laufen, steigen RAM und CPU-Bedarf deutlich.</p>
+    <p>Als Faustregel für 2026 gilt: <strong>mindestens 2 vCPU und 4 GB RAM</strong> für nicht-kritische Workflows, <strong>4 vCPU und 8–16 GB RAM</strong> für produktive Setups mit Queue-Mode und Main-Datenbank auf demselben Host. Für High-Volume-Setups mit mehr als 100.000 Executions pro Monat empfehlen wir eine getrennte Datenbankinstanz.</p>
+    <p>Der Festplattenspeicher ist meist zweitrangig, da Workflows selbst nur Kilobytes groß sind. Wichtiger ist schneller SSD-Speicher mit hoher IOPS für die Datenbank – NVMe-SSDs sind 2026 Standard.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Szenario</th>
+                <th>vCPU</th>
+                <th>RAM</th>
+                <th>Storage</th>
+                <th>Empfehlung</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Hobby / Test</td>
+                <td>1</td>
+                <td>2 GB</td>
+                <td>20 GB SSD</td>
+                <td>VPS S</td>
+            </tr>
+            <tr>
+                <td>Kleinunternehmen</td>
+                <td>2</td>
+                <td>4 GB</td>
+                <td>40 GB SSD</td>
+                <td>VPS M</td>
+            </tr>
+            <tr>
+                <td>Produktiv / Queue-Mode</td>
+                <td>4</td>
+                <td>8–16 GB</td>
+                <td>80 GB NVMe</td>
+                <td>VPS L / Dedicated</td>
+            </tr>
+            <tr>
+                <td>Enterprise / HA</td>
+                <td>8+</td>
+                <td>32 GB+</td>
+                <td>160 GB NVMe</td>
+                <td>Cluster (3 Nodes)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p>Betriebssystem-seitig unterstützt n8n offiziell <strong>Ubuntu 22.04 LTS, 24.04 LTS, Debian 12, Rocky Linux 9</strong> und <strong>AlmaLinux 9</strong>. Für Container-Setups spielt das Host-OS kaum eine Rolle – hier zählt nur eine aktuelle Docker- oder Podman-Version.</p>
+</section>
+
+<section>
+    <h2>3. n8n mit Docker installieren – Schnellstart in 5 Minuten</h2>
+    <p>Die einfachste und von der Community empfohlene Variante ist die Installation per Docker. n8n veröffentlicht wöchentlich aktualisierte Images auf Docker Hub unter <code>n8nio/n8n</code>. Wir empfehlen, das Image mit einem konkreten Tag zu pinnen, um reproduzierbare Deployments zu garantieren.</p>
+    <p>Voraussetzung ist ein laufender Docker-Daemon und idealerweise Docker Compose ab Version 2.20. Auf einem frischen Ubuntu 24.04 installierst du Docker in unter zwei Minuten:</p>
+
+    <pre><code># Docker & Compose installieren
+sudo apt update &amp;&amp; sudo apt install -y ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release &amp;&amp; echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+sudo apt update &amp;&amp; sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+</code></pre>
+
+    <p>Anschließend legst du eine <code>docker-compose.yml</code> im Verzeichnis <code>/opt/n8n</code> an:</p>
+
+    <pre><code>version: "3.8"
+
+services:
+  n8n:
+    image: n8nio/n8n:1.74.1
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      - N8N_HOST=automation.deinedomain.de
+      - N8N_PORT=443
+      - N8N_PROTOCOL=https
+      - GENERIC_TIMEZONE=Europe/Berlin
+      - N8N_SECURE_COOKIE=true
+      - DB_SQLITE_VACUUM_ON_SHUTDOWN=true
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./files:/files
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5678/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  n8n_data:
+</code></pre>
+
+    <p>Starten, Logs prüfen, fertig:</p>
+
+    <pre><code>sudo docker compose up -d
+sudo docker compose logs -f n8n
+</code></pre>
+
+    <p>n8n ist nun unter <code>http://deinserver:5678</code> erreichbar. Im nächsten Schritt setzen wir einen Reverse Proxy mit SSL davor, damit die Instanz produktiv unter einer Domain laufen kann.</p>
+</section>
+
+<section>
+    <h2>4. Reverse Proxy mit Nginx und Let's Encrypt einrichten</h2>
+    <p>Ein Reverse Proxy ist Pflicht: Er terminiert TLS, leitet WebSocket-Verbindungen für die Live-Editor-Ansicht weiter und schützt den n8n-Port 5678 vor direktem Zugriff. Bewährt hat sich die Kombination aus <strong>Nginx</strong> als Proxy und <strong>Certbot</strong> für kostenlose SSL-Zertifikate von Let's Encrypt.</p>
+    <p>Installation unter Ubuntu:</p>
+
+    <pre><code>sudo apt install -y nginx certbot python3-certbot-nginx
+</code></pre>
+
+    <p>Konfiguration unter <code>/etc/nginx/sites-available/n8n.conf</code>:</p>
+
+    <pre><code>server {
+    server_name automation.deinedomain.de;
+
+    location / {
+        proxy_pass http://127.0.0.1:5678;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 3600;
+    }
+}
+</code></pre>
+
+    <p>Aktivieren, SSL holen, Nginx neu laden:</p>
+
+    <pre><code>sudo ln -s /etc/nginx/sites-available/n8n.conf /etc/nginx/sites-enabled/
+sudo certbot --nginx -d automation.deinedomain.de
+sudo systemctl reload nginx
+</code></pre>
+
+    <p>Let's-Encrypt-Zertifikate werden automatisch alle 60 Tage erneuert. Wer lieber Traefik oder Caddy nutzt, kann diese Schritte 1:1 mit den jeweiligen Provider-Syntaxen umsetzen – n8n spielt mit jedem modernen Reverse-Proxy zusammen.</p>
+</section>
+
+<section>
+    <h2>5. Datenbank-Backend: SQLite vs. PostgreSQL</h2>
+    <p>Standardmäßig nutzt n8n eine eingebettete <strong>SQLite</strong>-Datenbank. Sie ist praktisch für den Schnellstart, stößt aber bei produktiven Lasten schnell an Grenzen: kein paralleler Schreibzugriff, keine Replikation, keine Backups auf Datei-Ebene im laufenden Betrieb.</p>
+    <p>Für den produktiven Einsatz 2026 ist <strong>PostgreSQL</strong> klar die erste Wahl. PostgreSQL ab Version 14 bietet exzellente Performance, JSONB-Indexierung (perfekt für n8n-Workflow-Definitionen) und bewährte Backup-Tools wie <code>pg_dump</code> und WAL-Archivierung.</p>
+    <p>Umstellung auf PostgreSQL – einfach ein zusätzlicher Service in <code>docker-compose.yml</code>:</p>
+
+    <pre><code>services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: n8n-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: n8n
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: supersecret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n8n"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  n8n:
+    image: n8nio/n8n:1.74.1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD=supersecret
+    # ... rest wie oben
+
+volumes:
+  postgres_data:
+</code></pre>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Kriterium</th>
+                <th>SQLite</th>
+                <th>PostgreSQL</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Setup-Aufwand</td>
+                <td>Keiner</td>
+                <td>Mittel</td>
+            </tr>
+            <tr>
+                <td>Parallele Schreibzugriffe</td>
+                <td>❌</td>
+                <td>✅</td>
+            </tr>
+            <tr>
+                <td>Hot-Backups</td>
+                <td>❌</td>
+                <td>✅ (pg_basebackup)</td>
+            </tr>
+            <tr>
+                <td>Queue-Mode kompatibel</td>
+                <td>❌</td>
+                <td>✅</td>
+            </tr>
+            <tr>
+                <td>Empfehlung 2026</td>
+                <td>Test / Dev</td>
+                <td>Produktion</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<section>
+    <h2>6. Queue-Mode und Skalierung mit Redis</h2>
+    <p>Sobald Workflows länger als ein paar Sekunden laufen oder parallele Ausführungen benötigt werden, schaltest du den <strong>Queue-Mode</strong> ein. n8n nutzt dann <strong>Redis</strong> als Message-Broker zwischen Main-Instanz (UI, API) und beliebig vielen Worker-Instanzen, die die eigentlichen Workflows ausführen.</p>
+    <p>Architektur im Queue-Mode:</p>
+    <ul>
+        <li><strong>Main</strong>: Web-UI, REST-API, Webhook-Endpoints</li>
+        <li><strong>Worker</strong>: führen Workflow-Executions aus</li>
+        <li><strong>Redis</strong>: Pub/Sub-Broker für Job-Queue</li>
+        <li><strong>PostgreSQL</strong>: persistenter Storage</li>
+    </ul>
+
+    <pre><code>services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

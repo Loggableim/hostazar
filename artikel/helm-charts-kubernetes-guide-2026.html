@@ -759,6 +759,200 @@
     </div>
 
 <h1>Helm Charts – Kubernetes Package Manager Einführung &amp; Praxis 2026</h1>
+<h2>1. Was sind Helm Charts? – Einführung in den Kubernetes Package Manager</h2>
+
+    <p>Ein <strong>Helm Chart</strong> ist im Kern ein strukturiertes Verzeichnis mit Dateien, die ein zusammengehöriges Set an Kubernetes-Ressourcen beschreiben. Vergleichbar mit einem Paket in Betriebssystemen wie Debian (apt) oder Red Hat (yum/dnf) kapselt ein Chart alle für eine Anwendung notwendigen Manifeste, Standardkonfigurationen und Abhängigkeiten. Helm nutzt diese Pakete, um sogenannte <strong>Releases</strong> in einem Kubernetes-Cluster zu installieren, zu aktualisieren oder zu entfernen.</p>
+
+    <p>Die Idee ist bestechend einfach: Anstatt 15 einzelne YAML-Dateien für eine typische Web-Anwendung (Deployment, Service, Ingress, ConfigMap, Secret, HPA, ServiceAccount, NetworkPolicy, PodDisruptionBudget, etc.) separat mit <code>kubectl apply</code> auszurollen, definieren Sie diese einmal in einem Chart und installieren sie mit einem einzigen Befehl: <code>helm install my-release ./my-chart</code>. Änderungen an der Konfiguration werden versioniert, Releases können jederzeit auf eine frühere Version zurückgerollt werden.</p>
+
+    <p>Helm wurde ursprünglich von Deis entwickelt und 2015 erstmals vorgestellt. Heute ist das Projekt offiziell <strong>CNCF Graduated</strong> und wird von einer breiten Community getragen. Die aktuelle Generation – oft als Helm 3.x bezeichnet, mit stabilen Releases bis 2026 – hat viele Kinderkrankheiten der Vorgängerversion abgelegt: Tiller als serverseitige Komponente wurde komplett entfernt, die Sicherheit deutlich erhöht und die Architektur vereinfacht. Helm 3 speichert Release-Informationen nun direkt als Kubernetes Secrets im Cluster, was die Bedienung transparenter macht.</p>
+
+    <p>Für Einsteiger ist wichtig zu verstehen, dass Helm drei zentrale Begriffe definiert: <strong>Chart</strong> (das Paket selbst), <strong>Repository</strong> (ein Ort, an dem Charts gespeichert und verteilt werden, klassisch als HTTP-Index oder modern als OCI-Registry) und <strong>Release</strong> (eine konkrete Instanziierung eines Charts in einem Cluster). Ein einzelnes Chart kann beliebig oft als verschiedene Releases installiert werden – etwa eine produktive und eine staging-Variante parallel mit unterschiedlichen Konfigurationen.</p>
+
+    <h2>2. Helm Architektur und Komponenten verstehen</h2>
+
+    <p>Die Architektur von Helm 3 ist bewusst schlank gehalten und folgt dem Client-only-Prinzip. Im Gegensatz zu Helm 2 gibt es keine serverseitige Komponente (Tiller) mehr, was die Sicherheitslage grundlegend verbessert. Der <code>helm</code>-CLI-Client kommuniziert direkt mit dem Kubernetes-API-Server und nutzt dabei die kubeconfig-Datei des Nutzers – exakt so, wie Sie es von <code>kubectl</code> kennen.</p>
+
+    <p>Die wichtigsten Bestandteile im Überblick:</p>
+
+    <ul>
+        <li><strong>helm CLI</strong> – Das Kommandozeilen-Werkzeug, das Sie lokal installieren. Es interpretiert Charts, rendert Templates, kommuniziert mit dem Cluster und verwaltet Releases.</li>
+        <li><strong>Charts</strong> – Verzeichnisse oder Tar-Archive mit den Anwendungsdefinitionen (YAML + Templates).</li>
+        <li><strong>Helm Libraries</strong> – Wiederverwendbare Chart-Bausteine, die als Abhängigkeit eingebunden werden, ohne selbst ein Release zu erzeugen.</li>
+        <li><strong>Repositories</strong> – Sammlungen von Charts. Klassisch über HTTP-Index-Dateien (Artifact Hub), modern zunehmend als OCI-konforme Container-Registries.</li>
+        <li><strong>Releases</strong> – Konkrete Installationen eines Charts in einem Cluster. Helm speichert Metadaten, Status und Historie als Kubernetes-Secrets im Namespace.</li>
+    </ul>
+
+    <p>Wenn Sie <code>helm install</code> ausführen, passiert im Hintergrund Folgendes: Das CLI lädt das Chart (lokal oder aus einem Repo), parst die <code>values.yaml</code>, kombiniert diese mit benutzerdefinierten Werten, rendert die Go-Templates, validiert die resultierenden Kubernetes-Manifeste und schickt sie an den API-Server. Anschließend wird ein Secret mit dem Namen <code>sh.helm.release.v1.&lt;release-name&gt;</code> im Ziel-Namespace angelegt, das den Release-Status enthält.</p>
+
+    <p>Für die Template-Verarbeitung nutzt Helm die <a href="https://pkg.go.dev/text/template" target="_blank" rel="noopener">Go-Template-Engine</a> in Kombination mit <code>sprig</code>-Funktionen (über 70 hilfreiche Helper) und der <code>extra</code>-Bibliothek für erweiterte Funktionen. Diese Kombination ist extrem mächtig, erfordert aber auch eine gewisse Einarbeitung – wir gehen darauf in einem späteren Abschnitt detailliert ein.</p>
+
+    <h2>3. Helm Installation und CLI-Grundlagen 2026</h2>
+
+    <p>Die Installation von Helm ist auf allen gängigen Plattformen unkompliziert. Auf Linux/macOS empfiehlt sich die Verwendung des offiziellen Installationsskripts oder eines Paketmanagers. Für Windows-Nutzer stehen Chocolatey, Scoop oder winget zur Verfügung. Achten Sie bei der Installation darauf, eine aktuelle 3.x-Version zu verwenden – idealerweise >= 3.14, da hier viele Sicherheits- und Performance-Verbesserungen einfließen, die 2026 relevant sind.</p>
+
+    <h3>Installation unter Linux/macOS</h3>
+    <pre><code># Offizielles Installationsskript (empfohlen)
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+
+# Alternativ via Homebrew (macOS)
+brew install helm
+
+# Verifizierung
+helm version --short
+# Ausgabe: v3.16.0+g58d6e7f
+</code></pre>
+
+    <h3>Installation unter Windows</h3>
+    <pre><code># Via winget
+winget install Helm.Helm
+
+# Via Chocolatey
+choco install kubernetes-helm
+
+# Via Scoop
+scoop install helm
+</code></pre>
+
+    <p>Nach der Installation sollten Sie die Verbindung zu Ihrem Cluster testen. Helm nutzt die gleiche <code>KUBECONFIG</code>-Umgebungsvariable wie <code>kubectl</code>:</p>
+    <pre><code># Cluster-Konnektivität prüfen
+kubectl cluster-info
+helm list --all-namespaces
+
+# Helm-spezifische Umgebungsvariablen
+export HELM_NAMESPACE=production
+export HELM_KUBECONTEXT=my-cluster-context
+</code></pre>
+
+    <p>Die wichtigsten CLI-Befehle für den Alltag fasst die folgende Tabelle zusammen. Sie bildet das Fundament für die weitere Arbeit mit Helm und sollte auswendig oder zumindest griffbereit sein:</p>
+
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Befehl</th>
+                <th>Beschreibung</th>
+                <th>Typischer Use-Case</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>helm create &lt;name&gt;</code></td>
+                <td>Erstellt ein neues Chart-Skelett</td>
+                <td>Eigenes Chart entwickeln</td>
+            </tr>
+            <tr>
+                <td><code>helm install &lt;name&gt; &lt;chart&gt;</code></td>
+                <td>Installiert ein Chart als Release</td>
+                <td>Neue Anwendung ausrollen</td>
+            </tr>
+            <tr>
+                <td><code>helm upgrade &lt;name&gt; &lt;chart&gt;</code></td>
+                <td>Aktualisiert ein bestehendes Release</td>
+                <td>Neue Version deployen</td>
+            </tr>
+            <tr>
+                <td><code>helm rollback &lt;name&gt; &lt;rev&gt;</code></td>
+                <td>Rollt ein Release auf eine frühere Revision zurück</td>
+                <td>Nach fehlgeschlagenem Deployment</td>
+            </tr>
+            <tr>
+                <td><code>helm uninstall &lt;name&gt;</code></td>
+                <td>Entfernt ein Release komplett</td>
+                <td>Anwendung stilllegen</td>
+            </tr>
+            <tr>
+                <td><code>helm list</code></td>
+                <td>Listet alle Releases im Namespace</td>
+                <td>Statusübersicht</td>
+            </tr>
+            <tr>
+                <td><code>helm repo add &lt;name&gt; &lt;url&gt;</code></td>
+                <td>Fügt ein Chart-Repository hinzu</td>
+                <td>Public Charts einbinden</td>
+            </tr>
+            <tr>
+                <td><code>helm search repo &lt;keyword&gt;</code></td>
+                <td>Sucht in konfigurierten Repos</td>
+                <td>Passendes Chart finden</td>
+            </tr>
+            <tr>
+                <td><code>helm template &lt;name&gt; &lt;chart&gt;</code></td>
+                <td>Rendert Templates lokal (kein Deployment)</td>
+                <td>Dry-Run / Validierung</td>
+            </tr>
+            <tr>
+                <td><code>helm lint &lt;chart&gt;</code></td>
+                <td>Prüft Chart auf Syntax- und Best-Practice-Fehler</td>
+                <td>CI/CD-Pipeline</td>
+            </tr>
+            <tr>
+                <td><code>helm package &lt;chart&gt;</code></td>
+                <td>Packt ein Chart in ein .tgz-Archiv</td>
+                <td>Veröffentlichung vorbereiten</td>
+            </tr>
+            <tr>
+                <td><code>helm show values &lt;chart&gt;</code></td>
+                <td>Zeigt konfigurierbare Werte an</td>
+                <td>Konfiguration erkunden</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>4. Anatomie eines Helm Charts – Verzeichnisstruktur erklärt</h2>
+
+    <p>Ein Helm Chart folgt einer klar definierten Verzeichnisstruktur. Wenn Sie mit <code>helm create my-app</code> ein neues Chart anlegen, generiert Helm ein vollständiges Skelett, das Sie als Vorlage nutzen können. Das Verständnis dieser Struktur ist essenziell, denn jedes Element erfüllt einen bestimmten Zweck im Template- und Packaging-Prozess.</p>
+
+    <pre><code>my-app/
+├── Chart.yaml              # Metadaten des Charts (Name, Version, Maintainer)
+├── Chart.lock              # Lock-Datei für Abhängigkeiten (automatisch generiert)
+├── values.yaml             # Standard-Konfigurationswerte
+├── values.schema.json      # Optionale JSON-Schema-Validierung für values
+├── LICENSE                 # Lizenzdatei (optional, aber empfohlen)
+├── README.md               # Dokumentation für Nutzer des Charts
+├── .helmignore             # Ausschluss-Liste für helm package
+├── templates/              # Verzeichnis mit Kubernetes-Manifest-Templates
+│   ├── deployment.yaml     # Deployment-Manifest als Go-Template
+│   ├── service.yaml        # Service-Manifest
+│   ├── ingress.yaml        # Ingress-Manifest
+│   ├── configmap.yaml      # ConfigMap-Manifest
+│   ├── hpa.yaml            # HorizontalPodAutoscaler
+│   ├── serviceaccount.yaml # ServiceAccount mit RBAC
+│   ├── NOTES.txt           # Wird nach erfolgreicher Installation angezeigt
+│   ├── _helpers.tpl        # Wiederverwendbare Template-Snippets
+│   └── tests/              # Helm-Test-Ressourcen
+│       └── test-connection.yaml
+├── charts/                 # Gepackte Abhängigkeiten (z. B. .tgz-Dateien)
+└── ci/                     # Optionale CI-Hilfsskripte
+</code></pre>
+
+    <p>Die Datei <code>Chart.yaml</code> ist das Herzstück der Chart-Metadaten. Sie enthält Pflichtfelder wie <code>apiVersion</code>, <code>name</code> und <code>version</code>, aber auch optionale Angaben zu Maintainern, Abhängigkeiten, Keywords und Icon. Ein typisches Beispiel für 2026:</p>
+
+    <pre><code>apiVersion: v2
+name: my-app
+description: Moderne Web-Anwendung als Helm Chart
+type: application
+version: 1.2.0
+appVersion: "2.4.1"
+home: https://hostazar.com
+sources:
+  - https://github.com/example/my-app
+keywords:
+  - web
+  - kubernetes
+  - microservice
+maintainers:
+  - name: hostazar-team
+    email: dev@hostazar.com
+dependencies:
+  - name: postgresql
+    version: 15.2.0
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: redis
+    version: 18.6.0
+    repository: https://charts.bitnami.com/bit
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

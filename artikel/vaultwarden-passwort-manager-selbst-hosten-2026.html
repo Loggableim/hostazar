@@ -759,6 +759,133 @@
     </div>
 
 <h1>Vaultwarden Passwort-Manager selbst hosten – Sicherer als die Cloud 2026</h1>
+<h2>Was ist Vaultwarden und wie unterscheidet es sich von Bitwarden?</h2>
+
+<p>Vaultwarden ist ein inoffizieller, aber äußerst stabiler und weit verbreiteter Bitwarden-kompatibler Server, der ursprünglich unter dem Namen "bitwarden_rs" bekannt war. Das Projekt wurde in der Programmiersprache Rust entwickelt und zeichnet sich durch einen extrem geringen Ressourcenverbrauch aus. Während der offizielle Bitwarden-Server auf Docker-Container mit .NET, MSSQL und einer Reihe weiterer Dienste angewiesen ist, kommt Vaultwarden mit einem einzigen, schlanken Binary aus, das auf praktisch jedem System läuft.</p>
+
+<p>Der entscheidende Vorteil für Self-Hoster liegt in der minimalen Hardware-Anforderung. Ein ausgedienter Raspberry Pi 3, ein älteres NAS oder ein kleiner VPS mit 512 MB RAM reichen völlig aus, um Dutzende oder sogar Hunderte von Nutzern mit einem vollständigen Passwort-Manager zu versorgen. Dies macht Vaultwarden zur idealen Wahl für Heimanwender, kleine Büros, Familien und alle, die eine leistungsfähige Lösung ohne hohe laufende Kosten suchen.</p>
+
+<p>Funktional ist Vaultwarden zu etwa 99 % kompatibel mit dem offiziellen Bitwarden-Server. Alle gängigen Bitwarden-Clients – ob Desktop-App, Browser-Plugin, Mobile-App für iOS und Android oder die Weboberfläche – funktionieren ohne Einschränkungen mit einem selbstgehosteten Vaultwarden-Server. Die Synchronisation erfolgt End-zu-Ende-verschlüsselt mit dem etablierten AES-256-Verfahren, sodass weder der Serverbetreiber noch ein potenzieller Angreifer die gespeicherten Passwörter im Klartext einsehen können.</p>
+
+<p>Die offizielle Bitwarden Cloud hingegen ist ein vollständig verwalteter Dienst, der gegen eine jährliche Gebühr genutzt werden kann. Während dies für Einsteiger komfortabel ist, gibt der Nutzer dabei die Kontrolle über seine sensibelsten Daten ab. Vaultwarden richtet sich an alle, die diesen Kontrollverlust nicht hinnehmen möchten und bereit sind, einen gewissen initialen Aufwand in die Einrichtung zu investieren – ein Aufwand, der sich langfristig durch maximale Sicherheit und Unabhängigkeit auszahlt.</p>
+
+<table>
+<caption>Vergleich Vaultwarden Self-Hosted vs. Bitwarden Cloud</caption>
+<thead>
+<tr><th>Merkmal</th><th>Vaultwarden (Self-Hosted)</th><th>Bitwarden Cloud</th></tr>
+</thead>
+<tbody>
+<tr><td>Speicherort der Daten</td><td>Eigener Server (DE/EU möglich)</td><td>USA (zumeist)</td></tr>
+<tr><td>Kosten pro Jahr</td><td>0 € (nur Serverkosten)</td><td>ab 10 € / Jahr (Premium)</td></tr>
+<tr><td>RAM-Bedarf</td><td>ab 256 MB</td><td>nicht relevant (verwaltet)</td></tr>
+<tr><td>DSGVO-Konformität</td><td>Vollständig kontrollierbar</td><td>Eingeschränkt</td></tr>
+<tr><td>End-zu-Ende-Verschlüsselung</td><td>Ja</td><td>Ja</td></tr>
+<tr><td>Wartungsaufwand</td><td>Manuell</td><td>Keiner</td></tr>
+<tr><td>Anpassbarkeit</td><td>Sehr hoch</td><td>Gering</td></tr>
+<tr><td>Verfügbarkeit</td><td>Eigene Verantwortung</td><td>99,9 % SLA</td></tr>
+</tbody>
+</table>
+
+<h2>Warum ist Self-Hosting 2026 sicherer als jede Cloud-Lösung?</h2>
+
+<p>Die Sicherheit eines Passwort-Managers hängt nicht primär vom Anbieter ab, sondern davon, wer die kryptografischen Schlüssel besitzt. Bei allen seriösen Passwort-Managern – ob Bitwarden, 1Password oder KeePass – erfolgt die Verschlüsselung lokal auf dem Endgerät des Nutzers. Der Server speichert ausschließlich den verschlüsselten Tresor. Dennoch gibt es fundamentale Unterschiede zwischen Cloud und Self-Hosting, die im Ernstfall über die Sicherheit Ihrer Daten entscheiden.</p>
+
+<p>Bei kommerziellen Cloud-Anbietern haben Sie als Kunde keinerlei Einblick in die tatsächliche Sicherheitsarchitektur. Sie wissen nicht, welche Mitarbeiter Zugriff auf die Server haben, ob Zero-Knowledge-Architektur wirklich konsequent umgesetzt ist, welche Subunternehmer eingebunden sind und welche Backups wo gespeichert werden. Im Falle eines Datenlecks – wie es bei LastPass 2022 geschehen ist – sind Millionen von Nutzern betroffen, obwohl sie alles "richtig" gemacht haben. Bei einem selbstgehosteten Vaultwarden existiert dieses Risiko eines zentralen, massenhaften Datenlecks schlicht nicht.</p>
+
+<p>Ein weiterer kritischer Punkt ist die Datenhoheit nach DSGVO. Wenn Sie Vaultwarden auf einem Server in Deutschland oder der EU betreiben, unterliegen Ihre Daten dem strengen europäischen Datenschutzrecht. Cloud-Anbieter mit Servern in den USA fallen unter den CLOUD Act und den FISA 702, was bedeutet, dass US-Behörden Zugriff auf Ihre Daten verlangen können – auch wenn diese vermeintlich in Europa gespeichert sind. Für Unternehmen, Behörden und sicherheitsbewusste Privatpersonen ist dies ein entscheidender Faktor.</p>
+
+<p>Hinzu kommen Aspekte der Verschlüsselungs-Autonomie. Bei selbstgehostetem Vaultwarden können Sie den gesamten Datenverkehr mit TLS-Zertifikaten eigener Zertifizierungsstellen absichern, zusätzliche Verschlüsselungsschichten einbauen, den Server in einem abgeschirmten Netzwerk betreiben und die Konfiguration jederzeit auf eigene Sicherheitsstandards auditieren. Diese granulare Kontrolle ist bei Cloud-Lösungen strukturell ausgeschlossen.</p>
+
+<p>Schließlich schützt Self-Hosting auch vor Geschäftsrisiken. Cloud-Anbieter können ihren Dienst einstellen, die Preise drastisch erhöhen, von einem anderen Unternehmen übernommen werden oder ihre AGB ändern. Wer einmal in eine selbstgehostete Lösung investiert hat, ist von solchen externen Einflüssen unabhängig und behält die volle Kontrolle über die Zukunft seiner Passwortverwaltung.</p>
+
+<h2>Technische Voraussetzungen für den Vaultwarden-Betrieb</h2>
+
+<p>Die gute Nachricht vorweg: Vaultwarden ist extrem genügsam und läuft auf praktisch jeder modernen Hardware. Für den produktiven Einsatz empfiehlt sich dennoch eine durchdachte Auswahl der Plattform, da der Server rund um die Uhr erreichbar sein sollte, um eine reibungslose Synchronisation aller Geräte zu gewährleisten.</p>
+
+<p>Als Mindestanforderungen gelten ein 64-Bit-Prozessor, mindestens 512 MB RAM, etwa 1 GB freier Speicherplatz für die Docker-Images und Datenbank sowie eine stabile Internetverbindung mit einer festen IP-Adresse oder einem DynDNS-Dienst. Beliebte Plattformen sind ein Raspberry Pi 4 oder 5 mit SSD, ein Synology oder QNAP NAS, ein Mini-PC mit Intel NUC oder ein günstiger VPS bei Anbietern wie Hetzner, Netcup oder IONOS.</p>
+
+<p>Software-seitig benötigen Sie ein Linux-Betriebssystem (Ubuntu, Debian, Fedora oder Alpine haben sich bewährt), Docker und Docker Compose, einen Reverse-Proxy wie Nginx oder Caddy für TLS-Terminierung sowie idealerweise ein Tool zur automatischen Erneuerung von TLS-Zertifikaten. Wer die manuelle Installation bevorzugt, kann Vaultwarden auch als natives Binary ohne Container betreiben – dies erfordert jedoch mehr Konfigurationsaufwand.</p>
+
+<table>
+<caption>Empfohlene Hardware für verschiedene Nutzergruppen</caption>
+<thead>
+<tr><th>Nutzergruppe</th><th>CPU</th><th>RAM</th><th>Speicher</th><th>Plattform</th></tr>
+</thead>
+<tbody>
+<tr><td>Privat (1–2 Nutzer)</td><td>2 Cores</td><td>512 MB</td><td>16 GB SSD</td><td>Raspberry Pi 4, Mini-VPS</td></tr>
+<tr><td>Familie (3–5 Nutzer)</td><td>2 Cores</td><td>1 GB</td><td>32 GB SSD</td><td>NAS, Mini-PC</td></tr>
+<tr><td>KMU (bis 25 Nutzer)</td><td>4 Cores</td><td>4 GB</td><td>64 GB SSD</td><td>VPS, dedizierter Server</td></tr>
+<tr><td>Enterprise (50+ Nutzer)</td><td>8+ Cores</td><td>8+ GB</td><td>128 GB+ SSD</td><td>Cluster, redundante Server</td></tr>
+</tbody>
+</table>
+
+<p>Bevor Sie mit der Installation beginnen, sollten Sie eine eigene Domain oder Subdomain bereitstellen, die auf die IP-Adresse Ihres Servers verweist. Diese Domain wird später für die HTTPS-Verbindung benötigt, da die Bitwarden-Clients TLS-verschlüsselte Verbindungen voraussetzen. Kostenlose DynDNS-Dienste oder eine Domain für wenige Euro pro Jahr reichen für den privaten Gebrauch völlig aus.</p>
+
+<h2>Vaultwarden mit Docker installieren – Schritt-für-Schritt-Anleitung</h2>
+
+<p>Die einfachste und am weitesten verbreitete Methode zur Installation von Vaultwarden ist der Betrieb als Docker-Container. Dies bietet den Vorteil einer reproduzierbaren Umgebung, einfacher Updates und einer klaren Trennung zwischen Anwendung und Host-System. Im Folgenden finden Sie eine vollständige Anleitung für eine produktionsreife Konfiguration.</p>
+
+<p>Zunächst aktualisieren Sie das System und installieren Docker sowie Docker Compose. Unter Ubuntu oder Debian genügen die folgenden Befehle, um die nötigen Pakete bereitzustellen:</p>
+
+<pre><code>sudo apt update &amp;&amp; sudo apt upgrade -y
+sudo apt install -y docker.io docker-compose
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER</code></pre>
+
+<p>Anschließend erstellen Sie ein dediziertes Verzeichnis für die Vaultwarden-Konfiguration und legen dort eine <code>docker-compose.yml</code>-Datei an. Diese Datei definiert den Container, die Umgebungsvariablen, die Ports und die persistenten Daten-Volumes. Eine bewährte Basiskonfiguration sieht wie folgt aus:</p>
+
+<pre><code>version: "3.8"
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      DOMAIN: "https://pw.example.de"
+      SIGNUPS_ALLOWED: "true"
+      INVITATIONS_ALLOWED: "true"
+      SHOW_PASSWORD_HINT: "false"
+      LOG_LEVEL: "warn"
+      ROCKET_WORKERS: 5
+      ENABLE_WEBAUTHN: "true"
+    volumes:
+      - ./vw-data:/data
+    ports:
+      - "127.0.0.1:8080:80"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"</code></pre>
+
+<p>Starten Sie den Container mit <code>docker compose up -d</code>. Vaultwarden ist nun lokal auf Port 8080 erreichbar. Damit die Clients von außen zugreifen können, benötigen Sie noch einen Reverse-Proxy mit TLS-Verschlüsselung. Caddy ist hier besonders elegant, da es TLS-Zertifikate von Let's Encrypt automatisch bezieht und erneuert.</p>
+
+<p>Erstellen Sie eine <code>Caddyfile</code> mit folgendem Inhalt:</p>
+
+<pre><code>pw.example.de {
+    reverse_proxy 127.0.0.1:8080
+    encode gzip
+    tls {
+        protocols tls1.2 tls1.3
+    }
+}</code></pre>
+
+<p>Starten Sie Caddy mit <code>sudo systemctl reload caddy</code>. Ihre Vaultwarden-Instanz ist nun unter <code>https://pw.example.de</code> erreichbar und die Anmeldung im Browser oder in den Bitwarden-Apps kann erfolgen. Achten Sie darauf, dass Sie nach dem ersten Konto weitere Registrierungen deaktivieren, indem Sie <code>SIGNUPS_ALLOWED</code> auf <code>false</code> setzen und den Container neu starten.</p>
+
+<h2>Sicherheits-Härtung von Vaultwarden für den Produktivbetrieb</h2>
+
+<p>Die Standardinstallation von Vaultwarden ist bereits sicher, kann jedoch durch eine Reihe zusätzlicher Maßnahmen weiter gehärtet werden. In einer Zeit, in der gezielte Angriffe auf Passwort-Manager zunehmen, ist eine Defense-in-Depth-Strategie unerlässlich. Die folgenden Konfigurationen haben sich in der Praxis bewährt und sollten bei jeder produktiven Instanz umgesetzt werden.</p>
+
+<p>Aktivieren Sie zunächst die Fail2Ban-Integration, um Brute-Force-Angriffe auf den Login-Endpunkt automatisch zu blockieren. Vaultwarden protokolliert fehlgeschlagene Anmeldeversuche in einem Log-File, das von Fail2Ban ausgewertet werden kann. Eine passende Filter-Regel sieht wie folgt aus:</p>
+
+<pre><code># /etc/fail2ban/filter.d/vaultwarden.conf
+[Definition]
+failregex = ^.*Username or password is incorrect\. Try again\. IP: &lt;ADDR&gt;.*$
+ignoreregex =</code></pre>
+
+<p>Konfigurieren Sie Fail2Ban so, dass IPs nach fünf Fehlversuchen für eine Stunde gesperrt werden. Ergänzend dazu empfiehlt es sich, den administrativen Zugang zum Server selbst per SSH-Key-Authentifizierung abzusichern, den Root-Login zu deaktivieren und eine Firewall wie <code>ufw</code> oder <code>nftables</code> zu aktivieren, die nur die Ports 80, 443 und 22 (für SSH) freigibt.</p>
+
+<p>Ein weiterer wichtiger Schritt ist die Aktivierung der Zwei-Faktor-Authentifizierung (2FA) für alle Benutzerkonten. Vaultwarden unterstützt TOTP, FIDO2
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

@@ -759,6 +759,191 @@
     </div>
 
 <h1>Llama 3.3 &amp; Llama 4 lokal hosten – Setup, Quantisierung &amp; Performance 2026</h1>
+<h2>Warum lokales Hosting von Llama 3.3 und 3.4 2026 sinnvoll ist</h2>
+
+<p>Das lokale Hosten von Large Language Models wie Llama 3.3 und 3.4 hat sich 2026 zu einem der wichtigsten Trends in der KI-Community entwickelt. Immer mehr Entwickler, Forscher und Unternehmen erkennen die Vorteile, ihre Modelle nicht in der Cloud, sondern auf eigener Hardware zu betreiben. Die Gründe sind vielfältig: Datenschutz, Kostenkontrolle, geringere Latenz und volle Kontrolle über die Modellparameter. Gerade in Deutschland, wo die DSGVO hohe Anforderungen an den Umgang mit personenbezogenen Daten stellt, ist lokales Hosting oft die einzige rechtssichere Option.</p>
+
+<p>Ein weiterer wichtiger Aspekt ist die Unabhängigkeit von Cloud-Anbietern. Wer einmal erlebt hat, wie ein API-Anbieter plötzlich seine Preise erhöht oder seinen Dienst einstellt, weiß die Stabilität eines selbst gehosteten Modells zu schätzen. Mit einer einmaligen Investition in Hardware betreibst du dein Modell jahrelang ohne laufende Kosten, abgesehen vom Stromverbrauch. Bei intensiver Nutzung amortisiert sich die Hardware nach wenigen Monaten.</p>
+
+<p>Die Modelle selbst sind deutlich zugänglicher geworden. Meta hat mit Llama 3.3 eine 70-Milliarden-Parameter-Variante veröffentlicht, die in der Qualität mit GPT-4 konkurriert, aber auf einer einzelnen High-End-GPU betrieben werden kann. Llama 3.4 erweitert diese Familie um multimodale Fähigkeiten und effizientere Architekturen. Beide Modelle sind Open Source und können frei heruntergeladen, modifiziert und weitergegeben werden, was die lokale Nutzung besonders attraktiv macht.</p>
+
+<h2>Systemanforderungen für Llama 3.3 und 3.4</h2>
+
+<p>Die Anforderungen an die Hardware hängen stark von der gewählten Modellvariante und der Quantisierung ab. Llama 3.3 70B in voller Präzision (FP16) benötigt etwa 140 GB VRAM, was den Einsatz von mindestens zwei NVIDIA H100 oder mehreren A100 GPUs erfordert. Durch 4-Bit-Quantisierung lässt sich der Speicherbedarf auf rund 40 GB reduzieren, sodass eine einzelne RTX 4090 mit 24 GB VRAM in Kombination mit aggressivem CPU-Offloading ausreicht. Llama 3.4 nutzt eine ähnliche Architektur, ist aber durch Optimierungen rund 15 Prozent effizienter.</p>
+
+<p>Für die kleineren Varianten wie Llama 3.3 8B sind die Anforderungen deutlich moderater. In voller Präzision benötigt das Modell etwa 16 GB VRAM, was eine RTX 4080 oder eine AMD RX 7900 XTX problemlos bewältigt. In 4-Bit-Quantisierung passen die Gewichte in 4 bis 5 GB VRAM, sodass auch eine RTX 3060 mit 12 GB oder eine Apple Silicon Mac mit M2 Pro ausreicht. Das macht Llama 3.3 8B zum idealen Einstiegsmodell für Entwickler, die erste Erfahrungen mit lokalem LLM-Hosting sammeln möchten.</p>
+
+<p>Neben dem VRAM spielt der Arbeitsspeicher eine wichtige Rolle, insbesondere beim CPU-Offloading. Wir empfehlen mindestens 64 GB RAM für ein 70B-Modell mit 4-Bit-Quantisierung, besser 128 GB für komfortables Arbeiten. Der Speicherplatz ist mit 150 bis 500 GB pro Modell ebenfalls nicht zu unterschätzen. Eine schnelle NVMe-SSD mit mindestens 2 GB/s Lesegeschwindigkeit ist Pflicht, damit das Laden der Modellgewichte nicht zur Geduldsprobe wird.</p>
+
+<table>
+<thead>
+<tr><th>Modell</th><th>Quantisierung</th><th>VRAM</th><th>RAM</th><th>GPU-Empfehlung</th><th>Tokens/s</th></tr>
+</thead>
+<tbody>
+<tr><td>Llama 3.3 8B</td><td>FP16</td><td>16 GB</td><td>32 GB</td><td>RTX 4080</td><td>40-60</td></tr>
+<tr><td>Llama 3.3 8B</td><td>Q4_K_M</td><td>5 GB</td><td>16 GB</td><td>RTX 3060 12GB</td><td>30-50</td></tr>
+<tr><td>Llama 3.3 70B</td><td>FP16</td><td>140 GB</td><td>256 GB</td><td>2x H100</td><td>20-30</td></tr>
+<tr><td>Llama 3.3 70B</td><td>Q4_K_M</td><td>40 GB</td><td>64 GB</td><td>RTX 4090 + Offload</td><td>5-10</td></tr>
+<tr><td>Llama 3.4 8B</td><td>FP16</td><td>16 GB</td><td>32 GB</td><td>RTX 4080</td><td>45-70</td></tr>
+<tr><td>Llama 3.4 70B</td><td>Q4_K_M</td><td>38 GB</td><td>64 GB</td><td>RTX 4090 + Offload</td><td>6-12</td></tr>
+</tbody>
+</table>
+
+<h2>Die besten Tools und Frameworks für lokales Llama-Hosting</h2>
+
+<p>Die Tool-Landschaft für lokales LLM-Hosting hat sich 2026 rasant weiterentwickelt. llama.cpp, ursprünglich von Georgi Gerganov als Hobbyprojekt gestartet, ist heute das wichtigste Framework für CPU- und GPU-basiertes Inferencing. Es unterstützt nahezu alle gängigen Quantisierungsformate, läuft auf Windows, Linux und macOS und bietet mit der GGUF-Format-Erweiterung ein offenes, effizientes Containerformat für Modellgewichte. Für Llama 3.3 und 3.4 ist llama.cpp die erste Wahl.</p>
+
+<p>Als Alternative zu llama.cpp hat sich Ollama etabliert, ein Wrapper, der die Komplexität von llama.cpp in eine einfache Kommandozeilen- und HTTP-API verpackt. Mit einem einzigen Befehl wie <code>ollama run llama3.3:70b-instruct-q4_K_M</code> lädt Ollama das Modell herunter, konfiguriert llama.cpp und startet einen lokalen Server auf Port 11434. Für Entwickler, die schnell einen lokalen LLM-Endpunkt benötigen, ist Ollama die komfortabelste Lösung.</p>
+
+<p>Für produktive Setups mit Web-UI und erweiterten Funktionen empfehlen wir Open WebUI (ehemals Ollama WebUI) als Frontend. Es bietet eine ChatGPT-ähnliche Oberfläche, verwaltet mehrere Modelle parallel, unterstützt RAG-Funktionen und kann in Verbindung mit llama.cpp, Ollama oder auch vLLM betrieben werden. Auch text-generation-webui von oobabooga ist weiterhin beliebt, besonders für Feintuning und Experimente mit Sampling-Parametern.</p>
+
+<pre><code># Installation von Ollama unter Ubuntu 22.04
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Llama 3.3 8B herunterladen und starten
+ollama run llama3.3:8b-instruct-q5_K_M
+
+# Server-Modus mit API auf Port 11434
+OLLAMA_HOST=0.0.0.0:11434 ollama serve
+
+# Test der API
+curl http://localhost:11434/api/generate -d '{
+  "model": "llama3.3:8b-instruct-q5_K_M",
+  "prompt": "Erkläre mir Quantencomputing in einfacher Sprache."
+}'</code></pre>
+
+<h2>Quantisierung verstehen: GGUF, AWQ und GPTQ im Vergleich</h2>
+
+<p>Quantisierung ist der Schlüssel zu effizientem lokalem LLM-Hosting. Dabei werden die Gewichte des Modells von 16-Bit-Floats in niedrigere Präzisionen wie 8-Bit, 4-Bit oder sogar 2-Bit umgewandelt, was den Speicherbedarf drastisch reduziert. Die Qualitätsverluste sind bei modernen Methoden erstaunlich gering: Ein mit Q4_K_M quantisiertes Llama 3.3 70B erreicht über 95 Prozent der Qualität des FP16-Modells, benötigt aber nur ein Drittel des Speichers.</p>
+
+<p>Das GGUF-Format, das von llama.cpp entwickelt wurde, ist 2026 der De-facto-Standard für lokales Hosting. Es unterstützt eine Vielzahl von Quantisierungsmethoden wie Q2_K, Q3_K_S, Q4_0, Q4_K_S, Q4_K_M, Q5_K_S, Q5_K_M, Q6_K und Q8_0. Die K-Suffixe stehen für "small", "medium" und "large" und bezeichnen verschiedene Qualitätsstufen innerhalb derselben Bit-Breite. Q4_K_M ist der Sweet Spot für die meisten Anwendungsfälle.</p>
+
+<p>Alternativ zu GGUF haben sich AWQ (Activation-aware Weight Quantization) und GPTQ (Gradient-based Post-Training Quantization) etabliert, die hauptsächlich im GPU-Ökosystem Verwendung finden. AWQ erhält die Qualität besonders gut bei niedrigen Bitbreiten und wird oft für 4-Bit-Quantisierung auf NVIDIA-GPUs verwendet. GPTQ ist älter, aber immer noch weit verbreitet, besonders in Kombination mit der transformers-Bibliothek von Hugging Face. Für Llama 3.3 und 3.4 empfehlen wir primär GGUF mit llama.cpp.</p>
+
+<table>
+<thead>
+<tr><th>Format</th><th>Bit</th><th>Größe (70B)</th><th>Qualität</th><th>CPU</th><th>GPU</th><th>Empfehlung</th></tr>
+</thead>
+<tbody>
+<tr><td>FP16</td><td>16</td><td>140 GB</td><td>100%</td><td>Langsam</td><td>Schnell</td><td>Maximale Qualität</td></tr>
+<tr><td>Q8_0</td><td>8</td><td>70 GB</td><td>99,5%</td><td>Mittel</td><td>Schnell</td><td>Bei 48+ GB VRAM</td></tr>
+<tr><td>Q6_K</td><td>6</td><td>52 GB</td><td>99%</td><td>Mittel</td><td>Schnell</td><td>Guter Kompromiss</td></tr>
+<tr><td>Q5_K_M</td><td>5</td><td>45 GB</td><td>98,5%</td><td>Schnell</td><td>Sehr schnell</td><td>Sweet Spot</td></tr>
+<tr><td>Q4_K_M</td><td>4</td><td>40 GB</td><td>97%</td><td>Schnell</td><td>Sehr schnell</td><td>Standard</td></tr>
+<tr><td>Q3_K_S</td><td>3</td><td>30 GB</td><td>93%</td><td>Sehr schnell</td><td>Schnell</td><td>Bei wenig VRAM</td></tr>
+<tr><td>Q2_K</td><td>2</td><td>22 GB</td><td>85%</td><td>Extrem schnell</td><td>Schnell</td><td>Nur für Experimente</td></tr>
+</tbody>
+</table>
+
+<h2>GPU-Auswahl: Welche Grafikkarte für welches Modell?</h2>
+
+<p>Die Wahl der richtigen GPU ist die wichtigste Entscheidung beim lokalen LLM-Hosting. NVIDIA dominiert den Markt mit seiner CUDA-Software, die von llama.cpp, vLLM und den meisten anderen Frameworks bevorzugt wird. AMD-GPUs mit ROCm-Unterstützung haben 2026 deutlich aufge
+<h2>Llama 3.3 70B lokal hosten: Der umfassende Leitfaden für 2026</h2>
+<p>Die lokale Bereitstellung großer Sprachmodelle wie Llama 3.3 70B hat sich im Jahr 2026 zu einer echten Alternative zu Cloud-basierten Diensten entwickelt. Mit der richtigen Hardware und Software können Sie leistungsstarke KI-Anwendungen betreiben, ohne sensible Daten an externe Anbieter weiterzugeben. Dieser Leitfaden führt Sie durch alle notwendigen Schritte.</p>
+<p>Die Vorteile des lokalen Hostings liegen auf der Hand: Vollständige Datenkontrolle, keine laufenden API-Kosten, keine Begrenzung der Anfragen und die Möglichkeit, das Modell individuell anzupassen. Besonders für Unternehmen mit strengen Compliance-Anforderungen oder sensiblen Daten ist das lokale Hosting oft die einzige praktikable Option.</p>
+<p>Allerdings bringt das lokale Hosting auch Herausforderungen mit sich. Die Hardware-Anforderungen sind erheblich, die Einrichtung erfordert technisches Know-how und die Wartung kann komplex sein. In diesem Artikel erfahren Sie, wie Sie diese Hürden meistern und ein produktives Llama-Setup aufbauen können.</p>
+<p>Llama 3.3 70B ist die neueste Generation von Metas Open-Source-Sprachmodellen und bietet eine Qualität, die mit proprietären Modellen wie GPT-4 konkurrieren kann. Mit 70 Milliarden Parametern versteht und generiert das Modell Texte auf einem Niveau, das viele kommerzielle Lösungen übertrifft.</p>
+
+<h2>Hardware-Anforderungen für Llama 3.3 70B im Detail</h2>
+<p>Die Hardware-Anforderungen für Llama 3.3 70B sind beträchtlich, aber mit der richtigen Planung durchaus machbar. Das Modell selbst benötigt je nach Quantisierung zwischen 40 und 140 GB RAM, wobei die Inferenz zusätzlichen Speicher für den Kontext erfordert.</p>
+<p>Für die CPU-Variante benötigen Sie mindestens 64 GB RAM, idealerweise 128 GB oder mehr. Verwenden Sie schnellen DDR5-Speicher mit hohen Taktraten, um die Token-Generierung zu beschleunigen. Ein Multi-Channel-Memory-Layout verbessert die Bandbreite erheblich.</p>
+<p>Die GPU-Variante ist deutlich schneller, erfordert aber entsprechend teure Hardware. Hier die empfohlenen Konfigurationen:</p>
+<table>
+<thead>
+<tr><th>Quantisierung</th><th>VRAM-Bedarf</th><th>Empfohlene GPU</th><th>Geschwindigkeit</th></tr>
+</thead>
+<tbody>
+<tr><td>Q4_K_M</td><td>~42 GB</td><td>RTX 4090 (24GB) + NVLink</td><td>Mittel</td></tr>
+<tr><td>Q5_K_M</td><td>~48 GB</td><td>2x RTX 4090 oder A6000</td><td>Gut</td></tr>
+<tr><td>Q6_K</td><td>~55 GB</td><td>A100 80GB</td><td>Sehr gut</td></tr>
+<tr><td>Q8_0</td><td>~70 GB</td><td>2x A100 oder H100</td><td>Exzellent</td></tr>
+<tr><td>FP16</td><td>~140 GB</td><td>4x H100 oder MI300X</td><td>Maximum</td></tr>
+</tbody>
+</table>
+<p>Der Speicherplatz ist ein weiterer wichtiger Faktor. Planen Sie mindestens 200 GB freien SSD-Speicher für das Modell und die zugehörigen Daten ein. NVMe-SSDs bieten deutliche Vorteile beim Laden des Modells in den Speicher.</p>
+<p>Die Stromversorgung und Kühlung sollten nicht unterschätzt werden. Hochleistungs-GPUs wie die H100 benötigen bis zu 700 Watt pro Karte. Eine unterbrechungsfreie Stromversorgung (USV) und eine effiziente Kühlung sind essenziell für den produktiven Betrieb.</p>
+
+<h2>Software-Stack: llama.cpp, Ollama und vLLM im Vergleich</h2>
+<p>Für das lokale Hosting von Llama 3.3 70B stehen verschiedene Software-Stacks zur Verfügung, die jeweils unterschiedliche Stärken und Schwächen haben. Die Wahl des richtigen Stacks hängt von Ihren Anforderungen an Performance, Benutzerfreundlichkeit und Funktionsumfang ab.</p>
+<p>llama.cpp ist das bekannteste Open-Source-Projekt für lokale LLM-Inferenz. Es unterstützt verschiedene Quantisierungsformate und läuft auf einer breiten Palette von Hardware. Die Performance ist exzellent, besonders auf Apple Silicon und modernen CPUs. Die Einrichtung erfordert allerdings technisches Know-how.</p>
+<p>Ollama baut auf llama.cpp auf und bietet eine deutlich vereinfachte Benutzererfahrung. Mit einem einzigen Befehl können Sie Modelle herunterladen und starten:</p>
+<pre><code>curl -fsSL https://ollama.com/install.sh | sh
+ollama pull llama3.3:70b-instruct-q5_K_M
+ollama run llama3.3:70b-instruct-q5_K_M</code></pre>
+<p>vLLM ist auf maximale Durchsatzrate optimiert und eignet sich besonders für Produktionsumgebungen mit vielen gleichzeitigen Anfragen. Die PagedAttention-Technologie ermöglicht eine effiziente Speichernutzung und hohe Token-Raten. vLLM ist die erste Wahl, wenn Sie einen API-ähnlichen Service betreiben möchten.</p>
+<p>Hier eine vergleichende Übersicht der drei Lösungen:</p>
+<table>
+<thead>
+<tr><th>Feature</th><th>llama.cpp</th><th>Ollama</th><th>vLLM</th></tr>
+</thead>
+<tbody>
+<tr><td>Einrichtung</td><td>Komplex</td><td>Einfach</td><td>Mittel</td></tr>
+<tr><td>Performance</td><td>Sehr gut</td><td>Sehr gut</td><td>Exzellent</td></tr>
+<tr><td>Durchsatz</td><td>Mittel</td><td>Mittel</td><td>Hoch</td></tr>
+<tr><th>GPU-Support</th><td>Ja</td><td>Ja</td><td>Ja</td></tr>
+<tr><td>CPU-Support</td><td>Ja</td><td>Ja</td><td>Begrenzt</td></tr>
+<tr><td>API-Kompatibilität</td><td>Manuell</td><td>Integriert</td><td>OpenAI-kompatibel</td></tr>
+</tbody>
+</table>
+<p>Für Einsteiger empfehlen wir Ollama, da es die schnellste Möglichkeit bietet, mit Llama 3.3 70B zu experimentieren. Für Produktionsumgebungen ist vLLM die bessere Wahl, während llama.cpp die maximale Flexibilität und Kontrolle bietet.</p>
+
+<h2>Modell-Download und Quantisierung verstehen</h2>
+<p>Bevor Sie Llama 3.3 70B nutzen können, müssen Sie das Modell herunterladen und gegebenenfalls quantisieren. Die Quantisierung reduziert die Modellgröße, indem die Präzision der Gewichte verringert wird. Dies geht mit einem geringen Qualitätsverlust einher, ermöglicht aber den Betrieb auf weniger leistungsstarker Hardware.</p>
+<p>Das offizielle Llama-3.3-70B-Modell können Sie über die Meta-Website oder Hugging Face herunterladen. Beachten Sie die Lizenzbedingungen und füllen Sie das erforderliche Formular aus. Nach der Genehmigung erhalten Sie Zugriff auf die Download-Links.</p>
+<p>Verwenden Sie das <code>huggingface-cli</code> oder <code>git lfs</code> für den Download:</p>
+<pre><code>huggingface-cli login
+huggingface-cli download meta-llama/Llama-3.3-70B-Instruct --include "*.safetensors" --local-dir ./llama-3.3-70b</code></pre>
+<p>Die Quantisierung erfolgt mit llama.cpp. Klonen Sie das Repository und kompilieren Sie die Quantisierungstools:</p>
+<pre><code>git clone https://github.com/ggerganov/llama.cpp
+cd llama.cpp
+make
+python3 -m pip install -r requirements.txt</code></pre>
+<p>Konvertieren Sie das Hugging Face-Modell in das GGUF-Format und quantisieren Sie es:</p>
+<pre><code>python convert_hf_to_gguf.py ../llama-3.3-70b
+./llama-quantize ../llama-3.3-70b/ggml-model-f16.gguf ../llama-3.3-70b/llama-3.3-70b-q5_K_M.gguf Q5_K_M</code></pre>
+<p>Die Wahl der Quantisierung ist ein Kompromiss zwischen Modellgröße und Qualität. Q4_K_M bietet die beste Kompression, Q8_0 die höchste Qualität. Für die meisten Anwendungsfälle ist Q5_K_M ein guter Mittelweg.</p>
+
+<h2>Installation und Konfiguration von Ollama</h2>
+<p>Ollama hat sich als die benutzerfreundlichste Lösung für das lokale Hosting von LLMs etabliert. Die Installation ist auf allen gängigen Plattformen einfach und die Bedienung erfolgt über eine klare Kommandozeilen-Schnittstelle. In diesem Abschnitt führen wir Sie durch die komplette Einrichtung.</p>
+<p>Die Installation auf Linux-Systemen erfolgt über ein offizielles Installationsskript. Stellen Sie sicher, dass <code>curl</code> installiert ist, und führen Sie den Befehl aus:</p>
+<pre><code>curl -fsSL https://ollama.com/install.sh | sh</code></pre>
+<p>Das Skript erkennt automatisch Ihre GPU und installiert die passenden Treiber. Nach der Installation startet der Ollama-Dienst automatisch. Überprüfen Sie den Status mit:</p>
+<pre><code>systemctl status ollama
+ollama --version</code></pre>
+<p>Um ein Modell zu verwenden, laden Sie es zunächst herunter. Ollama verwaltet die Modelle in einem lokalen Cache und lädt sie bei Bedarf in den Speicher:</p>
+<pre><code>ollama pull llama3.3:70b-instruct-q5_K_M
+ollama list</code></pre>
+<p>Starten Sie eine interaktive Sitzung mit dem Modell, um die Funktionalität zu testen:</p>
+<pre><code>ollama run llama3.3:70b-instruct-q5_K_M
+>>> Was ist die Hauptstadt von Deutschland?
+Die Hauptstadt von Deutschland ist Berlin.</code></pre>
+<p>Ollama bietet auch eine REST-API, die auf Port 11434 lauscht. Diese können Sie für die Integration in eigene Anwendungen nutzen:</p>
+<pre><code>curl http://localhost:11434/api/generate -d '{
+  "model": "llama3.3:70b-instruct-q5_K_M",
+  "prompt": "Erkläre Quantencomputing in einfachen Worten",
+  "stream": false
+}'</code></pre>
+<p>Konfigurieren Sie Ollama durch Bearbeitung der Datei <code>/etc/ollama/config.json</code> oder durch Setzen von Umgebungsvariablen. Sie können den Standard-Modellpfad, den Kontext-Speicher und die Anzahl der parallelen Anfragen anpassen.</p>
+
+<h2>Optimierung der Inferenz-Performance</h2>
+<p>Die Performance von Llama 3.3 70B hängt von vielen Faktoren ab, darunter Hardware, Software-Konfiguration und die gewählten Parameter. Mit einigen Optimierungen können Sie die Token-Rate erheblich steigern und die Latenz reduzieren.</p>
+<p>Der Kontext-Konfigurationswert beeinflusst, wie viele Tokens das Modell bei der Generierung berücksichtigt. Ein größerer Kontext ermöglicht längere Unterhaltungen, verbraucht aber mehr Speicher und reduziert die Geschwindigkeit. Finden Sie den optimalen Wert für Ihren Anwendungsfall:</p>
+<pre><code>ollama run llama3.3:70b-instruct-q5_K_M --ctx-size 8192</code></pre>
+<p>Die Batch-Größe bestimmt, wie viele Tokens parallel verarbeitet werden. Größere Batches verbessern den Durchsatz, erhöhen aber die Latenz für einzelne Anfragen. Für interaktive Anwendungen sind kleinere Batches besser, für Batch-Jobs größere.</p>
+<p>Aktivieren Sie die Flash Attention, sofern Ihre Hardware dies unterstützt. Diese Technik reduziert den Speicherverbrauch und beschleunigt die Inferenz erheblich:</p>
+<pre><code>ollama run llama3.3:70b-instruct-q5_K_M --flash-attention</code></pre>
+<p>Die Nutzung von GPU-Acceleration ist der größte Performance-Hebel. Stellen Sie sicher
+Titel: Llama 3.3 & Llama 4 lokal hosten – Setup, Quantisierung & Performance 2026
+
+Topics:
+1. Überblick Llama 3.3 & Llama 4
+2. Hardware-Anforderungen
+3. Installation mit Ollama/llama.cpp
+4. Quantisierungsformate
+5. Performance-Tuning
+6. API-Betrieb
+7. Sicherheit & Sandboxing
+8. Vergleich zu 2024/2025
   <a href="/artikel/mistral-modelle-lokal-hosten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/mistral-modelle-lokal-hosten-2026.webp" alt="Mistral Large &amp; Mixtral 8x22B lokal hosten – MoE-Modelle selbst betreiben 2026" loading="lazy" width="400" height="200"></div>
   </a>

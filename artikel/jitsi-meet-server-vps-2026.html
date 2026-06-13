@@ -759,6 +759,113 @@
     </div>
 
 <h1>Jitsi Meet Server selbst hosten – Videokonferenzen auf VPS 2026</h1>
+<h2>Jitsi Meet Server auf VPS hosten: Sichere Videokonferenzen 2026</h2>
+<p>In einer Zeit, in der digitale Kommunikation eine zentrale Rolle in Unternehmen, Bildung und Privatleben spielt, gewinnen selbstgehostete Videokonferenzlösungen zunehmend an Bedeutung. Jitsi Meet hat sich als eine der führenden Open-Source-Alternativen zu kommerziellen Anbietern wie Zoom oder Microsoft Teams etabliert. Die Software basiert auf bewährten WebRTC-Standards und bietet eine erstaunlich einfache Einrichtung bei gleichzeitig hoher Funktionsvielfalt.</p>
+<p>Die Vorteile eines selbstgehosteten Jitsi-Servers liegen auf der Hand: vollständige Datenkontrolle, keine Teilnehmerbegrenzung, keine Aufzeichnungsminuten, die bei Drittanbietern anfallen, und die Möglichkeit, das System an eigene Bedürfnisse anzupassen. Besonders für Organisationen mit strengen Datenschutzanforderungen ist Jitsi Meet eine attraktive Option.</p>
+<p>Dieser Leitfaden führt dich durch alle notwendigen Schritte, um 2026 einen produktiven Jitsi Meet Server auf einem VPS zu installieren, abzusichern und zu betreiben. Wir berücksichtigen die neueste Jitsi-Version, aktuelle Sicherheitsempfehlungen und Performance-Optimierungen für Konferenzen mit mehreren Teilnehmern.</p>
+
+<h2>Systemanforderungen für Jitsi Meet 2026</h2>
+<p>Die Hardwareanforderungen von Jitsi Meet skalieren linear mit der Anzahl der gleichzeitigen Teilnehmer. Während ein kleines Team mit einfacher Ausstattung zurechtkommt, benötigen größere Konferenzen deutlich mehr Ressourcen, insbesondere hinsichtlich CPU und Bandbreite.</p>
+<p>Als Faustregel gilt: Pro gleichzeitigen Videostream sollten etwa 2-4 MBit/s Upload-Bandbreite zur Verfügung stehen. Da Jitsi für jede Konferenz mehrere Streams verarbeitet, empfehlen wir für produktive Setups eine 1-Gbit/s-Anbindung. Hier die empfohlenen Spezifikationen:</p>
+<table>
+<thead>
+<tr><th>Teilnehmer</th><th>CPU</th><th>RAM</th><th>Speicher</th><th>Bandbreite</th></tr>
+</thead>
+<tbody>
+<tr><td>Bis 20</td><td>2 vCPU</td><td>4 GB</td><td>40 GB SSD</td><td>100 Mbit/s</td></tr>
+<tr><td>Bis 50</td><td>4 vCPU</td><td>8 GB</td><td>80 GB SSD</td><td>500 Mbit/s</td></tr>
+<tr><td>Bis 100</td><td>8 vCPU</td><td>16 GB</td><td>160 GB SSD</td><td>1 Gbit/s</td></tr>
+<tr><td>100+</td><td>16+ vCPU</td><td>32+ GB</td><td>200+ GB NVMe</td><td>1+ Gbit/s</td></tr>
+</tbody>
+</table>
+<p>Bei der Wahl des Standorts solltest du die geografische Nähe zu deinen Nutzern berücksichtigen, da Latenzzeiten die Videoqualität direkt beeinflussen. Für mitteleuropäische Nutzer empfiehlt sich ein Server in Frankfurt, Amsterdam oder Zürich. Achte zudem auf eine großzügige Bandbreitenflatrate ohne Drosselung bei hohem Traffic.</p>
+<p>Als Betriebssystem empfehlen wir Ubuntu 24.04 LTS, das den längsten Support-Zeitraum bietet und alle benötigten Pakete in aktuellen Versionen bereitstellt. Alternativ funktionieren auch Debian 12 Bookworm oder Rocky Linux 9 problemlos.</p>
+
+<h2>Vorbereitung des Servers und DNS-Konfiguration</h2>
+<p>Bevor du mit der Installation beginnst, musst du einige vorbereitende Schritte durchführen. Eine korrekte DNS-Konfiguration ist entscheidend, da Jitsi Meet TLS-Zertifikate benötigt und für die Discovery-Funktion auf korrekte SRV-Records angewiesen ist.</p>
+<p>Erstelle zunächst einen A-Record (oder AAAA-Record für IPv6) für deine Subdomain, die du für Jitsi verwenden möchtest, z. B. <code>meet.example.com</code>. Optional, aber empfohlen, sind zusätzliche SRV-Records, damit andere Jitsi-Instanzen deinen Server automatisch finden können:</p>
+<pre><code>_xmpp-server._tcp.example.com. 86400 IN SRV 0 5 5269 meet.example.com.
+_xmpp-client._tcp.example.com. 86400 IN SRV 0 5 5222 meet.example.com.
+_xmpp-server._tcp.meet.example.com. 86400 IN SRV 0 5 5269 meet.example.com.
+_xmpp-client._tcp.meet.example.com. 86400 IN SRV 0 5 5222 meet.example.com.</code></pre>
+<p>Stelle sicher, dass die Firewall die benötigten Ports freigibt. Jitsi Meet benötigt eine ganze Reihe von Ports, die alle in der UFW geöffnet werden müssen:</p>
+<pre><code>sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw allow 10000/udp
+sudo ufw allow 22/tcp
+sudo ufw enable</code></pre>
+<p>Port 10000/UDP ist besonders wichtig, da er für die RTP-Medienströme verwendet wird. Wird er blockiert, können sich Teilnehmer zwar verbinden, aber kein Audio oder Video übertragen.</p>
+
+<h2>Installation von Jitsi Meet auf Ubuntu</h2>
+<p>Die Installation von Jitsi Meet erfolgt über das offizielle Repository und ist in wenigen Minuten abgeschlossen. Wir verwenden die stabile Releases-Version, die für den Produktiveinsatz empfohlen ist.</p>
+<p>Zunächst fügen wir das Jitsi-Repository und den GPG-Schlüssel hinzu:</p>
+<pre><code>curl -fsSL https://download.jitsi.org/jitsi-key.gpg.key | sudo gpg --dearmor \
+  -o /usr/share/keyrings/jitsi-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/jitsi-keyring.gpg] https://download.jitsi.org/ stable/" \
+  | sudo tee /etc/apt/sources.list.d/jitsi-stable.list
+sudo apt update</code></pre>
+<p>Anschließend installieren wir den Jitsi Meet Stack inklusive aller Abhängigkeiten:</p>
+<pre><code>sudo apt install -y jitsi-meet</code></pre>
+<p>Während der Installation wirst du nach dem Hostnamen gefragt, den du zuvor per DNS konfiguriert hast. Im zweiten Dialog kannst du wählen, ob ein selbstsigniertes Zertifikat erstellt oder ein bestehendes TLS-Zertifikat von Let's Encrypt eingebunden werden soll. Für Produktivsetups empfehlen wir Let's Encrypt, das wir im nächsten Abschnitt konfigurieren werden.</p>
+<p>Die Installation umfasst mehrere Komponenten: Prosody als XMPP-Server, den Jitsi Videobridge (JVB) für die Medienverarbeitung, Jicofo als Konferenzfokus und die Weboberfläche nginx. Alle Dienste werden automatisch als systemd-Units gestartet.</p>
+
+<h2>TLS-Verschlüsselung mit Let's Encrypt einrichten</h2>
+<p>Eine sichere Verschlüsselung ist für Videokonferenzen absolut unerlässlich, da sensible Audio- und Videodaten übertragen werden. Let's Encrypt bietet kostenlose, automatisch erneuerte TLS-Zertifikate und ist die ideale Wahl für Jitsi Meet.</p>
+<p>Das mitgelieferte Installationsskript richtet Let's Encrypt vollautomatisch ein:</p>
+<pre><code>sudo /usr/share/jitsi-meet/scripts/install-letsencrypt-cert.sh</code></pre>
+<p>Du wirst nach einer E-Mail-Adresse für Benachrichtigungen über auslaufende Zertifikate gefragt. Das Skript fordert daraufhin ein Zertifikat über den ACME-HTTP-01-Challenge an und konfiguriert nginx automatisch für die sichere Verbindung. Zudem wird ein Cron-Job eingerichtet, der die Zertifikate rechtzeitig vor Ablauf erneuert.</p>
+<p>Für maximale Sicherheit empfehlen wir zusätzlich die Aktivierung von HSTS und einer strikten Cipher-Suite-Konfiguration. Bearbeite die Datei <code>/etc/nginx/nginx.conf</code> und füge im SSL-Server-Block folgende Direktiven hinzu:</p>
+<pre><code>add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_ciphers ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;</code></pre>
+<p>Überprüfe die Konfiguration mit <code>sudo nginx -t</code> und lade nginx neu, falls keine Fehler gemeldet werden. Mit einem Online-Tool wie SSL Labs kannst du die Konfiguration anschließend auf Herz und Nieren prüfen.</p>
+
+<h2>Sichere Authentifizierung und Zugriffskontrolle</h2>
+<p>Die Standardinstallation von Jitsi Meet erlaubt jedem, der die URL kennt, einen Konferenzraum zu erstellen. Dies ist für öffentliche Instanzen sinnvoll, in geschäftlichen oder Bildungsumgebungen solltest du jedoch den Zugriff beschränken, um unerwünschte Teilnehmer und Brute-Force-Angriffe zu verhindern.</p>
+<p>Die sicherste Methode ist die Aktivierung der Gastauthentifizierung über die Konfiguration von Prosody. Erstelle eine neue Datei <code>/etc/prosody/conf.avail/meet.example.com.cfg.lua</code> mit dem folgenden Inhalt:</p>
+<pre><code>VirtualHost "meet.example.com"
+    authentication = "internal_plain"
+    ssl = { key = "/etc/letsencrypt/live/meet.example.com/privkey.pem";
+            certificate = "/etc/letsencrypt/live/meet.example.com/fullchain.pem" }
+    modules_enabled = { "token_validation" }
+    
+VirtualHost "auth.meet.example.com"
+    authentication = "internal_plain"
+    ssl = { key = "/etc/letsencrypt/live/meet.example.com/privkey.pem";
+            certificate = "/etc/letsencrypt/live/meet.example.com/fullchain.pem" }
+    
+Component "internal-muc.meet.example.com" "muc"
+    modules_enabled = { "token_moderation" }</code></pre>
+<p>Aktiviere die neue Konfiguration mit <code>ln -s</code> und starte alle relevanten Dienste neu. Anschließend können sich nur noch registrierte Benutzer als Moderator einloggen und neue Räume erstellen, während Gäste über einen Token-Mechanismus beitreten können.</p>
+<p>Für die Benutzerverwaltung kannst du <code>prosodyctl</code> verwenden oder eine der verfügbaren LDAP-Integrationen aktivieren, um Benutzer aus deinem Verzeichnisdienst zu synchronisieren.</p>
+
+<h2>Performance-Optimierung und Skalierung</h2>
+<p>Bei größeren Konferenzen ist die Standardkonfiguration schnell an ihren Grenzen. Glücklicherweise bietet Jitsi Meet zahlreiche Stellschrauben zur Performance-Optimierung. Die wichtigste Komponente ist die Jitsi Videobridge (JVB), die für die Medienverarbeitung zuständig ist.</p>
+<p>Erhöhe zunächst die maximale Anzahl der Videostreams pro Konferenz, indem du in <code>/etc/jitsi/videobridge/jvb.conf</code> die folgenden Werte anpasst:</p>
+<pre><code>videobridge {
+    cc { 
+        conference-info { interval = 5000 }
+    }
+    stats {
+        enabled = true
+    }
+}</code></pre>
+<p>Für eine horizontale Skalierung kannst du mehrere JVB-Instanzen auf separaten Servern betreiben und über den Jicofo-Server orchestrieren. Jicofo wählt für jeden Konferenzraum die am besten geeignete Bridge basierend auf Auslastung und Latenz aus. Dies ermöglicht nahezu beliebige Skalierung, erfordert aber zusätzliche Infrastruktur und Monitoring.</p>
+<p>Aktiviere zudem den <code>colibri</code>-Websocket-Support, um modernere Verbindungen zu ermöglichen und die Last auf dem TCP-Stack zu reduzieren. Eine detaillierte Anleitung findest du in der Jitsi-Dokumentation sowie auf hostazar.com.</p>
+
+<h2>Aufzeichnung von Konferenzen</h2>
+<p>Jitsi Meet bietet die Möglichkeit, Konferenzen lokal auf dem Server aufzuzeichnen oder in einen Cloud-Storage zu streamen. Diese Funktion ist besonders für Schulungen, Webinare und Team-Meetings interessant, deren Inhalte später noch einmal angesehen werden sollen.</p>
+<p>Für die lokale Aufzeichnung musst du zunächst das <code>jibri</code>-Paket installieren, das als separates Aufzeichnungsmodul fungiert:</p>
+<pre><code>sudo apt install -y jibri</code></pre>
+<p>Jibri benötigt einen eigenen, unabhängigen Benutzeraccount und einen dedizierten XMPP-Account, um in Konferenzen beitreten zu können. Konfiguriere die Datei <code>/etc/jitsi/jibri/jibri.conf</code> entsprechend deiner Umgebung. Beachte, dass Jibri pro parallel laufender Aufzeichnung etwa 2 GB RAM und 2 CPU-Kerne benötigt, was bei der Kapazitätsplanung berücksichtigt werden muss.</p>
+<p>Die Aufzeichnungen werden standardmäßig im MP4-Format im Verzeichnis <code>/srv/recordings</code> abgelegt. Für eine zentrale Speicherung empfiehlt sich die Anbindung an S3-kompatiblen Storage oder ein NAS, das per NFS eingebunden ist. Auf hostazar.com findest du Anleitungen zur Integration mit Nextcloud und anderen Cloud-Speicherlösungen.</p>
+
+<h2>Mobile Apps und externe Einbindung</h2>
+<p>Eine besondere Stärke von Jitsi Meet ist die Verfügbarkeit nativer Apps für alle gängigen Plattformen. Die mobilen Apps für iOS und Android sowie die Desktop-Clients für Windows, macOS und Linux können sich ohne Änderungen mit deinem selbstgehosteten Server verbinden.</p>
+<p>Beim ersten Start einer mobilen App wirst du aufgefordert, den Servernamen einzugeben. Hier trägst du einfach deine Domain ein, und die App verbindet sich direkt mit deiner Instanz. Für eine reibungslose Nutzung ist es wichtig, dass die korrekten DNS-Records gesetzt sind und alle benötigten Ports in der Firewall freigegeben sind.</p>
+<p>Zusätzlich zur nativen App-Integration kannst du Jitsi Meet per iframe in bestehende Webseiten einbetten. Über die <code>jitsi-meet-external-api.js</code>-Bibliothek lässt sich die Konferenz aus der eigenen Webanwendung heraus steuern, Teilnehmer einladen oder sogar eine angepasste Toolbar verwenden.</p>
+
+<h2>Backup, Monitoring und
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

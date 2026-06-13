@@ -759,6 +759,86 @@
     </div>
 
 <h1>WordPress mit Docker hosten – Modernes Setup 2026</h1>
+<h2>Warum WordPress in Docker hosten?</h2>
+<p>WordPress ist mit über 40 Prozent Marktanteil das mit Abstand beliebteste Content-Management-System weltweit. Die klassische Installation auf einem LAMP-Server ist seit Jahren erprobt, bringt jedoch einige Nachteile mit sich: starre PHP-Versionen, komplizierte Updates und die Gefahr, dass sich Konfigurationsänderungen auf dem gesamten Server auswirken.</p>
+<p>Docker löst diese Probleme elegant: WordPress läuft in einem isolierten Container mit eigener PHP-Version, klar definierten Abhängigkeiten und reproduzierbarer Konfiguration. Updates lassen sich durch einen einfachen Image-Tausch durchführen, und Konflikte zwischen verschiedenen Websites auf demselben Server gehören der Vergangenheit an.</p>
+<p>Für Agenturen und Freelancer, die viele WordPress-Instanzen betreuen, ist Docker ein Quantensprung. Ein einheitliches Setup, das per Compose-Datei definiert ist, kann beliebig oft reproduziert und auf neuen Servern ausgerollt werden – Staging- und Produktivumgebungen inklusive.</p>
+
+<h2>Architektur eines Docker-WordPress-Setups</h2>
+<p>Ein typisches WordPress-Setup in Docker besteht aus mindestens drei Containern: dem WordPress-Container selbst, einer MySQL- oder MariaDB-Datenbank und einem Reverse-Proxy wie Nginx oder Traefik. Jeder dieser Container hat eine klar definierte Aufgabe und kommuniziert über ein internes Docker-Netzwerk.</p>
+<p>Durch die Aufteilung in separate Container erreichen Sie eine saubere Trennung der Zuständigkeiten. Sie können die Datenbank unabhängig vom Webserver aktualisieren, Backups gezielt einzelner Komponenten erstellen und sogar die Datenbank auf einem externen Managed-Service auslagern, ohne WordPress anzufassen.</p>
+<p>Optionale Komponenten wie ein Redis- oder Memcached-Container für Object-Caching, ein Varnish-Cache oder ein Backup-Container runden das Setup ab. So entsteht eine professionelle Architektur, die mit klassischen Managed-WordPress-Hostern mithalten kann.</p>
+
+<h2>Docker Compose: Die zentrale Konfigurationsdatei</h2>
+<p>Docker Compose ist das Herzstück eines jeden WordPress-Container-Setups. In einer einzigen YAML-Datei definieren Sie alle Services, Netzwerke, Volumes und Umgebungsvariablen. Dies macht die Konfiguration versionierbar, dokumentiert und für andere nachvollziehbar.</p>
+<p>Eine gut strukturierte Compose-Datei enthält typischerweise vier Services: wordpress, db, nginx und optional phpmyadmin für die Datenbankverwaltung. Volumes sorgen dafür, dass Themes, Plugins und Uploads auch nach einem Container-Neustart erhalten bleiben.</p>
+<p>Beim ersten Start initialisiert Docker automatisch die Datenbank und führt die WordPress-Installation durch. Innerhalb weniger Minuten haben Sie eine lauffähige Instanz, die Sie sofort im Browser aufrufen können – ganz ohne manuelles Anlegen der wp-config.php.</p>
+
+<pre><code>version: '3.8'
+
+services:
+  db:
+    image: mariadb:11.4
+    restart: always
+    environment:
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wpuser
+      MARIADB_PASSWORD: sicheres_passwort
+      MARIADB_RANDOM_ROOT_PASSWORD: '1'
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  wordpress:
+    image: wordpress:6.6-php8.3-apache
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: sicheres_passwort
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wp_data:/var/www/html
+    networks:
+      - wpnet
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - wordpress
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    networks:
+      - wpnet
+
+volumes:
+  db_data:
+  wp_data:
+
+networks:
+  wpnet:
+    driver: bridge</code></pre>
+
+<h2>Performance-Tuning für Docker-WordPress</h2>
+<p>Mit den richtigen Einstellungen erreicht eine Docker-WordPress-Installation Geschwindigkeiten, die mit nativen Setups problemlos mithalten. Wichtige Stellschrauben sind das Object-Caching mit Redis, PHP-OPcache und ein gut konfigurierter Nginx-Webserver.</p>
+<p>Redis als Object-Cache reduziert die Datenbanklast erheblich, da häufig abgerufene Query-Ergebnisse im Speicher gehalten werden. Bei stark frequentierten Blogs oder WooCommerce-Shops kann dies den Unterschied zwischen einer langsamen und einer blitzschnellen Seite ausmachen.</p>
+<p>Auch die PHP-Konfiguration spielt eine entscheidende Rolle. Das offizielle WordPress-Image erlaubt das Überschreiben der php.ini über Mounts oder Umgebungsvariablen. Werte wie memory_limit, max_execution_time und die OPcache-Einstellungen sollten je nach Workload angepasst werden.</p>
+
+<table>
+<thead>
+<tr><th>Parameter</th>
   <a href="/artikel/hugo-astro-static-site-vergleich-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/hugo-astro-static-site-vergleich-2026.webp" alt="Hugo vs. Astro – Static Site Generator Hosting Vergleich 2026" loading="lazy" width="400" height="200"></div>
   </a>

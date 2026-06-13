@@ -759,6 +759,169 @@
     </div>
 
 <h1>NVIDIA Jetson für KI am Edge 2026 – LLMs auf embedded Hardware</h1>
+<h2>1. Einführung: Warum Edge-AI mit LLMs 2026 an Bedeutung gewinnt</h2>
+<p>Die Verlagerung von KI-Workloads aus der Cloud an den Edge gehört zu den prägendsten technologischen Trends des Jahrzehnts. Während Cloud-Inferenz für klassische ML-Modelle lange Zeit der Standard war, verschiebt sich das Bild durch drei parallele Entwicklungen: erstens wachsende Datenschutz- und Compliance-Anforderungen, zweitens die Notwendigkeit latenzarmer Echtzeitverarbeitung und drittens die Verfügbarkeit leistungsfähiger embedded Hardware wie der NVIDIA Jetson-Familie.</p>
+<p>Large Language Models galten noch vor wenigen Jahren als unteilbare Domäne riesiger GPU-Cluster. Mit der Reife von Techniken wie Quantisierung, Pruning, Knowledge Distillation und spezialisierten Compilern hat sich diese Situation grundlegend geändert. Modelle wie Llama 3.1 8B, Phi-4, Qwen2.5 oder Mistral 7B lassen sich inzwischen auf Hardware mit weniger als 25 Watt Verlustleistung in akzeptabler Geschwindigkeit betreiben – vorausgesetzt, die Toolchain ist optimal abgestimmt.</p>
+<p>hostazar.com begleitet diese Entwicklung mit konkreten Tutorials, Benchmarks und Hosting-Empfehlungen. Dieser Artikel bündelt das aktuelle Wissen zum Stand der Technik im Jahr 2026 und zeigt, welche Jetson-Plattformen für welche LLM-Szenarien am besten geeignet sind. Wir betrachten sowohl die Hardware-Architektur als auch die Software-Stack-Optionen und liefern reproduzierbare Konfigurationsbeispiele.</p>
+<p>Besonders relevant ist die Kombination aus Vision-Sprache-Modellen, klassischen Computer-Vision-Pipelines und agentenbasierten Systemen, die direkt am Edge laufen. Ein Jetson Orin Nano kann heute ein Multimodales Modell mit 4B Parametern parallel zu einer Objekterkennungspipeline betreiben, ohne dass ein einziges Byte in die Cloud übertragen werden muss.</p>
+</section>
+
+<section id="jetson-produktlinie">
+<h2>2. Die NVIDIA Jetson Produktlinie 2026 im Überblick</h2>
+<p>Die Jetson-Familie deckt 2026 ein breites Leistungsspektrum ab. Vom ultra-kompakten Jetson Orin Nano 8GB für energiesensitive Anwendungen bis zum Jetson AGX Orin 64GB für anspruchsvolle Multi-Model-Workloads. Jede Variante kombiniert eine ARM-basierte CPU mit einer NVIDIA-GPU, die Tensor-Cores für KI-Workloads bereitstellt.</p>
+<p>Die wichtigste Neuerung im Jahr 2026 ist die breite Verfügbarkeit des Jetson Orin NX 16GB mit überarbeitetem thermischen Design sowie erste Dev-Kits des Jetson Thor, der auf der Blackwell-Architektur basiert. Thor-Module erreichen FP4-INT8-Performance-Werte, die selbst 70B-Parametermodelle in greifbare Nähe rücken lassen.</p>
+<p>Für Einsteiger empfiehlt sich das Jetson Orin Nano Developer Kit, das mit Carrier-Board, Kühlkörper und 8 GB LPDDR5 ausgeliefert wird. Industrielle Anwender greifen typischerweise zu den Modulen der Orin-Serie mit erweitertem Temperaturbereich (-25 °C bis +80 °C) und längerer Verfügbarkeit. Die folgende Tabelle vergleicht die aktuell verfügbaren Varianten.</p>
+
+<table border="1" cellpadding="8" cellspacing="0">
+<caption>Vergleich der Jetson-Plattformen für Edge-LLMs 2026</caption>
+<thead>
+<tr>
+<th>Modell</th>
+<th>GPU</th>
+<th>CPU</th>
+<th>RAM</th>
+<th>AI-TOPS (INT8)</th>
+<th>TDP</th>
+<th>Ideal für LLM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Jetson Orin Nano 4GB</td>
+<td>512 CUDA + 16 Tensor</td>
+<td>6× Cortex-A78AE</td>
+<td>4 GB LPDDR5</td>
+<td>20</td>
+<td>7–15 W</td>
+<td>≤3B Modelle</td>
+</tr>
+<tr>
+<td>Jetson Orin Nano 8GB</td>
+<td>1024 CUDA + 32 Tensor</td>
+<td>6× Cortex-A78AE</td>
+<td>8 GB LPDDR5</td>
+<td>40</td>
+<td>7–15 W</td>
+<td>3B–7B (Q4)</td>
+</tr>
+<tr>
+<td>Jetson Orin NX 8GB</td>
+<td>1024 CUDA + 32 Tensor</td>
+<td>8× Cortex-A78AE</td>
+<td>8 GB LPDDR5</td>
+<td>70</td>
+<td>10–25 W</td>
+<td>7B (Q4)–13B (Q2)</td>
+</tr>
+<tr>
+<td>Jetson Orin NX 16GB</td>
+<td>1024 CUDA + 32 Tensor</td>
+<td>8× Cortex-A78AE</td>
+<td>16 GB LPDDR5</td>
+<td>100</td>
+<td>10–25 W</td>
+<td>7B (Q8), 13B (Q4)</td>
+</tr>
+<tr>
+<td>Jetson AGX Orin 32GB</td>
+<td>1792 CUDA + 56 Tensor</td>
+<td>12× Cortex-A78AE</td>
+<td>32 GB LPDDR5</td>
+<td>170</td>
+<td>15–60 W</td>
+<td>13B (Q8), 30B (Q4)</td>
+</tr>
+<tr>
+<td>Jetson AGX Orin 64GB</td>
+<td>1792 CUDA + 56 Tensor</td>
+<td>12× Cortex-A78AE</td>
+<td>64 GB LPDDR5</td>
+<td>170</td>
+<td>15–60 W</td>
+<td>30B (Q8), 70B (Q2)</td>
+</tr>
+<tr>
+<td>Jetson Thor (2026)</td>
+<td>Blackwell GPU + Gen5 Tensor</td>
+<td>14× Cortex-A78AE</td>
+<td>128 GB LPDDR5X</td>
+<td>1200 (FP4)</td>
+<td>40–130 W</td>
+<td>70B+ FP4</td>
+</tr>
+</tbody>
+</table>
+
+<p>Die Wahl des richtigen Modells hängt von drei Faktoren ab: der gewünschten Modellgröße, der erforderlichen Token-Rate und dem Energiebudget. Für batteriebetriebene Drohnen oder mobile Roboter führt kein Weg am Orin Nano 8GB vorbei. Stationäre industrielle Anwendungen mit Vision-Sprache-Modellen profitieren am stärksten vom AGX Orin 64GB.</p>
+</section>
+
+<section id="architektur">
+<h2>3. Architektur und technische Grundlagen</h2>
+<p>Ein Jetson-Modul ist weit mehr als nur eine kleine GPU. Es handelt sich um ein vollständiges System-on-Module, das CPU, GPU, Speicher, I/O und Spannungsversorgung auf einer kompakten Platine vereint. Die Architektur folgt dem NVIDIA-SOI-Prinzip (System-on-Module mit integriertem Carrier-Board), wodurch sich kundenspezifische Trägerboards kostengünstig realisieren lassen.</p>
+<p>Die CPU basiert auf ARM Cortex-A78AE Kernen im 12 nm bzw. 8 nm Fertigungsprozess. Diese Kerne übernehmen das Pre- und Postprocessing, das Token-Streaming sowie das Scheduling mehrerer Inferenz-Pipelines. Die GPU nutzt die gleiche Architektur wie NVIDIAs Data-Center-Beschleuniger, allerdings mit reduziertem Takt und reduziertem Speicherinterface. Beim AGX Orin kommen 1792 CUDA-Kerne und 56 Tensor-Cores der dritten Generation zum Einsatz.</p>
+<p>Der Speicher ist LPDDR5 mit einer Bandbreite zwischen 68 GB/s (Orin Nano) und 204 GB/s (AGX Orin 64GB). Diese Bandbreite ist der entscheidende Flaschenhals für LLM-Inferenz, da jeder Token die kompletten Modellgewichte aus dem Speicher lesen muss. Aus diesem Grund profitieren LLMs überproportional von höherer Speicherbandbreite und aggressivem Caching des KV-Cache im selben Speicherbereich.</p>
+<p>Tensor-Cores unterstützen neben FP16 und BF16 auch INT8, INT4 und seit dem AGX Orin auch FP8. Die neue Blackwell-basierte Thor-Plattform erweitert dies um FP4, was eine Verdopplung der effektiven TOPS pro Watt ermöglicht. Für LLM-Inferenz ist diese niedrige Präzision besonders relevant, da viele Modelle nach entsprechender Kalibrierung kaum Qualitätsverluste zeigen.</p>
+<p>Die I/O-Ausstattung umfasst PCIe Gen4, USB 3.2, 2.5/10 GbE, MIPI-CSI für Kameras und CAN für industrielle Vernetzung. Damit lässt sich ein Jetson-Modul als komplettes Edge-Gateway betreiben, das Sensoren einliest, Modelle ausführt und Ergebnisse an eine übergeordnete Steuerung weiterleitet – ohne dass ein zusätzlicher Industrie-PC erforderlich ist.</p>
+</section>
+
+<section id="llms-edge">
+<h2>4. LLMs auf embedded Hardware: Was ist realistisch?</h2>
+<p>Die zentrale Frage vieler Entwickler lautet: Welche Modellgröße lässt sich auf welcher Jetson-Variante sinnvoll betreiben? Die Antwort hängt von vier Parametern ab: Quantisierung, Kontextlänge, Batch-Größe und Token-Rate. Ein 7B-Modell in INT4 benötigt etwa 4 GB Speicher, ein 13B-Modell in INT4 etwa 7,5 GB und ein 70B-Modell in INT4 etwa 38 GB.</p>
+<p>Für Echtzeit-Konversationen ist eine Token-Rate von mindestens 10 Tokens pro Sekunde erforderlich. Diese Rate erreichen moderne Jetson-Module mit Modellen bis 13B Parametern, sofern der Kontext kurz gehalten wird. Längere Kontexte erfordern mehr KV-Cache-Speicher und reduzieren die effektive Rate. Ein typisches 7B-Modell mit 4K Kontext belegt im KV-Cache zusätzlich 1–2 GB, was die Skalierungsmöglichkeiten weiter einschränkt.</p>
+<p>In der Praxis haben sich 2026 folgende Kombinationen bewährt: Orin Nano 8GB mit Llama 3.2 3B in Q4_K_M, Orin NX 16GB mit Qwen2.5 7B in Q4_K_M oder Llama 3.1 8B in Q5_K_M, AGX Orin 64GB mit Mixtral 8x7B (MoE) in Q4 oder Qwen2.5 14B in Q8. Die Thor-Plattform ermöglicht erstmals 70B-Modelle in akzeptabler Geschwindigkeit, allerdings zu deutlich höheren Anschaffungskosten.</p>
+<p>Ein oft unterschätzter Aspekt ist das Speichermanagement. Da der Arbeitsspeicher zwischen Modellgewichten, KV-Cache, Betriebssystem und Anwendungspipeline geteilt wird, ist eine sorgfältige Konfiguration von swappiness, zram und Hugepages erforderlich. Viele Performance-Probleme entstehen nicht durch zu langsame Berechnung, sondern durch Speicher-Paging und Kontextwechsel.</p>
+</section>
+
+<section id="quantisierung">
+<h2>5. Quantisierung und Modelloptimierung</h2>
+<p>Quantisierung ist der Schlüssel, um LLMs auf embedded Hardware nutzbar zu machen. Sie reduziert die Bitbreite der Modellgewichte und damit den Speicherbedarf sowie die benötigte Speicherbandbreite. NVIDIA unterstützt nativ INT8, INT4 und FP8, während die Community mit FP4, INT2 und sogar binären Quantisierungen experimentiert.</p>
+<p>Die gängigsten Formate für Jetson stammen aus dem GGUF-Ökosystem (GPT-Generated Unified Format) und werden über llama.cpp bzw. deren NVIDIA-Backend vLLM-TensorRT genutzt. GGUF unterscheidet zwischen verschiedenen Quantisierungsstufen: Q2_K (sehr klein, spürbare Qualitätsverluste), Q4_K_M (guter Kompromiss), Q5_K_M (hohe Qualität) und Q6_K sowie Q8_0 (nahezu verlustfrei). Für Edge-Szenarien ist Q4_K_M der Standard.</p>
+<p>Post-Training Quantization (PTQ) mit Methoden wie GPTQ, AWQ oder SmoothQuant liefert bessere Ergebnisse als naives Runden. AWQ (Activation-aware Weight Quantization) ist besonders für LLMs geeignet, da es die wichtigen Gewichte anhand der Aktivierungsverteilung identifiziert und diese präziser quantisiert. NVIDIA bietet mit TensorRT-LLM eine eigene Quantisierungspipeline, die speziell auf die Hardware zugeschnitten ist.</p>
+<p>Zusätzlich zur Gewichtequantisierung spielt die KV-Cache-Quantisierung eine wachsende Rolle. Dabei wird der Attention-Cache in INT8 oder INT4 gespeichert, was den Speicherbedarf bei langen Kontexten drastisch reduziert. In Kombination mit PagedAttention (vLLM) lassen sich so Kontextlängen erreichen, die auf der reinen Speichergröße nicht möglich wären.</p>
+
+<table border="1" cellpadding="8" cellspacing="0">
+<caption>Quantisierungsformate und ihre Eigenschaften</caption>
+<thead>
+<tr>
+<th>Format</th>
+<th>Bits/Weight</th>
+<th>Größe 7B (GB)</th>
+<th>Qualität</th>
+<th>Jetson-Empfehlung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FP16</td>
+<td>16</td>
+<td>~14</td>
+<td>Referenz</td>
+<td>AGX Orin 64GB</td>
+</tr>
+<tr>
+<td>Q8_0</td>
+<td>8.5</td>
+<td>~7.5</td>
+<td>sehr gut</td>
+<td>AGX Orin 32GB</td>
+</tr>
+<tr>
+<td>Q6_K</td>
+<td>6.6</td>
+<td>~5.8</td>
+<td>gut</td>
+<td>AGX Orin 32GB</td>
+</tr>
+<tr>
+<td>Q5_K_M</td>
+<td>5.7</td>
+<td>~5.0</td>
+<td>sehr gut</td>
+<td>Orin NX 16GB</td>
+</tr>
+<tr>
+<td>Q4_K_M</td>
+<td>4.9</td
   <a href="/artikel/mistral-modelle-lokal-hosten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/mistral-modelle-lokal-hosten-2026.webp" alt="Mistral Large &amp; Mixtral 8x22B lokal hosten – MoE-Modelle selbst betreiben 2026" loading="lazy" width="400" height="200"></div>
   </a>

@@ -759,6 +759,184 @@
     </div>
 
 <h1>GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</h1>
+<h2>1. Was ist GitOps und warum ArgoCD die erste Wahl ist</h2>
+<p>GitOps ist ein operatives Modell, bei dem der gewünschte Zustand von Infrastruktur und Anwendungen in einem Git-Repository versioniert wird. Ein Agent – im Fall von ArgoCD der <code>argocd-application-controller</code> – gleicht den Live-Zustand im Cluster kontinuierlich mit dem Repository ab und führt bei Abweichungen automatisch oder manuell eine Synchronisation durch.</p>
+<p>Der entscheidende Vorteil gegenüber traditionellen CI/CD-Pipelines: Deployments werden reproduzierbar, auditierbar und rollback-fähig. Jede Änderung durchläuft einen Pull-Request, jede Regression lässt sich über <code>git revert</code> rückgängig machen. ArgoCD wurde ursprünglich von Intuit entwickelt und ist heute ein CNCF-Graduated-Projekt mit über 18.000 GitHub-Stars.</p>
+<p>Im Vergleich zu klassischen Push-Pipelines (Jenkins, GitLab CI) eliminiert ArgoCD das Problem credentialed CI-Runner, die direkt in produktive Cluster schreiben dürfen. Stattdessen pullt der Controller aus dem Cluster heraus, was das Sicherheitsmodell grundlegend verbessert und den Blast Radius kompromittierter Build-Agents drastisch reduziert.</p>
+<p>Für 2026 prognostizieren wir eine noch stärkere Verbreitung von ArgoCD durch ApplicationSets, progressive Sync-Strategien und die native Integration in Service-Mesh-Lösungen wie Istio und Linkerd. Plattformen wie Red Hat OpenShift GitOps setzen vollständig auf ArgoCD als Operator-Schicht.</p>
+
+<table>
+<caption>GitOps-Tools im Überblick (2026)</caption>
+<thead>
+<tr><th>Tool</th><th>Modell</th><th>Sync-Engine</th><th>Multi-Cluster</th><th>Lizenz</th></tr>
+</thead>
+<tbody>
+<tr><td>ArgoCD</td><td>Pull-basiert</td><td>Kubernetes-native</td><td>Ja (AppSets + Hub-Spoke)</td><td>Apache 2.0</td></tr>
+<tr><td>FluxCD</td><td>Pull-basiert</td><td>Helm/Kustomize/OCI</td><td>Ja (Multi-Tenancy)</td><td>Apache 2.0</td></tr>
+<tr><td>Jenkins X</td><td>Push/Pull hybrid</td><td>Tekton-basiert</td><td>Eingeschränkt</td><td>Apache 2.0</td></tr>
+<tr><td>Spinnaker</td><td>Push-basiert</td><td>Cloud-agnostisch</td><td>Ja</td><td>Apache 2.0</td></tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>2. ArgoCD Architektur und Kernkomponenten verstehen</h2>
+<p>Die ArgoCD-Architektur folgt dem klassischen Controller-Pattern von Kubernetes. Drei zentrale Komponenten bilden das Herzstück: der API-Server, der Application Controller und das Repository Server. Jede dieser Komponenten übernimmt klar abgegrenzte Aufgaben und lässt sich unabhängig skalieren.</p>
+<p>Der <strong>argocd-server</strong> stellt die Web-UI, die CLI-Schnittstelle und die gRPC/REST-API bereit. Über ihn laufen Authentifizierung, Autorisierung sowie alle manuellen Sync-Operationen. In Produktion sollte dieser Pod hinter einem Ingress mit TLS-Termination betrieben werden, idealerweise mit OIDC-Integration zu Keycloak, Okta oder Azure AD.</p>
+<p>Der <strong>argocd-application-controller</strong> ist der Workhorse. Er pollt konfigurierbare Git-Repos, vergleicht den Live-Zustand mit dem gewünschten Zustand und triggert bei Drifts eine Reconciliation. Standard-Polling-Intervall sind 3 Minuten; in Hochfrequenz-Szenarien lässt sich dies pro Application auf 30 Sekunden reduzieren – beachte dabei die API-Server-Last des Git-Providers.</p>
+<p>Der <strong>argocd-repo-server</strong> cached Git-Repositories lokal und rendert Helm-, Kustomize- und Plugin-Templates. Er entlastet den Application Controller von CPU-intensiven Templating-Aufgaben und hält Manifeste über einen internen Redis-Cache vor. In großen Setups empfiehlt sich ein dedizierter Repo-Server mit horizontaler Skalierung.</p>
+<pre><code># Beispiel: Komponenten in einem produktiven Namespace
+kubectl -n argocd get deploy
+NAME                       READY   UP-TO-DATE   AVAILABLE
+argocd-applicationset-controller   1/1     1            1
+argocd-dex-server                  1/1     1            1
+argocd-notifications-controller    1/1     1            1
+argocd-redis                       1/1     1            1
+argocd-repo-server                 2/2     2            2
+argocd-server                      2/2     2            2</code></pre>
+</section>
+
+<section>
+<h2>3. Voraussetzungen und produktive Installation</h2>
+<p>Bevor du ArgoCD installierst, benötigst du einen funktionsfähigen Kubernetes-Cluster ab Version 1.27, Helm 3.12+ sowie einen Git-Server (GitHub, GitLab, Gitea oder Bitbucket). Für produktive Setups sind zudem cert-manager für TLS, ein Ingress-Controller (NGINX, Traefik oder Istio) und ein externer OIDC-Provider empfehlenswert.</p>
+<p>Die Installation selbst erfolgt wahlweise über das offizielle Manifest, den Helm-Chart oder den ArgoCD-Operator. Der Operator-Ansatz bietet Vorteile bei Lifecycle-Management und automatischen Upgrades, während das klassische Manifest maximale Kontrolle behält. Für die meisten Teams empfehlen wir den Helm-Chart, da er Konfiguration über <code>values.yaml</code> versionssicher abbildet.</p>
+<pre><code># Installation via offizielles Manifest (schnell)
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+# Installation via Helm (empfohlen für Produktion)
+helm repo add argo https://argoproj.github.io/argo-helm
+helm install argocd argo/argo-cd \
+  --namespace argocd --create-namespace \
+  --set server.service.type=ClusterIP \
+  --set server.ingress.enabled=true \
+  --set server.ingress.hostname=argocd.example.com \
+  --set configs.params.server.insecure=false
+</code></pre>
+<p>Nach der Installation rufst du das initiale Admin-Passwort ab. Ab ArgoCD 2.8 wird der <code>argocd-initial-admin-secret</code> mit einem zufälligen Passwort generiert. Ändere dieses sofort oder deaktiviere den lokalen Account zugunsten von SSO.</p>
+<pre><code># Initiales Passwort auslesen
+kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath="{.data.password}" | base64 -d
+
+# Login per CLI
+argocd login argocd.example.com \
+  --username admin \
+  --password $(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d) \
+  --insecure</code></pre>
+<p>Für den Produktionsbetrieb solltest du <code>argocd-application-controller</code>, <code>argocd-server</code> und <code>argocd-repo-server</code> mit PodDisruptionBudgets, ResourceLimits und NetworkPolicies absichern. Ebenfalls empfehlenswert: das Setzen einer <code>--self-heal-timeout</code> und das Aktivieren von <code>server.enable.proxy</code> für gehärtete Cluster.</p>
+</section>
+
+<section>
+<h2>4. Dein erstes Application Manifest erstellen</h2>
+<p>Eine ArgoCD-Application ist eine Custom Resource, die drei Dinge definiert: das Quell-Repository, das Ziel-Cluster mit Namespace und die Synchronisationsstrategie. Das folgende Minimalbeispiel deployt ein Guestbook aus dem offiziellen Beispiel-Repository mit automatischem Sync.</p>
+<pre><code>apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: guestbook
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/argoproj/argocd-example-apps.git
+    targetRevision: HEAD
+    path: guestbook
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: guestbook
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+</code></pre>
+<p>Das Feld <code>targetRevision</code> akzeptiert Branch-Namen, Tags oder Commit-SHAs. Für reproduzierbare Deployments empfehlen wir Git-Tags statt <code>HEAD</code>, da <code>HEAD</code> bei Force-Pushes zu ungewollten Rollbacks führen kann. In regulierten Umgebungen sind zudem GPG-signierte Tags ein wirksames Audit-Instrument.</p>
+<p>Der <code>syncPolicy.automated.prune</code>-Schalter löscht Ressourcen, die im Git-Repo nicht mehr definiert sind – ein mächtiges Feature, das in Kombination mit Finalizern jedoch Datenverlust verursachen kann. Aktiviere <code>prune</code> daher nur, wenn deine Manifeste vollständig und idempotent sind.</p>
+<p>Mit <code>selfHeal: true</code> revertiert ArgoCD manuelle Cluster-Änderungen automatisch nach dem Polling-Intervall. Dies ist das Herzstück von GitOps: Der Cluster-Zustand konvergiert immer zum Git-Zustand. In Staging-Umgebungen empfehlen wir <code>selfHeal: true</code> mit kurzem Intervall, in Produktion oft einen hybriden Ansatz mit manueller Freigabe.</p>
+</section>
+
+<section>
+<h2>5. Sync Policies und automatisierte Deployments im Detail</h2>
+<p>ArgoCD unterscheidet zwischen drei Sync-Modi: manuell, automatisch ohne Self-Heal und automatisch mit Self-Heal. Die Wahl hängt vom Reifegrad deines Teams, der Kritikalität der Workloads und den Compliance-Anforderungen ab. Production-Workloads mit externem Datenbankzugriff sollten oft manuell synchronisiert werden.</p>
+<p>Mit <strong>Sync Waves</strong> orchestrierst du die Reihenfolge von Ressourcen. Das Annotation-<code>argocd.argoproj.io/sync-wave</code> akzeptiert ganzzahlige Werte, wobei kleinere Wellen zuerst ausgerollt werden. Typische Reihenfolge: Namespace → ConfigMap → Secret → Deployment → Service → Ingress → HPA.</p>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+        - name: api
+          image: registry.example.com/api:2.4.1
+</code></pre>
+<p><strong>Sync Options</strong> erlauben feingranulare Steuerung. <code>ApplyOutOfSyncOnly=true</code> führt inkrementelle Updates durch, <code>ServerSideApply=true</code> nutzt die Kubernetes-SSA-API und vermeidet Konflikte bei mehreren Writern, <code>PrunePropagationPolicy=foreground</code> wartet auf finale Cleanup-Phasen. In 2026 ist SSA der empfohlene Standard, da es Field-Manager-Konflikte sauber auflöst.</p>
+<table>
+<caption>Wichtige Sync-Optionen</caption>
+<thead>
+<tr><th>Option</th><th>Wirkung</th><th>Einsatzempfehlung</th></tr>
+</thead>
+<tbody>
+<tr><td>CreateNamespace=true</td><td>Legt fehlende Namespaces an</td><td>Immer aktiv</td></tr>
+<tr><td>PruneLast=true</td><td>Pruning erst nach erfolgreichem Sync</td><td>Produktion</td></tr>
+<tr><td>ApplyOutOfSyncOnly=true</td><td>Nur geänderte Ressourcen anwenden</td><td>Große Apps</td></tr>
+<tr><td>ServerSideApply=true</td><td>Verwendet Kubernetes-SSA</td><td>2026 Standard</td></tr>
+<tr><td>FailOnSharedResource=true</td><td>Bricht ab, wenn Ressource von anderer App verwaltet wird</td><td>Strikte Mandantentrennung</td></tr>
+</tbody>
+</table>
+<p>Mit <strong>Retry Strategy</strong> definierst du, wie ArgoCD fehlgeschlagene Syncs behandelt. Standard ist 5 Retries mit exponentiellem Backoff (5s, 10s, 20s, 40s, 80s). In CI-ähnlichen Pipelines kannst du dies auf 0 setzen, um sofortige Fehlerrückmeldungen zu erhalten.</p>
+</section>
+
+<section>
+<h2>6. ApplicationSets für Multi-Tenant- und Multi-Cluster-Setups</h2>
+<p>ApplicationSets sind das Multiplikator-Pattern von ArgoCD. Mit einer einzigen Custom-Resource kannst du hunderte Applications über Cluster, Umgebungen oder Tenants hinweg generieren. Die Generator-Syntax unterstützt List, Cluster, Git-Directory, Git-File und Matrix-Generatoren.</p>
+<p>Der folgende ApplicationSet rollt eine Microservice-Anwendung über drei Cluster und zwei Umgebungen aus, insgesamt sechs Applications. Der Matrix-Generator kombiniert zwei Listen, während der Cluster-Generator automatisch alle registrierten Cluster anspricht.</p>
+<pre><code>apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: checkout-service
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - list:
+              items:
+                - cluster: prod-eu
+                  url: https://prod-eu.example.com
+                - cluster: prod-us
+                  url: https://prod-us.example.com
+          - list:
+              items:
+                - env: staging
+                - env: production
+  template:
+    metadata:
+      name: 'checkout-{{cluster}}-{{env}}'
+    spec:
+      project: platform
+      source:
+        repoURL: https://git.example.com/platform/checkout.git
+        targetRevision: '{{env}}'
+        path: overlays/{{env}}
+      destination:
+        server: '{{url}}'
+        namespace: checkout
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+</code></pre>
+<p>In 2026 sind ApplicationSets das zentrale Steuerungsinstrument für Fleet-Management. Kombiniert mit ArgoCD Notifications (Slack, Microsoft Teams, PagerDuty) und Sync Windows (Wartungsfenster) entsteht eine vollständige Plattform-Engine, die Platform-Teams befähigt, Self-Service für Produktteams bereitzustellen.</p>
+<p>Ein wichtiges Architekturmuster ist das <strong>Hub-and-Spoke-Modell</strong>: Ein zentraler Hub-Cluster beherbergt die ApplicationSets und steuert Spoke-Cluster über deren API-Server-Endpunkte. Spoke-Cluster benötigen dabei nur einen lokalen ArgoCD-Controller, der mit dem Hub kommuniziert. Dies entkoppelt Lifecycle und reduziert Cross-Cluster-Latenzen.</p>
+</section>
+
+<section>
+<h2>7. Secrets Management mit ArgoCD und externen Tools</h2>
+<p>GitOps und Secrets sind ein klassisches Spannungsfeld: Klartext-Secrets im Git-Repository sind ein No-Go, aber ArgoCD muss trotz
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

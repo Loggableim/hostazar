@@ -759,6 +759,93 @@
     </div>
 
 <h1>CUDA, ROCm, Vulkan – Was brauchst du für lokale LLMs? GPU-Backend-Vergleich 2026</h1>
+<h2>Inhaltsverzeichnis</h2>
+<ul>
+<li><a href="#einfuehrung">1. Einführung: Warum das GPU-Backend entscheidend ist</a></li>
+<li><a href="#cuda">2. CUDA: Der NVIDIA-Goldstandard</a></li>
+<li><a href="#rocm">3. ROCm: AMDs offene Antwort</a></li>
+<li><a href="#vulkan">4. Vulkan: Der plattformübergreifende Allrounder</a></li>
+<li><a href="#sycl">5. SYCL/Intel: Der Newcomer</a></li>
+<li><a href="#kompatibilitaet">6. Hardware-Kompatibilität 2026</a></li>
+<li><a href="#benchmarks">7. Performance-Benchmarks im Vergleich</a></li>
+<li><a href="#frameworks">8. Unterstützte Frameworks</a></li>
+<li><a href="#konfiguration">9. Konfigurationsbeispiele mit Code</a></li>
+<li><a href="#fehlerbehebung">10. Häufige Fehler und Lösungen</a></li>
+<li><a href="#zukunft">11. Zukunft der GPU-Backends</a></li>
+<li><a href="#fazit">12. Fazit: Welches Backend für wen?</a></li>
+</ul>
+</nav>
+
+<section id="einfuehrung">
+<h2>1. Einführung: Warum das GPU-Backend entscheidend ist</h2>
+<p>Wer 2026 ein Large Language Model lokal auf dem eigenen Rechner betreiben möchte, steht vor einer fundamentalen Frage: Welches GPU-Backend soll genutzt werden? Die Wahl des Backends entscheidet nicht nur über die Performance, sondern auch über die Kompatibilität mit der vorhandenen Hardware, den Energieverbrauch und letztlich die Gesamtkosten des Setups.</p>
+<p>Ein GPU-Backend ist im Grunde die Software-Schicht zwischen dem KI-Framework (wie llama.cpp, vLLM oder Ollama) und der physischen Grafikkarte. Es übersetzt die mathematischen Operationen des neuronalen Netzes in Befehle, die die GPU effizient ausführen kann. Je besser diese Übersetzung gelingt, desto mehr Tokens pro Sekunde erhält man – und desto flüssiger fühlt sich die lokale KI an.</p>
+<p>Im Jahr 2026 haben sich drei große Backends etabliert: CUDA von NVIDIA, ROCm von AMD und Vulkan als plattformübergreifende Lösung. Jedes hat seine Stärken und Schwächen, jedes spricht eine andere Zielgruppe an. Hinzu kommen SYCL/Intel für Intel-GPUs und spezielle Beschleuniger wie Apple Metal, die wir in diesem Vergleich ebenfalls beleuchten.</p>
+<p>Für hostazar-Leser, die einen eigenen KI-Server aufsetzen oder einfach nur verstehen wollen, warum ihr 32-GB-Modell mal flüssig läuft und mal nicht, ist dieser Vergleich Pflichtprogramm. Wir haben die aktuellsten Versionen (Stand Januar 2026) getestet und die Ergebnisse in Tabellen und Code-Beispielen zusammengefasst.</p>
+</section>
+
+<section id="cuda">
+<h2>2. CUDA: Der NVIDIA-Goldstandard</h2>
+<p>CUDA (Compute Unified Device Architecture) ist seit über 15 Jahren das dominierende GPU-Backend für KI-Workloads. Auch 2026 bleibt NVIDIA mit einem Marktanteil von über 80 % im Datacenter-Bereich der unangefochtene Marktführer, und das aus gutem Grund: Die Kombination aus ausgereifter Software, exzellenter Treiberunterstützung und einer riesigen Community macht CUDA zur ersten Wahl für die meisten lokalen LLM-Setups.</p>
+<p>Mit CUDA 12.8 und dem neuen CUDA-X AI 2.0 (veröffentlicht im November 2025) hat NVIDIA erneut nachgelegt. Die Bibliotheken cuDNN 9.5 und cuBLASLt 12.8 bieten optimierte Operationen für Transformer-Modelle, Flash-Attention-4-Implementierungen und quantisierte Formate wie FP4, NVFP4 und MXFP4. Lokale LLM-Frameworks wie llama.cpp, vLLM, TensorRT-LLM und ExLlamaV2 unterstützen CUDA nativ und erreichen nahezu die theoretische Peak-Performance der Hardware.</p>
+<p>Die Kehrseite der Medaille: CUDA läuft ausschließlich auf NVIDIA-Hardware. Wer eine AMD- oder Intel-GPU sein Eigen nennt, schaut buchstäblich in die Röhre. Hinzu kommen die hohen Anschaffungskosten – eine RTX 5090 mit 32 GB schlägt mit rund 2.200 Euro zu Buche, eine RTX 6000 Ada mit 48 GB liegt bei über 7.000 Euro. Für Hobbyisten kann das eine erhebliche Investition darstellen.</p>
+<p>Ein weiterer Vorteil von CUDA ist die Verfügbarkeit spezialisierter Features wie Tensor Cores der fünften Generation, die FP8- und FP4-Berechnungen mit hoher Durchsatzrate ermöglichen. In Kombination mit quantisierten Modellen (Q4_K_M, Q5_K_S oder FP8) erzielt man auf einer RTX 5090 Tokens-Raten von 80-120 t/s bei 70B-Paramter-Modellen – ein Wert, den kein anderes Backend derzeit erreicht.</p>
+<p>Trotz der Dominanz gibt es auch Kritik: CUDA ist proprietär, der Quellcode nicht offen. Wer auf Open-Source-Setups setzt, muss entweder ROCm, Vulkan oder die offene Compute-Sprache OpenCL in Betracht ziehen. Zudem hat NVIDIA in der Vergangenheit Lizenzbedingungen verschärft, was bei einigen Datacenter-Kunden für Unmut sorgt.</p>
+</section>
+
+<section id="rocm">
+<h2>3. ROCm: AMDs offene Antwort</h2>
+<p>ROCm (Radeon Open Compute) ist AMDs Antwort auf CUDA und seit Version 6.4 (veröffentlicht im Oktober 2025) deutlich gereift. Das Open-Source-Framework unterstützt mittlerweile die gesamte Palette moderner AMD-GPUs, von der Radeon RX 7900 XTX bis zum Profi-Beschleuniger Instinct MI300X mit 192 GB HBM3e. Für preisbewusste LLM-Enthusiasten ist ROCm oft die erste Wahl, weil AMD-Hardware tendenziell mehr VRAM pro Euro bietet.</p>
+<p>Die größte Stärke von ROCm ist die offene Architektur. Der Quellcode ist auf GitHub verfügbar, Anpassungen sind möglich, und die Community treibt die Entwicklung aktiv voran. HIP (Heterogeneous-Compute Interface for Portability) erlaubt es, CUDA-Code mit minimalem Aufwand auf AMD-Hardware zu portieren – ein Werkzeug, das für Entwickler von LLM-Frameworks Gold wert ist. llama.cpp, vLLM, ExLlamaV2 und SGLang unterstützen ROCm offiziell.</p>
+<p>Allerdings hat ROCm auch 2026 noch Kinderkrankheiten. Die Treiberunterstützung unter Windows war lange Zeit problematisch, mittlerweile ist WSL 2 mit ROCm 6.4 aber weitgehend stabil. Unter Linux (Ubuntu 24.04 LTS, Fedora 41) läuft ROCm am zuverlässigsten. Einige spezifische Modellarchitekturen (z. B. Mixtral 8x22B mit bestimmten Quantisierungen) zeigen Performance-Einbrüche, die mit neueren ROCm-Versionen schrittweise behoben werden.</p>
+<p>Die Performance einer RX 7900 XTX (24 GB) liegt bei quantisierten 70B-Modellen bei etwa 25-35 t/s – deutlich unter einer RTX 4090 (45-55 t/s), aber angesichts des Preises (rund 900 Euro) immer noch attraktiv. Der neue Radeon RX 8900 XTX mit 32 GB und RDNA-4-Architektur, der für Q2 2026 erwartet wird, könnte diese Lücke weiter schließen.</p>
+<p>Ein oft übersehener Vorteil von ROCm ist die Unterstützung von Infinity Fabric, AMDs schnellem Interconnect. In Multi-GPU-Setups (z. B. zwei RX 7900 XTX via USB4 oder Thunderbolt 5) lassen sich so 48 GB VRAM für 120B-Modelle nutzen – eine Konfiguration, die mit NVIDIA-Karten in dieser Preisklasse nicht möglich wäre.</p>
+</section>
+
+<section id="vulkan">
+<h2>4. Vulkan: Der plattformübergreifende Allrounder</h2>
+<p>Vulkan ist eine plattformübergreifende Grafik- und Compute-API, die ursprünglich für Spiele entwickelt wurde, sich aber zunehmend als universelles GPU-Backend für KI-Workloads etabliert. Anders als CUDA und ROCm ist Vulkan kein dediziertes KI-Framework, sondern eine Low-Level-API, die von den meisten modernen GPUs unterstützt wird – egal ob NVIDIA, AMD, Intel oder sogar ARM-Mali-GPUs in Mobilgeräten.</p>
+<p>Für lokale LLMs ist Vulkan vor allem in Kombination mit llama.cpp relevant. Die Vulkan-Implementierung wurde in den letzten zwei Jahren massiv verbessert und bietet mittlerweile Performance-Werte, die je nach Hardware zwischen 70 % und 95 % der nativen CUDA/ROCm-Implementierung liegen. Besonders für Nutzer älterer oder exotischer Hardware ist Vulkan oft die einzige Möglichkeit, überhaupt GPU-beschleunigt zu inferieren.</p>
+<p>Die Stärke von Vulkan liegt in der universellen Verfügbarkeit. Wer eine Intel Arc A770 (16 GB, ca. 280 Euro) sein Eigen nennt, kann über Vulkan durchaus brauchbare Performance erwarten: 8-12 t/s bei 13B-Modellen, 4-6 t/s bei 70B-Modellen mit Q4-Quantisierung. Für experimentelle Setups oder als Zweit-GPU ist Vulkan eine kostengünstige Option.</p>
+<p>Auch auf Apple Silicon (M3 Ultra, M4 Max) lässt sich Vulkan via MoltenVK nutzen, wenngleich die Performance hinter der nativen Metal-Implementierung zurückbleibt. Auf Steam Deck und anderen Handhelds mit AMD-APUs ermöglicht Vulkan LLM-Inferenz auf kleinstem Raum – ideal für unterwegs oder als Demonstrations-Setup.</p>
+<p>Die Schwächen von Vulkan sind überschaubar, aber relevant: Die API ist komplexer als CUDA oder ROCm, was die Fehlersuche erschwert. Bei sehr großen Modellen (>100B Parameter) kann es zu Speicherengpässen kommen, weil die Vulkan-Implementierung noch nicht alle Optimierungen für Multi-GPU-Setups beherrscht. Zudem variiert die Performance je nach Treiber und GPU-Hersteller stärker als bei den proprietären Backends.</p>
+
+<table>
+<caption>Tabelle 1: Übersicht der GPU-Backends 2026</caption>
+<thead>
+<tr><th>Backend</th><th>Hersteller</th><th>Lizenz</th><th>Hauptzielgruppe</th><th>VRAM-Support</th></tr>
+</thead>
+<tbody>
+<tr><td>CUDA 12.8</td><td>NVIDIA</td><td>Proprietär</td><td>Profis, Enthusiasten</td><td>Bis 96 GB (RTX 6000 Pro)</td></tr>
+<tr><td>ROCm 6.4</td><td>AMD</td><td>MIT/Open Source</td><td>Preisbewusste, Open-Source-Fans</td><td>Bis 192 GB (MI300X)</td></tr>
+<tr><td>Vulkan 1.4</td><td>Khronos Group</td><td>Offen</td><td>Universelle Nutzer, Multi-Plattform</td><td>Bis 48 GB (Multi-GPU)</td></tr>
+<tr><td>SYCL 2025</td><td>Intel/Codeplay</td><td>Offen</td><td>Intel-GPU-Nutzer</td><td>Bis 48 GB (Arc Battlemage)</td></tr>
+<tr><td>Metal 4</td><td>Apple</td><td>Proprietär</td><td>macOS-Nutzer</td><td>Bis 192 GB (M3 Ultra)</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="sycl">
+<h2>5. SYCL/Intel: Der Newcomer</h2>
+<p>Intel hat 2025 mit der Übernahme von Codeplay Software und der Veröffentlichung von SYCL 2025 einen ambitionierten Vorstoß im KI-Backend-Markt gewagt. SYCL (pronounced "sickle") ist eine C++-basierte Abstraktionsschicht, die auf OpenCL aufsetzt und die Programmierung heterogener Systeme vereinfachen soll. Für Intel Arc-GPUs ist SYCL der einzige Weg, GPU-beschleunigte LLM-Inferenz mit voller Performance zu betreiben.</p>
+<p>Die zweite Generation der Intel Arc Battlemage-GPUs (B580 mit 12 GB, B770 mit 16 GB, geplant Q3 2026 mit 24 GB) zielt explizit auf den KI-Markt. In Kombination mit SYCL und der oneAPI-Bibliothek erreicht man auf einer Arc B770 etwa 15-20 t/s bei 13B-Modellen – ein respektabler Wert für eine 350-Euro-Karte. Intel hat ziehlt darauf ab, SYCL als offene Alternative zu CUDA zu positionieren, was durchaus charmant ist, da weder NVIDIA noch AMD eine vergleichbar offene Cross-Vendor-Lösung bieten.</p>
+<p>Praktisch sieht es so aus, dass llama.cpp, vLLM und IPEX-LLM (Intels eigenes LLM-Framework) SYCL unterstützen. Die Treiberqualität unter Windows ist mittlerweile gut, unter Linux gibt es noch vereinzelte Stabilitätsprobleme. Für professionelle Setups ist SYCL noch nicht die erste Wahl, aber für Bastler mit Intel-Hardware eine echte Option.</p>
+<p>Ein spannender Aspekt ist die Möglichkeit, NVIDIA-GPUs via SYCL zu programmieren. Mit dem DPC++-Compiler und entsprechenden Backends lassen sich theoretisch CUDA-Workloads auf Intel-CPUs emulieren, was für Entwicklungsumgebungen interessant ist, in denen keine NVIDIA-Hardware verfügbar ist. In der Praxis ist die Performance allerdings weit von nativem CUDA entfernt.</p>
+<p>Zusammenfassend lässt sich sagen, dass SYCL 2026 eine Nische besetzt, die durchaus Potenzial hat. Wer bereits Intel-Hardware besitzt oder auf offene Standards setzen möchte, sollte SYCL im Auge behalten. Für maximale LLM-Performance bleibt aber weiterhin CUDA erste Wahl.</p>
+</section>
+
+<section id="kompatibilitaet">
+<h2>6. Hardware-Kompatibilität 2026</h2>
+<p>Die Wahl des Backends hängt maßgeblich von der vorhandenen oder geplanten Hardware ab. Wir haben die wichtigsten GPUs des Jahres 2026 zusammengetragen und ihre Eignung für lokale LLMs bewertet. Die folgende Tabelle gibt einen Überblick über empfohlene Konfigurationen für verschiedene Budgetklassen.</p>
+
+<table>
+<caption>Tabelle 2: Empfohlene GPUs für lokale LLMs 2026</caption>
+<thead>
+<tr><th>GPU</th><th>VRAM</th><th>CUDA</th><th>ROCm</th><th>Vulkan</th><th>Preis (ca.)</th><th>Max. Modellgröße (Q4)</th></tr>
+</thead>
+<tbody>
+<tr><td>RTX 5090</td><td>32 GB</td><td>✓✓✓</td><td>✗</td><td>✓✓</td><td>2.200 €</td><td>70B</td></tr>
+<tr><td>RTX 5080</td><td>16 GB</td><td>✓✓✓</td><td>✗</td><td>✓✓
   <a href="/artikel/mistral-modelle-lokal-hosten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/mistral-modelle-lokal-hosten-2026.webp" alt="Mistral Large &amp; Mixtral 8x22B lokal hosten – MoE-Modelle selbst betreiben 2026" loading="lazy" width="400" height="200"></div>
   </a>

@@ -759,6 +759,206 @@
     </div>
 
 <h1>MinIO Object Storage selbst hosten 2026 – S3-kompatibel auf dem VPS</h1>
+<h2>Was ist MinIO und warum S3-kompatibel selbst hosten 2026?</h2>
+
+<p>MinIO ist ein in Go geschriebener, Open-Source-basierter Object Storage Server (Apache-2.0-Lizenz), der die Amazon S3 API vollständig implementiert. Das bedeutet: Jede Anwendung, die mit S3 spricht – sei es Nextcloud, Restic, Borg, Velero, Rclone, GitLab oder eigene Apps über das AWS SDK – funktioniert ohne Änderung auch mit MinIO. Gerade 2026, wo Datenschutz (DSGVO), Kostenkontrolle und Unabhängigkeit von Hyperscalern immer wichtiger werden, ist diese Kompatibilität ein entscheidender strategischer Vorteil.</p>
+
+<p>Im Gegensatz zu klassischen Dateisystemen speichert MinIO Daten als Objekte in flachen Buckets, identisch zu S3. Jedes Objekt erhält einen eindeutigen Schlüssel, Metadaten und – optional – Versioning, Object-Locking und Lifecycle-Regeln. Die Replikation zwischen MinIO-Clustern oder zu AWS S3 ist nativ eingebaut, ebenso Erasure Coding, das Daten selbst bei Ausfall mehrerer Festplatten ohne Datenverlust wiederherstellt.</p>
+
+<p>Für Self-Hoster ist besonders interessant, dass MinIO hardware-agnostisch läuft: Eine einzelne Binary, ein einziger Port (standardmäßig 9000), keine externen Datenbanken, keine komplexen Abhängigkeiten. Selbst auf einem kleinen VPS mit 2 vCPU und 4 GB RAM lassen sich produktive Workloads wie Foto-Backups, Log-Archive oder Nextcloud Primary Storage betreiben. Auf größeren Maschinen skaliert MinIO linear mit der Anzahl der Disks und Nodes.</p>
+
+<p>Die Vorteile gegenüber anderen S3-Alternativen wie Ceph RADOS Gateway oder OpenStack Swift liegen in der Einfachheit: MinIO lässt sich in unter zehn Minuten produktiv deployen, während Ceph ein eigenes Cluster-Setup mit MONs, OSDs und CRUSH-Maps erfordert. Für 90 Prozent der typischen Use-Cases – Backups, statische Inhalte, Container-Registries, KI-Datasets – ist MinIO die pragmatischste Wahl 2026.</p>
+
+<h2>Systemvoraussetzungen für MinIO auf einem VPS</h2>
+
+<p>Bevor du MinIO installierst, solltest du sicherstellen, dass dein VPS die Mindestanforderungen erfüllt. Für eine Single-Node-Installation reichen bereits 2 vCPU, 4 GB RAM und 50 GB NVMe-Speicher – ideal für Backups und kleinere Anwendungen. Für produktive Workloads mit mehreren Millionen Objekten empfiehlt MinIO mindestens 4 vCPU, 16 GB RAM und dedizierte NVMe-Disks. Die offizielle Empfehlung lautet: Direkt angeschlossener Storage (DAS) statt Netzwerk-Storage, um Latenz zu minimieren.</p>
+
+<p>Als Betriebssystem funktionieren alle gängigen Linux-Distributionen: Ubuntu 22.04/24.04 LTS, Debian 12, Rocky Linux 9 oder AlmaLinux 9. Windows Server wird offiziell nicht für Produktion empfohlen, macOS eignet sich nur als Testplattform. Wichtig ist ein aktueller Kernel (≥ 5.15), damit moderne Storage-Features wie io_uring optimal genutzt werden. Für die Netzwerkanbindung gilt: 1 Gbit/s ausreichend für die meisten Workloads, 10 Gbit/S oder mehr bei großen Datenmengen und Replikation.</p>
+
+<p>Die folgende Tabelle zeigt die empfohlenen Specs je nach Einsatzszenario:</p>
+
+<table border="1" cellpadding="6" cellspacing="0">
+  <thead>
+    <tr>
+      <th>Einsatzszenario</th>
+      <th>CPU</th>
+      <th>RAM</th>
+      <th>Storage</th>
+      <th>Network</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Privater Backup-Speicher</td>
+      <td>2 vCPU</td>
+      <td>4 GB</td>
+      <td>500 GB HDD</td>
+      <td>1 Gbit/s</td>
+    </tr>
+    <tr>
+      <td>Kleine Webagentur / CMS</td>
+      <td>4 vCPU</td>
+      <td>8 GB</td>
+      <td>1 TB NVMe</td>
+      <td>1 Gbit/s</td>
+    </tr>
+    <tr>
+      <td>Produktiver Cluster (3 Nodes)</td>
+      <td>8 vCPU / Node</td>
+      <td>32 GB / Node</td>
+      <td>4× 4 TB NVMe / Node</td>
+      <td>10 Gbit/s</td>
+    </tr>
+    <tr>
+      <td>KI / Big-Data Workloads</td>
+      <td>16+ vCPU</td>
+      <td>64+ GB</td>
+      <td>50+ TB NVMe</td>
+      <td>25 Gbit/s</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Beachte: MinIO nutzt aggressive Memory-Mapping-Strategien. Bei vielen kleinen Dateien steigt der RAM-Bedarf linear mit der Anzahl paralleler Verbindungen. Eine Faustregel: 1 GB RAM pro 1.000 aktive gleichzeitige PUT/GET-Operationen. Außerdem sollte die Systemzeit via Chrony oder systemd-timesyncd exakt synchron sein – MinIO lehnt Requests mit Zeitabweichung &gt; 15 Minuten ab, um Replay-Attacken zu verhindern.</p>
+
+<h2>MinIO Server installieren (Schritt-für-Schritt)</h2>
+
+<p>Die Installation von MinIO ist 2026 bewusst einfach gehalten: ein einzelnes statisches Binary, das du einfach herunterlädst und ausführbar machst. Es gibt keine Pakete in den offiziellen Ubuntu- oder Debian-Repositories, weil MinIO seine eigene Update-Pipeline betreibt. Die empfohlene Methode ist der Download direkt von <code>dl.min.io</code> mit Verifikation via SHA256-Hash und GPG-Signatur.</p>
+
+<p>Melde dich als Root oder mit sudo-Rechten am VPS an und führe die folgenden Befehle aus:</p>
+
+<pre><code># System aktualisieren
+sudo apt update &amp;&amp; sudo apt upgrade -y
+
+# MinIO-Binary herunterladen (amd64)
+wget https://dl.min.io/server/minio/release/linux-amd64/minio
+
+# Ausführbar machen und nach /usr/local/bin verschieben
+chmod +x minio
+sudo mv minio /usr/local/bin/
+
+# Version verifizieren
+minio --version</code></pre>
+
+<p>Nach dem Download erstellst du einen dedizierten Systembenutzer und die notwendigen Verzeichnisse. Niemals MinIO als Root betreiben – das verstößt gegen die Sicherheits-Empfehlung und verhindert später korrekte Permission-Trennung bei Erasure Coding.</p>
+
+<pre><code># Benutzer und Gruppe anlegen
+sudo groupadd -r minio-user
+sudo useradd -r -g minio-user -d /var/lib/minio -s /sbin/nologin minio-user
+
+# Storage-Verzeichnis vorbereiten
+sudo mkdir -p /var/lib/minio/data
+sudo chown -R minio-user:minio-user /var/lib/minio
+sudo chmod 750 /var/lib/minio
+
+# Konfigurations-Verzeichnis für TLS etc.
+sudo mkdir -p /etc/minio
+sudo chown minio-user:minio-user /etc/minio</code></pre>
+
+<p>Optional kannst du das MinIO Client Tool <code>mc</code> installieren – das ist das offizielle CLI-Äquivalent zur AWS CLI und unverzichtbar für die tägliche Administration:</p>
+
+<pre><code>wget https://dl.min.io/client/mc/release/linux-amd64/mc
+chmod +x mc
+sudo mv mc /usr/local/bin/
+mc --version</code></pre>
+
+<p>Bei ARM-basierten VPS (z. B. Ampere Altra, AWS Graviton, Oracle ARM) ersetzt du <code>linux-amd64</code> durch <code>linux-arm64</code>. Für ältere 32-bit-Systeme gibt es entsprechende Builds. Nach der Installation testest du den Server mit einem manuellen Start, bevor du den Systemd-Service einrichtest – so lassen sich Konfigurationsfehler schnell eingrenzen.</p>
+
+<h2>MinIO als Systemd-Service einrichten</h2>
+
+<p>Ein produktiver MinIO-Server läuft 24/7 als Systemd-Service mit automatischem Neustart, Resource-Limits und Log-Rotation. Systemd ist auf allen aktuellen Linux-Distributionen Standard und ermöglicht sauberes Dependency-Management: MinIO startet erst, wenn Netzwerk und Storage verfügbar sind. Eine eigene Service-Unit sorgt zudem dafür, dass Umgebungsvariablen, Pfade und Limits reproduzierbar gesetzt werden.</p>
+
+<p>Erstelle zunächst die Environment-Datei <code>/etc/default/minio</code>. Diese enthält alle sensiblen Konfigurationsparameter wie Root-User, Passwort, Data-Directory und Listen-Adresse – getrennt vom Service-File, damit Updates die Konfiguration nicht überschreiben:</p>
+
+<pre><code>sudo nano /etc/default/minio</code></pre>
+
+<p>Inhalt der Datei:</p>
+
+<pre><code># MinIO-Server-Konfiguration
+MINIO_ROOT_USER="admin"
+MINIO_ROOT_PASSWORD="supersecure-passwort-mindestens-8-zeichen"
+MINIO_VOLUMES="/var/lib/minio/data"
+MINIO_OPTS="--console-address :9001 --address :9000"
+MINIO_SERVER_URL="https://minio.example.com"</code></pre>
+
+<p>Wähle ein starkes Passwort mit mindestens 16 Zeichen, am besten ein zufällig generiertes: <code>openssl rand -base64 24</code>. Die Variable <code>MINIO_SERVER_URL</code> ist wichtig für korrekte Redirects in der Web-Konsole und für signierte URLs. Die Web-Konsole (MinIO Browser UI) läuft standardmäßig auf Port 9001, der API-Endpunkt auf 9000.</p>
+
+<p>Danach erstellst du die Systemd-Unit <code>/etc/systemd/system/minio.service</code>:</p>
+
+<pre><code>[Unit]
+Description=MinIO Object Storage
+Documentation=https://docs.min.io
+Wants=network-online.target
+After=network-online.target
+AssertFileIsExecutable=/usr/local/bin/minio
+
+[Service]
+Type=notify
+WorkingDirectory=/usr/lib/minio
+User=minio-user
+Group=minio-user
+EnvironmentFile=/etc/default/minio
+ExecStart=/usr/local/bin/minio server $MINIO_OPTS $MINIO_VOLUMES
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+TasksMax=infinity
+TimeoutStopSec=infinity
+SendSIGKILL=no
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+
+<p>Aktiviere und starte den Service:</p>
+
+<pre><code>sudo systemctl daemon-reload
+sudo systemctl enable --now minio
+sudo systemctl status minio</code></pre>
+
+<p>Mit <code>journalctl -u minio -f</code> verfolgst du die Logs in Echtzeit. Ein erfolgreicher Start zeigt <code>Server listening on :9000</code> und <code>Console listening on :9001</code>. Sollte der Service nicht starten, prüfe zunächst Permissions, Pfade und das Environment-File. Häufige Fehler sind fehlende Quotes im Passwort oder falsche Pfade in <code>MINIO_VOLUMES</code>.</p>
+
+<h2>Buckets erstellen und Benutzer verwalten</h2>
+
+<p>Nach dem ersten Start kannst du dich auf der Web-Konsole unter <code>http://deine-vps-ip:9001</code> mit <code>MINIO_ROOT_USER</code> und <code>MINIO_ROOT_PASSWORD</code> einloggen. Die Konsole ist funktional aufgebaut: links die Navigation (Buckets, Users, Settings), oben ein Drag-and-Drop-Bereich für Uploads, in der Mitte eine Explorer-Ansicht ähnlich dem AWS S3 Console. Der Root-Account hat volle administrative Rechte – im Produktivbetrieb solltest du zeitnah dedizierte Service-User mit minimalen Rechten anlegen.</p>
+
+<p>Über die Web-Konsole legst du Buckets an, vergibst Policies, erstellst Access Keys und verwaltest Lifecycle-Regeln. Alternativ funktioniert alles auch über die CLI mit <code>mc</code>, was für Skripting und Automation deutlich besser geeignet ist. Zuerst konfigurierst du den Alias für deinen Server:</p>
+
+<pre><code>mc alias set myminio https://minio.example.com admin 'supersecure-passwort'</code></pre>
+
+<p>Anschließend erstellst du einen neuen Bucket – z. B. für tägliche Backups:</p>
+
+<pre><code>mc mb myminio/backup-prod
+mc anonymous set none myminio/backup-prod
+mc version enable myminio/backup-prod</code></pre>
+
+<p>Versioning ist besonders für Backup-Buckets essenziell: Es verhindert Datenverlust durch versehentliches Überschreiben oder Ransomware. Beachte aber, dass Versioning den Storage-Verbrauch deutlich erhöhen kann – plane eine Lifecycle-Policy ein, die alte Versionen nach 30 oder 90 Tagen automatisch löscht.</p>
+
+<p>Für Anwendungen empfiehlt sich das Prinzip der minimalen Rechte. Lege pro Service einen eigenen User mit eigenem Access Key an:</p>
+
+<pre><code># Benutzer anlegen
+mc admin user add myminio backup-user 'BackupService2026!'
+
+# Policy erstellen (nur Zugriff auf backup-prod)
+cat &gt; /tmp/backup-policy.json &lt;&lt; 'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject", "s3:ListBucket", "s3:DeleteObject"],
+      "Resource": ["arn:aws:s3:::backup-prod", "arn:aws:s3:::backup-prod/*"]
+    }
+  ]
+}
+EOF
+
+mc admin policy attach myminio readwrite-backup --user backup-user</code></pre>
+
+<p>Access Keys für Service-User erzeugst du ebenfalls über die Konsole oder per CLI. Wichtig: MinIO unterscheidet zwischen <em>Root Credentials</em> (volle Admin-Rechte) und <em>Service Accounts</em> (eingeschränkte Rechte, abgeleitet von einem STS-Token). Service Accounts sind sicherer, weil sie kurzlebige Token tragen und feingranular pro Bucket vergeben werden können.</p>
+
+<h2>S3-API mit AWS CLI und SDKs testen</h2>
+
+<p>Der entscheidende Vorteil von MinIO ist die vollständige S3-Kompatibilität. Du kannst die AWS CLI, boto3 (Python), das AWS SDK for JavaScript oder jeden anderen S3-Client direkt gegen deinen selbst gehosteten MinIO-Server nutzen. Das macht Migrationen zwischen AWS S3 und MinIO trivial: In vielen Fällen reicht es, den Endpoint und die Credentials zu ändern
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>

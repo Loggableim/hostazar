@@ -759,6 +759,137 @@
     </div>
 
 <h1>LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</h1>
+<h2>LLM lokal hosten: Der ultimative Leitfaden für 2026</h2>
+
+<p>Das lokale Hosten von Large Language Models hat sich 2026 zu einer der gefragtesten IT-Disziplinen entwickelt. Immer mehr Unternehmen und Privatanwender möchten die Vorteile moderner KI nutzen, ohne dabei auf externe Cloud-Anbieter angewiesen zu sein. Die Gründe sind vielfältig: Datenschutz, Kostenkontrolle, Unabhängigkeit und nicht zuletzt die Möglichkeit, Modelle an eigene Bedürfnisse anzupassen.</p>
+
+<p>Die technischen Voraussetzungen für den lokalen Betrieb sind heute deutlich niedriger als noch vor wenigen Jahren. Dank optimierter Laufzeitumgebungen wie llama.cpp, Ollama, vLLM oder LM Studio lassen sich leistungsfähige Modelle auf handelsüblicher Hardware betreiben. Auch die Modellgrößen sind flexibler geworden: Quantisierte Varianten ermöglichen es, Modelle mit 7 bis 70 Milliarden Parametern auf GPUs mit 8 bis 24 GB VRAM auszuführen.</p>
+
+<p>Wer ein LLM lokal hostet, behält die volle Kontrolle über seine Daten. Sämtliche Anfragen, Dokumente und Konversationen verbleiben im eigenen Rechenzentrum oder auf dem eigenen Arbeitsplatzrechner. Damit entfallen nicht nur datenschutzrechtliche Bedenken, sondern auch die Abhängigkeit von externen Anbietern, die ihre Preise, Nutzungsbedingungen oder Modellverfügbarkeiten jederzeit ändern können.</p>
+
+<p>Allerdings bringt das lokale Hosting auch Herausforderungen mit sich: die Anschaffung geeigneter Hardware, der Betrieb und die Wartung der Infrastruktur, die Implementierung von Sicherheitsmaßnahmen und nicht zuletzt die Notwendigkeit, regelmäßige Updates und Sicherheits-Patches einzuspielen. In diesem Leitfaden zeigen wir Ihnen Schritt für Schritt, wie Sie ein LLM erfolgreich lokal betreiben.</p>
+
+<h2>Hardware-Anforderungen für lokale LLMs</h2>
+
+<p>Die Wahl der richtigen Hardware ist die Grundlage für ein leistungsfähiges LLM-Setup. Während einfache Modelle mit 7 bis 13 Milliarden Parametern bereits auf modernen Gaming-PCs lauffähig sind, erfordern größere Modelle dedizierte Server-Hardware mit professionellen GPUs. Die folgende Übersicht zeigt die typischen Anforderungen für verschiedene Modellgrößen und Anwendungsfälle.</p>
+
+<p>Für den Einstieg eignet sich eine NVIDIA RTX 4090 mit 24 GB VRAM, die in vielen Heim-Setups zu finden ist. Damit lassen sich quantisierte 4-Bit-Modelle mit bis zu 70 Milliarden Parametern ausführen, allerdings mit Einschränkungen bei der Geschwindigkeit. Für produktive Workloads empfehlen sich GPUs der Enterprise-Klasse wie die NVIDIA A100 (40 oder 80 GB) oder die H100 (80 GB).</p>
+
+<p>Auch der Arbeitsspeicher spielt eine wichtige Rolle. Für die meisten Modelle sollte das System mindestens 64 GB RAM besitzen, idealerweise 128 GB oder mehr. Schnelle NVMe-SSDs reduzieren die Ladezeiten erheblich, da die Modelldateien je nach Größe zwischen 4 und 140 GB umfassen können. Eine 10-Gbit-Netzwerkanbindung ist empfehlenswert, wenn mehrere Nutzer gleichzeitig auf das Modell zugreifen sollen.</p>
+
+<table border="1" cellpadding="8" cellspacing="0">
+<thead>
+<tr>
+<th>Modellgröße</th>
+<th>VRAM-Bedarf (4-Bit)</th>
+<th>VRAM-Bedarf (8-Bit)</th>
+<th>VRAM-Bedarf (16-Bit)</th>
+<th>Empfohlene GPU</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>7B Parameter</td>
+<td>~5 GB</td>
+<td>~8 GB</td>
+<td>~14 GB</td>
+<td>RTX 3060+</td>
+</tr>
+<tr>
+<td>13B Parameter</td>
+<td>~9 GB</td>
+<td>~14 GB</td>
+<td>~26 GB</td>
+<td>RTX 4070+</td>
+</tr>
+<tr>
+<td>30B Parameter</td>
+<td>~18 GB</td>
+<td>~30 GB</td>
+<td>~60 GB</td>
+<td>RTX 4090 / A5000</td>
+</tr>
+<tr>
+<td>70B Parameter</td>
+<td>~40 GB</td>
+<td>~70 GB</td>
+<td>~140 GB</td>
+<td>A100 80GB / H100</td>
+</tr>
+<tr>
+<td>Mixtral 8x7B</td>
+<td>~26 GB</td>
+<td>~45 GB</td>
+<td>~90 GB</td>
+<td>A100 80GB</td>
+</tr>
+</tbody>
+</table>
+
+<p>Eine interessante Alternative zu NVIDIA-GPUs stellen AMD-Karten wie die Radeon RX 7900 XTX oder die neuen Instinct-Beschleuniger dar. Dank ROCm und der wachsenden Unterstützung durch Frameworks wie llama.cpp und vLLM lassen sich auch AMD-GPUs zunehmend produktiv für LLM-Inferenz einsetzen. Apple Silicon (M-Serie) bietet ebenfalls eine solide Performance und profitiert von der engen Integration zwischen CPU und GPU.</p>
+
+<h2>Ollama: Der einfachste Weg zum lokalen LLM</h2>
+
+<p>Ollama hat sich 2026 als das populärste Werkzeug für den lokalen Betrieb von Sprachmodellen etabliert. Die Open-Source-Software abstrahiert die Komplexität von llama.cpp und bietet eine einheitliche Schnittstelle für Dutzende vortrainierte Modelle. Die Installation ist denkbar einfach und auf allen gängigen Plattformen verfügbar.</p>
+
+<p>Nach der Installation kann ein Modell mit einem einzigen Befehl heruntergeladen und gestartet werden. Ollama kümmert sich automatisch um die Optimierung, das Caching und die Bereitstellung einer REST-API, die mit der OpenAI-Schnittstelle kompatibel ist. Damit lässt sich Ollama nahtlos in bestehende Anwendungen und Frontends integrieren.</p>
+
+<p>Ein einfaches Beispiel zeigt, wie schnell sich ein LLM in Betrieb nehmen lässt. Der folgende Befehl lädt das Llama-3-Modell mit 8 Milliarden Parametern herunter und startet es:</p>
+
+<pre><code># Ollama installieren (Linux/macOS)
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Modell herunterladen und starten
+ollama run llama3:8b
+
+# Alternative Modelle
+ollama run mistral
+ollama run mixtral:8x7b
+ollama run phi3:medium
+ollama run codellama:34b
+</code></pre>
+
+<p>Die Interaktion mit dem Modell erfolgt entweder direkt in der Kommandozeile oder über die API. Letztere lässt sich auch aus Skripten und Anwendungen heraus ansprechen. Ein einfacher API-Aufruf mit curl demonstriert die Integration:</p>
+
+<pre><code>curl http://localhost:11434/api/generate -d '{
+  "model": "llama3:8b",
+  "prompt": "Erkläre mir in einfachen Worten, was Quantencomputing ist.",
+  "stream": false
+}'
+</code></pre>
+
+<p>Ollama unterstützt außerdem die Definition eigener Modelle über Modelfiles, mit denen sich System-Prompts, Parameter und sogar benutzerdefinierte Konfigurationen festlegen lassen. Damit lassen sich spezialisierte Varianten erstellen, etwa für juristische Texte, medizinische Beratung oder Programmierung.</p>
+
+<h2>vLLM und andere Hochleistungs-Frameworks</h2>
+
+<p>Für produktive Workloads mit hohen Durchsatzanforderungen stoßen einfache Tools wie Ollama an ihre Grenzen. vLLM hat sich in solchen Szenarien als De-facto-Standard etabliert, da es durch PagedAttention und kontinuierliches Batching eine deutlich höhere Token-pro-Sekunde-Rate erreicht. Damit lassen sich auf einer einzelnen A100 GPU Dutzende Nutzer gleichzeitig bedienen.</p>
+
+<p>Die Installation von vLLM erfolgt am einfachsten über pip in einer virtuellen Python-Umgebung. Das Framework unterstützt eine breite Palette von Modellen, darunter Llama, Mistral, Mixtral, Qwen und viele weitere. Auch die Kompatibilität mit der OpenAI-API ist gegeben, sodass bestehende Anwendungen ohne Änderungen vLLM als Backend nutzen können.</p>
+
+<pre><code># vLLM installieren
+pip install vllm
+
+# OpenAI-kompatiblen Server starten
+python -m vllm.entrypoints.openai.api_server \
+  --model meta-llama/Meta-Llama-3-70B-Instruct \
+  --tensor-parallel-size 2 \
+  --gpu-memory-utilization 0.95 \
+  --max-model-len 8192
+</code></pre>
+
+<p>Tensor Parallelism ermöglicht es, Modelle über mehrere GPUs zu verteilen, die dann gemeinsam an einer Anfrage arbeiten. Dadurch lassen sich auch sehr große Modelle mit mehreren hundert Milliarden Parametern auf handelsüblichen Multi-GPU-Servern betreiben. vLLM skaliert linear mit der Anzahl der GPUs, was die Kosten pro Token deutlich senkt.</p>
+
+<p>Alternativen zu vLLM sind unter anderem TensorRT-LLM (NVIDIA), llama.cpp (universell), SGLang (für komplexe Workflows) und Hugging Face TGI (Transformers Generation Inference). Die Wahl des Frameworks hängt vom konkreten Anwendungsfall ab: Für maximale Kompatibilität ist llama.cpp ideal, für maximale Performance sind vLLM und TensorRT-LLM die erste Wahl.</p>
+
+<h2>Quantisierung: Mehr Leistung mit weniger Hardware</h2>
+
+<p>Quantisierung ist eine der wichtigsten Techniken, um LLMs auf ressourcenbeschränkter Hardware lauffähig zu machen. Dabei werden die Gewichte des Modells von 16-Bit- oder 32-Bit-Fließkommazahlen in niedrigere Präzisionen wie 8-Bit, 4-Bit oder sogar 3-Bit umgewandelt. Das reduziert den Speicherbedarf drastisch und beschleunigt die Inferenz, allerdings mit leichten Einbußen bei der Qualität.</p>
+
+<p>Die gängigsten Quantisierungsformate sind GGUF (für llama.cpp), GPTQ, AWQ und EXL2. Diese Formate verwenden unterschiedliche Algorithmen, um den Kompromiss zwischen Modellgröße und Genauigkeit zu optimieren. In der Praxis haben sich 4-Bit-Quantisierungen als Sweet Spot etabliert, da sie den Speicherbedarf um den Faktor 4 reduzieren, ohne die Qualität spürbar zu beeinträchtigen.</p>
+
+<p>Tools wie llama.cpp's <code>quantize</code>-Befehl oder AutoGPTQ ermöglichen die Konvertierung vortrainierter Modelle in quantisierte Formate. Alternativ bieten Hugging Face und TheBloke auf ihren Plattformen bereits fertig quantisierte Modelle an, die direkt heruntergeladen werden können. Das spart Zeit und Rechenressourcen.</p>
+
+<pre><code>#
   <a href="/artikel/mistral-modelle-lokal-hosten-2026.html" class="card-img-link">
     <div class="card-img"><img src="/images/mistral-modelle-lokal-hosten-2026.webp" alt="Mistral Large &amp; Mixtral 8x22B lokal hosten – MoE-Modelle selbst betreiben 2026" loading="lazy" width="400" height="200"></div>
   </a>

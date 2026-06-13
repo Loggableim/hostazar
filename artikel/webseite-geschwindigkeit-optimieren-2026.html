@@ -759,6 +759,206 @@
     </div>
 
 <h1>Website-Geschwindigkeit optimieren – PageSpeed-Guide 2026</h1>
+<h2>Inhaltsverzeichnis</h2>
+        <ol>
+            <li><a href="#warum">Warum Geschwindigkeit 2026 entscheidend ist</a></li>
+            <li><a href="#cwv">Core Web Vitals 2026 im Überblick</a></li>
+            <li><a href="#tools">Performance-Tools im Vergleich</a></li>
+            <li><a href="#bilder">Bilder und Medien optimieren</a></li>
+            <li><a href="#code">CSS und JavaScript optimieren</a></li>
+            <li><a href="#caching">Caching-Strategien</a></li>
+            <li><a href="#server">Server und Hosting</a></li>
+            <li><a href="#crp">Critical Rendering Path</a></li>
+            <li><a href="#lazy">Lazy Loading &amp; Code-Splitting</a></li>
+            <li><a href="#mobile">Mobile Performance</a></li>
+            <li><a href="#fehler">Häufige Fehler vermeiden</a></li>
+            <li><a href="#checkliste">2026 Checkliste</a></li>
+        </ol>
+    </nav>
+
+    <section id="warum">
+        <h2>1. Warum Website-Geschwindigkeit 2026 entscheidender ist als je zuvor</h2>
+        <p>Die Erwartungen der Nutzer sind in den letzten Jahren drastisch gestiegen. Während 2010 noch Ladezeiten von 8 Sekunden toleriert wurden, erwarten Besucher 2026 eine sofortige Reaktion. Studien von Google und Akamai belegen: Bereits <strong>100 Millisekunden</strong> zusätzliche Ladezeit können die Conversion-Rate um bis zu 7 % senken.</p>
+        <p>Suchmaschinen haben das erkannt. Seit dem Page-Experience-Update ist die Ladegeschwindigkeit ein offizieller Rankingfaktor. Google misst dabei sowohl reale Nutzerdaten (Field Data) als auch synthetische Tests (Lab Data). Wer 2026 in den Top-Rankings mitspielen will, kommt an einer konsequenten Performance-Optimierung nicht vorbei.</p>
+        <p>Auch das Nutzerverhalten hat sich verändert. Mobile Zugriffe machen in Deutschland mittlerweile über 75 % des gesamten Traffics aus. Mobile Nutzer sind häufig unterwegs, nutzen instabiles LTE oder 5G mit schwankender Bandbreite und verlassen eine Seite, die länger als 2 Sekunden zum Aufbau braucht. Die Performance ist also nicht nur ein technisches Thema, sondern direkter Umsatztreiber.</p>
+        <p>Im E-Commerce bedeutet eine Verbesserung der Ladezeit um 1 Sekunde durchschnittlich eine Umsatzsteigerung von 8–15 %. Bei einer Website mit 1 Million Besuchern pro Monat und einem Warenkorbwert von 80 € entspricht das einem zusätzlichen Umsatzpotenzial im sechsstelligen Bereich. Genau deshalb investieren Unternehmen wie Amazon, Otto und Zalando jährlich Millionen in ihre Ladezeit.</p>
+        <p><em>Fazit: Geschwindigkeit ist 2026 kein „Nice-to-have" mehr, sondern ein fundamentaler Wettbewerbsvorteil – sowohl für SEO als auch für den Umsatz.</em></p>
+    </section>
+
+    <section id="cwv">
+        <h2>2. Core Web Vitals 2026: LCP, INP und CLS verstehen</h2>
+        <p>Die Core Web Vitals (CWV) sind Googles standardisierte Metriken, um die Nutzererfahrung einer Website zu bewerten. Seit 2024 ersetzt der neue Interaction to Next Paint (INP) den bisherigen First Input Delay (FID), da INP die Reaktionszeit auf Nutzerinteraktionen deutlich präziser misst.</p>
+        <p>Die drei Kennzahlen im Detail:</p>
+
+        <table>
+            <caption>Core Web Vitals – Schwellenwerte für 2026 (75. Perzentil)</caption>
+            <thead>
+                <tr>
+                    <th>Metrik</th>
+                    <th>Bedeutung</th>
+                    <th>Gut (grün)</th>
+                    <th>Mittel (gelb)</th>
+                    <th>Schlecht (rot)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>LCP</strong> (Largest Contentful Paint)</td>
+                    <td>Ladezeit des größten sichtbaren Elements</td>
+                    <td>≤ 1,2 s</td>
+                    <td>1,2 – 2,5 s</td>
+                    <td>&gt; 2,5 s</td>
+                </tr>
+                <tr>
+                    <td><strong>INP</strong> (Interaction to Next Paint)</td>
+                    <td>Reaktionszeit auf Nutzereingaben</td>
+                    <td>≤ 200 ms</td>
+                    <td>200 – 500 ms</td>
+                    <td>&gt; 500 ms</td>
+                </tr>
+                <tr>
+                    <td><strong>CLS</strong> (Cumulative Layout Shift)</td>
+                    <td>Visuelle Stabilität der Seite</td>
+                    <td>≤ 0,1</td>
+                    <td>0,1 – 0,25</td>
+                    <td>&gt; 0,25</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p><strong>LCP (Largest Contentful Paint)</strong> misst, wann das größte im Viewport sichtbare Element vollständig geladen ist. Das ist häufig ein Hero-Bild, ein Video oder ein großer Textblock. Ein guter LCP bedeutet, dass der Nutzer die Hauptinformation schnell wahrnimmt.</p>
+        <p><strong>INP (Interaction to Next Paint)</strong> erfasst die Latenz zwischen einer Nutzeraktion (Klick, Tastatur, Touch) und der visuellen Reaktion im Browser. Niedrige INP-Werte sorgen für ein flüssiges Bedienerlebnis – entscheidend bei Web-Apps, Onlineshops und Formularen.</p>
+        <p><strong>CLS (Cumulative Layout Shift)</strong> quantifiziert, wie stark Elemente während des Ladens „springen". Ein hoher CLS-Wert entsteht oft durch nachladende Bilder ohne reservierte Größe, spät geladene Schriften oder dynamisch eingefügte Werbung. Google bewertet ab einem CLS von 0,1 die Seite als optimierungsbedürftig.</p>
+        <p>Google wertet für das Ranking die Daten echter Nutzer aus Chrome (CrUX – Chrome User Experience Report) aus. Diese Field Data fließen in den Page-Experience-Score ein. Wer in den „grünen" Bereich aller drei Metriken kommt, erhält einen deutlichen Ranking-Vorteil – insbesondere auf mobilen Geräten.</p>
+    </section>
+
+    <section id="tools">
+        <h2>3. Performance messen: Die besten Tools im Vergleich 2026</h2>
+        <p>Bevor du optimierst, musst du messen. Die folgenden Tools haben sich 2026 als Standard etabliert und liefern jeweils unterschiedliche Perspektiven auf die Performance deiner Website.</p>
+        <p>Wichtig ist die Unterscheidung zwischen <strong>Lab Data</strong> (kontrollierte Testumgebung) und <strong>Field Data</strong> (echte Nutzerdaten). Idealerweise nutzt du eine Kombination aus beiden, um ein vollständiges Bild zu erhalten.</p>
+
+        <table>
+            <caption>Vergleich der wichtigsten Performance-Tools 2026</caption>
+            <thead>
+                <tr>
+                    <th>Tool</th>
+                    <th>Typ</th>
+                    <th>Stärke</th>
+                    <th>Ideal für</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>PageSpeed Insights</td>
+                    <td>Lab + Field</td>
+                    <td>Kombination aus CrUX- und Lighthouse-Daten</td>
+                    <td>Schneller Überblick</td>
+                </tr>
+                <tr>
+                    <td>Lighthouse (Chrome DevTools)</td>
+                    <td>Lab</td>
+                    <td>Detaillierte Audits mit konkreten Fix-Vorschlägen</td>
+                    <td>Entwickler</td>
+                </tr>
+                <tr>
+                    <td>WebPageTest</td>
+                    <td>Lab</td>
+                    <td>Wasserfall-Analyse, Video-Capture, Multi-Location</td>
+                    <td>Tiefenanalyse</td>
+                </tr>
+                <tr>
+                    <td>GTmetrix</td>
+                    <td>Lab</td>
+                    <td>Übersichtliche Reports mit Handlungsempfehlungen</td>
+                    <td>Marketing &amp; SEO</td>
+                </tr>
+                <tr>
+                    <td>Chrome User Experience Report</td>
+                    <td>Field</td>
+                    <td>Echte Nutzerdaten aus Chrome</td>
+                    <td>Langzeit-Monitoring</td>
+                </tr>
+                <tr>
+                    <td>Sentry / SpeedCurve</td>
+                    <td>Field</td>
+                    <td>Echtzeit-Monitoring, Alerting</td>
+                    <td>Produktivbetrieb</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p><strong>PageSpeed Insights (PSI)</strong> ist der Einstiegspunkt für die meisten. Du gibst eine URL ein und erhältst sofort eine Bewertung von 0–100 sowie konkrete Optimierungsvorschläge. PSI kombiniert Lab-Daten aus Lighthouse mit echten Nutzerdaten aus dem CrUX-Report – falls ausreichend Traffic vorhanden ist.</p>
+        <p><strong>Lighthouse</strong> läuft direkt in den Chrome DevTools (Tab „Lighthouse") und bietet Audits für Performance, Accessibility, SEO und Best Practices. Für 2026 ist besonders der neue „Throttling"-Modus relevant, der mobile Netzwerkbedingungen realistischer simuliert.</p>
+        <p><strong>WebPageTest</strong> bleibt das Tool der Wahl für Profis. Du kannst Tests von verschiedenen Standorten weltweit, mit unterschiedlichen Bandbreiten und sogar mit Cookie-Blockern durchführen. Die Wasserfall-Darstellung zeigt jeden Request inklusive DNS, TLS, TTFB und Download-Dauer.</p>
+        <p><em>Profi-Tipp von hostazar.com: Führe Performance-Tests immer in einem Inkognito-Fenster durch, um Caching-Effekte und Browser-Erweiterungen auszuschließen. Teste zusätzlich regelmäßig mit Throttling auf „Slow 4G" – das entspricht der Realität vieler mobiler Nutzer.</em></p>
+    </section>
+
+    <section id="bilder">
+        <h2>4. Bilder und Medien effizient optimieren</h2>
+        <p>Bilder machen im Schnitt <strong>50–60 %</strong> der gesamten Seitengröße aus. Damit sind sie der größte Hebel für Performance-Optimierung. 2026 stehen uns moderne Formate wie AVIF und WebP zur Verfügung, die deutlich kleiner sind als JPEG oder PNG – bei gleicher oder besserer Qualität.</p>
+        <p>Die Wahl des richtigen Formats hängt vom Inhalt ab. Fotos sollten als AVIF (bestes Kompressionsverhältnis) oder WebP gespeichert werden. Logos, Icons und Grafiken mit Transparenz funktionieren besser als PNG oder SVG. Screenshots mit Text profitieren vom verlustfreien WebP-Modus.</p>
+
+        <table>
+            <caption>Bildformate im Vergleich (gleiche Qualität, ca. 1200x800 Pixel)</caption>
+            <thead>
+                <tr>
+                    <th>Format</th>
+                    <th>Durchschnittliche Größe</th>
+                    <th>Browser-Support 2026</th>
+                    <th>Empfehlung</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>JPEG (alt)</td>
+                    <td>~ 280 kB</td>
+                    <td>Universell</td>
+                    <td>Fallback</td>
+                </tr>
+                <tr>
+                    <td>WebP</td>
+                    <td>~ 150 kB</td>
+                    <td>97 %</td>
+                    <td>Standard</td>
+                </tr>
+                <tr>
+                    <td>AVIF</td>
+                    <td>~ 95 kB</td>
+                    <td>92 %</td>
+                    <td>Optimal</td>
+                </tr>
+                <tr>
+                    <td>PNG (verlustfrei)</td>
+                    <td>~ 450 kB</td>
+                    <td>Universell</td>
+                    <td>Nur Logos/Icons</td>
+                </tr>
+                <tr>
+                    <td>SVG</td>
+                    <td>~ 5 kB</td>
+                    <td>Universell</td>
+                    <td>Vektorgrafiken</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>Nutze das <code>&lt;picture&gt;</code>-Element mit dem <code>srcset</code>-Attribut, um dem Browser automatisch das beste Format zu liefern. Der Browser wählt anhand seiner Fähigkeiten das passende Bild aus. So funktioniert es:</p>
+
+        <pre><code>&lt;picture&gt;
+  &lt;source type="image/avif" srcset="hero.avif" /&gt;
+  &lt;source type="image/webp" srcset="hero.webp" /&gt;
+  &lt;img src="hero.jpg" 
+       alt="Modernes Büro mit Team"
+       width="1200" 
+       height="800" 
+       loading="lazy" 
+       decoding="async" /&gt;
+&lt;/picture&gt;</code></pre>
+
+        <p><strong>Wichtig: <code>width</code> und <code>height</code></strong> immer setzen! Ohne diese Attribute kann der Browser keinen Platz für das Bild reservieren, was zu Layout Shifts (CLS) führt. Das ist einer der häufigsten Fehler 2026.</p>
+        <p><strong>Responsive Images</strong> sind Pflicht. Nutze <code>srcset</code> mit verschiedenen Auflösungen und das <code>sizes</code>-Attribut, damit der Browser das zur Viewport-Breite passende Bild lädt. So vermeidest du, dass ein 4000x3000-Pixel-Image auf einem Smartphone ausgeliefert wird.</p>
+        <p><strong>Lazy Loading</strong> ist 2026 Standard für alle Bilder, die nicht „above the fold" sind. Das Attribut <code>loading="lazy"</code> verzögert das Laden, bis das Bild in den Viewport scrollt. Für das Hero-Bild solltest du hingegen <code>loading="eager"</code> setzen, damit es sofort startet.</p>
+        <p><strong>CDN mit Bild-Optimierung</strong> ist die Königsdisziplin. Dienste wie Cloudflare Images, imgix oder Vercel Image Optimization liefern Bilder automatisch im optimalen
   <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
     <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
   </a>
