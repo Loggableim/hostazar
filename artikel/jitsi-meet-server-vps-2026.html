@@ -742,7 +742,7 @@
 <h2>Jitsi Meet Server auf VPS hosten: Sichere Videokonferenzen 2026</h2>
 <p>In einer Zeit, in der digitale Kommunikation eine zentrale Rolle in Unternehmen, Bildung und Privatleben spielt, gewinnen selbstgehostete Videokonferenzlösungen zunehmend an Bedeutung. Jitsi Meet hat sich als eine der führenden Open-Source-Alternativen zu kommerziellen Anbietern wie Zoom oder Microsoft Teams etabliert. Die Software basiert auf bewährten WebRTC-Standards und bietet eine erstaunlich einfache Einrichtung bei gleichzeitig hoher Funktionsvielfalt.</p>
 <p>Die Vorteile eines selbstgehosteten Jitsi-Servers liegen auf der Hand: vollständige Datenkontrolle, keine Teilnehmerbegrenzung, keine Aufzeichnungsminuten, die bei Drittanbietern anfallen, und die Möglichkeit, das System an eigene Bedürfnisse anzupassen. Besonders für Organisationen mit strengen Datenschutzanforderungen ist Jitsi Meet eine attraktive Option.</p>
-<p>Dieser Leitfaden führt dich durch alle notwendigen Schritte, um 2026 einen produktiven Jitsi Meet Server auf einem VPS zu installieren, abzusichern und zu betreiben. Wir berücksichtigen die neueste Jitsi-Version, aktuelle Sicherheitsempfehlungen und Performance-Optimierungen für Konferenzen mit mehreren Teilnehmern.</p>
+<p>Dieser Leitfaden führt dich durch alle notwendigen Schritte, um 2026 einen produktiven Jitsi Meet Server auf einem <a href="/artikel/vps-mieten-vergleich-2026.html" title="VPS mieten Vergleich">VPS</a> zu installieren, abzusichern und zu betreiben. Wir berücksichtigen die neueste Jitsi-Version, aktuelle Sicherheitsempfehlungen und Performance-Optimierungen für Konferenzen mit mehreren Teilnehmern.</p>
 
 <h2>Systemanforderungen für Jitsi Meet 2026</h2>
 <p>Die Hardwareanforderungen von Jitsi Meet skalieren linear mit der Anzahl der gleichzeitigen Teilnehmer. Während ein kleines Team mit einfacher Ausstattung zurechtkommt, benötigen größere Konferenzen deutlich mehr Ressourcen, insbesondere hinsichtlich CPU und Bandbreite.</p>
@@ -759,7 +759,7 @@
 </tbody>
 </table>
 <p>Bei der Wahl des Standorts solltest du die geografische Nähe zu deinen Nutzern berücksichtigen, da Latenzzeiten die Videoqualität direkt beeinflussen. Für mitteleuropäische Nutzer empfiehlt sich ein Server in Frankfurt, Amsterdam oder Zürich. Achte zudem auf eine großzügige Bandbreitenflatrate ohne Drosselung bei hohem Traffic.</p>
-<p>Als Betriebssystem empfehlen wir Ubuntu 24.04 LTS, das den längsten Support-Zeitraum bietet und alle benötigten Pakete in aktuellen Versionen bereitstellt. Alternativ funktionieren auch Debian 12 Bookworm oder Rocky Linux 9 problemlos.</p>
+<p>Als Betriebssystem empfehlen wir Ubuntu 24.04 LTS, das den längsten Support-Zeitraum bietet und alle benötigten Pakete in aktuellen Versionen bereitstellt. Alternativ funktionieren auch Debian 12 Bookworm oder Rocky <a href="/artikel/linux-server-harden.html" title="Linux Server Härten">Linux</a> 9 problemlos.</p>
 
 <h2>Vorbereitung des Servers und DNS-Konfiguration</h2>
 <p>Bevor du mit der Installation beginnst, musst du einige vorbereitende Schritte durchführen. Eine korrekte DNS-Konfiguration ist entscheidend, da Jitsi Meet TLS-Zertifikate benötigt und für die Discovery-Funktion auf korrekte SRV-Records angewiesen ist.</p>
@@ -787,10 +787,10 @@ sudo apt update</code></pre>
 <p>Anschließend installieren wir den Jitsi Meet Stack inklusive aller Abhängigkeiten:</p>
 <pre><code>sudo apt install -y jitsi-meet</code></pre>
 <p>Während der Installation wirst du nach dem Hostnamen gefragt, den du zuvor per DNS konfiguriert hast. Im zweiten Dialog kannst du wählen, ob ein selbstsigniertes Zertifikat erstellt oder ein bestehendes TLS-Zertifikat von Let's Encrypt eingebunden werden soll. Für Produktivsetups empfehlen wir Let's Encrypt, das wir im nächsten Abschnitt konfigurieren werden.</p>
-<p>Die Installation umfasst mehrere Komponenten: Prosody als XMPP-Server, den Jitsi Videobridge (JVB) für die Medienverarbeitung, Jicofo als Konferenzfokus und die Weboberfläche nginx. Alle Dienste werden automatisch als systemd-Units gestartet.</p>
+<p>Die Installation umfasst mehrere Komponenten: Prosody als XMPP-Server, den Jitsi Videobridge (JVB) für die Medienverarbeitung, Jicofo als Konferenzfokus und die Weboberfläche <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" title="Nginx Reverse Proxy Guide">nginx</a>. Alle Dienste werden automatisch als systemd-Units gestartet.</p>
 
 <h2>TLS-Verschlüsselung mit Let's Encrypt einrichten</h2>
-<p>Eine sichere Verschlüsselung ist für Videokonferenzen absolut unerlässlich, da sensible Audio- und Videodaten übertragen werden. Let's Encrypt bietet kostenlose, automatisch erneuerte TLS-Zertifikate und ist die ideale Wahl für Jitsi Meet.</p>
+<p>Eine sichere Verschlüsselung ist für Videokonferenzen absolut unerlä<a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" title="Let's Encrypt SSL">ssl</a>ich, da sensible Audio- und Videodaten übertragen werden. Let's Encrypt bietet kostenlose, automatisch erneuerte TLS-Zertifikate und ist die ideale Wahl für Jitsi Meet.</p>
 <p>Das mitgelieferte Installationsskript richtet Let's Encrypt vollautomatisch ein:</p>
 <pre><code>sudo /usr/share/jitsi-meet/scripts/install-letsencrypt-cert.sh</code></pre>
 <p>Du wirst nach einer E-Mail-Adresse für Benachrichtigungen über auslaufende Zertifikate gefragt. Das Skript fordert daraufhin ein Zertifikat über den ACME-HTTP-01-Challenge an und konfiguriert nginx automatisch für die sichere Verbindung. Zudem wird ein Cron-Job eingerichtet, der die Zertifikate rechtzeitig vor Ablauf erneuert.</p>

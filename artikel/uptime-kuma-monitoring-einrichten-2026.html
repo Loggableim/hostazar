@@ -760,15 +760,15 @@
 
 <p>Uptime Kuma ist eine <strong>self-hosted Monitoring-Lösung</strong>, die unter der MIT-Lizenz als Open-Source-Projekt veröffentlicht wird. Das Tool wurde ursprünglich von Louis (louislam) entwickelt und hat sich seit der ersten Veröffentlichung im Jahr 2021 zu einer der populärsten Alternativen zu kommerziellen Diensten wie UptimeRobot, Pingdom oder StatusPage.io entwickelt. Im Jahr 2026 zählt das Repository auf GitHub über 60.000 Stars und wird kontinuierlich von einer aktiven Community weiterentwickelt.</p>
 
-<p>Die Kernfunktion von Uptime Kuma besteht darin, die Verfügbarkeit von Diensten, Servern und Webseiten in Echtzeit zu überwachen. Dabei werden in regelmäßigen Intervallen Prüfungen durchgeführt und bei Ausfällen oder Performance-Problemen sofortige Benachrichtigungen versendet. Neben dem reinen Uptime-Monitoring bietet die Software auch die Möglichkeit, öffentliche <strong>Status Pages</strong> zu erstellen, die Ihren Kunden die aktuelle Verfügbarkeit Ihrer Dienste anzeigen.</p>
+<p>Die Kernfunktion von Uptime Kuma besteht darin, die Verfügb<a href="/artikel/ark-survival-ascended-server-hosten-2026.html" title="ARK Server Guide">ark</a>eit von Diensten, Servern und Webseiten in Echtzeit zu überwachen. Dabei werden in regelmäßigen Intervallen Prüfungen durchgeführt und bei Ausfällen oder Performance-Problemen sofortige Benachrichtigungen versendet. Neben dem reinen Uptime-Monitoring bietet die Software auch die Möglichkeit, öffentliche <strong>Status Pages</strong> zu erstellen, die Ihren Kunden die aktuelle Verfügbarkeit Ihrer Dienste anzeigen.</p>
 
-<p>Im Gegensatz zu vielen kommerziellen Monitoring-Diensten behalten Sie bei Uptime Kuma die vollständige Kontrolle über Ihre Daten. Es gibt keine Beschränkungen hinsichtlich der Anzahl der Monitore, der Monitoring-Intervalle oder der Benachrichtigungen. Zudem entfallen laufende Kosten, da die Software kostenlos auf Ihrem eigenen Server betrieben wird. Die Architektur basiert auf Node.js, SQLite (oder MariaDB/MySQL) und nutzt einen modernen, responsiven Web-Frontend, das auf allen Endgeräten optimal dargestellt wird.</p>
+<p>Im Gegensatz zu vielen kommerziellen Monitoring-Diensten behalten Sie bei Uptime Kuma die vollständige Kontrolle über Ihre Daten. Es gibt keine Beschränkungen hinsichtlich der Anzahl der Monitore, der Monitoring-Intervalle oder der Benachrichtigungen. Zudem entfallen laufende Kosten, da die Software kostenlos auf Ihrem eigenen Server betrieben wird. Die Architektur basiert auf Node.js, SQLite (oder MariaDB/<a href="/artikel/mysql-mariadb-optimierung.html" title="MySQL Optimierung">MySQL</a>) und nutzt einen modernen, responsiven Web-Frontend, das auf allen Endgeräten optimal dargestellt wird.</p>
 
 <p>Ein weiterer entscheidender Vorteil ist die <strong>Multi-User-Fähigkeit</strong>. Administratoren können verschiedene Benutzer mit unterschiedlichen Berechtigungsstufen anlegen, sodass Teams gemeinsam an der Überwachung komplexer Infrastrukturen arbeiten können. Die Zwei-Faktor-Authentifizierung (2FA) sorgt dabei für maximale Sicherheit.</p>
 
 <h2 id="systemanforderungen">Systemanforderungen &amp; Voraussetzungen</h2>
 
-<p>Bevor Sie mit der Installation beginnen, sollten Sie sicherstellen, dass Ihr Server die grundlegenden Anforderungen erfüllt. Uptime Kuma ist ressourcenschonend und kann auch auf kleinen VPS-Instanzen zuverlässig betrieben werden. Dennoch sollten Sie die folgenden Mindestanforderungen beachten:</p>
+<p>Bevor Sie mit der Installation beginnen, sollten Sie sicherstellen, dass Ihr Server die grundlegenden Anforderungen erfüllt. Uptime Kuma ist ressourcenschonend und kann auch auf kleinen <a href="/artikel/vps-mieten-vergleich-2026.html" title="VPS mieten Vergleich">VPS</a>-Instanzen zuverlässig betrieben werden. Dennoch sollten Sie die folgenden Mindestanforderungen beachten:</p>
 
 <table>
 <thead>
@@ -819,7 +819,7 @@
 </tbody>
 </table>
 
-<p>Neben der reinen Server-Hardware benötigen Sie für den produktiven Betrieb einen <strong>Reverse Proxy</strong> (z. B. Nginx, Apache oder Caddy), um SSL-Verschlüsselung über Let's Encrypt zu ermöglichen. Außerdem sollten Sie eine statische IP-Adresse oder einen DynDNS-Dienst einrichten, damit Ihre Status Page unter einer festen URL erreichbar ist. Für die Benachrichtigungen empfiehlt sich die vorherige Einrichtung von Zugangsdaten zu einem SMTP-Server, einem Telegram-Bot oder einem Discord-Webhook.</p>
+<p>Neben der reinen Server-Hardware benötigen Sie für den produktiven Betrieb einen <strong>Reverse Proxy</strong> (z. B. <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" title="Nginx Reverse Proxy Guide">Nginx</a>, Apache oder Caddy), um SSL-Verschlüsselung über Let's Encrypt zu ermöglichen. Außerdem sollten Sie eine statische IP-Adresse oder einen DynDNS-Dienst einrichten, damit Ihre Status Page unter einer festen URL erreichbar ist. Für die Benachrichtigungen empfiehlt sich die vorherige Einrichtung von Zugangsdaten zu einem SMTP-Server, einem Telegram-Bot oder einem Discord-Webhook.</p>
 
 <p>Die Standard-Datenbank ist <strong>SQLite</strong>, was für die meisten Setups völlig ausreichend ist. Bei sehr großen Setups mit mehreren tausend Monitoren oder wenn Sie Hochverfügbarkeit benötigen, können Sie alternativ auf MariaDB oder MySQL umsteigen. Beachten Sie, dass die Datenmigration zwischen Datenbank-Backends mit den mitgelieferten Tools problemlos möglich ist.</p>
 

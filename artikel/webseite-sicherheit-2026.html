@@ -755,13 +755,13 @@
 
 <p>Ransomware-Angriffe auf Webseiten und deren Datenbanken haben in den letzten Jahren exponentiell zugenommen. Kriminelle verschlüsseln wichtige Dateien und erpressen Lösegeld in Kryptowährungen. Besonders perfide sind dabei Double-Extortion-Angriffe, bei denen zusätzlich drohen wird, sensible Daten zu veröffentlichen, falls das Lösegeld nicht gezahlt wird.</p>
 
-<p>Supply-Chain-Angriffe stellen eine besonders gefährliche Bedrohung dar. Angreifer kompromittieren dabei nicht direkt die Zielwebseite, sondern infiltrieren beliebte Drittanbieter-Plugins, Themes oder Content-Management-Systeme. Das bekannteste Beispiel war der Angriff auf das WP-Plugin "WP-VCD", das schätzungsweise über 20.000 WordPress-Webseiten mit Malware infiziert hat.</p>
+<p>Supply-Chain-Angriffe stellen eine besonders gefährliche Bedrohung dar. Angreifer kompromittieren dabei nicht direkt die Zielwebseite, sondern infiltrieren beliebte Drittanbieter-Plugins, Themes oder Content-Management-Systeme. Das bekannteste Beispiel war der Angriff auf das WP-Plugin "WP-VCD", das schätzungsweise über 20.000 <a href="/artikel/docker-wordpress-hosten.html" title="WordPress mit Docker">WordPress</a>-Webseiten mit Malware infiziert hat.</p>
 
 <p>Phishing und Social Engineering bleiben ebenfalls akute Bedrohungen. Kriminelle erstellen täuschend echte gefälschte Webseiten oder nutzen kompromittierte legitime Webseiten, um an Zugangsdaten zu gelangen. Besonders gefährdet sind E-Commerce-Plattformen, Bankenwebseiten und Webmail-Dienste, da hier wertvolle persönliche Daten verarbeitet werden.</p>
 
 <h2>SSL/TLS-Verschlüsselung als Fundament der Sicherheit</h2>
 
-<p>SSL/TLS-Zertifikate sind die absolute Grundlage jeder sicheren Webseite. Sie verschlüsseln die Datenübertragung zwischen Browser und Server und stellen sicher, dass sensible Informationen wie Passwörter, Kreditkartendaten und persönliche Angaben nicht von Dritten mitgelesen werden können. Ohne SSL-Verschlüsselung ist jede Webseite ein offenes Buch für Angreifer im selben Netzwerk.</p>
+<p><a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" title="Let's Encrypt SSL">SSL</a>/TLS-Zertifikate sind die absolute Grundlage jeder sicheren Webseite. Sie verschlüsseln die Datenübertragung zwischen Browser und Server und stellen sicher, dass sensible Informationen wie Passwörter, Kreditkartendaten und persönliche Angaben nicht von Dritten mitgelesen werden können. Ohne SSL-Verschlüsselung ist jede Webseite ein offenes Buch für Angreifer im selben Netzwerk.</p>
 
 <p>Moderne Webseiten sollten ausschließlich TLS 1.3 unterstützen, da TLS 1.2 als veraltet gilt und verschiedene Sicherheitslücken aufweist. TLS 1.3 bietet nicht nur stärkere Verschlüsselungsalgorithmen, sondern auch schnellere Verbindungsaufbauzeiten durch vereinfachte Handshake-Prozeduren. Dies verbessert sowohl die Sicherheit als auch die Performance der Webseite.</p>
 
@@ -778,13 +778,13 @@
 </tbody>
 </table>
 
-<p>Bei der Wahl des SSL-Zertifikats gibt es verschiedene Optionen. Domain-Validierte (DV) Zertifikate eignen sich für einfache Webseiten, während Organisation-Validierte (OV) und Extended-Validation (EV) Zertifikate für E-Commerce und geschäftskritische Anwendungen empfehlenswert sind. Let's Encrypt bietet kostenlose DV-Zertifikate, die für die meisten Anwendungsfälle völlig ausreichend sind.</p>
+<p>Bei der Wahl des <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" title="Let's Encrypt SSL">SSL</a>-Zertifikats gibt es verschiedene Optionen. Domain-Validierte (DV) Zertifikate eignen sich für einfache Webseiten, während Organisation-Validierte (OV) und Extended-Validation (EV) Zertifikate für E-Commerce und geschäftskritische Anwendungen empfehlenswert sind. Let's Encrypt bietet kostenlose DV-Zertifikate, die für die meisten Anwendungsfälle völlig ausreichend sind.</p>
 
 <h2>Web Application Firewalls (WAF) richtig einsetzen</h2>
 
 <p>Eine Web Application Firewall ist ein unverzichtbares Sicherheitselement für jede professionelle Webseite. Sie filtert eingehenden HTTP/HTTPS-Traffic und blockiert schädliche Anfragen, bevor diese die eigentliche Anwendung erreichen. Moderne WAFs nutzen KI-gestützte Erkennung, um auch bisher unbekannte Angriffsmuster (Zero-Day-Exploits) zu identifizieren und abzuwehren.</p>
 
-<p>Cloud-basierte WAF-Lösungen wie Cloudflare, AWS WAF oder Sucuri bieten umfassenden Schutz ohne Performance-Einbußen. Sie werden vor dem eigentlichen Webserver positioniert und können DDoS-Angriffe, SQL-Injection, XSS und viele andere Bedrohungen effektiv abwehren. Viele Hosting-Anbieter wie hostazar.com bieten solche WAF-Lösungen bereits als integrierten Service an.</p>
+<p>Cloud-basierte WAF-Lösungen wie <a href="/artikel/cloudflare-tunnel-einrichten.html" title="Cloudflare Tunnel Setup">Cloudflare</a>, AWS WAF oder Sucuri bieten umfassenden Schutz ohne Performance-Einbußen. Sie werden vor dem eigentlichen Webserver positioniert und können DDoS-Angriffe, SQL-Injection, XSS und viele andere Bedrohungen effektiv abwehren. Viele Hosting-Anbieter wie hostazar.com bieten solche WAF-Lösungen bereits als integrierten Service an.</p>
 
 <p>Bei der Konfiguration einer WAF sollten zunächst die Standard-Regelsets aktiviert werden, die gegen bekannte Angriffe schützen. Anschließend können benutzerdefinierte Regeln erstellt werden, um spezifische Bedrohungen für die eigene Anwendung abzuwehren. Es ist wichtig, die WAF-Logs regelmäßig zu analysieren und Fehlalarme (False Positives) zu minimieren, um legitime Nutzer nicht zu blockieren.</p>
 
