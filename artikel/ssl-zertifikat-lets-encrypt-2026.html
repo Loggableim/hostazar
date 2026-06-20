@@ -740,7 +740,7 @@
       <span>9 Min Lesezeit</span>
     </div><h1>SSL-Zertifikat mit Let&#39;s Encrypt einrichten – Anleitung 2026</h1>
 <h2>SSL-Zertifikat mit Let's Encrypt 2026: Kostenlose TLS-Verschlüsselung für jede Website</h2>
-<p>Let's Encrypt hat die Welt der Web-Sicherheit revolutioniert, indem es kostenlose, automatisiert ausgestellte SSL/TLS-Zertifikate für jedermann zugänglich macht. Im Jahr 2026 ist die Verschlüsselung von Websites nicht mehr optional, sondern eine Grundvoraussetzung für seriöse Online-Präsenzen. Browser kennzeichnen unverschlüsselte Seiten als "Nicht sicher", Suchmaschinen werten HTTPS als Rankingfaktor und Nutzer erwarten eine sichere Datenübertragung.</p>
+<p>Let's Encrypt hat die Welt der Web-Sicherheit revolutioniert, indem es kostenlose, automatisiert ausgestellte <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" title="Let's Encrypt SSL">SSL</a>/TLS-Zertifikate für jedermann zugänglich macht. Im Jahr 2026 ist die Verschlüsselung von Websites nicht mehr optional, sondern eine Grundvoraussetzung für seriöse Online-Präsenzen. Browser kennzeichnen unverschlüsselte Seiten als "Nicht sicher", Suchmaschinen werten HTTPS als Rankingfaktor und Nutzer erwarten eine sichere Datenübertragung.</p>
 <p>Die gemeinnützige Zertifizierungsstelle (CA) mit Sitz in San Francisco wird von der Internet Security Research Group (ISRG) betrieben und hat bis heute über eine Milliarde Zertifikate ausgestellt. Die Zertifikate sind 90 Tage gültig und werden vollautomatisch über das ACME-Protokoll ausgestellt und verlängert.</p>
 <p>In diesem Leitfaden erfährst du alles Wichtige über die Einrichtung, Erneuerung und optimale Nutzung von Let's Encrypt Zertifikaten auf verschiedenen Webservern und Hosting-Plattformen.</p>
 
@@ -767,7 +767,7 @@
 <p>Bei Shared-Hosting-Angeboten übernehmen in der Regel die Hosting-Provider die Einrichtung automatisch. Wer einen eigenen Server betreibt, muss die Einrichtung manuell vornehmen.</p>
 
 <h2>Installation und Nutzung von Certbot</h2>
-<p>Certbot ist das offizielle und am weitesten verbreitete ACME-Client-Tool der EFF (Electronic Frontier Foundation). Es unterstützt eine Vielzahl von Webservern und Linux-Distributionen und ermöglicht eine nahezu vollständig automatisierte Einrichtung.</p>
+<p>Certbot ist das offizielle und am weitesten verbreitete ACME-Client-Tool der EFF (Electronic Frontier Foundation). Es unterstützt eine Vielzahl von Webservern und <a href="/artikel/linux-server-harden.html" title="Linux Server Härten">Linux</a>-Distributionen und ermöglicht eine nahezu vollständig automatisierte Einrichtung.</p>
 <p>Die Installation gestaltet sich je nach Distribution sehr einfach. Für Debian- und Ubuntu-Systeme genügt ein einzelner Befehl:</p>
 <pre><code># Certbot unter Debian/Ubuntu installieren
 sudo apt update
@@ -783,7 +783,7 @@ sudo certbot --nginx -d example.com -d www.example.com</code></pre>
 <h2>Erstellung von Wildcard-Zertifikaten</h2>
 <p>Wildcard-Zertifikate decken eine Domain inklusive aller Subdomains ab und sind besonders praktisch für größere Webprojekte. Für die Ausstellung eines Wildcard-Zertifikats ist die DNS-01-Challenge zwingend erforderlich, da Let's Encrypt die unbegrenzte Anzahl von Subdomains nicht per HTTP validieren kann.</p>
 <p>Die DNS-01-Challenge funktioniert, indem du einen speziellen TXT-Eintrag in der DNS-Zone deiner Domain hinterlegst. Certbot kann diesen Eintrag automatisch erstellen, sofern du entsprechende API-Zugangsdaten konfiguriert hast.</p>
-<p>Hier ein Beispiel für Cloudflare:</p>
+<p>Hier ein Beispiel für <a href="/artikel/cloudflare-tunnel-einrichten.html" title="Cloudflare Tunnel Setup">Cloudflare</a>:</p>
 <pre><code># Cloudflare API-Credentials erstellen
 mkdir -p ~/.secrets/certbot
 echo "dns_cloudflare_api_token = DEIN_API_TOKEN" > ~/.secrets/certbot/cloudflare.ini
@@ -827,7 +827,7 @@ sudo certbot renew --dry-run</code></pre>
 
 <h2>Best Practices für SSL/TLS-Konfiguration</h2>
 <p>Ein gültiges Zertifikat allein reicht nicht aus, um eine optimale Sicherheit zu gewährleisten. Die TLS-Konfiguration des Webservers spielt eine ebenso wichtige Rolle. Veraltete Protokolle und schwache Cipher-Suites können die Verschlüsselung faktisch aushebeln.</p>
-<p>Empfohlene Einstellungen für Nginx:</p>
+<p>Empfohlene Einstellungen für <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" title="Nginx Reverse Proxy Guide">Nginx</a>:</p>
 <pre><code>ssl_protocols TLSv1.2 TLSv1.3;
 ssl_prefer_server_ciphers on;
 ssl_ciphers 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305';

@@ -758,7 +758,7 @@
 
 <h2>Häufige Ursachen für VRAM-Engpässe</h2>
 <p>VRAM-Engpässe sind eine der häufigsten Ursachen für Performance-Probleme und Abstürze bei KI-Workloads. Das frühzeitige Erkennen der Ursachen ist entscheidend, um gezielt gegensteuern zu können.</p>
-<p><strong>1. Modellparameter:</strong> Große Modelle wie LLMs mit 70B Parametern belegen allein in FP32 etwa 280 GB VRAM. Selbst in FP16 sind es noch 140 GB – mehr als eine einzelne H100 (80 GB) fassen kann.</p>
+<p><strong>1. Modellparameter:</strong> Große Modelle wie <a href="/artikel/llm-lokal-hosten-2026.html" title="LLM lokal hosten">LLM</a>s mit 70B Parametern belegen allein in FP32 etwa 280 GB VRAM. Selbst in FP16 sind es noch 140 GB – mehr als eine einzelne H100 (80 GB) fassen kann.</p>
 <p><strong>2. Aktivierungen:</strong> Während des Forward-Pass werden Zwischenergebnisse (Aktivierungen) für den Backward-Pass gespeichert. Bei großen Batch-Größen und Sequenzlängen explodiert dieser Speicherbedarf.</p>
 <p><strong>3. Optimizer-States:</strong> Adam-Optimizer speichert zwei zusätzliche Floats pro Parameter, was den Speicherbedarf für Trainings verdreifacht.</p>
 <p><strong>4. Gradienten:</strong> Beim Backpropagation werden Gradienten für jeden Parameter gespeichert, was den Speicher weiter erhöht.</p>
@@ -789,11 +789,11 @@
 <tr><td>Unsloth</td><td>Fine-Tuning Optimizer</td><td>PyTorch, HuggingFace</td><td>Bis zu 2,5x</td></tr>
 </tbody>
 </table>
-<p>Die Wahl des richtigen Tools hängt vom konkreten Use-Case ab. Für Inferenz-Workloads hat sich vLLM mit PagedAttention als de-facto-Standard etabliert, während DeepSpeed und FSDP beim Training dominieren.</p>
+<p>Die Wahl des richtigen Tools hängt vom konkreten Use-Case ab. Für Inferenz-Workloads hat sich v<a href="/artikel/llm-lokal-hosten-2026.html" title="LLM lokal hosten">LLM</a> mit PagedAttention als de-facto-Standard etabliert, während DeepSpeed und FSDP beim Training dominieren.</p>
 
 <h2>vLLM und PagedAttention im Detail</h2>
-<p>vLLM hat die Inferenz-Landschaft 2026 revolutioniert. Die von der UC Berkeley entwickelte Open-Source-Bibliothek nutzt PagedAttention, um den KV-Cache ähnlich wie virtuellen Speicher in Betriebssystemen zu verwalten. Dies ermöglicht eine dramatische Reduktion der Speicherfragmentierung.</p>
-<p>Ein konkretes Beispiel zeigt das Potenzial: Ein 70B-Parameter-Modell, das mit herkömmlichem HuggingFace-Transformers nur 32 gleichzeitige Requests bedienen kann, schafft mit vLLM auf derselben Hardware 256 bis 768 Requests. Die Throughput-Steigerung beträgt das 8- bis 24-fache.</p>
+<p>v<a href="/artikel/llm-lokal-hosten-2026.html" title="LLM lokal hosten">LLM</a> hat die Inferenz-Landschaft 2026 revolutioniert. Die von der UC Berkeley entwickelte Open-Source-Bibliothek nutzt PagedAttention, um den KV-Cache ähnlich wie virtuellen Speicher in Betriebssystemen zu verwalten. Dies ermöglicht eine dramatische Reduktion der Speicherfragmentierung.</p>
+<p>Ein konkretes Beispiel zeigt das Potenzial: Ein 70B-Parameter-Modell, das mit herkömmlichem HuggingFace-Transformers nur 32 gleichzeitige Requests bedienen kann, schafft mit v<a href="/artikel/llm-lokal-hosten-2026.html" title="LLM lokal hosten">LLM</a> auf derselben Hardware 256 bis 768 Requests. Die Throughput-Steigerung beträgt das 8- bis 24-fache.</p>
 <p>Die Installation ist denkbar einfach:</p>
 <pre><code>pip install vllm
 python -m vllm.entrypoints.openai.api_server \
