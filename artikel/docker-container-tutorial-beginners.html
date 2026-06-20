@@ -23,6 +23,55 @@
       ]
     }
   </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the difference between a Docker image and a container?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "An image is a read-only blueprint that includes the application code, runtime, libraries, and configuration. A container is a running instance of that image — a lightweight, isolated process with its own writable layer, network namespace, and filesystem. You can launch many containers from a single image, and each one is independent."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need Linux to use Docker?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Docker Desktop provides a native experience on Windows 10/11 and macOS by running a lightweight Linux VM under the hood. On Linux, the Docker Engine runs directly on the host kernel, which gives the best performance. Functionally, the workflow is identical across all three platforms."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Docker Compose suitable for production?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Docker Compose is excellent for development, testing, and small single-host deployments. For larger or highly available production workloads, you should graduate to an orchestrator such as Kubernetes or Docker Swarm. That said, many small businesses run Compose in production for years without issues."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I reduce the size of my Docker images?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Start with a small base image such as Alpine or distroless, use multi-stage builds to exclude build tools, clean up package manager caches in the same <code>RUN</code> layer that installed them, and remove unnecessary files with a <code>.dockerignore</code> file. A well-tuned Node.js image can shrink from 1GB to under 150MB."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens to my data when a container is deleted?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "By default, all data inside a container's writable layer is lost when the container is removed. To persist data, attach a Docker volume or a bind mount when you run the container. Volumes are managed by Docker and recommended for production; bind mounts link a host directory and are best for development."
+      }
+    }
+    ]
+  }
+  </script>
 </head>
 <body>
     <article>

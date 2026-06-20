@@ -19,6 +19,55 @@
       ]
     }
   </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the first thing I should do when hardening a Linux VPS?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Update every package on the system, create a non-root user with sudo privileges, and disable password authentication in favor of SSH keys. These three steps close the most commonly exploited gaps on a freshly provisioned server."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is changing the SSH port a useful security measure?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It reduces log noise and deters opportunistic scanners, but it does not stop a targeted attacker. Treat it as defense in depth, never as a substitute for key-based authentication, restricted users, and brute-force protection through Fail2ban."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I still need a firewall if I use intrusion detection?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Firewalls and intrusion detection serve different purposes. A firewall blocks unauthorized traffic at the network layer, while an IDS detects suspicious behavior at the application or host level. The two are complementary, not interchangeable."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How often should I run vulnerability scans on my VPS?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Schedule authenticated scans at least weekly, and run additional scans after any major configuration change, new application deployment, or major CVE announcement relevant to your stack. Treat scan results as a work queue and patch high-severity findings within 24 to 72 hours."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are security frameworks like CIS Benchmarks worth following?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Absolutely. The CIS Benchmarks for Linux distributions provide detailed, peer-reviewed hardening guidance that maps directly to the controls in this article. They are especially valuable in regulated environments, where compliance evidence is required, but the recommendations improve security for every VPS regardless of industry."
+      }
+    }
+    ]
+  }
+  </script>
 </head>
 <body>
     <article>

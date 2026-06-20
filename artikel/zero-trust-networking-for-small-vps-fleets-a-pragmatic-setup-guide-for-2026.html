@@ -19,6 +19,55 @@
       ]
     }
   </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the simplest way to start with zero-trust on a small fleet?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Deploy Headscale on a single VPS, register every other node as a mesh client using pre-auth keys, and write an ACL file that allows only the specific service-to-service paths you need. This gives you encrypted transport, identity-based access, and a default-deny posture without requiring Kubernetes or a service mesh."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need Kubernetes to implement zero-trust?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. A mesh-based approach with WireGuard or Tailscale provides most of the benefits on bare VPS instances. Service meshes like Linkerd are appropriate when your fleet is already running containerized workloads and you need fine-grained mTLS at the pod level, but they are not a prerequisite for the architecture."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does zero-trust differ from a traditional VPN?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A traditional VPN grants broad access to an entire network once a user authenticates. Zero-trust grants access to specific services based on identity, device posture, and context, and re-authenticates every request. A VPN puts you on the network. Zero-trust puts you in front of one service at a time."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the role of mTLS in zero-trust networking?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Mutual TLS provides cryptographic proof of identity for both sides of a connection. The client presents a certificate proving it is the workload it claims to be, and the server does the same. This prevents impersonation attacks and ensures that even if an attacker reaches the network, they cannot present a valid identity for a service they do not control."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can zero-trust work without a hosted control plane?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Headscale is a self-hosted implementation of the Tailscale coordination server. Step-CA provides a self-hosted certificate authority. Authentik provides self-hosted SSO. Every component of a zero-trust architecture can run on infrastructure you control, which is the right choice for fleets with strict data residency requirements."
+      }
+    }
+    ]
+  }
+  </script>
 </head>
 <body>
     <article>

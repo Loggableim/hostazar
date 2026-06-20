@@ -19,6 +19,55 @@
       ]
     }
   </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the minimum internet connection for a self-hosted game server?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "For a 64-tick competitive shooter with 32 players, a symmetric 200 Mbps connection with low jitter is the practical minimum. For larger persistent worlds, gigabit symmetric fiber is recommended. Bandwidth matters less than consistency: a stable 100 Mbps link is better than a variable 500 Mbps link."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I self-host a game server at home on residential fiber?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, if your ISP permits server hosting and provides a stable connection with low jitter. Many modern fiber ISPs have acceptable terms of service, but you should verify. For best results, ensure your router supports proper NAT loopback and consider using a dedicated VLAN for game traffic to isolate it from your normal home network."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How much does it cost to build a self-hosted game server in 2026?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A capable machine with a Ryzen 7 9700X, 32GB ECC DDR5, a 1TB NVMe, and a quality motherboard typically costs between $900 and $1,400. Add a rackmount case, redundant PSU, and IPMI for production use, and the total lands between $1,500 and $2,500. This hardware will host 2-4 concurrent game instances comfortably for several years."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Linux or Windows better for self-hosted game servers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Linux is the standard for most dedicated server deployments. It offers better network performance, lower resource overhead, and a more predictable scheduler. Windows is required for some games that ship only with Windows server binaries, but for cross-platform titles, Linux is the preferred platform."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I protect my self-hosted game server from DDoS attacks?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Use an upstream provider that offers DDoS scrubbing, or subscribe to a dedicated protection service that tunnels your traffic through a scrubbing center. Keep your server's IP address private where possible, and use rate limiting and connection limits in your firewall. For high-value deployments, consider anycast routing and BGP-based mitigation."
+      }
+    }
+    ]
+  }
+  </script>
 </head>
 <body>
     <article>

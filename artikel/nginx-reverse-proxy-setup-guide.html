@@ -23,6 +23,76 @@
       ]
     }
   </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the difference between proxy_pass and upstream in NGINX?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The <code>upstream</code> directive defines a group of backend servers and how traffic should be distributed among them, including load-balancing algorithms. The <code>proxy_pass</code> directive tells NGINX where to forward incoming requests, either to an upstream block or a specific URL. Together, they form the core of every NGINX reverse proxy configuration."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can NGINX act as both a web server and a reverse proxy?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. NGINX was originally designed as a high-performance <strong>web server</strong> and later extended to function as a reverse proxy, load balancer, and mail proxy. In a typical configuration, NGINX serves static files directly while forwarding dynamic requests to backend application servers such as Node.js, Python, or PHP."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I enable WebSocket support in an NGINX reverse proxy?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "To support WebSocket connections, add <code>proxy_http_version 1.1;</code>, <code>proxy_set_header Upgrade $http_upgrade;</code>, and <code>proxy_set_header Connection \"upgrade\";</code> inside the relevant <code>location</code> block. These headers upgrade the HTTP connection to a WebSocket session, allowing real-time bidirectional communication between clients and backend services."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is NGINX better than Apache for reverse proxy setups?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Both NGINX and Apache can function as reverse proxies, but NGINX's event-driven architecture handles high concurrency more efficiently with lower memory usage. For most modern use cases involving <strong>load balancing</strong>, SSL termination, and WebSocket support, NGINX is generally the preferred choice for performance-sensitive deployments."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I monitor my NGINX reverse proxy?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "NGINX provides access and error logs in <code>/var/log/nginx/</code> by default. For deeper visibility, integrate tools like the NGINX Plus dashboard, Prometheus with the nginx-exporter, or the ELK stack. Monitoring active connections, request rates, and upstream health helps you detect and resolve issues before they affect end users."
+      }
+    }
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "NGINX Reverse Proxy Setup for Beginners — Step by Step Guide",
+  "description": "NGINX reverse proxy setup: ✓ Forward Proxy ✓ Proxy Pass ✓ Load Balancing ✓ SSL ✓ WebSocket. Configure your first reverse proxy in 5 easy steps.",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "NGINX Reverse Proxy Setup: A Complete Beginner's Guide"
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": "Prerequisites for the Setup"
+    }
+  ]
+}
+  </script>
 </head>
 <body>
     <article>

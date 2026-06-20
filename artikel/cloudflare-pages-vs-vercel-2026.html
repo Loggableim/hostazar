@@ -23,6 +23,55 @@
       ]
     }
   </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is Cloudflare Pages really free forever?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, Cloudflare Pages offers a genuinely free tier with unlimited static requests, unlimited bandwidth, and 500 builds per month. You only pay if you need more builds, concurrency, or advanced features like SSO. There are no hidden fees or surprise bandwidth charges."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I use Next.js features like ISR on Cloudflare Pages?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Cloudflare Pages supports Next.js only in static export mode, which means ISR, on-demand revalidation, and server-side rendering are not natively supported. If these features are critical to your project, Vercel is the better choice. You can approximate some ISR behavior using Cloudflare Workers and KV, but it requires more manual work."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which platform is faster for global users?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Cloudflare Pages typically delivers lower latency for users in underserved regions thanks to its 330+ edge locations, particularly across Africa, South America, and Asia. Vercel's edge network is smaller but still performant in major markets. For most North American and European users, the difference is negligible."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How much does Vercel cost for a team of 5?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "On Vercel's Pro plan, a team of 5 would pay $100/month (5 × $20), plus any overages for bandwidth, function execution, or build hours. The same team on Cloudflare Pages would pay just $20/month for the Pro plan regardless of team size, making Cloudflare dramatically more cost-effective for larger teams."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I migrate from Vercel to Cloudflare Pages (or vice versa)?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, both platforms support standard Git-based deployments, so migration is usually straightforward. For static sites, you can simply point your DNS to the new provider after deploying. For projects using Vercel-specific features (ISR, edge middleware, Vercel KV), you will need to refactor those parts using Cloudflare's equivalent services (Workers, KV, Durable Objects)."
+      }
+    }
+    ]
+  }
+  </script>
 </head>
 <body>
     <article>
