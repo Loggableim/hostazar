@@ -76,6 +76,55 @@
   ]
 }
   </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Welches Framework ist best für Anfänger?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "CrewAI hat die niedrigste Einstiegshürde. Die Role-basierte API ist intuitiv und die Dokumentation gut. Für reine Code-Automatisierung ist OpenHands einsteigerfreundlich."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Kann ich Agenten mit lokalen LLMs betreiben?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ja, mit Ollama + einem 70B-Modell (z.B. Llama 3.3 70B Q4) auf einem <a href=\"/artikel/vps-mieten-vergleich-2026.html\" title=\"VPS mieten Vergleich\">VPS</a> mit GPU. OpenHands und LangGraph unterstützen Ollama nativ. Für CrewAI+AG2 brauchst du mindestens 140B für verlässliche Ergebnisse."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Sind AI Agents sicher für Produktion?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Mit Vorsicht. Immer Sandbox-Umgebung (Docker) verwenden, API-Keys rotieren und Outputs validieren. Besonders bei Code-Ausführung (AutoGen, OpenHands) Sandboxing aktivieren."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Wie kann ich Agenten debuggen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "LangSmith (LangChain) bietet Tracing. Für andere Frameworks: Strukturiertes Logging mit Trace-ID. Wichtig: Jeder Agent-Schritt mit Input/Output loggen."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Was kostet ein AI Agent im Production-Einsatz?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Hauptkosten sind LLM-API-Calls. Ein mittelkomplexer Agent (5-10 Tool-Calls) kostet ca. 0,05-0,20 € pro Ausführung bei GPT-4o. Bei lokalem Ollama nur Stromkosten (ca. 0,01-0,05 €)."
+      }
+    }
+    ]
+  }
+  </script>
 </head>
 <body>
 <nav class="navbar">

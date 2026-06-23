@@ -19,6 +19,71 @@
       ]
     }
   </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Can BorgBackup back up to S3 or Backblaze B2?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not natively. Borg requires SSH access to a backup target. To use S3-compatible storage with Borg, you need a small intermediary VPS that syncs its local Borg repository to S3 using a tool like rclone. This adds cost and complexity compared to Restic's direct S3 support."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Restic slower than BorgBackup?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "On warm incremental backups with a populated local cache, Borg is typically 2-4x faster than Restic. On cold operations or restores, the performance gap narrows significantly. For most VPS workloads with under 1TB of data, the difference is negligible in daily operations."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which tool is more secure?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Both use authenticated encryption (AES-GCM or ChaCha20-Poly1305) and are considered cryptographically sound. Restic has a slight edge for long-term archival because its pack-level integrity verification makes corruption detection more reliable. Both tools had security advisories in their history, so keep them updated."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I migrate from BorgBackup to Restic (or vice versa)?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not directly. The repository formats are incompatible, so migration requires a full backup to the new tool, a verification, and then a decommissioning of the old repository. Plan for a transition period where you run both tools in parallel."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do BorgBackup and Restic support Windows VPS instances?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, both run on Windows. Borg has official Windows binaries, and Restic works natively on Windows via its Go binary. Performance characteristics are similar to Linux, though Windows file system semantics can affect deduplication efficiency."
+      }
+    }
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "BorgBackup vs. Restic for VPS: Which One Actually Saves Your Bacon in 2026?",
+  "description": "BorgBackup vs. Restic for VPS: Which One Actually Saves Your Bacon in 2026? - Ein ausführlicher Artikel auf hostazar.com",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "Installation and Setup on a VPS"
+    }
+  ]
+}
+  </script>
 </head>
 <body>
     <article>

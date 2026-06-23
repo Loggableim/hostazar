@@ -19,6 +19,55 @@
       ]
     }
   </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the single biggest source of Kubernetes cost waste?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Over-provisioned resource requests, particularly memory. Developers typically set requests 2-5x higher than actual consumption to avoid OOM kills. Running the Vertical Pod Autoscaler in recommendation mode for 30 days almost always reveals that 30-50% of memory requests can be reduced without any impact on stability."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is it safe to run production Kubernetes workloads on Spot instances in 2026?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, for the vast majority of stateless and horizontally scaled workloads. The key is proper Pod Disruption Budgets, graceful shutdown handlers, and Spot diversification across at least 10-15 instance types. Single-replica stateful services and workloads with strict latency SLAs should remain on on-demand or reserved capacity."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does Karpenter differ from the traditional cluster autoscaler?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The traditional cluster autoscaler operates on fixed node pools, adding and removing nodes of predefined instance types. Karpenter bypasses node pools entirely, provisioning the cheapest instance type that fits pending pods in real time, across families, sizes, and purchase models. This delivers faster scaling, better bin packing, and lower total cost in nearly every benchmark."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between Kubecost and OpenCost?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "OpenCost is the open-source, CNCF-incubating project that provides core cost monitoring and allocation. Kubecost is the commercial product built on top of OpenCost, with additional features like automated recommendations, alerting, and team-level budgets. For most teams, OpenCost is sufficient; Kubecost adds value if you want out-of-the-box recommendations and enterprise support."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How long does it take to see meaningful cost savings from Kubernetes optimization?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "With VPA in recommendation mode, you will see savings projections within 48 hours. With Karpenter consolidation enabled, you typically see 15-25% savings within the first week. Full program savings of 35-55% usually materialize over 3-6 months as you roll out Spot, tighten requests, and eliminate zombie workloads."
+      }
+    }
+    ]
+  }
+  </script>
 </head>
 <body>
     <article>

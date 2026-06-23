@@ -19,6 +19,55 @@
       ]
     }
   </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the fastest way to confirm a hacked VPS?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Start by checking <code>ss -tunap</code> for unknown outbound connections, then <code>ps auxf</code> for unfamiliar processes running from <code>/tmp</code> or <code>/dev/shm</code>, and finally review <code>/etc/passwd</code> for extra UID 0 accounts. These three checks cover the majority of common compromises observed in 2026."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How can I check my VPS for cryptominers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Look for sustained high CPU/GPU usage with no legitimate workload, inspect outbound traffic to known mining pool domains, and search <code>/tmp</code>, <code>/dev/shm</code>, and Docker containers for <code>config.json</code> files containing wallet addresses or stratum URLs."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I reboot a suspected hacked VPS?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not before capturing a disk snapshot and exporting volatile data such as running processes, network connections, and memory. Rebooting destroys evidence and triggers any pre-configured persistence mechanisms, which can complicate forensic analysis."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can antivirus software detect a hacked VPS in 2026?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Traditional antivirus detects only a fraction of modern threats, especially fileless malware and kernel-level rootkits. Use it as one layer among many — pair it with integrity monitoring, centralized logging, and behavioral analysis for meaningful coverage."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How often should I run forensic checks on my VPS?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Run lightweight automated checks daily (log review, integrity verification, user account audits) and conduct a deeper manual investigation at least once per month, or immediately after any security advisory relevant to your installed software."
+      }
+    }
+    ]
+  }
+  </script>
 </head>
 <body>
     <article>

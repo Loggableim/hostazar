@@ -76,6 +76,55 @@
   ]
 }
   </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Ist Istio kostenlos?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ja, Istio ist Open Source (Apache 2.0). Es gibt keine Lizenzkosten. Du zahlst nur für die Infrastruktur (Kubernetes-Cluster)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Ist Istio zu komplex für kleine Teams?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Für Teams mit weniger als 5 Mikroservices: Ja, vermutlich. Ab 10+ Services mit mehreren Entwicklern lohnt sich der Overhead."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Kann ich Istio ohne Kubernetes nutzen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Seit Istio 1.20 gibt es experimentellen Support für VMs neben Kubernetes. Der Primary Use Case bleibt aber Kubernetes."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Wie ist der Unterschied zu Linkerd?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Linkerd ist leichtgewichtiger und einfacher zu installieren. Istio bietet mehr Features (Traffic-Management, Observability, Gateway-API). Für komplexe Setups Istio, für einfache Linkerd."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Brauche ich Istio wenn ich bereits Ingress-Nginx habe?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ingress-Nginx regelt nur den eingehenden Traffic (L7). Istio regelt den Service-to-Service-Traffic (Ost-West) innerhalb des Clusters. Sie ergänzen sich."
+      }
+    }
+    ]
+  }
+  </script>
 </head>
 <body>
 <nav class="navbar">

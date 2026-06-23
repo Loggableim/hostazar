@@ -19,6 +19,55 @@
       ]
     }
   </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a multi-stage build in Docker?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A multi-stage build uses multiple <code>FROM</code> instructions in a single Dockerfile to separate the build environment from the runtime environment. You compile or bundle your application in an early stage with full toolchains, then copy only the resulting artifacts into a minimal final stage that becomes the shipped image."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How much can multi-stage builds reduce Docker image size?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Typical reductions range from 60% to 90% depending on the language and base image. Go services often drop from over 1 GB to under 25 MB. Java services commonly shrink from 900 MB to under 200 MB. Node.js services with proper dev-dependency exclusion usually land between 150 MB and 300 MB."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do multi-stage builds slow down Docker builds?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. With BuildKit's layer caching enabled, multi-stage builds are typically faster than single-stage builds because dependency layers are cached independently and reused across rebuilds. The first build may take slightly longer, but subsequent builds benefit from granular cache hits."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I use multi-stage builds with docker-compose?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Docker Compose invokes the standard Docker build process, so any valid multi-stage Dockerfile works without modification. Use the <code>build.context</code> and <code>build.dockerfile</code> keys to point to the correct file if it is not named <code>Dockerfile</code>."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are distroless images compatible with multi-stage builds?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, and they are the recommended runtime base for most multi-stage patterns. Distroless images contain only the language runtime and essential libraries, with no shell, package manager, or debugging tools. This further reduces image size and attack surface when used as the final stage."
+      }
+    }
+    ]
+  }
+  </script>
 </head>
 <body>
     <article>

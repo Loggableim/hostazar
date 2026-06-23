@@ -19,6 +19,55 @@
       ]
     }
   </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is PostgreSQL on a $5 VPS production-ready in 2026?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, for small workloads: side projects, internal tools, low-traffic SaaS, and personal services. It is not appropriate for high-traffic e-commerce, large analytics, or workloads requiring high availability. Always take regular backups and have a migration plan to a larger instance when growth demands it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How much RAM do I need for PostgreSQL?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A minimum of 1 GB is workable for very light use, but 2 GB is the practical minimum for production in 2026. With 1 GB, expect to handle a few concurrent users and a small working data set. With 2 GB, you can comfortably run dozens of connections and cache moderate-size indexes."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I use pgbouncer on a $5 VPS?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, if your application opens many short-lived connections. pgbouncer in transaction mode can reduce PostgreSQL's memory usage by multiplexing hundreds of application connections onto a small pool of backends. For single-user or low-traffic applications, pgbouncer adds complexity without benefit."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between shared_buffers and effective_cache_size?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "<code>shared_buffers</code> is memory PostgreSQL allocates and manages directly. <code>effective_cache_size</code> is a hint to the query planner about how much memory the OS will use for caching data, including PostgreSQL's own buffers. It does not allocate memory; it only influences whether the planner chooses index scans or sequential scans."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I run PostgreSQL 17 on a 1 vCPU VPS?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. PostgreSQL 17's logical replication improvements and better vacuum performance actually help on constrained hardware. A single vCPU is fine for OLTP workloads with sub-100ms queries and moderate concurrency. Set <code>max_parallel_workers_per_gather = 0</code> or <code>1</code> to avoid CPU contention from parallel workers."
+      }
+    }
+    ]
+  }
+  </script>
 </head>
 <body>
     <article>
