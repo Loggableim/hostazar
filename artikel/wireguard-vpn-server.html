@@ -1185,5 +1185,24 @@ sudo wg show
 </div>
 <script src="/data/script.js" defer></script>
 <script src="/js/consent-manager.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'devops',
+        excludeSlug: 'wireguard-vpn-server',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/devops/', label: 'DevOps' },
+        { label: 'WireGuard VPN Server einrichten – Schnell & Sicher 2026' }
+      ]
+    });
+  }
+});
+</script>
 </body>
 </html>

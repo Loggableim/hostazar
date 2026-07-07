@@ -1152,5 +1152,24 @@
 </div>
 <script src="/data/script.js" defer></script>
 <script src="/js/consent-manager.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'webhosting',
+        excludeSlug: 'hetzner-cloud-vs-dediziert-vergleich-2026',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/webhosting/', label: 'Webhosting' },
+        { label: 'Hetzner Cloud vs. Dedizierter Server – Vergleich 2026' }
+      ]
+    });
+  }
+});
+</script>
 </body>
 </html>

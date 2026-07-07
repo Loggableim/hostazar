@@ -1221,5 +1221,24 @@ volumes:
 </div>
 <script src="/data/script.js" defer></script>
 <script src="/js/consent-manager.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'devops',
+        excludeSlug: 'n8n-automation-server',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/devops/', label: 'DevOps' },
+        { label: 'n8n Automation Server hosten – Workflow-Automatisierung 2026' }
+      ]
+    });
+  }
+});
+</script>
 </body>
 </html>

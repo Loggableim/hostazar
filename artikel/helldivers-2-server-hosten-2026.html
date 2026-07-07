@@ -1157,5 +1157,24 @@ iptables -A INPUT -p tcp --dport 27015 -j ACCEPT
 </div>
 <script src="/data/script.js" defer></script>
 <script src="/js/consent-manager.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'gaming',
+        excludeSlug: 'helldivers-2-server-hosten-2026',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/gaming/', label: 'Gaming' },
+        { label: 'Helldivers 2 Server hosten – Kooperative Missions-Pläne 2026' }
+      ]
+    });
+  }
+});
+</script>
 </body>
 </html>
