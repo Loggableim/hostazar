@@ -1,0 +1,286 @@
+<h2>Docker Compose vs. Kubernetes 2026: Die kurze Antwort</h2>
+
+<p>Die Frage „Compose oder Kubernetes?" wird 2026 immer noch heißer diskutiert, als sie sein müsste. Denn die Antwort ist in 90 % der Fälle erstaunlich banal: <strong>Solange du mit einem oder zwei Servern auskommst, ist Docker Compose die günstigere, schnellere und wartungsärmere Wahl.</strong> Kubernetes lohnt sich erst, wenn du echte Multi-Node-Ausfallsicherheit, horizontales Auto-Scaling oder ein Plattform-Team brauchst, das dutzende Teams bedient.</p>
+
+<p>Was sich seit 2024/2025 verschoben hat: Docker Compose ist deutlich erwachsener geworden (Compose Spec, <code>docker compose watch</code>, <code>include:</code>, Compose Bridge), und Kubernetes ist deutlich bequemer geworden (Gateway API ist GA, Karpenter und EKS Auto Mode nehmen dir Node-Management ab). Gleichzeitig ist die Rechnung für ein Managed-Cluster nicht kleiner geworden – die Control Plane kostet bei AWS EKS weiterhin rund <strong>73 US-Dollar pro Monat</strong>, bevor der erste Pod überhaupt startet.</p>
+
+<p>Dieser Guide liefert dir konkrete Zahlen, echte Configs und eine Entscheidungsmatrix. Ziel: Du sollst nach dem Lesen in unter zehn Minuten wissen, welches Tool zu deinem Projekt passt – und was dich der Betrieb 2026 tatsächlich kostet.</p>
+
+<h2>Was Docker Compose 2026 wirklich kann</h2>
+
+<p>Compose ist längst nicht mehr das Dev-Spielzeug von 2018. Die Compose Spec ist ein offener Standard, der von Docker Compose v2, Podman Compose und Compose-kompatiblen Tools gleichermaßen gelesen wird. In der Praxis heißt das: Deine <code>compose.yaml</code> ist portabel und kein Vendor-Lock-in.</p>
+
+<p>Die wichtigsten Neuerungen der letzten Jahre, die den Produktivbetrieb realistisch machen:</p>
+
+<ul>
+<li><strong><code>depends_on</code> mit <code>condition: service_healthy</code></strong> – Startreihenfolge inklusive Healthcheck-Abhängigkeiten, kein <code>sleep 10</code> mehr.</li>
+<li><strong><code>docker compose watch</code></strong> – Dateiänderungen werden live in den Container synchronisiert oder lösen einen Rebuild aus. Für Entwicklungsumgebungen ein Gamechanger.</li>
+<li><strong><code>docker compose up --wait</code></strong> – wartet, bis alle Container healthy sind, und gibt einen Exit-Code zurück. Damit ist Compose CI-tauglich.</li>
+<li><strong><code>include:</code></strong> – mehrere Compose-Dateien modular zusammensetzen, ideal für Monorepos.</li>
+<li><strong>Profiles</strong> – optionale Services (z. B. Mailhog, Adminer, Prometheus) nur bei Bedarf starten.</li>
+<li><strong>Compose Bridge</strong> – <code>docker compose bridge convert</code> übersetzt deine Compose-Datei in Kubernetes-Manifeste bzw. Helm-Charts.</li>
+</ul>
+
+<p>Was Compose weiterhin <em>nicht</em> kann: über mehrere Hosts verteilen, Pods automatisch neu schedulen, wenn ein Node stirbt, oder Requests basierend auf CPU-Last horizontal skalieren. <code>deploy.replicas</code> wird im Nicht-Swarm-Modus ignoriert – das überrascht viele Einsteiger bis heute.</p>
+
+<p>Ein realistisches Compose-Setup 2026 auf einem Hetzner CX22 (2 vCPU, 4 GB RAM, 40 GB NVMe, 4,35 €/Monat) stemmt problemlos 15 bis 25 Container: API, Postgres, Redis, Worker, Reverse Proxy, Monitoring. Das reicht für die meisten SaaS-Produkte bis etwa 50.000 Requests pro Tag.</p>
+
+<h2>Was Kubernetes 2026 wirklich kann</h2>
+
+<p>Kubernetes ist 2026 erwachsen, aber auch deutlich komplexer geworden. Die Version 1.33/1.34 hat einige Altlasten entfernt, und mit der <strong>Gateway API</strong> ist endlich ein stabiler, rollenbasierter Nachfolger für Ingress verfügbar. Wichtig für alle, die noch auf <code>ingress-nginx</code> setzen: Das Projekt wurde offiziell zur Retirement angekündigt (März 2026), Migration auf Gateway API, Envoy Gateway oder Traefik ist Pflicht.</p>
+
+<p>Die Kernfähigkeiten, die Compose strukturell nicht bieten kann:</p>
+
+<ul>
+<li><strong>Self-Healing über Nodes hinweg:</strong> Stirbt ein Worker, werden Pods binnen Sekunden auf anderen Nodes neu gestartet.</li>
+<li><strong>Horizontal Pod Autoscaler (HPA):</strong> <code>kubectl autoscale deployment api --cpu-percent=70 --min=3 --max=20</code> – skaliert in 15-Sekunden-Schritten.</li>
+<li><strong>Rolling Updates mit <code>maxSurge: 1</code>, <code>maxUnavailable: 0</code>:</strong> Zero-Downtime-Deployments ohne Handarbeit.</li>
+<li><strong>Declarative Desired State:</strong> Du beschreibst, wie es aussehen soll – der Controller gleicht permanent ab.</li>
+<li><strong>RBAC, NetworkPolicies, PodSecurity:</strong> echte Mandantentrennung für mehrere Teams.</li>
+<li><strong>Operatoren:</strong> Postgres (CloudNativePG), Kafka (Strimzi), Redis – Datenbanken werden als CRDs deklarativ verwaltet.</li>
+</ul>
+
+<p>Der Preis dafür ist real: Ein Team, das Kubernetes produktiv betreibt, braucht erfahrungsgemäß <strong>4 bis 12 Wochen Einarbeitung</strong>, bevor die ersten Deployments stabil laufen. Und danach kontinuierlich Zeit für Upgrades – ein Minor-Version-Sprung alle vier Monate, ein Major-Upgrade pro Jahr.</p>
+
+<h2>Der direkte Vergleich in Zahlen</h2>
+
+<table>
+<thead>
+<tr><th>Kriterium</th><th>Docker Compose</th><th>Kubernetes</th></tr>
+</thead>
+<tbody>
+<tr><td>Lernkurve</td><td>1–2 Tage</td><td>4–12 Wochen</td></tr>
+<tr><td>Multi-Node-Betrieb</td><td>nein</td><td>ja (3+ Nodes)</td></tr>
+<tr><td>Auto-Scaling</td><td>nein</td><td>HPA / VPA / KEDA</td></tr>
+<tr><td>Self-Healing</td><td><code>restart: unless-stopped</code></td><td>Probes + Scheduler</td></tr>
+<tr><td>Zero-Downtime-Deploy</td><td>manuell / Reverse Proxy</td><td>RollingUpdate nativ</td></tr>
+<tr><td>Secrets</td><td>.env, Docker Secrets</td><td>Secrets + External Secrets Operator</td></tr>
+<tr><td>Netzwerk</td><td>Bridge-Netzwerke</td><td>CNI + NetworkPolicies</td></tr>
+<tr><td>Storage</td><td>Bind Mounts, Volumes</td><td>PV/PVC + StorageClasses</td></tr>
+<tr><td>Control-Plane-Kosten</td><td>0 €</td><td>0 – 73 $/Monat</td></tr>
+<tr><td>Realistisches Limit</td><td>~1 Node, ~25 Container</td><td>ab 3 Nodes, 100+ Pods</td></tr>
+</tbody>
+</table>
+
+<p>Die entscheidende Zeile ist „Realistisches Limit". Compose skaliert vertikal – du wirfst mehr RAM und CPU auf die Kiste. Kubernetes skaliert horizontal – du wirfst mehr Kisten in den Cluster. Beides ist legitim, aber nur eines davon übersteht den Ausfall einer einzelnen Maschine ohne Downtime.</p>
+
+<p>Ein Punkt, der oft übersehen wird: Compose ist <strong>nicht</strong> „Kubernetes für Arme". Für einen Single-Node-Betrieb ist es technisch die bessere Lösung, weil du keinen Scheduler, kein etcd und keine CNI mitschleppst. Du sparst dir pro Monat grob 2 bis 6 Stunden Betriebsaufwand – bei einem Stundensatz von 80 € sind das 160 bis 480 €, die du in Features stecken kannst.</p>
+
+<h2>Wann sich Docker Compose 2026 lohnt</h2>
+
+<p>Compose ist die richtige Wahl, wenn mindestens drei der folgenden Punkte zutreffen: Du betreibst ein bis drei Server, dein Team hat weniger als fünf Entwickler, du brauchst keine 99,95-%-SLA-Garantie, und deine Last ist über den Tag halbwegs gleichmäßig.</p>
+
+<p>Typische Szenarien, in denen Compose 2026 klar gewinnt:</p>
+
+<ol>
+<li><strong>Indie-SaaS und MVPs:</strong> Ein CX22 oder CPX21 bei Hetzner (4,35 € bzw. 8,98 €/Monat) plus Caddy als Reverse Proxy deckt die ersten 12 Monate ab.</li>
+<li><strong>Self-Hosted-Stacks:</strong> Nextcloud, Vaultwarden, Immich, Paperless – 20 Container auf einer Maschine, verwaltet mit einer einzigen YAML-Datei.</li>
+<li><strong>Gameserver-Panels:</strong> Pterodactyl, Pelican oder AMP laufen nativ mit Compose und brauchen keine Orchestrierung.</li>
+<li><strong>CI/CD-Runner und Build-Agents:</strong> Ephemere Compose-Stacks pro Pipeline-Run sind schneller als ein Cluster-Bootstrap.</li>
+<li><strong>KI-/LLM-Setups:</strong> Ollama, vLLM, Open WebUI und ein Reverse Proxy – Compose mit GPU-Device-Reservation ist hier deutlich einfacher als ein GPU-Operator in Kubernetes.</li>
+</ol>
+
+<p>Ein bewährtes Produktions-Setup sieht so aus: <code>docker compose up -d --wait</code> im systemd-Unit, Caddy oder Traefik davor für TLS, Watchtower oder Renovate für Image-Updates, <code>restic</code> für Backups der Volumes. Kostenpunkt: unter 20 €/Monat für die Infrastruktur, null € für Orchestrierung.</p>
+
+<p>Wichtig: Setze <code>restart: unless-stopped</code> und <code>healthcheck</code> konsequent, und nutze <code>deploy.resources.limits</code>, damit ein ausgelaufener Worker nicht den ganzen Host frisst. Das sind die drei Maßnahmen, die 80 % der Compose-Produktionsprobleme verhindern.</p>
+
+<h2>Wann sich Kubernetes 2026 lohnt</h2>
+
+<p>Kubernetes lohnt sich ab dem Punkt, an dem dein Betriebsrisiko teurer ist als dein Betriebsaufwand. Konkret: Wenn eine Stunde Downtime dich mehr kostet als die 400 € monatlicher Aufwand für ein Cluster, ist die Rechnung eindeutig.</p>
+
+<p>Klare Kubernetes-Indikatoren:</p>
+
+<ul>
+<li><strong>Mehr als ein Team</strong> deployt in dieselbe Infrastruktur und braucht Isolation (Namespaces, RBAC, ResourceQuotas).</li>
+<li><strong>Lastspitzen um Faktor 5+</strong> – z. B. ein Shop, der montags um 9 Uhr das Zehnfache an Traffic sieht.</li>
+<li><strong>Regulatorik:</strong> Audit-Logs, Pod-Security-Standards, Netzwerksegmentierung sind Pflicht.</li>
+<li><strong>Batch- und ML-Workloads:</strong> KEDA skaliert Jobs auf Queue-Länge, Kueue verwaltet GPU-Quotas.</li>
+<li><strong>Multi-Region:</strong> Du willst denselben Stack in Frankfurt und Nürnberg laufen lassen.</li>
+</ul>
+
+<p>Für den Einstieg 2026 ist <strong>k3s</strong> auf drei Hetzner-Cloud-Servern die günstigste echte Cluster-Variante: 3 × CX22 = 13,05 €/Monat plus Load Balancer (5,39 €/Monat). Alternativ Hetzner Managed Kubernetes – dort ist die Control Plane kostenlos, du zahlst nur die Worker-Nodes ab 4,35 €/Monat. Ein 3-Node-Cluster mit Control Plane liegt damit bei etwa 13 bis 18 €/Monat, ein vergleichbares Setup bei AWS EKS bei rund 73 $ Control Plane plus 3 × t3.medium (~90 $) = über 160 $/Monat.</p>
+
+<p>Wer Kubernetes einführt, sollte außerdem einplanen: GitOps mit Argo CD oder Flux, External Secrets Operator für Secrets, Prometheus + Grafana für Monitoring, und ein Upgrade-Fenster pro Quartal. Ohne diese vier Bausteine wird Kubernetes schnell zum teuren Bastelprojekt.</p>
+
+<h2>Kostenvergleich: Was ein Cluster 2026 wirklich kostet</h2>
+
+<table>
+<thead>
+<tr><th>Variante</th><th>Control Plane</th><th>3 Worker</th><th>Gesamt/Monat</th></tr>
+</thead>
+<tbody>
+<tr><td>Docker Compose, 1× Hetzner CX22</td><td>–</td><td>–</td><td>ca. 5 €</td></tr>
+<tr><td>Docker Compose, 1× Hetzner CCX13 (dedicated)</td><td>–</td><td>–</td><td>ca. 14 €</td></tr>
+<tr><td>k3s self-hosted, 3× CX22 + LB</td><td>0 €</td><td>13,05 €</td><td>ca. 18 €</td></tr>
+<tr><td>Hetzner Managed Kubernetes, 3× CX22</td><td>0 €</td><td>13,05 €</td><td>ca. 13 €</td></tr>
+<tr><td>DigitalOcean DOKS, 3× 2 vCPU/4 GB</td><td>0 $</td><td>72 $</td><td>ca. 72 $</td></tr>
+<tr><td>Google GKE Regional, 3× e2-medium</td><td>73 $</td><td>ca. 75 $</td><td>ca. 148 $</td></tr>
+<tr><td>AWS EKS, 3× t3.medium</td><td>73 $</td><td>ca. 90 $</td><td>ca. 163 $</td></tr>
+</tbody>
+</table>
+
+<p>Die Spanne ist gewaltig: Für denselben funktionalen 3-Node-Cluster zahlst du bei Hetzner rund 13 €, bei AWS rund 163 $. Das ist ein Faktor von 12. Wer Kubernetes „wegen der Cloud-Native-Standards" einführt, aber keinen Multi-Region- oder Compliance-Bedarf hat, verbrennt hier Geld ohne Gegenwert.</p>
+
+<p>Dazu kommen versteckte Posten: Egress-Traffic (bei AWS 0,09 $/GB nach dem ersten GB), Load Balancer (AWS ALB ab ~18 $/Monat, Hetzner LB 5,39 €/Monat), NAT Gateway (AWS ab ~32 $/Monat) und Managed-Datenbanken. In der Praxis kostet ein „kleines" EKS-Setup selten unter 250 $/Monat.</p>
+
+<h2>Praxisbeispiel: Dieselbe App in Compose und Kubernetes</h2>
+
+<p>Nehmen wir eine API mit Postgres. In Compose sind das 30 Zeilen:</p>
+
+<pre><code>services:
+  api:
+    image: ghcr.io/acme/api:1.8.3
+    ports: ["8080:8080"]
+    environment:
+      DATABASE_URL: postgres://app:secret@db:5432/app
+    depends_on:
+      db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 512M }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+  db:
+    image: postgres:17-alpine
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+      interval: 5s
+
+volumes:
+  pgdata:</code></pre>
+
+<p>Start mit <code>docker compose up -d --wait</code>, Logs mit <code>docker compose logs -f api</code>. Für die Entwicklung läuft parallel <code>docker compose watch</code> und synchronisiert Codeänderungen in den Container.</p>
+
+<p>In Kubernetes brauchst du für dieselbe Funktionalität mindestens vier Objekte – Deployment, Service, Ingress/Gateway-Route, PVC – plus HPA und Secret. Das Deployment allein:</p>
+
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 3
+  strategy:
+    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+  selector:
+    matchLabels: { app: api }
+  template:
+    metadata:
+      labels: { app: api }
+    spec:
+      containers:
+      - name: api
+        image: ghcr.io/acme/api:1.8.3
+        ports: [{ containerPort: 8080 }]
+        envFrom:
+        - secretRef: { name: api-secrets }
+        resources:
+          requests: { cpu: 250m, memory: 256Mi }
+          limits:   { cpu: "1",  memory: 512Mi }
+        readinessProbe:
+          httpGet: { path: /healthz, port: 8080 }
+          initialDelaySeconds: 5
+        livenessProbe:
+          httpGet: { path: /healthz, port: 8080 }
+          periodSeconds: 20</code></pre>
+
+<p>Der Unterschied ist nicht die Zeilenzahl, sondern die Betriebslogik: Im Compose-Setup gibt es genau einen API-Container. Fällt der Host aus, ist die API offline. Im Kubernetes-Setup laufen drei Replicas auf verschiedenen Nodes, der Scheduler verschiebt Pods bei Node-Ausfall automatisch, und <code>kubectl rollout status deployment/api</code> bestätigt dir den Deploy-Erfolg.</p>
+
+<h2>Migration von Compose zu Kubernetes ohne Drama</h2>
+
+<p>Der einfachste Weg führt über <strong>Compose Bridge</strong> oder <strong>Kompose</strong>. Beide lesen deine <code>compose.yaml</code> und erzeugen Kubernetes-Manifeste:</p>
+
+<pre><code>docker compose bridge convert -f compose.yaml -o k8s/
+# oder klassisch:
+kompose convert -f compose.yaml -o k8s/
+kubectl apply -f k8s/</code></pre>
+
+<p>Das Ergebnis ist ein Startpunkt, kein fertiges Setup. Du musst in jedem Fall nacharbeiten: <code>resources.requests</code> ergänzen (Kompose setzt nur Limits), Readiness- und Liveness-Probes definieren, Secrets aus der Compose-Datei in Kubernetes-Secrets oder den External Secrets Operator verschieben, und persistente Volumes auf PVCs mit StorageClass umstellen.</p>
+
+<p>Ein realistischer Migrationspfad in vier Schritten:</p>
+
+<ol>
+<li><strong>Woche 1:</strong> Compose-Datei aufräumen – Healthchecks, Resource-Limits, Secrets auslagern. Das verbessert auch den Compose-Betrieb sofort.</li>
+<li><strong>Woche 2–3:</strong> Manifeste generieren, in Git legen, Argo CD oder Flux aufsetzen. Noch kein Produktivtraffic.</li>
+<li><strong>Woche 4–6:</strong> Staging-Traffic umleiten, Monitoring (Prometheus, Grafana, Loki) aufbauen, Alerts definieren.</li>
+<li><strong>Ab Woche 7:</strong> Produktivverkehr schrittweise migrieren, Compose-Stack als Fallback zwei Wochen parallel laufen lassen.</li>
+</ol>
+
+<p>Wichtig: Migriere nicht gleichzeitig auf Kubernetes <em>und</em> auf eine neue Datenbank oder ein neues CI-System. Ein Variablenwechsel pro Quartal reicht.</p>
+
+<h2>Der Mittelweg: k3s, Talos Linux, Nomad und Docker Swarm</h2>
+
+<p>Zwischen Compose und „richtigem" Kubernetes gibt es 2026 mehrere sinnvolle Zwischenstufen. Die wichtigste ist <strong>k3s</strong>: ein zertifiziertes Kubernetes in einer einzigen Binärdatei, ohne Cloud-Provider-Abhängigkeiten, mit SQLite statt etcd als Default. Auf drei CX22-Servern läuft ein produktionsfähiger Cluster für unter 20 €/Monat.</p>
+
+<p><strong>Talos Linux</strong> ist die konsequenteste Variante: ein unveränderliches, API-verwaltetes Betriebssystem, das nur Kubernetes spricht. Kein SSH, keine Paket-Updates, kein Konfigurationsdrift. Ideal für alle, die Cluster-Betrieb automatisieren wollen, aber eine steilere Lernkurve akzeptieren.</p>
+
+<p><strong>HashiCorp Nomad</strong> bleibt die pragmatische Alternative für gemischte Workloads: Container, Java-Jars, Binaries und Batch-Jobs in einem Scheduler. Der Betriebsaufwand liegt deutlich unter Kubernetes, aber das Ökosystem ist kleiner – kein Helm, keine Operatoren, kein Gateway API.</p>
+
+<p><strong>Docker Swarm</strong> ist 2026 faktisch im Maintenance-Modus. Für Neuprojekte gibt es keinen Grund mehr, darauf zu setzen; für Bestandsinstallationen lohnt die Migration auf k3s oder Compose mit mehreren Hosts via <code>docker context</code>.</p>
+
+<p>Eine oft unterschätzte Option für Single-Node-Betrieb: <strong>Podman Quadlet</strong>. Container werden als systemd-Units deklariert, rootless betrieben und vom Init-System überwacht. Das gibt dir Compose-ähnliche Einfachheit mit systemd-Zuverlässigkeit – inklusive <code>Restart=always</code> und Journal-Logs.</p>
+
+<h2>Monitoring, Logging und CI/CD im Vergleich</h2>
+
+<p>Im Compose-Betrieb ist Monitoring bewusst schlank: <code>cAdvisor</code> plus Prometheus plus Grafana als drei zusätzliche Container, Logs via <code>docker compose logs</code> oder Loki mit dem Docker-Log-Treiber. Setup-Aufwand: ein halber Tag. RAM-Bedarf: etwa 400 MB.</p>
+
+<p>In Kubernetes ist Monitoring Pflicht, nicht optional – ohne Prometheus Operator, kube-state-metrics und Node Exporter fliegst du blind. Rechne mit 1,5 bis 2 GB RAM nur für den Monitoring-Stack, plus 2 bis 4 Stunden Einrichtung und danach kontinuierlicher Pflege von Dashboards und Alert-Rules.</p>
+
+<p>Bei CI/CD unterscheiden sich die Modelle grundlegend:</p>
+
+<ul>
+<li><strong>Compose:</strong> Deploy per SSH – <code>git pull && docker compose up -d --wait</code>. Einfach, schnell, aber ohne Rollback-Mechanik.</li>
+<li><strong>Kubernetes:</strong> GitOps mit Argo CD oder Flux. Der Cluster gleicht sich selbst mit dem Git-Repo ab, Rollbacks sind ein <code>git revert</code>. Deutlich robuster, aber du brauchst ein zweites Cluster oder zumindest einen separaten Namespace für Argo CD.</li>
+</ul>
+
+<p>Faustregel: Wenn dein Deploy-Prozess aus einem einzigen Bash-Skript besteht, das du in fünf Minuten erklären kannst, brauchst du kein GitOps. Sobald mehr als zwei Personen deployen oder du Audit-Trails brauchst, wird GitOps zur Pflicht.</p>
+
+<h2>Entscheidungsmatrix: 10 Fragen, die alles klären</h2>
+
+<p>Beantworte diese Fragen ehrlich. Ab vier „Ja"-Antworten in der rechten Spalte ist Kubernetes gerechtfertigt, darunter ist Compose die bessere Wahl.</p>
+
+<table>
+<thead>
+<tr><th>#</th><th>Frage</th><th>Compose</th><th>Kubernetes</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>Läuft alles auf einem Server?</td><td>Ja</td><td>Nein</td></tr>
+<tr><td>2</td><td>Downtime unter 5 Min/Monat gefordert?</td><td>Nein</td><td>Ja</td></tr>
+<tr><td>3</td><td>Last schwankt um Faktor 5+?</td><td>Nein</td><td>Ja</td></tr>
+<tr><td>4</td><td>Mehr als 3 Teams deployen?</td><td>Nein</td><td>Ja</td></tr>
+<tr><td>5</td><td>Compliance/Audit erforderlich?</td><td>Nein</td><td>Ja</td></tr>
+<tr><td>6</td><td>Budget unter 50 €/Monat?</td><td>Ja</td><td>Nein</td></tr>
+<tr><td>7</td><td>Team hat K8s-Erfahrung?</td><td>Nein</td><td>Ja</td></tr>
+<tr><td>8</td><td>GPU-/Batch-Workloads mit Queue?</td><td>Nein</td><td>Ja</td></tr>
+<tr><td>9</td><td>Multi-Region geplant?</td><td>Nein</td><td>Ja</td></tr>
+<tr><td>10</td><td>Deploy dauert heute unter 2 Minuten?</td><td>Ja</td><td>Nein</td></tr>
+</tbody>
+</table>
+
+<p>Ein häufiger Fehler: Teams führen Kubernetes ein, weil es „der Standard" ist, und verbringen danach 30 % ihrer Zeit mit Cluster-Themen statt mit Produktfeatures. Wenn dein Produkt noch Product-Market-Fit sucht, ist das teuer erkauft.</p>
+
+<p>Der umgekehrte Fehler ist genauso real: Ein Unternehmen mit 40 Entwicklern und drei Produkten betreibt alles auf einem Compose-Host und wundert sich, warum Deployments sich gegenseitig blockieren. Ab etwa 10 Personen im Engineering und mehr als einem Produkt ist ein Cluster fast immer die günstigere Lösung – gemessen an Personalkosten, nicht an Serverkosten.</p>
+
+<p>Und die pragmatische Antwort für 2026: <strong>Starte mit Compose, halte deine Container-Konfiguration Kubernetes-kompatibel.</strong> Konkret heißt das: keine Host-Path-Bind-Mounts für Daten, Healthchecks statt Sleeps, Konfiguration über Umgebungsvariablen, ein Prozess pro Container, Logs nach stdout. Wer diese fünf Regeln einhält, kann später mit <code>kompose convert</code> in einem Tag auf Kubernetes wechseln.</p>
+
+<h2>FAQ</h2>
+
+<h3>Ist Docker Compose 2026 für den Produktivbetrieb geeignet?</h3>
+<p>Ja, für Single-Node-Setups uneingeschränkt. Docker selbst positioniert Compose primär für Entwicklung, aber mit <code>restart: unless-stopped</code>, Healthchecks, Resource-Limits und einem Reverse Proxy davor läuft es in der Praxis stabil. Achte auf automatische Image-Updates (Renovate, Watchtower) und getestete Backups der Volumes – das sind die beiden kritischen Punkte, nicht die Orchestrierung.</p>
+
+<h3>Was kostet ein Kubernetes-Cluster 2026 minimal?</h3>
+<p>Ein k3s-Cluster auf drei Hetzner-CX22-Servern kostet rund 13 €/Monat plus 5,39 € für einen Load Balancer, also etwa 18 €. Hetzner Managed Kubernetes startet bei rund 13 €/Monat für drei Worker-Nodes, da die Control Plane kostenlos ist. Bei AWS EKS kommen allein 73 $/Monat für die Control Plane plus Nodes, NAT Gateway und Load Balancer hinzu – realistisch 250 $/Monat aufwärts.</p>
+
+<h3>Kann ich meine docker-compose.yml direkt in Kubernetes nutzen?</h3>
+<p>Nicht direkt, aber fast. Mit <code>docker compose bridge convert</code> oder <code>kompose convert</code> erzeugst du aus der Compose-Datei Kubernetes-Manifeste. Diese musst du anschließend nacharbeiten: <code>requests</code> ergänzen, Readiness-/Liveness-Probes definieren, Secrets auslagern und Volumes auf PVCs umstellen. Rechne mit ein bis drei Tagen Nacharbeit für einen mittelgroßen Stack.</p>
+
+<h3>Wann sollte ich von Compose auf Kubernetes migrieren?</h3>
+<p>Wenn mindestens drei dieser Kriterien zutreffen: Ausfall eines Servers darf nicht zu Downtime führen, Last schwankt um mehr als Faktor 5, mehr als drei Teams deployen, Compliance-Audits sind Pflicht, oder du brauchst Multi-Region. Ein weiteres starkes Signal: Deine Deployments blockieren sich gegenseitig, weil mehrere Services auf demselben Host um Ressourcen konkurrieren.</p>
+
+<h3>Ist Docker Swarm 2026 noch eine Option?</h3>
+<p>Für Neuprojekte nein. Swarm befindet sich seit Jahren im Maintenance-Modus und bekommt keine nennenswerten Features mehr. Wenn du Multi-Node-Betrieb mit geringem Aufwand brauchst, sind k3s oder Nomad die besseren Alternativen. Für Single-Node-Setups ist Compose ohnehin die einfachere und besser gepflegte Wahl.</p>
