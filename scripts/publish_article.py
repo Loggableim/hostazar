@@ -47,16 +47,16 @@ QUEUE_SCRIPT = r'C:\HermesPortable\home\scripts\local_gen_queue.py'
 
 BRAND_STYLE = (
     'furry editorial illustration, anthropomorphic animal characters, '
-    'black and white artwork with a single accent color, bold black ink outlines, '
+    'black and white ink illustration with selective orange color accents on clothing and equipment, '
+    'bold black ink outlines, '
     'high contrast monochrome shading, clean vector illustration, graphic novel aesthetics, '
     'editorial magazine artwork, dynamic composition, expressive characters, '
-    'selective color highlights, professional commercial illustration, crisp linework, '
-    'halftone textures'
+    'professional commercial illustration, crisp linework, halftone textures'
 )
 NEGATIVE = (
     'photorealistic, painting, oil paint, watercolor, 3d render, photograph, '
     'realistic lighting, soft shading, gradient blur, signature, watermark, text, '
-    'low quality, ugly, deformed, blurry'
+    'low quality, ugly, deformed, blurry, fully grayscale, no color'
 )
 
 CAT_META = {
