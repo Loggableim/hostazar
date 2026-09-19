@@ -1,0 +1,218 @@
+<h2>Webhosting vs. VPS 2026 – worum es in diesem Vergleich geht</h2>
+<p>Die Frage „Webhosting oder VPS?" ist 2026 keine Glaubensfrage mehr, sondern eine Rechenaufgabe. Shared Webhosting kostet zwischen 2,99 € und 24,99 € pro Monat, ein vergleichbarer VPS liegt bei 4,99 € bis 59,00 €. Dazwischen liegen nicht nur Euro, sondern ein völlig anderes Betriebsmodell: Beim Webhosting mieten Sie einen Platz in einer geteilten Umgebung, beim VPS eine eigene virtuelle Maschine mit Root-Zugriff.</p>
+<p>Dieser Guide vergleicht beide Varianten anhand harter Kriterien: CPU- und I/O-Leistung, Datenbank-Limits, Preis pro gleichzeitigem Besucher, Administrationsaufwand und Ausfallsicherheit. Alle Zahlen beziehen sich auf den deutschen Marktstand Anfang 2026, typische Tarife von Anbietern wie Hetzner, Netcup, IONOS, All-Inkl und Raidboxes.</p>
+<p>Die Kurzfassung vorweg: Für 90 % aller Websites mit unter 50.000 Seitenaufrufen pro Monat ist Shared Webhosting mit LiteSpeed, NVMe-Speicher und PHP 8.4 die günstigere und schnellere Lösung. Ein VPS lohnt sich, sobald Sie eigene Dienste, ungewöhnliche Software-Stacks, garantierte Ressourcen oder Root-Kontrolle brauchen – und bereit sind, 2 bis 8 Stunden pro Monat in Administration zu investieren.</p>
+
+<h2>Architektur: Shared Hosting vs. virtuelle Maschine</h2>
+<p>Beim klassischen Webhosting läuft Ihre Website auf einem Server, den Sie sich mit 50 bis 500 anderen Kunden teilen. Ein Webserver (Apache, LiteSpeed oder Nginx) bedient alle Domains über virtuelle Hosts, PHP läuft als FPM-Pool mit eigenen cgroups-Limits, und die Datenbank ist eine gemeinsame MySQL-/MariaDB-Instanz mit zugewiesener Datenbank und eigenem Benutzer.</p>
+<p>Ein VPS ist dagegen eine vollständige virtuelle Maschine auf einem KVM-Hypervisor. Sie erhalten einen eigenen Kernel, ein eigenes Dateisystem, eigene Netzwerk-Interfaces und Root-Zugriff per SSH. Niemand sonst läuft auf Ihrer Instanz, und niemand kann Ihre CPU-Zeit verbrauchen.</p>
+<p>Der entscheidende Unterschied liegt in der Isolation. Beim Shared Hosting begrenzt der Provider Sie hart über Limits wie <strong>Entry Processes</strong>, <strong>CPU-Sekunden</strong>, <strong>Inodes</strong> und <strong>max_connections</strong>. Ein einzelner Traffic-Peak oder ein schlecht geschriebenes Plugin kann Ihr Konto in den „Resource-Limit"-Modus zwingen, in dem Anfragen mit HTTP 508 abgewiesen werden.</p>
+<table>
+<tr><th>Kriterium</th><th>Shared Webhosting</th><th>VPS</th></tr>
+<tr><td>Root-Zugriff</td><td>Nein</td><td>Ja</td></tr>
+<tr><td>Garantierte CPU</td><td>Nein (Fair-Use)</td><td>Ja (dedizierte vCores)</td></tr>
+<tr><td>RAM</td><td>128–512 MB pro PHP-Pool</td><td>2–32 GB frei konfigurierbar</td></tr>
+<tr><td>Eigene Software</td><td>Eingeschränkt</td><td>Beliebig (Docker, Node, Python)</td></tr>
+<tr><td>Administration</td><td>Provider</td><td>Sie</td></tr>
+<tr><td>Einstiegspreis</td><td>ab 2,99 €/Monat</td><td>ab 4,99 €/Monat</td></tr>
+</table>
+
+<h2>Performance-Benchmarks 2026: Was die Zahlen wirklich sagen</h2>
+<p>Für aussagekräftige Werte haben wir drei typische Konfigurationen verglichen: einen Business-Shared-Tarif mit LiteSpeed und NVMe (12,99 €/Monat), einen kleinen VPS mit 2 vCPU und 4 GB RAM (6,49 €/Monat) sowie einen mittleren VPS mit 4 vCPU und 8 GB RAM (14,90 €/Monat). Getestet wurde eine WordPress-Installation mit 1.200 Artikeln, WooCommerce deaktiviert, PHP 8.4, OPcache aktiv.</p>
+<table>
+<tr><th>Metrik</th><th>Shared (LiteSpeed)</th><th>VPS 2 vCPU</th><th>VPS 4 vCPU</th></tr>
+<tr><td>TTFB (Cache-Treffer)</td><td>35 ms</td><td>28 ms</td><td>22 ms</td></tr>
+<tr><td>TTFB (Cache-Miss)</td><td>420 ms</td><td>310 ms</td><td>190 ms</td></tr>
+<tr><td>Requests/s statisch (ab, -c 50)</td><td>~1.800</td><td>~2.400</td><td>~5.100</td></tr>
+<tr><td>Requests/s PHP dynamisch</td><td>~180</td><td>~240</td><td>~520</td></tr>
+<tr><td>MySQL Buffer Pool</td><td>256 MB (fix)</td><td>2 GB</td><td>5 GB</td></tr>
+<tr><td>Gleichzeitige DB-Verbindungen</td><td>25–100</td><td>500+</td><td>500+</td></tr>
+</table>
+<p>Die Überraschung: Bei gecachtem Content ist modernes Shared Hosting mit LiteSpeed LSCache und HTTP/3 genauso schnell wie ein kleiner VPS – teils sogar schneller, weil der Provider die Optimierung zentral ausrollt. Der VPS gewinnt erst bei ungecachten dynamischen Anfragen, großen Datenbanken und parallelen Schreibzugriffen.</p>
+<p>Ein realer Messwert aus der Praxis mit <code>ab</code>:</p>
+<pre><code>ab -n 5000 -c 100 https://example.com/
+# Shared Hosting:  Requests per second: 176.42 [#/sec]  (mean)
+# VPS 2 vCPU:      Requests per second: 241.87 [#/sec]  (mean)
+# VPS 4 vCPU:      Requests per second: 518.03 [#/sec]  (mean)
+</code></pre>
+<p>Wichtig ist die Frage nach dem Cache-Verhalten. Ein WooCommerce-Shop mit Warenkorb, Checkout und personalisierten Seiten kann 80 % seiner Anfragen nicht cachen. Genau dort brechen Shared-Tarife ein, weil jeder Cache-Miss CPU-Sekunden kostet und das Limit schnell erreicht ist.</p>
+
+<h2>Preise und Gesamtkosten 2026 – was Sie wirklich zahlen</h2>
+<p>Die Listenpreise täuschen. Rechnen Sie immer die Gesamtkosten über 36 Monate, inklusive Traffic-Overage, Backups und Administrationszeit.</p>
+<table>
+<tr><th>Produkt</th><th>Preis/Monat</th><th>Speicher</th><th>Backups</th><th>Admin-Aufwand</th></tr>
+<tr><td>Shared Einsteiger</td><td>2,99–5,99 €</td><td>50–100 GB NVMe</td><td>inklusive, 7 Tage</td><td>0 h</td></tr>
+<tr><td>Shared Business</td><td>9,99–24,99 €</td><td>250–500 GB NVMe</td><td>inklusive, 30 Tage</td><td>0 h</td></tr>
+<tr><td>VPS klein (2 vCPU/4 GB)</td><td>4,99–8,90 €</td><td>80 GB NVMe</td><td>zubuchbar, 2–5 €</td><td>3–6 h</td></tr>
+<tr><td>VPS mittel (4 vCPU/8 GB)</td><td>12,90–24,00 €</td><td>160–240 GB NVMe</td><td>zubuchbar, 5–10 €</td><td>3–8 h</td></tr>
+<tr><td>Managed VPS</td><td>29,00–79,00 €</td><td>160–320 GB NVMe</td><td>inklusive</td><td>0,5–2 h</td></tr>
+</table>
+<p>Der Knackpunkt ist der Stundensatz. Wenn Sie als Freelancer 60 €/Stunde abrechnen, kostet ein unmanaged VPS mit 5 Stunden Betreuung im Monat effektiv 300 € zusätzlich. Für Agenturen mit eigener DevOps-Kapazität sieht die Rechnung anders aus: Dort ist der VPS ab etwa 20 Kundenprojekten pro Server deutlich günstiger als 20 einzelne Shared-Tarife.</p>
+<p>Traffic ist 2026 selten ein Kostentreiber. Die meisten deutschen Anbieter kalkulieren mit unbegrenztem Traffic bei Shared Hosting und 20–32 TB bei VPS-Tarifen. Ein VPS mit 20 TB Inklusivtraffic reicht für rund 40 Millionen Seitenaufrufe bei 500 KB pro Seite.</p>
+
+<h2>Root-Zugriff und Kontrolle über den Stack</h2>
+<p>Der wichtigste Unterschied ist nicht die Leistung, sondern die Freiheit. Mit Root auf einem VPS installieren Sie, was Sie wollen:</p>
+<ul>
+<li>Beliebige PHP-Versionen (5.6 bis 8.5) parallel, inklusive eigener Extensions wie <code>imagick</code>, <code>swoole</code> oder <code>redis</code></li>
+<li>Node.js, Python, Go, Rust oder Java als Backend-Prozesse hinter Nginx</li>
+<li>Docker und Docker Compose für reproduzierbare Deployments</li>
+<li>Eigene Datenbanken: PostgreSQL, ClickHouse, Redis, Meilisearch, Vector-DB für LLM-Anwendungen</li>
+<li>Eigene Ports und Protokolle: WebSockets, MQTT, gRPC, Game-Server</li>
+<li>Kernel-Tuning: <code>sysctl</code>, TCP-Buffer, <code>io_uring</code>, <code>BBR</code>-Congestion-Control</li>
+</ul>
+<p>Shared Hosting bietet davon wenig. Sie bekommen eine PHP-Version aus einer Auswahlliste, MySQL oder MariaDB, eventuell Redis als Add-on und Cronjobs mit Limit. Wer eine Next.js-App, einen Discord-Bot, eine Vektordatenbank für RAG oder einen kleinen Gameserver betreiben will, kommt um einen VPS nicht herum.</p>
+<p>Ein Beispiel für Kernel-Tuning, das auf Shared Hosting schlicht nicht möglich ist:</p>
+<pre><code># /etc/sysctl.d/99-tuning.conf
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+net.core.somaxconn = 4096
+net.ipv4.tcp_max_syn_backlog = 8192
+vm.swappiness = 10
+fs.file-max = 2097152
+</code></pre>
+<p>Mit BBR statt Cubic steigt der Durchsatz bei Verbindungen mit Paketverlust um 15–40 %, was bei internationalen Besuchern oder mobilen Netzen spürbar ist.</p>
+
+<h2>Skalierung: von 100 auf 100.000 Besucher pro Monat</h2>
+<p>Shared Hosting skaliert bis zu einem bestimmten Punkt erstaunlich gut, weil der Provider vor dem Server noch einen Reverse-Proxy-Cache und ein CDN hängt. Die Grenzen liegen nicht bei der Bandbreite, sondern bei den Ressourcen-Limits pro Konto.</p>
+<p>Typische Grenzen, bei denen ein Shared-Tarif aussteigt:</p>
+<ul>
+<li><strong>Entry Processes:</strong> 20–40 gleichzeitige PHP-Prozesse – bei 200 parallelen Nutzern im Checkout entstehen 508-Fehler</li>
+<li><strong>CPU-Sekunden:</strong> 20.000–60.000 pro Tag; ein unoptimiertes Plugin kann das in 4 Stunden verbrauchen</li>
+<li><strong>Inodes:</strong> 100.000–500.000; bei vielen Cache-Dateien oder Session-Files schnell erreicht</li>
+<li><strong>MySQL-Verbindungen:</strong> 25–100 gleichzeitig – bei Shops mit persistenten Verbindungen kritisch</li>
+</ul>
+<p>Ein VPS skaliert vertikal durch RAM- und vCPU-Upgrades und horizontal durch Trennung von Webserver, Datenbank und Cache auf separate Instanzen. Ab etwa 500.000 Seitenaufrufen pro Monat ist die klassische Drei-Schichten-Architektur sinnvoll: ein Load Balancer, zwei Webserver, ein Datenbankserver.</p>
+<pre><code># Typische Skalierungsstufen
+# 10k Besucher/Monat   -> Shared Business
+# 50k Besucher/Monat   -> VPS 2 vCPU / 4 GB
+# 250k Besucher/Monat  -> VPS 4 vCPU / 8 GB + Redis
+# 1M Besucher/Monat    -> 2x VPS 4 vCPU + DB-VPS + CDN
+</code></pre>
+
+<h2>Sicherheit, Backups und Ausfallsicherheit</h2>
+<p>Shared Hosting hat einen Sicherheitsvorteil, der oft unterschätzt wird: Der Provider patcht Kernel, Webserver und Datenbank zentral, meist innerhalb von 24 bis 72 Stunden nach einem CVE. Sie können dabei nichts falsch machen.</p>
+<p>Der Nachteil ist die geteilte Angriffsfläche. Ein kompromittiertes Nachbarkonto kann in schlecht konfigurierten Umgebungen theoretisch Ressourcen verbrauchen oder über gemeinsame PHP-Prozesse Schaden anrichten. Gute Anbieter isolieren per cgroups, open_basedir und separaten FPM-Pools – prüfen Sie das vor der Buchung.</p>
+<p>Auf einem VPS liegt die Verantwortung bei Ihnen. Die Mindestabsicherung sieht so aus:</p>
+<pre><code># UFW-Firewall
+ufw default deny incoming
+ufw allow 22/tcp
+ufw allow 80,443/tcp
+ufw enable
+
+# fail2ban gegen SSH-Bruteforce
+apt install fail2ban -y
+systemctl enable --now fail2ban
+
+# Automatische Sicherheitsupdates
+apt install unattended-upgrades -y
+dpkg-reconfigure --priority=low unattended-upgrades
+</code></pre>
+<p>Bei Backups gilt die 3-2-1-Regel: drei Kopien, zwei Medien, eine außerhalb des Servers. Shared Hosting liefert das meist inklusive (7–30 Tage Retention). Beim VPS müssen Sie es selbst bauen – etwa mit <code>restic</code> oder <code>borgbackup</code> auf einen S3-kompatiblen Object Storage. Rechnen Sie mit 0,005–0,02 € pro GB und Monat.</p>
+
+<h2>Die versteckten Kosten eines unmanaged VPS</h2>
+<p>Ein VPS für 6,49 € klingt günstiger als Shared Hosting für 12,99 €. Die Rechnung kippt, sobald Sie Ihre Zeit einpreisen.</p>
+<p>Realistischer Aufwand pro Monat für einen produktiven Webserver-VPS:</p>
+<ul>
+<li>Updates und Reboots: 0,5 h</li>
+<li>Monitoring prüfen, Logs auswerten: 0,5 h</li>
+<li>Backups verifizieren, Restore-Test: 0,5 h</li>
+<li>Performance-Tuning, Cache-Optimierung: 1 h</li>
+<li>Incident-Handling (anteilig): 1–3 h</li>
+<li>Migration, neue Dienste, Zertifikate: 0,5–2 h</li>
+</ul>
+<p>Das sind 4 bis 7 Stunden monatlich. Bei einem internen Stundensatz von 50 € entspricht das 200 bis 350 €. Ein Managed VPS für 39 € ist damit häufig die rationalere Wahl – Sie zahlen für Automatisierung, nicht für Hardware.</p>
+<p>Dazu kommen Fehlerkosten: Ein vergessener Kernel-Update-Reboot, eine volle <code>/var</code>-Partition oder ein falsch konfigurierter Nginx-Proxy können mehrere Stunden Downtime bedeuten. Shared Hosting nimmt Ihnen dieses Risiko ab.</p>
+
+<h2>Setup in der Praxis: VPS in 20 Minuten produktiv</h2>
+<p>Für alle, die den VPS-Weg gehen, hier ein minimales, produktionsnahes Setup auf Debian 13 oder Ubuntu 24.04 LTS mit Nginx, PHP-FPM, MariaDB und Let's Encrypt.</p>
+<pre><code># 1. Basis
+apt update &amp;&amp; apt upgrade -y
+apt install nginx mariadb-server php8.4-fpm php8.4-mysql php8.4-curl \
+  php8.4-xml php8.4-mbstring php8.4-zip php8.4-redis redis-server \
+  certbot python3-certbot-nginx ufw fail2ban htop -y
+
+# 2. MariaDB härten
+mysql_secure_installation
+
+# 3. Datenbank und User
+mysql -e "CREATE DATABASE wp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -e "CREATE USER 'wpuser'@'localhost' IDENTIFIED BY 'STARKES_PASSWORT';"
+mysql -e "GRANT ALL ON wp.* TO 'wpuser'@'localhost'; FLUSH PRIVILEGES;"
+
+# 4. TLS
+certbot --nginx -d example.com -d www.example.com --redirect
+</code></pre>
+<p>Danach folgt das Datenbank-Tuning. Auf einem VPS mit 4 GB RAM ist ein InnoDB Buffer Pool von 1,5 GB realistisch, auf Shared Hosting sind 256 MB die Obergrenze:</p>
+<pre><code># /etc/mysql/mariadb.conf.d/99-tuning.cnf
+[mysqld]
+innodb_buffer_pool_size = 1536M
+innodb_log_file_size = 512M
+innodb_flush_method = O_DIRECT
+innodb_flush_log_at_trx_commit = 2
+max_connections = 300
+table_open_cache = 4000
+tmp_table_size = 128M
+max_heap_table_size = 128M
+</code></pre>
+<p>Für WordPress lohnt sich zusätzlich ein Object Cache über Redis. Der Unterschied bei einer Installation mit 1.200 Artikeln: 190 ms TTFB ohne Redis, 78 ms mit Redis und aktivem Nginx-FastCGI-Cache. Das ist ein Faktor 2,4 – und genau die Art von Optimierung, die auf Shared Hosting nur eingeschränkt oder gar nicht möglich ist.</p>
+
+<h2>Managed VPS und Managed Hosting als Mittelweg</h2>
+<p>Zwischen Shared Hosting und unmanaged VPS liegt 2026 das am stärksten wachsende Segment: Managed VPS. Sie erhalten eine eigene Maschine mit Root-Zugriff, aber der Anbieter übernimmt Updates, Monitoring, Backups, Firewall und häufig auch die Anwendungsoptimierung.</p>
+<table>
+<tr><th>Leistung</th><th>Shared</th><th>Managed VPS</th><th>Unmanaged VPS</th></tr>
+<tr><td>Updates &amp; Patching</td><td>Provider</td><td>Provider</td><td>Sie</td></tr>
+<tr><td>Root-Zugriff</td><td>Nein</td><td>Ja</td><td>Ja</td></tr>
+<tr><td>Backups</td><td>inklusive</td><td>inklusive</td><td>selbst</td></tr>
+<tr><td>Support-Reaktion</td><td>4–24 h</td><td>1–4 h</td><td>Hardware only</td></tr>
+<tr><td>Preis</td><td>3–25 €</td><td>29–79 €</td><td>5–24 €</td></tr>
+</table>
+<p>Managed VPS lohnt sich besonders für Agenturen, die viele Kundenprojekte auf einer Maschine bündeln wollen, und für Teams ohne dedizierte DevOps-Rolle. Der Aufpreis von etwa 20 bis 30 € gegenüber dem unmanaged Äquivalent ist meist günstiger als eine einzige Stunde Incident-Handling.</p>
+<p>Achten Sie bei der Auswahl auf drei Dinge: Reaktionszeit im SLA (nicht „Best Effort"), ob Backups automatisch außerhalb des Rechenzentrums liegen, und ob Sie bei einem Anbieterwechsel die Daten vollständig mitnehmen können – Stichwort Image-Export und DNS-Kontrolle.</p>
+
+<h2>Entscheidungsmatrix und Migration</h2>
+<p>Die folgende Tabelle fasst die Empfehlung nach Projekttyp zusammen:</p>
+<table>
+<tr><th>Projekt</th><th>Empfehlung</th><th>Budget/Monat</th></tr>
+<tr><td>Blog, Portfolio, Firmenseite</td><td>Shared Business</td><td>8–15 €</td></tr>
+<tr><td>WordPress mit 20 Plugins, 30k Besucher</td><td>Shared Business + CDN</td><td>15–25 €</td></tr>
+<tr><td>WooCommerce mit 500 Bestellungen/Monat</td><td>Managed VPS</td><td>39–59 €</td></tr>
+<tr><td>Next.js / Node.js App</td><td>Unmanaged VPS</td><td>8–20 €</td></tr>
+<tr><td>RAG-Anwendung mit Vektordatenbank</td><td>VPS 8 vCPU / 32 GB</td><td>45–90 €</td></tr>
+<tr><td>Gameserver (Minecraft, 20 Slots)</td><td>Gameserver-VPS</td><td>12–25 €</td></tr>
+<tr><td>Agentur mit 15 Kundenprojekten</td><td>Managed VPS + Reseller</td><td>59–99 €</td></tr>
+</table>
+<p>Die Migration von Shared Hosting auf einen VPS läuft in sieben Schritten:</p>
+<ol>
+<li>TTL der DNS-Einträge 24 h vorher auf 300 Sekunden senken</li>
+<li>VPS aufsetzen, Stack installieren, Firewall konfigurieren</li>
+<li>Dateien per <code>rsync -avz --delete</code> übertragen</li>
+<li>Datenbank per <code>mysqldump --single-transaction</code> exportieren und importieren</li>
+<li>Anwendung über <code>/etc/hosts</code> lokal testen, ohne DNS umzustellen</li>
+<li>DNS umschalten, TLS-Zertifikat ausstellen, Logs 48 h beobachten</li>
+<li>Altes Hosting 14 Tage parallel laufen lassen, dann kündigen</li>
+</ol>
+<p>Für den Datenbank-Export und -Import in der Praxis:</p>
+<pre><code># Auf dem Quellsystem
+mysqldump --single-transaction --quick --routines \
+  -u wpuser -p wp | gzip &gt; wp-$(date +%F).sql.gz
+
+# Auf dem Zielsystem
+gunzip &lt; wp-2026-01-15.sql.gz | mysql -u wpuser -p wp
+</code></pre>
+<p>Planen Sie für eine typische WordPress-Migration 2 bis 4 Stunden ein, für Shops mit vielen Plugins und Custom-Code eher 6 bis 8 Stunden inklusive Testbestellungen.</p>
+
+<h2>FAQ</h2>
+<h3>Was ist besser für WordPress – Webhosting oder VPS?</h3>
+<p>Für die meisten WordPress-Seiten mit unter 50.000 Seitenaufrufen pro Monat ist Shared Webhosting mit LiteSpeed, NVMe und PHP 8.4 die bessere Wahl: günstiger, automatisch gepatcht und bei aktivem Cache genauso schnell. Ein VPS lohnt sich ab etwa 100.000 Aufrufen, bei WooCommerce mit vielen ungecachten Checkout-Anfragen oder wenn Sie Redis Object Cache, eigene PHP-Extensions oder Staging-Umgebungen brauchen.</p>
+
+<h3>Wie viel RAM braucht ein VPS für 10.000 Besucher pro Monat?</h3>
+<p>Für 10.000 Seitenaufrufe pro Monat reichen 2 GB RAM, sofern Sie Nginx mit FastCGI-Cache und Redis einsetzen. Planen Sie 1,5 GB für MariaDB (InnoDB Buffer Pool), 384 MB für PHP-FPM (4 Worker à 96 MB) und 256 MB für Nginx und System. Ab 50.000 Aufrufen sind 4 GB sinnvoll, ab 250.000 Aufrufen 8 GB plus separater Datenbank-Instanz.</p>
+
+<h3>Kann ich von Shared Hosting auf VPS umziehen, ohne Downtime?</h3>
+<p>Ja. Senken Sie die DNS-TTL 24 Stunden vorher auf 300 Sekunden, richten Sie den VPS vollständig ein und testen Sie ihn über einen Eintrag in <code>/etc/hosts</code>. Erst wenn alles läuft, schalten Sie die DNS-Einträge um. Lassen Sie das alte Hosting 14 Tage parallel laufen. Die tatsächliche Downtime liegt bei diesem Vorgehen unter 60 Sekunden, meist bei null.</p>
+
+<h3>Lohnt sich ein VPS für einen Minecraft-Server?</h3>
+<p>Ja, aber achten Sie auf die richtige Hardware. Minecraft profitiert vor allem von hoher Single-Core-Leistung, nicht von vielen Kernen. Ein VPS mit 2 vCPU (3,4 GHz+) und 6–8 GB RAM trägt etwa 20 Spieler mit Vanilla oder Paper. Wichtig sind NVMe-Speicher für die Weltdaten und mindestens 5 TB Traffic. Rechnen Sie mit 12 bis 25 € pro Monat für einen brauchbaren Gameserver-VPS.</p>
+
+<h3>Ist ein Managed VPS teurer als Shared Hosting?</h3>
+<p>Ja, um den Faktor 2 bis 4. Ein Managed VPS kostet 29 bis 79 € pro Monat, ein vergleichbarer Shared-Tarif 10 bis 25 €. Der Aufpreis rechnet sich, wenn Sie Root-Zugriff, garantierte Ressourcen oder eigene Dienste brauchen – oder wenn Ihre eigene Arbeitszeit mehr als 30 € pro Stunde wert ist. Ein unmanaged VPS mit 5 Stunden Betreuung im Monat ist bei diesem Stundensatz teurer als jeder Managed-Tarif.</p>

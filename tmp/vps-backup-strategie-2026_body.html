@@ -1,0 +1,208 @@
+<h2>Warum VPS-Backups 2026 wichtiger sind als je zuvor</h2>
+<p>Die Zahl der VPS-Instanzen ist in den letzten Jahren explodiert – parallel dazu ist die Angriffsfläche gewachsen. Ransomware-Gruppen haben 2025 erstmals massenhaft virtuelle Maschinen bei kleineren Hostern verschlüsselt, weil dort Snapshots und Backups oft im selben Rechenzentrum wie die Produktionsdaten lagen. Wer nur auf den Hoster-Snapshot vertraut, hat im Ernstfall <strong>kein Backup, sondern eine Kopie</strong> – und die verschwindet mit dem Account.</p>
+<p>Gleichzeitig sind die Preise für Object Storage gefallen. Backblaze B2 liegt 2026 bei rund <strong>6 US-Dollar pro TB und Monat</strong>, Wasabi bei etwa 6,99 US-Dollar, Hetzner Object Storage startet bei <strong>4,99 € für 1 TB</strong>. Eine saubere 3-2-1-Strategie kostet damit für einen typischen 80-GB-VPS weniger als 5 € im Monat – ein Bruchteil dessen, was ein Datenverlust kostet.</p>
+<p>Dieser Guide zeigt dir, wie du die 3-2-1-Regel auf einem VPS konkret umsetzt: mit restic oder borg, systemd-Timern, Verschlüsselung, Restore-Tests und einem belastbaren Disaster-Recovery-Playbook. Alle Befehle sind kopierfertig und für Debian 13 / Ubuntu 24.04 LTS getestet.</p>
+
+<h2>Die 3-2-1-Regel – und warum 3-2-1-1-0 heute Standard ist</h2>
+<p>Die klassische 3-2-1-Regel besagt: <strong>3 Kopien</strong> der Daten, auf <strong>2 verschiedenen Medientypen</strong>, davon <strong>1 Kopie offsite</strong>. Für einen VPS heißt das konkret: die Produktionsdaten auf dem Server, ein lokaler Snapshot oder Backup-Dump auf einem zweiten Volume, und ein verschlüsseltes Repository in einem Object Storage eines anderen Anbieters.</p>
+<p>2026 reicht das vielen Compliance-Anforderungen nicht mehr. Die erweiterte <strong>3-2-1-1-0-Regel</strong> ergänzt zwei Punkte: eine zusätzliche Kopie <strong>offline oder immutable</strong> (Air Gap, WORM-Storage, Band) und <strong>0 Fehler</strong> bei der Verifikation – also regelmäßig getestete Restores.</p>
+<table>
+<thead><tr><th>Regel</th><th>Bedeutung</th><th>Umsetzung auf dem VPS</th></tr></thead>
+<tbody>
+<tr><td>3 Kopien</td><td>Produktiv + 2 Backups</td><td>Live-Daten, lokales Repo, Offsite-Repo</td></tr>
+<tr><td>2 Medien</td><td>Kein Single Point of Failure</td><td>NVMe-Volume + Object Storage (S3)</td></tr>
+<tr><td>1 Offsite</td><td>Geografisch getrennt</td><td>Anderer Provider, andere Region</td></tr>
+<tr><td>1 Immutable</td><td>Nicht löschbar/änderbar</td><td>S3 Object Lock, Hetzner Immutability</td></tr>
+<tr><td>0 Fehler</td><td>Restore verifiziert</td><td>Monatlicher Restore-Test, <code>restic check</code></td></tr>
+</tbody>
+</table>
+<p>Wichtig: Ein Snapshot beim Hoster zählt <em>nicht</em> als eigenständige Kopie, wenn er im selben Storage-Cluster liegt. Er schützt gegen Fehlkonfiguration, nicht gegen Account-Sperrung, Ransomware oder einen RZ-Ausfall.</p>
+
+<h2>RPO und RTO festlegen, bevor du ein Tool wählst</h2>
+<p>Bevor du irgendein Backup-Tool installierst, definiere zwei Zahlen: <strong>RPO</strong> (Recovery Point Objective – wie viel Datenverlust ist akzeptabel?) und <strong>RTO</strong> (Recovery Time Objective – wie lange darf die Wiederherstellung dauern?). Ohne diese Werte ist jede Backup-Strategie geraten.</p>
+<table>
+<thead><tr><th>Workload</th><th>Typisches RPO</th><th>Typisches RTO</th><th>Backup-Intervall</th></tr></thead>
+<tbody>
+<tr><td>Statische Website</td><td>24 h</td><td>4 h</td><td>täglich</td></tr>
+<tr><td>WordPress / Shop</td><td>1 h</td><td>1 h</td><td>stündlich DB, täglich Files</td></tr>
+<tr><td>Gameserver (Minecraft)</td><td>15 min</td><td>30 min</td><td>alle 15 min Welt-Save</td></tr>
+<tr><td>PostgreSQL-Produktion</td><td>5 min</td><td>30 min</td><td>WAL-Archiv + tägl. Basebackup</td></tr>
+<tr><td>CI/CD-Runner</td><td>24 h</td><td>8 h</td><td>wöchentlich (Config only)</td></tr>
+</tbody>
+</table>
+<p>Ein RPO von 5 Minuten bedeutet zwingend kontinuierliche Archivierung (WAL-Shipping, Binlogs) – kein nächtliches Vollbackup kann das leisten. Umgekehrt ist für einen statischen Webserver ein tägliches restic-Backup völlig ausreichend und spart Storage-Kosten.</p>
+<p>Schreibe RPO/RTO in dein Runbook und überprüfe sie nach jedem Restore-Test. Wenn der gemessene Restore 4 Stunden dauert, dein RTO aber 1 Stunde beträgt, hast du ein Problem – kein Backup-Problem, sondern ein Prozessproblem.</p>
+
+<h2>Backup-Typen im Vergleich: Full, Incremental, Differentiell, Snapshot</h2>
+<p><strong>Full Backups</strong> kopieren alles, sind einfach zu restoren, brauchen aber viel Platz und Bandbreite. <strong>Incrementals</strong> sichern nur Änderungen seit dem letzten Backup – klein und schnell, aber die Restore-Kette ist lang. <strong>Differentielle</strong> Backups sichern alles seit dem letzten Full – Kompromiss aus Größe und Restore-Aufwand.</p>
+<p>Moderne Tools wie restic und borg arbeiten <strong>deduplizierend und content-addressed</strong>: Jeder Chunk wird per Hash identifiziert, identische Blöcke nur einmal gespeichert. Ein 80-GB-VPS mit 60 GB unveränderlichen Mediendateien erzeugt dadurch tägliche Increments von oft nur <strong>200–800 MB</strong> statt 80 GB.</p>
+<p>Snapshots (LVM, ZFS, Btrfs, Proxmox) sind <em>kein</em> Backup, aber ein hervorragendes Werkzeug für konsistente Backups: Du erzeugst einen Snapshot, sicherst daraus, löschst ihn wieder. So bekommst du ein konsistentes Filesystem-Abbild, ohne den Dienst zu stoppen.</p>
+<pre><code># LVM-Snapshot für konsistentes Backup (5 GB Puffer)
+lvcreate --size 5G --snapshot --name snap_root /dev/vg0/root
+mount /dev/vg0/snap_root /mnt/snapshot -o ro
+restic backup /mnt/snapshot --tag lvm-snapshot
+umount /mnt/snapshot &amp;&amp; lvremove -f /dev/vg0/snap_root</code></pre>
+<p>Achtung bei Datenbanken: Ein reiner Filesystem-Snapshot einer laufenden MySQL-Instanz ist nur konsistent, wenn du vorher <code>FLUSH TABLES WITH READ LOCK</code> ausführst oder das InnoDB-Redo-Log mitsicherst. Sauberer ist immer ein logischer Dump.</p>
+
+<h2>Tool-Vergleich 2026: restic, borg, rsync, Kopia, PBS</h2>
+<p>Die Tool-Wahl entscheidet über Restore-Geschwindigkeit, Speicherbedarf und Betriebsaufwand. Hier ein praxisnaher Vergleich für VPS-Setups:</p>
+<table>
+<thead><tr><th>Tool</th><th>Deduplizierung</th><th>Verschlüsselung</th><th>Backends</th><th>Stärke</th></tr></thead>
+<tbody>
+<tr><td>restic</td><td>Ja (Content-defined)</td><td>AES-256, repokey</td><td>S3, B2, SFTP, REST, rclone</td><td>Einfach, viele Backends</td></tr>
+<tr><td>borgbackup</td><td>Ja (sehr effizient)</td><td>AES-256, repokey-blake2</td><td>SSH, lokale Pfade</td><td>Beste Dedup-Rate</td></tr>
+<tr><td>Kopia</td><td>Ja</td><td>AES-256-GCM</td><td>S3, B2, SFTP, WebDAV</td><td>GUI, Policies, schnelle Restores</td></tr>
+<tr><td>rsync + tar</td><td>Nein</td><td>Nur via GPG</td><td>Alles</td><td>Universell, keine Abhängigkeiten</td></tr>
+<tr><td>Proxmox Backup Server</td><td>Ja (Chunk-basiert)</td><td>AES-256</td><td>Eigenes Repo</td><td>VM/Container-Backups, Verify</td></tr>
+</tbody>
+</table>
+<p>Für einen einzelnen VPS mit Offsite-S3 ist <strong>restic</strong> 2026 die pragmatischste Wahl: statisches Binary, keine Abhängigkeiten, exzellente S3-Unterstützung. Läuft dein Backup-Ziel per SSH (z. B. eine Hetzner Storage Box), ist <strong>borg</strong> wegen der besseren Dedup-Rate oft sparsamer.</p>
+<p>Bei mehreren VMs auf einem Proxmox-Host ist PBS klar überlegen: inkrementelle VM-Backups, integrierte Verifikation und ein Restore-UI. Für Container-Workloads auf Kubernetes nutzt du besser Velero mit einem S3-Backend.</p>
+
+<h2>Praxis: restic auf einem VPS einrichten</h2>
+<p>Installation und Initialisierung dauern unter fünf Minuten. Wir nutzen Backblaze B2 als Offsite-Ziel, weil es S3-kompatibel und günstig ist.</p>
+<pre><code>apt install -y restic
+# Passwort sicher ablegen, NICHT im Repo
+openssl rand -base64 32 &gt; /root/.restic-password
+chmod 600 /root/.restic-password
+
+export RESTIC_REPOSITORY="s3:https://s3.eu-central-003.backblazeb2.com/vps01-backup"
+export RESTIC_PASSWORD_FILE=/root/.restic-password
+export AWS_ACCESS_KEY_ID="..."
+export AWS_SECRET_ACCESS_KEY="..."
+
+restic init</code></pre>
+<p>Danach das erste Backup. Wichtig sind sinnvolle Excludes: Caches, Socket-Dateien, <code>/proc</code>, <code>/sys</code> und Datenbank-Verzeichnisse, die du separat dumpst.</p>
+<pre><code>restic backup /etc /root /home /var/www /opt /srv \
+  --exclude-caches \
+  --exclude '/var/lib/mysql' \
+  --exclude '/var/cache' \
+  --exclude '/tmp' \
+  --exclude '*.sock' \
+  --tag daily</code></pre>
+<p>Für Datenbanken erzeugst du vorher einen logischen Dump und sicherst diesen mit:</p>
+<pre><code># PostgreSQL
+pg_dumpall -U postgres | zstd -19 &gt; /var/backups/pg-$(date +%F).sql.zst
+# MySQL/MariaDB
+mysqldump --single-transaction --quick --routines --all-databases \
+  | zstd -19 &gt; /var/backups/mysql-$(date +%F).sql.zst
+# Minecraft
+screen -S mc -X save-off &amp;&amp; screen -S mc -X save-all
+tar -czf /var/backups/mc-$(date +%F).tar.gz /srv/minecraft/world
+screen -S mc -X save-on</code></pre>
+
+<h2>Retention, Pruning und Immutability</h2>
+<p>Ohne Retention-Policy wächst dein Repository unbegrenzt. Eine bewährte Staffelung für VPS-Backups ist <strong>7 tägliche, 4 wöchentliche, 12 monatliche</strong> Snapshots – das deckt die meisten Ransomware-Fälle ab, bei denen die Verschlüsselung erst nach Wochen auffällt.</p>
+<pre><code>restic forget \
+  --keep-daily 7 --keep-weekly 4 --keep-monthly 12 --keep-yearly 2 \
+  --prune</code></pre>
+<p><code>--prune</code> entfernt nicht mehr referenzierte Datenblöcke. Bei großen Repos dauert das mehrere Minuten und kostet API-Requests – plane es maximal wöchentlich ein, nicht bei jedem Lauf.</p>
+<p>Für die <strong>Immutability</strong>-Komponente der 3-2-1-1-0-Regel aktivierst du S3 Object Lock im Compliance-Modus mit z. B. 30 Tagen. Damit kann selbst ein Angreifer mit gültigen API-Keys die Backups der letzten 30 Tage nicht löschen. Backblaze B2 unterstützt Object Lock ebenfalls; Hetzner Object Storage bietet seit 2025 eine Immutability-Option.</p>
+<p>Kalkuliere die Kosten: 80 GB VPS, 60 % Änderungsrate, 12 Monate Retention ergeben bei restic-Dedup typischerweise <strong>150–250 GB</strong> im Repository – bei B2 also rund <strong>1,50 US-Dollar pro Monat</strong>. Selbst mit Object Lock und Versionierung bleibst du unter 3 Euro.</p>
+
+<h2>Automatisierung mit systemd-Timer statt Cron</h2>
+<p>Cron funktioniert, aber systemd-Timer bieten Logging, Abhängigkeiten und <code>RandomizedDelaySec</code> – wichtig, damit nicht alle VPS gleichzeitig um 03:00 Uhr den Storage fluten.</p>
+<pre><code># /etc/systemd/system/vps-backup.service
+[Unit]
+Description=restic backup to B2
+After=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/restic/env
+ExecStartPre=/usr/local/bin/db-dump.sh
+ExecStart=/usr/local/bin/restic-backup.sh
+ExecStartPost=/usr/local/bin/restic-forget.sh
+Nice=10
+IOSchedulingClass=idle</code></pre>
+<pre><code># /etc/systemd/system/vps-backup.timer
+[Unit]
+Description=Run VPS backup daily
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+RandomizedDelaySec=45m
+Persistent=true
+
+[Install]
+WantedBy=timers.target</code></pre>
+<p>Aktiviere den Timer mit <code>systemctl enable --now vps-backup.timer</code> und prüfe den nächsten Lauf per <code>systemctl list-timers vps-backup</code>. Logs landen automatisch im Journal: <code>journalctl -u vps-backup.service -n 100</code>.</p>
+<p><code>Persistent=true</code> sorgt dafür, dass ein verpasster Lauf (Server war aus) nachgeholt wird. <code>IOSchedulingClass=idle</code> verhindert, dass das Backup die Produktions-IO ausbremst – auf einem kleinen VPS mit Shared-NVMe ist das Gold wert.</p>
+
+<h2>Verschlüsselung und Schlüsselmanagement</h2>
+<p>restic und borg verschlüsseln clientseitig, bevor Daten den Server verlassen. Der Storage-Anbieter sieht nur Chiffrate. Das ist gut – macht aber das Passwort zur kritischsten Komponente deiner Strategie. <strong>Verlierst du das Passwort, sind alle Backups unwiederbringlich verloren.</strong></p>
+<ul>
+<li>Passwort mit <code>openssl rand -base64 32</code> erzeugen (256 Bit Entropie).</li>
+<li>Im Passwortmanager (Bitwarden, 1Password, Vaultwarden) sichern – nicht nur auf dem VPS.</li>
+<li>Ausgedruckte Kopie im physischen Safe, falls Compliance das fordert.</li>
+<li>restic: <code>restic key add</code> für einen zweiten Schlüssel, falls ein Admin ausscheidet.</li>
+<li>Niemals das Passwort in Git, Ansible-Vault ohne eigenen Key oder in <code>~/.bash_history</code>.</li>
+</ul>
+<p>Für Teams bietet sich HashiCorp Vault oder SOPS mit Age-Keys an. Bei restic kannst du zusätzlich <code>--repository-file</code> und Umgebungsdateien mit <code>chmod 600</code> nutzen, damit Secrets nicht in der Prozessliste auftauchen.</p>
+<p>Ein häufiger Fehler: Das Backup-Passwort liegt auf demselben VPS wie die Backups. Bei einem vollständigen Server-Kompromiss hat der Angreifer beides – und kann das Offsite-Repository löschen. Deshalb ist Object Lock (Immutability) so wichtig.</p>
+
+<h2>Monitoring, Verifikation und Restore-Tests</h2>
+<p>Ein Backup, das nie getestet wurde, existiert nicht. Plane drei Ebenen der Verifikation ein: <strong>technische Integrität</strong>, <strong>Vollständigkeit</strong> und <strong>echter Restore</strong>.</p>
+<pre><code># 1. Integrität: 5 % der Datenblöcke pro Lauf prüfen
+restic check --read-data-subset=5%
+
+# 2. Vollständigkeit: Snapshot-Alter prüfen
+restic snapshots --latest 1 --json | jq '.[0].time'
+
+# 3. Echter Restore in ein Testverzeichnis
+restic restore latest --target /tmp/restore-test --include /etc/nginx
+diff -r /etc/nginx /tmp/restore-test/etc/nginx</code></pre>
+<p>Für Monitoring eignet sich ein Healthchecks.io-Ping am Ende des Backup-Skripts (<code>curl -fsS -m 10 https://hc-ping.com/&lt;uuid&gt;</code>). Bleibt der Ping aus, alarmiert der Dienst nach 30 Minuten per E-Mail, Slack oder Telegram. Alternativ: Prometheus <code>node_exporter</code> mit Textfile-Collector und ein Alert auf <code>backup_last_success_timestamp &gt; 90000</code>.</p>
+<p>Der wichtigste Test ist der <strong>vollständige Restore auf einen frischen VPS</strong>. Miete einmal im Quartal einen kleinen Server für 4 €, spiele das Backup ein, starte die Dienste und dokumentiere die Dauer. Nur so kennst du dein echtes RTO. Bei einem 80-GB-VPS mit restic und B2 dauert ein Full-Restore realistisch <strong>20–45 Minuten</strong>.</p>
+
+<h2>Disaster-Recovery-Playbook für den Ernstfall</h2>
+<p>Im Notfall zählt jede Minute – und niemand liest dann Dokumentation. Halte das Playbook daher unter 10 Zeilen und drucke es aus.</p>
+<ol>
+<li><strong>Isolieren:</strong> Kompromittierten VPS vom Netz nehmen (Firewall-Regel oder <code>shutdown</code>), nicht löschen – Forensik.</li>
+<li><strong>Zugänge rotieren:</strong> SSH-Keys, API-Tokens, DB-Passwörter, Cloud-Credentials.</li>
+<li><strong>Neuen VPS provisionieren:</strong> gleiche Distro, gleiche IP optional per Floating IP.</li>
+<li><strong>Basis-Setup:</strong> <code>apt update &amp;&amp; apt install restic</code>, Repo-Zugang konfigurieren.</li>
+<li><strong>Restore:</strong> <code>restic restore latest --target /</code> (bzw. in ein Staging-Verzeichnis und dann synchronisieren).</li>
+<li><strong>Datenbank zurückspielen:</strong> Dump entpacken, <code>psql -f</code> bzw. <code>mysql &lt;</code>.</li>
+<li><strong>Dienste starten und Smoke-Tests</strong> fahren: HTTP-Status, Login, Checkout, Gameserver-Join.</li>
+<li><strong>DNS umstellen</strong> (niedrige TTL vorher setzen, 300 s statt 86400 s).</li>
+<li><strong>Post-Mortem</strong> innerhalb von 48 h, Backup-Strategie anpassen.</li>
+</ol>
+<p>Ein oft vergessener Punkt: Der Restore muss auch die <strong>Systemkonfiguration</strong> abdecken – <code>/etc</code> mit SSH-Keys, Firewall-Regeln, Cronjobs, systemd-Units. Wer nur <code>/var/www</code> sichert, verbringt Stunden mit Rekonstruktion.</p>
+<p>Setze DNS-TTLs mindestens 24 Stunden vor geplanten Migrationen auf 300 Sekunden. Das reduziert das Failover-Fenster von Stunden auf Minuten – ein kostenloser RTO-Gewinn.</p>
+
+<h2>Häufige Fehler und Kostenübersicht</h2>
+<p>Die teuersten Backup-Fehler sind selten technisch. Sie sind organisatorisch:</p>
+<ul>
+<li><strong>Backup auf demselben Volume</strong> wie die Daten – nutzlos bei Volume-Verlust.</li>
+<li><strong>Kein Restore-Test</strong> – 30 % aller Backups sind im Ernstfall unbrauchbar.</li>
+<li><strong>Passwort verloren</strong> – bei clientseitiger Verschlüsselung endgültig.</li>
+<li><strong>Keine Retention</strong> – Repository wächst, Kosten explodieren.</li>
+<li><strong>Kein Monitoring</strong> – Backup schlägt monatelang still fehl.</li>
+<li><strong>Snapshots mit Backups verwechselt</strong> – Snapshots liegen im selben Cluster.</li>
+<li><strong>Datenbanken per File-Copy</strong> gesichert – inkonsistente, nicht ladbare Dumps.</li>
+</ul>
+<table>
+<thead><tr><th>Anbieter</th><th>Preis / TB / Monat</th><th>Egress</th><th>Object Lock</th></tr></thead>
+<tbody>
+<tr><td>Backblaze B2</td><td>~6,00 $</td><td>3× Free, dann 0,01 $/GB</td><td>Ja</td></tr>
+<tr><td>Wasabi</td><td>~6,99 $</td><td>Free (Fair Use)</td><td>Ja</td></tr>
+<tr><td>Hetzner Object Storage</td><td>4,99 € (1 TB)</td><td>1 TB free</td><td>Ja (seit 2025)</td></tr>
+<tr><td>AWS S3 Glacier IR</td><td>~4,00 $</td><td>0,03 $/GB</td><td>Ja</td></tr>
+<tr><td>Hetzner Storage Box BX11</td><td>3,81 € (1 TB)</td><td>unbegrenzt</td><td>Nein (SFTP)</td></tr>
+</tbody>
+</table>
+<p>Für einen 80-GB-VPS mit 200 GB Repository landest du bei Hetzner Object Storage bei rund <strong>1 € pro Monat</strong>, bei Backblaze B2 bei etwa <strong>1,20 $</strong>. Rechne zusätzlich mit 0,50–2 € Egress-Kosten pro Restore – vernachlässigbar gegenüber einem Ausfall.</p>
+<p>Der wichtigste Kostenfaktor ist ohnehin nicht Storage, sondern Zeit. Ein sauber automatisierter Backup-Stack kostet dich einmalig 3–4 Stunden Einrichtung und danach 15 Minuten pro Monat für Monitoring und Restore-Tests.</p>
+
+<h2>FAQ</h2>
+<h3>Reicht ein Hoster-Snapshot als Backup aus?</h3>
+<p>Nein. Snapshots liegen in der Regel im selben Storage-Cluster wie die Produktionsdaten und werden mit dem Account gelöscht. Sie schützen gegen Fehlkonfiguration und versehentliches Löschen, aber nicht gegen Ransomware, Account-Sperrung oder einen Rechenzentrumsausfall. Für die 3-2-1-Regel brauchst du mindestens eine Kopie bei einem anderen Anbieter oder in einer anderen Region.</p>
+<h3>Wie oft sollte ich ein VPS-Backup machen?</h3>
+<p>Das ergibt sich aus deinem RPO. Für statische Websites reicht täglich, für Shops und Foren stündlich (Datenbank) plus täglich (Dateien), für Gameserver alle 15 Minuten für Welt-Saves. Wichtiger als die Frequenz ist die Konsistenz: Ein stündlicher inkonsistenter Dump hilft weniger als ein täglicher sauberer.</p>
+<h3>Was kostet eine 3-2-1-Backup-Strategie für einen VPS?</h3>
+<p>Für einen typischen 80-GB-VPS mit dedupliziertem Repository (150–250 GB) zahlst du bei Hetzner Object Storage rund 1 €, bei Backblaze B2 etwa 1,20 $ pro Monat. Hinzu kommen geringe Egress-Kosten beim Restore. Insgesamt bleibst du meist unter 3 € monatlich – inklusive Immutability/Object Lock.</p>
+<h3>restic oder borg – was ist besser für VPS-Backups?</h3>
+<p>restic ist einfacher zu betreiben, unterstützt S3, B2, SFTP und REST nativ und ist ein statisches Binary ohne Abhängigkeiten. borg hat die bessere Deduplizierungsrate und ist bei SSH-Zielen wie einer Hetzner Storage Box sparsamer. Für einzelne VPS mit Object Storage ist restic 2026 die pragmatischere Wahl, für große Repos über SSH lohnt borg.</p>
+<h3>Wie teste ich mein Backup richtig?</h3>
+<p>Drei Ebenen: <code>restic check --read-data-subset=5%</code> für die Integrität, ein automatischer Snapshot-Alters-Check für die Vollständigkeit und mindestens quartalsweise ein vollständiger Restore auf einen frischen VPS inklusive Dienste-Start und Smoke-Tests. Dokumentiere die gemessene Dauer – nur so kennst du dein echtes RTO und merkst, ob deine Strategie im Ernstfall trägt.</p>

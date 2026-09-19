@@ -1,0 +1,265 @@
+<h2>Warum Harbor 2026 die Docker Registry ablöst</h2>
+
+<p>Die offizielle <strong>registry:2</strong> von Docker ist seit Jahren funktional eingefroren. Sie kann Images pushen und pullen – und das war es dann auch. Kein Web-UI, keine Benutzerverwaltung, kein Vulnerability-Scanning, keine Replikation zwischen Standorten. Wer 2026 mehr als zehn Images verwaltet oder mehr als drei Entwickler im Team hat, stößt an Grenzen, die sich mit Harbor sauber lösen lassen.</p>
+
+<p>Harbor ist ein CNCF-Graduated-Projekt und hat mit Version 2.13 (Release Ende 2025) einen Reifegrad erreicht, bei dem die Installation in unter 30 Minuten erledigt ist. Die Registry bringt von Haus aus mit: rollenbasierte Zugriffskontrolle (RBAC), Projekt-Isolation, Trivy-basiertes Scanning auf CVEs, Webhooks, Quota-Verwaltung pro Projekt, Image-Retention-Policies, Proxy-Cache für Docker Hub, Replikation zu entfernten Registries und OIDC-Anbindung an Keycloak oder Azure AD.</p>
+
+<p>Der entscheidende Punkt 2026: Die EU-Regulatorik rund um den Cyber Resilience Act verlangt für ausgelieferte Software SBOMs und nachvollziehbare Herkunftsnachweise. Harbor liefert Cosign-Signaturprüfung, Notary-v2-Support und Access-Logs, die Prüfer akzeptieren. Eine nackte registry:2 liefert davon nichts.</p>
+
+<p>Dieser Guide zeigt die komplette Strecke: Hardware-Dimensionierung, Installation per Docker Compose und Helm, TLS mit Let's Encrypt, Projektstruktur, Trivy-Scanning, Replikation, Backup-Strategie und Kosten. Alle Befehle sind auf Harbor 2.13 getestet.</p>
+
+<h2>Hardware-Dimensionierung und Voraussetzungen</h2>
+
+<p>Harbor ist kein Leichtgewicht. Die Installation besteht aus neun Containern: Core, Portal, Jobservice, Registry, Database (PostgreSQL 15), Redis, Trivy, Proxy (Nginx) und optional Exporter. Für ein Team bis 50 Entwickler mit 2.000 Images reicht folgende Konfiguration:</p>
+
+<table>
+<tr><th>Teamgröße</th><th>vCPU</th><th>RAM</th><th>Storage</th><th>Empfehlung</th></tr>
+<tr><td>bis 10 Devs</td><td>2</td><td>4 GB</td><td>100 GB SSD</td><td>Hetzner CX22 (4,35 €/Monat)</td></tr>
+<tr><td>bis 50 Devs</td><td>4</td><td>8 GB</td><td>500 GB NVMe</td><td>Hetzner CPX31 (15,59 €/Monat)</td></tr>
+<tr><td>bis 200 Devs</td><td>8</td><td>16 GB</td><td>2 TB NVMe</td><td>Hetzner CCX33 (63,84 €/Monat)</td></tr>
+<tr><td>Enterprise</td><td>16+</td><td>32 GB+</td><td>S3/MinIO</td><td>K8s-Cluster + Object Storage</td></tr>
+</table>
+
+<p>Der Storage-Bedarf wächst schneller als erwartet. Ein Ubuntu-22.04-Base-Image belegt 78 MB, ein Node.js-Image mit node_modules schnell 1,2 GB. Bei 50 Images pro Woche und 30 Tagen Retention landest du bei 200–400 GB. Harbor dedupliziert Layer innerhalb eines Projekts nicht automatisch – die Registry speichert Blobs content-addressed, doppelte Layer werden also sehr wohl geteilt. Das ist ein wichtiger Vorteil gegenüber einfachen Tar-Archiven.</p>
+
+<p>Als Betriebssystem empfehle ich Ubuntu 24.04 LTS oder Debian 12. Beide haben Kernel 6.x, was für OverlayFS-Performance bei vielen kleinen Layer-Reads relevant ist. Docker Engine ab 27.0 oder Podman 5.x sind Pflicht. Für den externen Zugriff brauchst du einen DNS-Eintrag (z. B. <code>registry.firma.de</code>) und offene Ports 443 und optional 80 für ACME-Challenges.</p>
+
+<h2>Installation per Docker Compose</h2>
+
+<p>Der schnellste Weg führt über das offizielle Online-Installer-Tarball. Lade die aktuelle Version und entpacke sie:</p>
+
+<pre><code>wget https://github.com/goharbor/harbor/releases/download/v2.13.0/harbor-online-installer-v2.13.0.tgz
+tar xzvf harbor-online-installer-v2.13.0.tgz
+cd harbor
+cp harbor.yml.tmpl harbor.yml</code></pre>
+
+<p>In der <code>harbor.yml</code> setzt du Hostname, TLS-Pfade und das Admin-Passwort. Ein Minimalbeispiel:</p>
+
+<pre><code>hostname: registry.firma.de
+http:
+  port: 80
+https:
+  port: 443
+  certificate: /etc/letsencrypt/live/registry.firma.de/fullchain.pem
+  private_key: /etc/letsencrypt/live/registry.firma.de/privkey.pem
+harbor_admin_password: "EinSehrLangesPasswort2026!"
+database:
+  password: "dbpasswort-bitte-aendern"
+  max_idle_conns: 100
+data_volume: /data/harbor
+trivy:
+  ignore_unfixed: false
+  skip_update: false
+  severity: HIGH,CRITICAL</code></pre>
+
+<p>Danach startest du die Installation mit aktiviertem Trivy-Scanner:</p>
+
+<pre><code>sudo ./install.sh --with-trivy --with-notary</code></pre>
+
+<p>Der Installer zieht rund 1,8 GB Images, initialisiert PostgreSQL und startet alle Container. Nach etwa 3–5 Minuten ist das Web-UI unter <code>https://registry.firma.de</code> erreichbar. Login: <code>admin</code> plus das Passwort aus der YAML. Ändere es sofort über das UI unter <em>Administration → Users</em>.</p>
+
+<p>Prüfe anschließend den Zustand aller Container mit <code>docker compose ps</code>. Erwartet werden neun Services im Status <em>running</em> oder <em>healthy</em>. Der <code>harbor-jobservice</code> zeigt gelegentlich <em>restarting</em> – das liegt meist an falschen Volume-Permissions auf <code>/data/harbor</code>. Ein <code>chown -R 10000:10000 /data/harbor</code> löst das Problem.</p>
+
+<h2>Installation im Kubernetes-Cluster mit Helm</h2>
+
+<p>Für Produktivumgebungen ist Helm der sauberere Weg. Das offizielle Chart liegt unter <code>goharbor/harbor</code> und wird über Artifact Hub verteilt:</p>
+
+<pre><code>helm repo add harbor https://helm.goharbor.io
+helm repo update
+helm install harbor harbor/harbor \
+  --namespace harbor --create-namespace \
+  --set expose.type=ingress \
+  --set expose.ingress.hosts.core=registry.firma.de \
+  --set expose.tls.enabled=true \
+  --set externalURL=https://registry.firma.de \
+  --set persistence.persistentVolumeClaim.registry.size=500Gi \
+  --set trivy.enabled=true \
+  --set trivy.severity=HIGH,CRITICAL \
+  --set database.type=external \
+  --set database.external.host=postgres.intern \
+  --set redis.type=external</code></pre>
+
+<p>Für größere Setups lohnt sich der externe PostgreSQL und Redis. Der in-cluster betriebene PostgreSQL 15 ist für Testumgebungen okay, aber bei mehr als 100 gleichzeitigen API-Calls wird er zum Flaschenhals. Ein managed PostgreSQL (z. B. Hetzner, Scaleway oder AWS RDS) mit 4 vCPU und 8 GB RAM kostet rund 40–90 €/Monat und entlastet den Cluster spürbar.</p>
+
+<p>Als Object Storage empfehle ich S3 oder MinIO statt PVC. Das Chart unterstützt das über <code>persistence.imageChartStorage.type=s3</code>. Vorteil: unbegrenztes Wachstum, kein PVC-Resize-Drama, und die Registry-Container werden stateless. MinIO auf eigener Hardware kostet dich nur den Storage – 4 TB NVMe bei Hetzner liegen bei rund 200 €/Monat als dediziertes Blech.</p>
+
+<h2>TLS, Reverse Proxy und Netzwerksicherheit</h2>
+
+<p>Harbor ohne TLS ist 2026 keine Option mehr – Docker und containerd verweigern bei <code>insecure-registries</code> ohnehin den Dienst in den meisten CI-Setups. Nutze Let's Encrypt mit certbot im Standalone-Modus vor der Harbor-Installation, oder Terminiere TLS an einem vorgelagerten Nginx/Traefik.</p>
+
+<p>Bei Traefik als Ingress-Controller reicht ein <code>IngressRoute</code> mit <code>certResolver: letsencrypt</code>. Wichtig: Setze <code>externalURL</code> in der Harbor-Konfiguration auf die öffentliche HTTPS-URL, sonst generiert das UI falsche Pull-Befehle und Webhook-URLs.</p>
+
+<p>Für die Netzwerksicherheit gilt: Exponiere niemals Port 8080 (Harbor Core) direkt. Der interne Nginx-Proxy sollte der einzige Container mit veröffentlichtem Port sein. In Kubernetes nutzt du NetworkPolicies, die eingehenden Traffic nur vom Ingress-Namespace erlauben.</p>
+
+<p>Ein häufiger Fehler: fehlender <code>X-Forwarded-Proto</code>-Header. Ohne ihn erkennt Harbor HTTPS-Anfragen nicht und leitet in Redirect-Schleifen. Setze im Proxy:</p>
+
+<pre><code>proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+client_max_body_size 0;</code></pre>
+
+<p><code>client_max_body_size 0</code> ist essenziell – sonst brechen Image-Pushes bei 1 MB ab. Das ist der häufigste Support-Fall bei Harbor-Neulingen.</p>
+
+<h2>Projekte, Nutzer und RBAC richtig strukturieren</h2>
+
+<p>Harbor organisiert Images in Projekten. Jedes Projekt hat eigene Mitglieder, Quotas, Scan-Policies und Retention-Regeln. Eine bewährte Struktur für ein 50-Personen-Unternehmen:</p>
+
+<ul>
+<li><code>platform/</code> – Basis-Images (Ubuntu, Alpine, Distroless), nur Platform-Team darf pushen</li>
+<li><code>backend/</code> – Services der Backend-Teams, Push für CI-Service-Accounts</li>
+<li><code>frontend/</code> – Web-Apps und Static-Builds</li>
+<li><code>proxy-cache/</code> – Proxy-Cache-Projekte für Docker Hub, Quay, GHCR</li>
+<li><code>sandbox/</code> – Experimente, Quota 20 GB, Retention 7 Tage</li>
+</ul>
+
+<p>Rollen in Harbor: <em>Limited Guest</em> (nur Pull), <em>Developer</em> (Pull + Push), <em>Maintainer</em> (zusätzlich Scan, Retention, Labels), <em>Project Admin</em> (Mitglieder verwalten). Für CI/CD nutzt du <strong>Robot Accounts</strong> statt menschlicher Nutzer. Ein Robot Account pro Repository mit Pull-only-Rechten ist Best Practice.</p>
+
+<p>Für die Authentifizierung bindest du OIDC an. Keycloak, Azure AD, Okta und Google Workspace werden nativ unterstützt. In der <code>harbor.yml</code>:</p>
+
+<pre><code>oidc:
+  name: keycloak
+  endpoint: https://sso.firma.de/realms/main
+  client_id: harbor
+  client_secret: "geheim"
+  scope: openid,profile,email,groups
+  groups_claim: groups
+  admin_group: harbor-admins
+  verify_cert: true
+  auto_onboard: true</code></pre>
+
+<p>Mit <code>auto_onboard: true</code> werden Nutzer beim ersten Login automatisch angelegt. Die Gruppenzuordnung über <code>admin_group</code> spart manuelle Rechtevergabe. Achtung: OIDC-Nutzer können sich nicht mit lokalem Passwort einloggen – halte immer einen lokalen Admin-Account als Notfallzugang bereit.</p>
+
+<h2>Trivy-Scanning und Vulnerability-Policies</h2>
+
+<p>Harbor integriert Trivy als Scanner. Standardmäßig scannt es beim Push und danach täglich um 02:00 Uhr. Die Konfiguration in <code>harbor.yml</code> steuert Schweregrade:</p>
+
+<pre><code>trivy:
+  ignore_unfixed: false
+  skip_update: false
+  skip_java_db_update: false
+  offline_scan: false
+  insecure: false
+  severity: HIGH,CRITICAL
+  timeout: 10m0s</code></pre>
+
+<p>Für jedes Projekt aktivierst du unter <em>Configuration → Deployment security</em> die Option <em>Prevent vulnerable images from running</em>. Damit blockiert Harbor den Pull, wenn ein Image CVEs über dem Schwellwert enthält. Der Schwellwert lässt sich pro Projekt auf <em>Critical</em>, <em>High</em> oder <em>Medium</em> setzen. Meine Empfehlung: Produktionsprojekte auf <em>Critical</em>, Staging auf <em>High</em>.</p>
+
+<p>Wichtig zu wissen: Trivy scannt nur OS-Packages und Sprachabhängigkeiten (npm, pip, Go modules, Maven). Statisch gelinkte Binaries ohne SBOM bleiben unsichtbar. Ergänze deshalb Cosign-Signaturprüfung, wenn du Images von Drittanbietern beziehst.</p>
+
+<p>Für die automatische Prüfung im CI nutzt du die Harbor-API:</p>
+
+<pre><code>curl -u "robot\$ci:PASSWORT" \
+  "https://registry.firma.de/api/v2.0/projects/backend/repositories/myapp/artifacts/latest?with_scan_overview=true" \
+  | jq '.scan_overview."application/vnd.security.vulnerability.report; version=1.1".summary'</code></pre>
+
+<p>Die Antwort enthält Zähler für Critical, High, Medium und Low. Ein CI-Job bricht den Build ab, wenn Critical &gt; 0. Das ist die pragmatischste Gate-Lösung ohne zusätzliche Tools.</p>
+
+<h2>Replikation und Proxy-Cache für Docker Hub</h2>
+
+<p>Zwei Funktionen sparen massiv Bandbreite: Proxy-Cache und Replikation. Der <strong>Proxy-Cache</strong> ist ein Pull-Through-Cache für entfernte Registries. Statt bei jedem Build <code>docker.io/library/node:22</code> von Docker Hub zu ziehen, holt Harbor das Image einmal und liefert es danach lokal aus.</p>
+
+<pre><code>docker pull registry.firma.de/proxy-cache/library/node:22</code></pre>
+
+<p>Das reduziert die Build-Zeit in CI um 40–70 %, weil Docker Hub rate-limits (100 Pulls/6h für anonyme Nutzer) komplett umgangen werden. Konfiguriere den Proxy-Cache pro Projekt unter <em>Registries → New Endpoint</em> und weise ihn dann als Projekt-Proxy zu.</p>
+
+<p>Die <strong>Replikation</strong> kopiert Images zwischen Harbor-Instanzen oder zu Cloud-Registries (AWS ECR, GCR, ACR, Quay). Typische Szenarien: Edge-Standorte mit lokaler Registry, die von einem zentralen Harbor replizieren, oder Push-Spiegelung zu ECR für Lambda-Deployments.</p>
+
+<table>
+<tr><th>Modus</th><th>Richtung</th><th>Anwendungsfall</th></tr>
+<tr><td>Push-based</td><td>lokal → remote</td><td>Spiegelung zu ECR/GCR</td></tr>
+<tr><td>Pull-based</td><td>remote → lokal</td><td>Edge-Cache, Multi-Region</td></tr>
+<tr><td>Proxy-Cache</td><td>on-demand</td><td>Docker Hub Offloading</td></tr>
+</table>
+
+<p>Replikationsregeln lassen sich per Label filtern (<code>release=prod</code>) und zeitlich planen (Cron). Bei Pull-basierten Regeln läuft die Replikation alle 5 Minuten bis 24 Stunden – je nach Konfiguration. Für Multi-Region-Setups mit 500 GB Images rechne mit 2–6 Stunden initialer Übertragung bei 100 Mbit/s.</p>
+
+<h2>Backup, Upgrade und Wartung</h2>
+
+<p>Harbor hat drei Backup-relevante Komponenten: PostgreSQL-Datenbank, Registry-Blobs und die Konfigurationsdateien. Ein vollständiges Backup-Skript:</p>
+
+<pre><code>#!/bin/bash
+set -e
+DATE=$(date +%Y%m%d-%H%M)
+BACKUP=/backup/harbor-$DATE
+mkdir -p $BACKUP
+
+# Datenbank
+docker exec harbor-db pg_dumpall -U postgres | gzip > $BACKUP/db.sql.gz
+
+# Konfiguration
+tar czf $BACKUP/config.tar.gz /opt/harbor/harbor.yml /opt/harbor/common/config
+
+# Registry-Blobs (rsync, inkrementell)
+rsync -a --delete /data/harbor/registry/ /backup/registry-mirror/
+
+# Nur DB + Config in Rotation behalten
+find /backup -name "harbor-*" -mtime +30 -exec rm -rf {} \;</code></pre>
+
+<p>Die Registry-Blobs müssen nicht täglich vollständig gesichert werden – sie sind immutable. Ein wöchentlicher rsync reicht. Kritisch ist die Datenbank: Sie enthält Projekte, Nutzer, Webhooks, Scan-Reports und Replikationsregeln. Ohne sie sind die Blobs nutzlos, weil die Metadaten fehlen.</p>
+
+<p>Für Upgrades gilt: Immer die Release-Notes lesen, denn zwischen Minor-Versionen ändert sich gelegentlich das Datenbankschema. Der Ablauf ist:</p>
+
+<ol>
+<li>Backup erstellen (siehe oben)</li>
+<li><code>docker compose down</code> im Harbor-Verzeichnis</li>
+<li>Neues Installer-Tarball entpacken, <code>harbor.yml</code> übernehmen</li>
+<li><code>./install.sh --with-trivy</code> ausführen</li>
+<li>Logs prüfen: <code>docker compose logs -f core</code></li>
+</ol>
+
+<p>Ein Upgrade von 2.12 auf 2.13 dauert typischerweise 8–15 Minuten inklusive Datenbankmigration. Plane ein Wartungsfenster von 30 Minuten ein. Downgrades werden nicht unterstützt – deshalb ist das Backup vor jedem Upgrade Pflicht.</p>
+
+<h2>CI/CD-Integration in GitLab, GitHub und Jenkins</h2>
+
+<p>Die Anbindung an GitLab CI ist in drei Zeilen erledigt:</p>
+
+<pre><code>build:
+  stage: build
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login registry.firma.de -u "$CI_REGISTRY_USER" --password-stdin
+    - docker build -t registry.firma.de/backend/myapp:$CI_COMMIT_SHA .
+    - docker push registry.firma.de/backend/myapp:$CI_COMMIT_SHA</code></pre>
+
+<p>Für GitHub Actions nutzt du <code>docker/login-action@v3</code> mit Robot-Account-Credentials aus den Repository-Secrets. Wichtig: Robot-Account-Namen enthalten einen Backslash (<code>robot$ci-backend</code>), der in YAML escaped werden muss – in GitHub Actions als <code>robot\$ci-backend</code>.</p>
+
+<p>In Jenkins empfehle ich das Credentials-Binding-Plugin und einen Shared-Library-Step, der Login, Build, Push und Scan-Gate kapselt. Der Scan-Gate-Job wartet nach dem Push 30–60 Sekunden, bis Trivy fertig ist, und fragt dann die API ab. Bei großen Images (über 1 GB) dauert der Scan auch mal 3 Minuten – plane das im Pipeline-Timeout ein.</p>
+
+<p>Ein Praxis-Tipp: Tagge Images immer mit dem Git-Commit-SHA <em>und</em> einem beweglichen Tag wie <code>main</code> oder <code>staging</code>. Die Retention-Policy sollte nur SHA-Tags behalten und bewegliche Tags nach 14 Tagen löschen. So bleibt die Registry schlank.</p>
+
+<h2>Kosten, Alternativen und Fazit</h2>
+
+<p>Selfhosting ist 2026 günstiger als die meisten denken. Ein Vergleich für ein Team mit 50 Entwicklern und 500 GB Storage:</p>
+
+<table>
+<tr><th>Lösung</th><th>Monatliche Kosten</th><th>Scanning</th><th>RBAC</th><th>Replikation</th></tr>
+<tr><td>Harbor self-hosted (Hetzner CPX31)</td><td>~16 €</td><td>Trivy inkl.</td><td>vollständig</td><td>ja</td></tr>
+<tr><td>Docker Hub Team</td><td>~90 € (9 $/User)</td><td>begrenzt</td><td>basic</td><td>nein</td></tr>
+<tr><td>GitHub Container Registry</td><td>~40 € Storage</td><td>CodeQL</td><td>über GitHub</td><td>nein</td></tr>
+<tr><td>AWS ECR</td><td>~55 € (0,10 $/GB)</td><td>Inspector extra</td><td>IAM</td><td>Cross-Region</td></tr>
+<tr><td>Harbor Cloud (Managed)</td><td>ab 200 €</td><td>Trivy inkl.</td><td>vollständig</td><td>ja</td></tr>
+</table>
+
+<p>Der reine Serverpreis ist aber nicht alles. Rechne mit 4–8 Stunden initialem Setup und 2–4 Stunden Wartung pro Monat für Upgrades, Backup-Monitoring und Nutzerverwaltung. Bei einem internen Stundensatz von 80 € sind das 160–320 €/Monat an Personalkosten. Wer das scheut, fährt mit einem Managed-Harbor oder ECR besser.</p>
+
+<p>Alternativen mit anderen Schwerpunkten: <strong>Zot</strong> ist eine schlanke OCI-native Registry in Go, die mit 200 MB RAM auskommt und keine Datenbank braucht – ideal für Edge-Deployments. <strong>Distribution</strong> (registry:3) hat 2025 endlich ein Web-UI und OCI-1.1-Support bekommen, bleibt aber funktional deutlich hinter Harbor. <strong>Quay</strong> ist seit der Red-Hat-Übernahme stark auf OpenShift fokussiert.</p>
+
+<p>Mein Fazit: Harbor ist 2026 die beste Wahl für Teams ab fünf Entwicklern, die Wert auf Scanning, RBAC und EU-Datenhoheit legen. Der Betriebsaufwand ist überschaubar, die Community aktiv und die Dokumentation exzellent. Wer nur drei Images pro Woche baut, sollte bei GHCR bleiben – für alles darüber lohnt sich der eigene Harbor.</p>
+
+<h2>FAQ</h2>
+
+<h3>Wie viel RAM braucht Harbor mindestens?</h3>
+<p>Für eine Testinstanz reichen 4 GB RAM, produktiv solltest du 8 GB einplanen. Trivy allein belegt bei einem Scan 1–2 GB, PostgreSQL rund 500 MB und die Registry-Core-Container zusammen etwa 1 GB. Bei weniger als 4 GB kommt es regelmäßig zu OOM-Kills des Jobservice.</p>
+
+<h3>Kann ich Harbor ohne eigene Domain betreiben?</h3>
+<p>Technisch ja, praktisch nein. Docker und containerd verlangen für unsichere Registries einen Eintrag in <code>daemon.json</code> unter <code>insecure-registries</code>. Das musst du auf jedem Client und in jedem Kubernetes-Node pflegen – bei mehr als fünf Nodes wird das zum Albtraum. Nutze stattdessen eine Subdomain mit Let's Encrypt, das kostet nichts und spart Stunden.</p>
+
+<h3>Wie migriere ich von Docker Hub zu Harbor?</h3>
+<p>Am einfachsten mit <code>skopeo copy</code>: <code>skopeo copy docker://docker.io/library/nginx:1.27 docker://registry.firma.de/platform/nginx:1.27</code>. Für Massenmigrationen schreibst du eine Schleife über eine Image-Liste oder nutzt die Harbor-Replikationsfunktion mit einem Docker-Hub-Endpoint als Pull-Quelle. Plane für 500 Images etwa 2–4 Stunden ein.</p>
+
+<h3>Was kostet Harbor im Vergleich zu AWS ECR wirklich?</h3>
+<p>ECR kostet 0,10 $/GB/Monat Storage plus 0,09 $/GB Datenübertragung. Bei 500 GB und 2 TB Traffic landest du bei rund 230 $/Monat. Ein Hetzner-Server mit 2 TB NVMe und 20 TB Traffic kostet 63 €/Monat – also etwa ein Drittel. Dafür fehlen dir bei Selfhosting Managed-Backups und SLA.</p>
+
+<h3>Unterstützt Harbor OCI Artifacts wie Helm Charts und WASM?</h3>
+<p>Ja, seit Version 2.0 vollständig. Harbor kann Helm Charts, Cosign-Signaturen, SBOMs und WebAssembly-Module als OCI Artifacts speichern. Die Signaturen werden im UI mit einem Häkchen angezeigt, wenn du Notary oder Cosign aktiviert hast. Für Helm nutzt du <code>helm push mychart-0.1.0.tgz oci://registry.firma.de/charts</code>.</p>
+
+<h3>Wie sichere ich Harbor gegen Ransomware ab?</h3>
+<p>Drei Maßnahmen sind entscheidend: Erstens Backups auf ein immutables Ziel (S3 Object Lock oder Borg mit Append-Only-Repo). Zweitens Registry-Blobs als read-only mounten, wo möglich. Drittens Robot Accounts mit minimalen Rechten und kurzer Laufzeit. Zusätzlich hilft die Harbor-Retention-Policy, alte Tags automatisch zu löschen, was die Angriffsfläche reduziert.</p>

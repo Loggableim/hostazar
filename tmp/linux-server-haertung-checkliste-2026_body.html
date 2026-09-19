@@ -1,0 +1,303 @@
+<h2>Warum Linux-Härtung 2026 kein optionales Projekt mehr ist</h2>
+
+<p>Wer heute einen Server mit öffentlicher IPv4-Adresse ins Netz stellt, hat im Schnitt <strong>unter fünf Minuten</strong> bis zum ersten automatisierten SSH-Bruteforce-Versuch. Die Shadowserver Foundation zählt auf stark exponierten /24-Netzen regelmäßig <strong>20.000 bis 60.000 Login-Versuche pro Tag und Host</strong>. Das ist kein gezielter Angriff, das ist Grundrauschen – und es trifft jeden, der Port 22 offen lässt.</p>
+
+<p>Parallel verschiebt sich die Bedrohungslage: Ransomware-Gruppen wie Akira und LockBit haben 2025/2026 ihre Linux-Varianten deutlich ausgebaut. Betroffen sind nicht mehr nur ESXi-Hosts, sondern zunehmend NAS-Systeme, Backup-Server und CI-Runner. Der Einstieg läuft fast immer über dieselben drei Wege: schwache SSH-Credentials, ungepatchte Dienste oder fehlkonfigurierte Container mit Zugriff auf den Docker-Socket.</p>
+
+<p>Die wirtschaftliche Rechnung ist brutal. Gartner beziffert die durchschnittlichen Kosten einer Server-Downtime mit rund <strong>5.000 Euro pro Minute</strong>. Ein gehackter Webserver, der 6 Stunden offline ist, kostet dich also theoretisch 1,8 Millionen Euro – realistisch für KMU eher 15.000 bis 80.000 Euro inklusive Forensik, Wiederherstellung und Kundenvertrauen.</p>
+
+<p>Dazu kommt der regulatorische Druck: Seit Oktober 2024 greift die NIS2-Richtlinie in deutsches Recht. Betroffen sind deutlich mehr Unternehmen als landläufig angenommen – Schwellenwerte liegen bei 50 Mitarbeitern oder 10 Millionen Euro Jahresumsatz. Wer betroffen ist, muss technische Maßnahmen dokumentieren. Eine Härtungs-Checkliste ist damit nicht nur Security, sondern Compliance-Artefakt.</p>
+
+<h2>Schritt 1: Baseline – Inventar und Angriffsfläche erfassen</h2>
+
+<p>Härtung ohne Bestandsaufnahme ist Blindflug. Bevor du irgendetwas änderst, dokumentierst du den Ist-Zustand. Sonst kannst du nach einem Vorfall nicht sagen, was sich wann verändert hat – und du weißt nicht, welche Dienste du beim Absichern zerschießt.</p>
+
+<pre><code># Lauschende Ports inklusive Prozess
+ss -tulpn
+
+# Alle laufenden Dienste
+systemctl list-units --type=service --state=running
+
+# Installierte Pakete zählen
+dpkg -l | grep -c ^ii   # Debian/Ubuntu
+rpm -qa | wc -l         # RHEL/Rocky/Alma
+
+# Offene Dateien mit Netzwerkbezug
+lsof -i -P -n | grep LISTEN</code></pre>
+
+<p>Zusätzlich scannst du den Host <strong>von außen</strong>. Ein internes <code>ss</code> zeigt dir nicht, was eine Cloud-Firewall oder ein vorgelagerter Load Balancer durchlässt. Nutze <code>nmap -sS -Pn --top-ports 1000 deine.ip</code> von einem anderen Server aus oder einen externen Portscanner.</p>
+
+<table>
+<tr><th>Prüfpunkt</th><th>Soll-Zustand</th><th>Häufige Abweichung</th></tr>
+<tr><td>Offene Ports</td><td>max. 3–5</td><td>12+ durch Testdienste</td></tr>
+<tr><td>SSH-Passwortlogin</td><td>deaktiviert</td><td>aktiv auf 80 % der VPS</td></tr>
+<tr><td>Root-Login per SSH</td><td>deaktiviert</td><td>aktiv auf 60 %</td></tr>
+<tr><td>Automatische Updates</td><td>aktiv</td><td>inaktiv auf 70 %</td></tr>
+<tr><td>Firewall</td><td>Default Deny</td><td>keine oder nur ufw-Default</td></tr>
+</table>
+
+<p>Ergebnis dieser Phase: eine Liste mit jedem Dienst, jedem Port und jedem verantwortlichen Paket. Alles, was nicht gebraucht wird, fliegt raus. Jeder entfernte Dienst ist ein Problem, das du nie patchen musst.</p>
+
+<h2>Schritt 2: SSH-Härtung – der größte Einzelhebel</h2>
+
+<p>SSH ist der wichtigste Dienst auf deinem Server und gleichzeitig der meistangegriffene. Die gute Nachricht: Mit einer sauberen Konfiguration eliminierst du über 95 Prozent aller realen Kompromittierungswege in einem Schritt. Lege die Konfiguration in einem Drop-in ab, statt <code>/etc/ssh/sshd_config</code> direkt zu editieren – so überleben deine Änderungen Distributions-Updates.</p>
+
+<pre><code># /etc/ssh/sshd_config.d/99-hardening.conf
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+KbdInteractiveAuthentication no
+PermitEmptyPasswords no
+MaxAuthTries 3
+MaxSessions 4
+LoginGraceTime 20
+ClientAliveInterval 300
+ClientAliveCountMax 2
+AllowUsers deploy admin
+X11Forwarding no
+AllowAgentForwarding no
+AllowTcpForwarding no
+PermitTunnel no
+UseDNS no
+LogLevel VERBOSE
+
+# Nur moderne Algorithmen
+KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,sntrup761x25519-sha512@openssh.com
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com</code></pre>
+
+<p>Vor dem Neustart immer validieren: <code>sshd -t</code>. Erst wenn das ohne Fehler durchläuft, <code>systemctl reload sshd</code>. Halte eine zweite Root-Session offen, während du testest – sonst sperrst du dich im Zweifel selbst aus.</p>
+
+<p>Für Schlüssel gilt: <strong>Ed25519 statt RSA</strong>. <code>ssh-keygen -t ed25519 -a 100 -C "admin@hostazar"</code> erzeugt einen schnellen, kurzen und gegen Offline-Angriffe gehärteten Schlüssel. RSA-2048 ist 2026 nur noch aus Kompatibilitätsgründen akzeptabel, RSA-4096 ist unnötig langsam. Private Keys gehören auf die Workstation, geschützt mit Passphrase und <code>ssh-agent</code> – niemals auf den Server.</p>
+
+<p>Die Diskussion um einen alternativen SSH-Port: Sicherheitstechnisch bringt sie fast nichts, weil Portscanner in Sekunden alle 65.535 Ports prüfen. Praktisch reduziert sie das Log-Rauschen aber um <strong>80 bis 95 Prozent</strong>, was Fail2ban-Bans und echte Auffälligkeiten sichtbar macht. Wenn du einen Port änderst, dann dokumentiere ihn im Runbook – sonst sucht das Team beim Incident.</p>
+
+<h2>Schritt 3: Benutzer, sudo und Rechteverwaltung</h2>
+
+<p>Root-Logins per SSH sind deaktiviert, aber der Root-Account existiert weiter. Prüfe zuerst, ob es unerwartete UID-0-Konten gibt: <code>awk -F: '($3 == 0) {print $1}' /etc/passwd</code>. Es darf ausschließlich <code>root</code> erscheinen. Jeder weitere Treffer ist ein potenzieller Backdoor-Account.</p>
+
+<p>Für administrative Arbeit legst du benannte Accounts an und arbeitest über sudo. Named Accounts sind Pflicht für Auditierbarkeit – bei einem Vorfall willst du wissen, <em>wer</em> was getan hat, nicht nur dass „root“ es war.</p>
+
+<pre><code>adduser deploy
+usermod -aG sudo deploy
+
+# Passwort-Alterung erzwingen
+chage -M 90 -W 14 deploy
+
+# sudoers sicher editieren
+visudo -f /etc/sudoers.d/deploy</code></pre>
+
+<p>In der sudoers-Datei gilt: <strong>kein NOPASSWD</strong> für interaktive Nutzer. Ein gestohlener SSH-Key wird damit sofort zur Root-Shell. Wenn du Automatisierung brauchst, nutze eng begrenzte Kommandos: <code>deploy ALL=(root) NOPASSWD: /usr/bin/systemctl restart nginx</code> statt <code>ALL=(ALL) NOPASSWD: ALL</code>.</p>
+
+<p>Weitere Basismaßnahmen: <code>passwd -l</code> auf alle nicht benötigten System-Accounts, <code>chmod 640 /etc/shadow</code>, <code>chmod 644 /etc/passwd</code>, <code>umask 027</code> in <code>/etc/profile</code> und <code>/etc/login.defs</code>. Suche nach verwaisten Dateien mit <code>find / -xdev \( -nouser -o -nogroup \) -print</code> – die sind oft Überbleibsel gelöschter Accounts und ein klassisches Persistenz-Versteck.</p>
+
+<h2>Schritt 4: Firewall mit nftables und Fail2ban</h2>
+
+<p>Die Firewall-Philosophie lautet <strong>Default Deny</strong>: alles verboten, was nicht explizit erlaubt ist. Unter Debian 12 und Ubuntu 24.04 ist nftables der Standard-Backend. UFW ist ein akzeptabler Wrapper für kleine Setups, aber für Server mit mehreren Interfaces oder Docker nimmst du nftables direkt.</p>
+
+<pre><code># /etc/nftables.conf
+table inet filter {
+  chain input {
+    type filter hook input priority 0; policy drop;
+    ct state established,related accept
+    iif lo accept
+    ip protocol icmp icmp type { echo-request } limit rate 5/second accept
+    tcp dport { 22, 80, 443 } ct state new limit rate 20/minute accept
+    log prefix "nft-drop: " limit rate 10/minute
+  }
+  chain forward { type filter hook forward priority 0; policy drop; }
+  chain output { type filter hook output priority 0; policy accept; }
+}</code></pre>
+
+<p>Fail2ban ergänzt das um verhaltensbasierte Sperren. Standardwerte sind zu lasch: <code>bantime = 600</code> bedeutet, dass ein Angreifer nach 10 Minuten weitermachen darf. Setze <code>bantime.increment = true</code> mit <code>factor = 2</code> und <code>maxtime = 604800</code> (7 Tage) – wiederholte Verstöße führen dann zu exponentiell längeren Sperren.</p>
+
+<pre><code># /etc/fail2ban/jail.local
+[DEFAULT]
+bantime  = 1h
+findtime = 10m
+maxretry = 3
+bantime.increment = true
+bantime.factor    = 2
+bantime.maxtime   = 604800
+banaction = nftables-multiport
+ignoreip  = 127.0.0.1/8 ::1 203.0.113.0/24
+
+[sshd]
+enabled = true
+mode    = aggressive</code></pre>
+
+<p>Prüfe den Status mit <code>fail2ban-client status sshd</code>. Auf stark angegriffenen Hosts sind 200 bis 800 aktive Bans normal. Als moderne Alternative lohnt sich <strong>CrowdSec</strong>: Es teilt Reputationsdaten über eine Community-API und blockt bekannte Angreifer-IPs, bevor sie überhaupt deinen SSH-Port erreichen. Der Agent ist kostenlos, ein zentrales Blocklist-Abo kostet rund 20 Euro pro Monat für kleinere Flotten.</p>
+
+<h2>Schritt 5: Kernel-Härtung über sysctl</h2>
+
+<p>Der Linux-Kernel bringt dutzende Sicherheitsfeatures, die per Default aus Kompatibilitätsgründen deaktiviert sind. Über sysctl aktivierst du sie zentral. Die Datei gehört nach <code>/etc/sysctl.d/99-hardening.conf</code>, aktiviert wird sie mit <code>sysctl --system</code>.</p>
+
+<pre><code># Netzwerk-Härtung
+net.ipv4.conf.all.rp_filter = 1
+net.ipv4.conf.all.accept_source_route = 0
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.all.log_martians = 1
+net.ipv4.icmp_echo_ignore_broadcasts = 1
+net.ipv4.icmp_ignore_bogus_error_responses = 1
+net.ipv4.tcp_syncookies = 1
+net.ipv6.conf.all.accept_ra = 0
+net.ipv6.conf.all.accept_redirects = 0
+
+# Kernel-Selbstschutz
+kernel.dmesg_restrict = 1
+kernel.kptr_restrict = 2
+kernel.yama.ptrace_scope = 2
+kernel.unprivileged_bpf_disabled = 1
+kernel.kexec_load_disabled = 1
+kernel.randomize_va_space = 2
+
+# Dateisystem-Schutz
+fs.protected_hardlinks = 1
+fs.protected_symlinks = 1
+fs.protected_fifos = 2
+fs.protected_regular = 2
+fs.suid_dumpable = 0</code></pre>
+
+<p>Besonders <code>kernel.yama.ptrace_scope = 2</code> ist wirkungsvoll: Damit kann kein Prozess mehr einen fremden Prozess debuggen, was das Auslesen von Zugangsdaten aus laufenden Diensten massiv erschwert. <code>kernel.kptr_restrict = 2</code> verhindert, dass Kernel-Adressen in <code>/proc</code> sichtbar sind – wichtig für die Umgehung von KASLR.</p>
+
+<p>Achtung bei <code>net.ipv6.conf.all.accept_ra = 0</code>: Auf Servern mit SLAAC-Adressierung bricht damit die Konnektivität. Prüfe vorher, ob IPv6 statisch konfiguriert ist. Und <code>fs.protected_regular</code> kann bei manchen Legacy-Anwendungen mit unsauberen Temp-Dateien Fehler verursachen – teste auf einem Staging-Host.</p>
+
+<h2>Schritt 6: Automatische Updates und Patch-Management</h2>
+
+<p>Ungepatchte Dienste sind nach schwachen Credentials der zweithäufigste Eintrittsvektor. Die Lösung ist Automatisierung, aber mit Verstand: Sicherheitsupdates automatisch, Feature-Updates manuell, Kernel-Reboots geplant.</p>
+
+<pre><code>apt install unattended-upgrades needrestart
+dpkg-reconfigure -plow unattended-upgrades</code></pre>
+
+<p>In <code>/etc/apt/apt.conf.d/50unattended-upgrades</code> setzt du die Origins auf <code>security</code> und <code>ESM</code>, aktivierst <code>Unattended-Upgrade::Remove-Unused-Dependencies "true"</code> und – wichtig – <code>Automatic-Reboot "true"</code> mit <code>Automatic-Reboot-Time "03:30"</code>. Ohne Reboot läuft dein Server nach einem Kernel-Update weiter mit dem verwundbaren alten Kernel.</p>
+
+<p>Für Umgebungen, in denen Reboots nicht möglich sind, gibt es Livepatch-Lösungen. Canonical Ubuntu Pro ist für bis zu 5 Maschinen kostenlos, Enterprise-Tarife starten bei rund 500 US-Dollar pro Jahr für 50 Server. KernelCare von CloudLinux kostet etwa <strong>4 bis 6 Euro pro Server und Monat</strong> und patcht Kernel-Livepath für die gängigen Distributionen. Bei einem 10-Server-Setup reden wir also über 40 bis 60 Euro monatlich – günstiger als eine einzige Stunde Downtime.</p>
+
+<p>Ergänzend: <code>needrestart</code> im Modus <code>l</code> (list) informieren lassen, welche Dienste nach Library-Updates neu gestartet werden müssen. Und ein monatliches Wartungsfenster für die Dinge, die Automatik nicht erledigt: Distribution-Upgrades, Datenbank-Major-Versionen, Zertifikatsrotation.</p>
+
+<h2>Schritt 7: Auditd, Logging und Monitoring</h2>
+
+<p>Ohne Logs gibt es keine Forensik. Standard-Logging auf einem Linux-Server reicht für einen echten Incident nicht aus, weil viele Aktionen schlicht nicht protokolliert werden. <code>auditd</code> schließt diese Lücke.</p>
+
+<pre><code>apt install auditd audispd-plugins
+
+# /etc/audit/rules.d/hardening.rules
+-w /etc/passwd -p wa -k identity
+-w /etc/shadow -p wa -k identity
+-w /etc/sudoers -p wa -k privilege
+-w /etc/ssh/sshd_config -p wa -k sshd
+-w /root/.ssh -p wa -k ssh_keys
+-a always,exit -F arch=b64 -S execve -F euid=0 -k root_cmds
+-a always,exit -F arch=b64 -S init_module,finit_module -k modules</code></pre>
+
+<p>Diese Regeln melden jede Änderung an Identitäts- und Rechtekonfiguration sowie jedes ausgeführte Root-Kommando. Das ist die Grundlage, um nach einem Vorfall eine Timeline zu bauen. Logs gehören persistent gespeichert – <code>Storage=persistent</code> in <code>/etc/systemd/journald.conf</code> – und per <code>rsyslog</code> oder Promtail an einen zentralen Logserver geschickt, den ein Angreifer nicht erreicht.</p>
+
+<p>Für Monitoring hat sich der Stack <strong>Prometheus + node_exporter + Grafana</strong> etabliert. Wichtige Alerts: unerwarteter SSH-Login von neuer IP, plötzlicher CPU-Spike über 90 Prozent für mehr als 10 Minuten (Miner), ausgehende Verbindungen auf untypische Ports, Änderungen an <code>/etc/passwd</code>. Wer es einfacher will: Uptime Kuma für Erreichbarkeit, Netdata für Systemmetriken, beides kostenlos selbst gehostet.</p>
+
+<p>Ein oft vergessener Punkt: <strong>ausgehender Traffic</strong>. Die meisten Härtungen betrachten nur eingehende Verbindungen. Ein kompromittierter Host, der nach außen auf einen C2-Server telefoniert, fällt damit nicht auf. Mindestens ein Alerting auf neue ausgehende Verbindungen zu unbekannten IPs gehört in jedes Setup.</p>
+
+<h2>Schritt 8: Dateisystem-Härtung und Integritätsprüfung</h2>
+
+<p>Mount-Optionen sind ein unterschätzter Hebel. Verzeichnisse, in denen ohnehin keine Binaries liegen sollten, mountest du mit <code>noexec</code>, <code>nosuid</code> und <code>nodev</code>. Ein Angreifer, der ein Skript nach <code>/tmp</code> schreibt, kann es dann nicht ausführen.</p>
+
+<pre><code># /etc/fstab
+tmpfs   /tmp      tmpfs   defaults,noatime,nosuid,nodev,noexec,size=2G,mode=1777  0 0
+tmpfs   /dev/shm  tmpfs   defaults,noatime,nosuid,nodev,noexec,size=1G,mode=1777  0 0
+/var/tmp  ext4    defaults,noatime,nosuid,nodev,noexec  0 2</code></pre>
+
+<p>Für Dateiintegrität nutzt du <strong>AIDE</strong> oder Tripwire. AIDE erstellt eine Datenbank mit Hashes aller relevanten Dateien und meldet Abweichungen. Nach der Installation initialisierst du die Datenbank und lässt danach täglich per Cron prüfen.</p>
+
+<pre><code>apt install aide
+aideinit
+mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db
+# Täglicher Check um 04:15
+echo "15 4 * * * root /usr/bin/aide.wrapper --check" > /etc/cron.d/aide</code></pre>
+
+<p>Für vertrauliche Daten auf dem Server – Kundendatenbanken, Backups, Secrets – gehört eine Verschlüsselung dazu. LUKS2 mit Argon2id als Key-Derivation ist 2026 Standard: <code>cryptsetup luksFormat --type luks2 --pbkdf argon2id /dev/nvme0n1p3</code>. Bei Cloud-VPS ohne Remote-KVM bedeutet das allerdings, dass du die Passphrase beim Boot manuell eingeben musst oder einen Network-Bound-Disk-Mechanismus brauchst. Plane das vorher.</p>
+
+<p>Ergänzend: <code>chmod 700 /root</code>, <code>chmod 750 /home/deploy</code>, keine world-writable Dateien (<code>find / -xdev -type f -perm -0002 -print</code>), und <code>chattr +i</code> auf kritische Konfigurationsdateien wie <code>/etc/resolv.conf</code> oder <code>/etc/hosts</code>, wenn diese nicht dynamisch geändert werden.</p>
+
+<h2>Schritt 9: Container- und Docker-Härtung</h2>
+
+<p>Container sind kein Sicherheitsgewinn per se. Ein Container mit gemountetem Docker-Socket ist faktisch Root auf dem Host – <code>-v /var/run/docker.sock:/var/run/docker.sock</code> ist die gefährlichste Zeile in den meisten Compose-Dateien. Wenn ein Container unbedingt Docker steuern muss, nutze einen Socket-Proxy wie <code>tecnativa/docker-socket-proxy</code> mit explizit erlaubten Endpunkten.</p>
+
+<pre><code>docker run -d \
+  --read-only \
+  --cap-drop=ALL \
+  --cap-add=NET_BIND_SERVICE \
+  --security-opt no-new-privileges:true \
+  --security-opt seccomp=/etc/docker/seccomp-default.json \
+  --pids-limit 200 \
+  --memory 512m --cpus 1.0 \
+  --tmpfs /tmp:rw,noexec,nosuid,size=64m \
+  myapp:1.4.2</code></pre>
+
+<p>Die wichtigsten Regeln: <strong>kein <code>--privileged</code></strong>, <strong>kein Root-User im Container</strong> (im Dockerfile <code>USER 10001</code>), <strong>kein <code>latest</code>-Tag</strong> in Produktion, <strong>Read-only Root-Filesystem</strong> wo möglich. Scanne Images regelmäßig mit <code>trivy image myapp:1.4.2</code> – bei einem typischen Node.js- oder Python-Image findest du dabei regelmäßig 40 bis 120 CVEs, davon 3 bis 10 mit hohem Schweregrad.</p>
+
+<p>Für Kubernetes gilt: Pod Security Standards auf <code>restricted</code> setzen, NetworkPolicies als Default Deny, RBAC mit minimalen Rechten, keine <code>hostPath</code>-Volumes. Tools wie <strong>kube-bench</strong> prüfen den Cluster gegen den CIS Kubernetes Benchmark, <strong>Falco</strong> erkennt Laufzeit-Anomalien wie Shell-Spawns in Containern.</p>
+
+<h2>Schritt 10: CIS-Benchmark, Lynis und Compliance-Nachweis</h2>
+
+<p>Am Ende willst du messen, ob deine Härtung wirkt. Der De-facto-Standard ist der <strong>CIS Benchmark</strong> für deine Distribution. Für Debian 12 und Ubuntu 24.04 LTS gibt es fertige Profile.</p>
+
+<pre><code># Lynis – schneller Überblick
+apt install lynis
+lynis audit system
+# Ergebnis: Hardening Index, Zielwert >= 85
+
+# OpenSCAP gegen CIS-Profil
+apt install libopenscap8 ssg-debderived
+oscap xccdf eval --profile xccdf_org.ssgproject.content_profile_cis \
+  --results scan.xml --report report.html \
+  /usr/share/xml/scap/ssg/content/ssg-debian12-ds.xml</code></pre>
+
+<p>Ein Lynis Hardening Index von 85+ gilt als solide, 90+ als gut gehärtet. Werte über 95 sind auf Produktionsservern mit Anwendungsanforderungen selten erreichbar – und auch nicht nötig. Wichtiger als die Zahl ist die Trendkurve: Nach jedem Quartal sollte der Wert gleich bleiben oder steigen, nicht fallen.</p>
+
+<table>
+<tr><th>Framework</th><th>Relevanz</th><th>Aufwand Erstabnahme</th></tr>
+<tr><td>CIS Level 1</td><td>Basis für alle</td><td>4–8 Stunden pro Host</td></tr>
+<tr><td>CIS Level 2</td><td>Hochsicherheitsumgebungen</td><td>2–4 Tage pro Host</td></tr>
+<tr><td>BSI IT-Grundschutz</td><td>Deutsche Behörden/KMU</td><td>Wochen (organisatorisch)</td></tr>
+<tr><td>NIS2</td><td>wesentliche/wichtige Einrichtungen</td><td>laufender Prozess</td></tr>
+<tr><td>ISO 27001</td><td>Kundenanforderung</td><td>3–9 Monate gesamt</td></tr>
+</table>
+
+<p>Für NIS2 konkret relevant: Art. 21 fordert technische und organisatorische Maßnahmen inklusive Risikoanalyse, Incident-Management, Business Continuity und Schwachstellenmanagement. Deine Härtungs-Checkliste mit Datum, Verantwortlichem und Scan-Ergebnis ist genau der Nachweis, den ein Auditor sehen will.</p>
+
+<h2>Schritt 11: Notfallplan, Backups und Incident Response</h2>
+
+<p>Härtung reduziert die Wahrscheinlichkeit eines Vorfalls, eliminiert sie aber nicht. Deshalb brauchst du einen Plan für den Fall der Fälle. Die Regel lautet <strong>3-2-1-1-0</strong>: 3 Kopien, 2 Medien, 1 offsite, 1 offline/immutable, 0 Fehler bei der Wiederherstellung.</p>
+
+<pre><code># restic-Backup mit S3-Backend
+restic -r s3:s3.eu-central-003.backblazeb2.com/hostazar-backup \
+  backup /etc /home /var/www --exclude-caches
+
+# Snapshots aufbewahren
+restic forget --keep-daily 7 --keep-weekly 5 --keep-monthly 12 --prune
+
+# Wiederherstellung testen – mindestens quartalsweise
+restic restore latest --target /mnt/restore-test</code></pre>
+
+<p>Backblaze B2 kostet rund <strong>6 US-Dollar pro TB und Monat</strong>, Hetzner Storage Box startet bei <strong>3,81 Euro monatlich für 1 TB</strong>. Bei einem 50-GB-Backup sind das also unter 2 Euro im Monat – lächerlich wenig für die Versicherung gegen Datenverlust. Wichtig: Der Backup-Server darf <strong>nicht</strong> mit demselben SSH-Key erreichbar sein wie der Produktivserver. Nutze eigene Credentials mit Write-Only-Rechten.</p>
+
+<p>Für Incident Response gehört ein einseitiges Runbook in jeden Server-Ordner: Wer wird informiert? Wie wird der Host isoliert (Netzwerk trennen, nicht herunterfahren – RAM-Forensik)? Wo liegen die Logs? Wer hat Zugriff auf welche Credentials? Und ganz wichtig: eine Liste aller Zugangsdaten, die nach einem Kompromittierungsverdacht rotiert werden müssen. Bei einem echten Vorfall ist die Rotation von 30 Credentials unter Zeitdruck die Hölle – vorbereitet dauert sie 45 Minuten.</p>
+
+<p>Ein letzter, oft ignorierter Punkt: <strong>Snapshot vor jeder Änderung</strong>. Bei virtuellen Servern (Hetzner Cloud, Netcup, AWS) kostet ein Snapshot Cent-Beträge und rettet dich, wenn ein Härtungsschritt einen Dienst zerlegt. Der Ablauf lautet immer: Snapshot → Änderung → Test → 24 Stunden beobachten → Snapshot löschen.</p>
+
+<h2>FAQ</h2>
+
+<h3>Wie lange dauert eine vollständige Linux-Server-Härtung?</h3>
+<p>Für einen einzelnen Host mit Standarddiensten (SSH, Webserver, Datenbank) rechnest du mit 3 bis 6 Stunden für die Ersteinrichtung inklusive Tests. Der Aufwand für Automatisierung lohnt sich ab etwa 5 Servern: Mit Ansible-Rollen wie <code>dev-sec/ansible-collection-hardening</code> bringst du einen neuen Host in 15 bis 20 Minuten auf dasselbe Niveau. Plane danach laufend 1 bis 2 Stunden pro Monat für Patch-Reviews, Scan-Auswertung und Log-Kontrolle ein.</p>
+
+<h3>Reicht UFW oder brauche ich zwingend nftables?</h3>
+<p>UFW ist unter der Haube selbst nftables und für einfache Setups mit wenigen Ports völlig ausreichend – <code>ufw default deny incoming</code> plus explizite Allows deckt 90 Prozent der Fälle ab. Zu nftables direkt wechselst du, wenn du mehrere Interfaces, Docker-Netzwerke, Rate-Limits oder eigenes Logging brauchst. Docker umgeht UFW-Regeln übrigens standardmäßig, weil es eigene iptables-Ketten schreibt – das ist einer der häufigsten Fehler in gehärteten Setups.</p>
+
+<h3>Ist ein anderer SSH-Port sinnvoll oder reine Sicherheitstheater?</h3>
+<p>Als Sicherheitsmaßnahme ist es Theater, weil Portscanner alle Ports in Sekunden finden. Als Betriebsmaßnahme ist es sinnvoll: Auf einem Host mit Port 22 siehst du 20.000 bis 60.000 fehlgeschlagene Logins pro Tag, auf einem alternativen Port sind es 50 bis 300. Das reduziert Log-Volumen, Fail2ban-Last und macht echte Angriffe sichtbar. Wichtiger als der Port sind aber Key-only-Auth, <code>PermitRootLogin no</code> und ein aktuelles OpenSSH.</p>
+
+<h3>Was kostet professionelle Server-Härtung im Vergleich zum Selbstmachen?</h3>
+<p>Ein externer Penetrationstest für einen einzelnen Host liegt bei 1.500 bis 4.000 Euro. Managed-Security-Anbieter verlangen für Server-Hardening-as-a-Service typischerweise 30 bis 80 Euro pro Host und Monat. Dem gegenüber stehen 3 bis 6 Stunden Eigenarbeit plus 1 bis 2 Stunden monatlich – bei einem internen Stundensatz von 70 Euro sind das rund 300 Euro initial und 100 Euro monatlich. Für Teams mit Linux-Erfahrung ist die Eigenlösung fast immer günstiger, für Teams ohne DevOps-Kapazität ist Managed Security die rationalere Wahl.</p>
+
+<h3>Muss ich nach der Härtung noch etwas tun, oder ist der Server dann sicher?</h3>
+<p>Ein gehärteter Server ist nicht „sicher“, sondern „deutlich schwerer angreifbar“. Die Härtung ist ein Zustand, der verfällt: Neue Dienste öffnen Ports, Updates ändern Defaults, Mitarbeiter wechseln. Deshalb brauchst du einen Zyklus – monatlich Lynis oder OpenSCAP laufen lassen, quartalsweise die Checkliste durchgehen, jährlich einen externen Scan oder Pentest. Wer die Härtung einmal macht und dann nie wieder hinschaut, hat nach 12 Monaten einen ähnlich angreifbaren Server wie vorher.</p>
