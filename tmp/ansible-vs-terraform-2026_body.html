@@ -1,0 +1,193 @@
+<h2>Ansible vs. Terraform – der Dauerbrenner im DevOps-Alltag</h2>
+<p>Kaum eine Frage taucht in DevOps-Teams so zuverlässig auf wie diese: „Nehmen wir jetzt Ansible oder Terraform?" Die ehrliche Antwort lautet in den meisten Fällen: beides – aber nicht für dieselbe Aufgabe. Terraform ist ein <strong>Provisioning-Tool</strong>, Ansible ein <strong>Configuration-Management-Tool</strong>. Wer das verwechselt, baut sich entweder einen unwartbaren Terraform-State oder Playbooks, die verzweifelt versuchen, Cloud-Ressourcen zu erfinden.</p>
+<p>2026 ist die Lage klarer als noch vor drei Jahren. Terraform hat mit OpenTofu einen ernstzunehmenden Fork unter dem Dach der Linux Foundation, HashiCorp hat die BUSL-Lizenz beibehalten, und Ansible ist mit ansible-core 2.20 sowie Event-Driven Ansible erwachsen geworden. Gleichzeitig sind Managed-Service-Preise deutlich gestiegen, was Self-Hosting und damit beide Tools wieder attraktiver macht.</p>
+<p>Dieser Guide zeigt dir mit konkreten Befehlen, Preisen und Codebeispielen, wann welches Tool die richtige Wahl ist – und wie du sie sauber kombinierst. Zielgruppe sind Server-Admins, DevOps-Engineers und alle, die 2026 Infrastruktur reproduzierbar betreiben wollen.</p>
+
+<h2>Die Kernfrage: Provisioning vs. Configuration Management</h2>
+<p>Terraform beschreibt den <strong>gewünschten Endzustand von Infrastruktur</strong>: fünf VMs, ein Load Balancer, ein Managed-Postgres, drei Subnetze. Es kennt den State, vergleicht ihn mit der Realität und leitet daraus einen Plan ab. Terraform weiß, dass eine VM existiert, und löscht sie wieder, wenn du sie aus dem Code entfernst.</p>
+<p>Ansible beschreibt dagegen den <strong>gewünschten Zustand eines Systems</strong>: nginx installiert, UFW aktiv, SSH-Port 2222, ein Deploy-User vorhanden. Ansible ist zustandslos – es gibt keinen State-File, der die Welt abbildet. Stattdessen fragt jedes Modul beim Ausführen nach, ob der Zielzustand bereits erreicht ist (Idempotenz).</p>
+<p>Daraus folgt die Faustregel, die 2026 unverändert gilt: <strong>Terraform für Dinge, die eine API mit Lebenszyklus haben. Ansible für Dinge, die man per SSH konfiguriert.</strong> Ein AWS-S3-Bucket hat einen Lebenszyklus, eine <code>/etc/ssh/sshd_config</code> nicht.</p>
+<p>Es gibt Grauzonen: Kubernetes-Manifeste, DNS-Einträge, Cloudflare-Regeln. Hier entscheidet nicht die Technik, sondern die Frage, ob du einen Plan-Diff und eine Löschsemantik brauchst. Wenn ja, ist Terraform fast immer die bessere Wahl.</p>
+
+<h2>Terraform 2026: Versionen, OpenTofu und der Lizenzstreit</h2>
+<p>HashiCorp Terraform steht seit August 2023 unter der Business Source License 1.1. Für die meisten Unternehmen ist das unproblematisch, weil die Lizenz nur konkurrierende Commercial-Angebote einschränkt. Wer Terraform jedoch in ein eigenes SaaS-Produkt einbettet, braucht eine kommerzielle Vereinbarung.</p>
+<p>Die aktuelle Terraform-Linie liegt 2026 bei 1.12.x. Wichtige Features der letzten Releases: <strong>Ephemeral Resources</strong> (seit 1.10), mit denen Passwörter und Tokens nie im State landen, <strong>Write-only Arguments</strong> (1.11) für Secrets in AWS- und Azure-Providern sowie ein deutlich ausgebautes <code>terraform test</code>-Framework mit nativen Testdateien (<code>.tftest.hcl</code>).</p>
+<p>OpenTofu hat als Fork unter der MPL-2.0-Lizenz stark aufgeholt und liegt bei Version 1.10.x. Der entscheidende Vorteil: <strong>native State-Locking-Unterstützung in S3</strong> ohne DynamoDB-Tabelle über <code>use_lockfile = true</code>, plus Provider-Verschlüsselung des States auf Client-Seite. Wer aus Compliance-Gründen keine BUSL-Software einsetzen darf, fährt mit OpenTofu inzwischen ohne nennenswerte Abstriche.</p>
+<pre><code>terraform {
+  required_version = ">= 1.10"
+
+  backend "s3" {
+    bucket       = "hostazar-tfstate"
+    key          = "prod/network/terraform.tfstate"
+    region       = "eu-central-1"
+    encrypt      = true
+    use_lockfile = true
+  }
+}</code></pre>
+<p>Migration zwischen Terraform und OpenTofu ist in beide Richtungen möglich, weil das State-Format kompatibel bleibt. Ein <code>tofu init -upgrade</code> beziehungsweise <code>terraform init -upgrade</code> genügt in der Regel.</p>
+
+<h2>Ansible 2026: ansible-core 2.20 und Event-Driven Automation</h2>
+<p>Ansible hat sich organisatorisch in zwei Teile gespalten: <strong>ansible-core</strong> (Engine, Module, CLI) und die <strong>Ansible Community Package</strong> mit über 120 Collections. ansible-core 2.20 benötigt Python 3.11 oder neuer auf dem Controller und unterstützt Zielsysteme ab Python 3.8 – inklusive Windows über WinRM und Netzwerkgeräte über <code>network_cli</code>.</p>
+<p>Der größte Wandel der letzten Jahre ist <strong>Event-Driven Ansible</strong> (EDA). Statt Playbooks manuell oder per Cron zu starten, reagiert Ansible auf Events: ein Webhook aus Prometheus Alertmanager, eine Kafka-Message, ein Syslog-Eintrag. Rulebooks definieren Bedingungen und Aktionen in YAML.</p>
+<pre><code>- name: Auto-Remediate hohe Last
+  hosts: all
+  sources:
+    - ansible.eda.alertmanager:
+        host: 0.0.0.0
+        port: 5000
+  rules:
+    - name: nginx neu starten
+      condition: event.alert.labels.alertname == "NginxDown"
+      action:
+        run_playbook:
+          name: playbooks/restart-nginx.yml</code></pre>
+<p>Für die tägliche Arbeit relevanter: <code>ansible-lint</code> ist 2026 Pflicht in der CI, Molecule testet Rollen in Containern, und Collections haben die alten Galaxy-Rollen fast vollständig abgelöst. Das Inventory kommt dynamisch aus Plugins – etwa <code>hetzner.hcloud.hcloud</code>, <code>amazon.aws.aws_ec2</code> oder <code>community.general.proxmox</code>.</p>
+
+<h2>Entscheidungsmatrix: Wann Terraform, wann Ansible?</h2>
+<p>Die folgende Matrix hat sich in der Praxis bewährt. Sie ersetzt keine Architekturentscheidung, aber sie beantwortet 90 Prozent aller Fälle in unter einer Minute.</p>
+<table>
+<thead>
+<tr><th>Aufgabe</th><th>Terraform</th><th>Ansible</th></tr>
+</thead>
+<tbody>
+<tr><td>VMs, Netzwerke, Subnetze anlegen</td><td>Ja</td><td>Nein</td></tr>
+<tr><td>Managed DB, S3, IAM, DNS</td><td>Ja</td><td>Nein</td></tr>
+<tr><td>Pakete installieren, Dienste konfigurieren</td><td>Nein</td><td>Ja</td></tr>
+<tr><td>OS-Patching, Härtung, CIS-Benchmarks</td><td>Nein</td><td>Ja</td></tr>
+<tr><td>App-Deployment auf bestehende Server</td><td>Nein</td><td>Ja</td></tr>
+<tr><td>Kubernetes-Cluster-Infrastruktur</td><td>Ja</td><td>Bedingt</td></tr>
+<tr><td>Kubernetes-Workloads</td><td>Nein</td><td>Nein (Helm/Argo)</td></tr>
+<tr><td>Löschsemantik / Drift-Erkennung</td><td>Ja</td><td>Nein</td></tr>
+<tr><td>Netzwerkgeräte (Cisco, Juniper)</td><td>Nein</td><td>Ja</td></tr>
+</tbody>
+</table>
+<p>Ein häufiger Denkfehler: „Wir haben schon Ansible, also machen wir alles mit Ansible." Das führt zu Playbooks mit <code>amazon.aws.ec2_instance</code>, die nicht idempotent sind, keinen Plan kennen und beim Löschen scheitern. Umgekehrt gilt: Terraform-<code>remote-exec</code>-Provisioner für Paketinstallation sind ein Anti-Pattern, weil sie nur beim Erstellen laufen und bei Änderungen nicht erneut feuern.</p>
+
+<h2>Direktvergleich in Zahlen</h2>
+<p>Beide Tools sind in Go beziehungsweise Python geschrieben und laufen auf Linux, macOS und Windows (WSL). Die Unterschiede liegen im Ausführungsmodell.</p>
+<table>
+<thead>
+<tr><th>Kriterium</th><th>Terraform 1.12</th><th>Ansible Core 2.20</th></tr>
+</thead>
+<tbody>
+<tr><td>Paradigma</td><td>deklarativ, State-basiert</td><td>prozedural, zustandslos</td></tr>
+<tr><td>Sprache</td><td>HCL</td><td>YAML</td></tr>
+<tr><td>Agent</td><td>keiner (API-Calls)</td><td>keiner (SSH/WinRM)</td></tr>
+<tr><td>Reihenfolge</td><td>Graph, parallel</td><td>linear, <code>serial</code> steuerbar</td></tr>
+<tr><td>Drift-Erkennung</td><td><code>terraform plan</code></td><td><code>--check</code> (partiell)</td></tr>
+<tr><td>Rollback</td><td>State-Rollback möglich</td><td>kein Rollback</td></tr>
+<tr><td>Lizenz</td><td>BUSL 1.1 (OpenTofu: MPL-2.0)</td><td>GPL-3.0</td></tr>
+<tr><td>Einstiegshürde</td><td>mittel</td><td>niedrig</td></tr>
+<tr><td>Typische Ausführungszeit</td><td>Sekunden bis Minuten</td><td>Sekunden bis Stunden</td></tr>
+</tbody>
+</table>
+<p>Wichtig für die Praxis: Terraform arbeitet parallel über den Dependency-Graph und schafft 200 Ressourcen in unter zwei Minuten. Ansible arbeitet pro Host linear durch Tasks; bei 500 Hosts und 40 Tasks dauert ein Full-Run schnell 25 bis 45 Minuten. Mit <code>strategy: free</code> und <code>forks = 50</code> in der <code>ansible.cfg</code> lässt sich das deutlich verkürzen.</p>
+
+<h2>Praxis: Infrastruktur mit Terraform provisionieren</h2>
+<p>Ein realistisches Setup bei Hetzner Cloud: drei Webserver, ein Load Balancer, ein privates Netz. Der Code ist überschaubar und in 15 Minuten geschrieben.</p>
+<pre><code>resource "hcloud_network" "main" {
+  name     = "prod-net"
+  ip_range = "10.0.0.0/16"
+}
+
+resource "hcloud_server" "web" {
+  count       = 3
+  name        = "web-${count.index + 1}"
+  image       = "ubuntu-24.04"
+  server_type = "ccx13"        # 2 vCPU dediziert, 8 GB RAM, 12,49 €/Monat
+  location    = "fsn1"
+  ssh_keys    = [hcloud_ssh_key.default.id]
+  network_id  = hcloud_network.main.id
+
+  labels = { role = "web", env = "prod" }
+}</code></pre>
+<p>Der Workflow ist immer derselbe: <code>terraform init</code> lädt Provider, <code>terraform plan -out=tfplan</code> zeigt den Diff, <code>terraform apply tfplan</code> führt aus. Der Plan ist das eigentliche Killer-Feature – du siehst vorher, dass drei Server ersetzt und zwei nur neu getaggt werden.</p>
+<p>Für Secrets nutzt du 2026 <code>ephemeral</code>-Blöcke oder einen Vault-Provider. Alles, was im State landet, ist im Klartext lesbar, sofern du die Backend-Verschlüsselung nicht aktiviert hast. Bei OpenTofu kannst du den State zusätzlich client-seitig mit PBKDF2 und AES-GCM verschlüsseln.</p>
+<pre><code>terraform init
+terraform plan -out=tfplan -var-file=prod.tfvars
+terraform apply tfplan
+terraform output -json server_ips > inventory.json</code></pre>
+
+<h2>Praxis: Server konfigurieren mit Ansible</h2>
+<p>Nach dem Provisioning übernimmt Ansible. Das Inventory kommt dynamisch aus dem Hetzner-Plugin, gruppiert nach Label.</p>
+<pre><code># inventory/hcloud.yml
+plugin: hetzner.hcloud.hcloud
+token: "{{ lookup('env', 'HCLOUD_TOKEN') }}"
+groups:
+  web: "'web' in labels.role"
+  prod: "'prod' in labels.env"</code></pre>
+<p>Eine Rolle für nginx plus Härtung sieht dann so aus:</p>
+<pre><code>- hosts: web
+  become: true
+  serial: 1
+  roles:
+    - role: common
+    - role: nginx
+    - role: hardening
+
+# roles/hardening/tasks/main.yml
+- name: SSH-Port ändern
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?Port'
+    line: 'Port 2222'
+  notify: sshd neu starten
+
+- name: UFW aktivieren
+  community.general.ufw:
+    state: enabled
+    policy: deny
+    direction: incoming</code></pre>
+<p>Aufruf mit <code>ansible-playbook -i inventory/hcloud.yml site.yml --limit prod</code>. Der <code>serial: 1</code>-Parameter sorgt für Rolling Updates: ein Server nach dem anderen, dazwischen kann ein Health-Check im Load Balancer greifen.</p>
+<p>Für Idempotenz-Checks in der CI läuft <code>ansible-playbook --check --diff</code> gegen eine Staging-Umgebung. Ergänzend prüft <code>ansible-lint --profile production</code> auf Anti-Patterns wie <code>shell</code> statt <code>command</code> oder fehlende <code>changed_when</code>-Angaben.</p>
+
+<h2>Terraform + Ansible kombinieren – drei bewährte Muster</h2>
+<p><strong>Muster 1: Terraform provisioniert, Ansible konfiguriert.</strong> Terraform legt die VMs an und schreibt die IPs via <code>terraform output -json</code> in ein Inventory. Ein CI-Job ruft danach <code>ansible-playbook</code> auf. Das ist der Standard und für 80 Prozent aller Setups ausreichend.</p>
+<p><strong>Muster 2: cloud-init als Brücke.</strong> Terraform übergibt ein <code>user_data</code>-Skript, das den Server bootstrappt: Nutzer anlegen, SSH-Key hinterlegen, Python installieren. Danach übernimmt Ansible. Vorteil: Der Server ist in 30 Sekunden erreichbar, nicht erst nach einem manuellen Ansible-Lauf.</p>
+<pre><code>resource "hcloud_server" "web" {
+  # ...
+  user_data = templatefile("cloud-init.yaml", {
+    ansible_user = "deploy"
+    ssh_key      = tls_private_key.deploy.public_key_openssh
+  })
+}</code></pre>
+<p><strong>Muster 3: Ansible ruft Terraform auf.</strong> Ein Playbook mit <code>community.general.terraform</code> steuert Terraform-Workspaces. Davon ist abzuraten, außer für Demo-Umgebungen: Du verlierst die Plan-Review im Pull Request und verschachtelst zwei Fehlerquellen ineinander.</p>
+<p>Ebenfalls sinnvoll: <strong>Ansible für Day-2-Operationen</strong> auf Clustern, die Terraform gebaut hat – etwa Zertifikate erneuern, Logrotate anpassen, Kernel-Parameter setzen. Terraform bleibt der Single Source of Truth für die Existenz der Ressource, Ansible für ihren Inhalt.</p>
+
+<h2>Kosten und Lizenzen 2026</h2>
+<p>Die CLI beider Tools ist kostenlos. Teuer wird es bei den Managed-Plattformen.</p>
+<table>
+<thead>
+<tr><th>Produkt</th><th>Preis (Listenpreis)</th><th>Enthalten</th></tr>
+</thead>
+<tbody>
+<tr><td>HCP Terraform Free</td><td>0 €</td><td>500 Ressourcen, 1 Concurrent Run</td></tr>
+<tr><td>HCP Terraform Standard</td><td>20 $/User/Monat + 0,00014 $/Ressource/Std.</td><td>Remote State, Policy as Code</td></tr>
+<tr><td>Terraform Enterprise</td><td>ab ca. 70.000 $/Jahr</td><td>Self-hosted, SSO, Audit</td></tr>
+<tr><td>OpenTofu</td><td>0 €</td><td>Alles, inkl. State-Verschlüsselung</td></tr>
+<tr><td>Ansible Core / Community</td><td>0 €</td><td>Engine + 120 Collections</td></tr>
+<tr><td>Red Hat AAP</td><td>ab ca. 100 €/Node/Jahr</td><td>Controller, EDA, Automation Hub</td></tr>
+<tr><td>AWX (Upstream)</td><td>0 €</td><td>Web-UI, RBAC, Scheduling</td></tr>
+</tbody>
+</table>
+<p>Ein Beispiel: 200 Managed Nodes mit AAP kosten bei 100 € pro Node rund 20.000 € pro Jahr. Wer nur die CLI braucht, fährt mit AWX in einem Container auf einem 12,49-€-Hetzner-CCX13 deutlich günstiger – dafür ohne Support-SLA und mit eigenem Upgrade-Aufwand.</p>
+<p>Auf der Terraform-Seite ist der Kostenhebel der State. 400 Ressourcen in HCP Terraform Standard kosten rechnerisch etwa 400 × 0,00014 $ × 730 h ≈ 41 $/Monat plus User-Lizenzen. Ein S3-Bucket mit Versioning kostet dagegen unter 1 $/Monat.</p>
+
+<h2>Typische Fehler und Best Practices</h2>
+<p><strong>Fehler 1: State im Git.</strong> Der Terraform-State enthält Klartext-Secrets. Er gehört in ein Remote-Backend mit Versioning und Locking – niemals ins Repository. <code>.gitignore</code> mit <code>*.tfstate*</code> ist Pflicht.</p>
+<p><strong>Fehler 2: <code>shell</code>-Modul statt <code>command</code>.</strong> <code>shell</code> ist nie idempotent, weil die Shell immer 0 zurückgibt. Nutze <code>command</code> mit <code>creates:</code> oder <code>changed_when: false</code> für Read-only-Aufrufe.</p>
+<p><strong>Fehler 3: Monolithische States.</strong> Ein State für die gesamte Firma bedeutet, dass ein <code>plan</code> 15 Minuten dauert und jeder Fehler alles blockiert. Teile nach Lebenszyklus auf: Netzwerk, Datenbank, App. Verbinde sie über <code>terraform_remote_state</code> oder besser über Datenquellen.</p>
+<p><strong>Fehler 4: Keine Tests.</strong> Terraform hat <code>terraform test</code> mit nativen Testdateien, Ansible hat Molecule und <code>--check</code>. Beides gehört in die CI, bevor irgendetwas gegen Produktion läuft.</p>
+<p><strong>Best Practices 2026:</strong> Module versionieren statt Branches referenzieren, Secrets über Vault oder SOPS statt tfvars, <code>terraform fmt -check</code> und <code>ansible-lint</code> als Pflicht-Gates im Pull Request, und für jede Umgebung ein eigener State mit eigener Backend-Config.</p>
+
+<h2>FAQ</h2>
+<h3>Kann ich Terraform komplett durch Ansible ersetzen?</h3>
+<p>Technisch ja, praktisch nein. Ansible hat Module für AWS, Azure und GCP, aber keinen State und keinen Plan-Diff. Du verlierst Drift-Erkennung, Löschsemantik und die Möglichkeit, vor dem Apply zu sehen, was passiert. Für kleine Setups mit unter 20 Ressourcen kann das reichen, ab etwa 50 Ressourcen wird es unwartbar.</p>
+<h3>Kann ich Ansible komplett durch Terraform ersetzen?</h3>
+<p>Nein. Terraform hat keine sinnvolle Möglichkeit, Pakete zu installieren, Dienste zu konfigurieren oder Konfigurationsdateien idempotent zu verwalten. Die <code>remote-exec</code>-Provisioner laufen nur beim Erstellen und sind für laufende Konfiguration ungeeignet. Für OS-Konfiguration bleibt Ansible (oder ein anderes Config-Management-Tool) die richtige Wahl.</p>
+<h3>Sollte ich 2026 Terraform oder OpenTofu nehmen?</h3>
+<p>Wenn du keine BUSL-Software einsetzen darfst oder Wert auf client-seitige State-Verschlüsselung und natives S3-Locking legst: OpenTofu. Wenn du HCP Terraform, Terraform Enterprise oder die breitere Provider- und Modul-Ökosystem-Unterstützung brauchst: Terraform. Die State-Dateien sind kompatibel, ein Wechsel ist jederzeit möglich.</p>
+<h3>Wie viele Ressourcen schafft ein Terraform-Apply pro Minute?</h3>
+<p>Bei API-limitierten Providern wie AWS sind 10 bis 30 Ressourcen pro Minute realistisch, weil der Provider parallele Calls auf 10 begrenzt (<code>-parallelism</code>). Bei Hetzner Cloud oder Proxmox sind 50 bis 100 Ressourcen pro Minute üblich. Netzwerk-Ressourcen sind schneller als Compute-Ressourcen.</p>
+<h3>Was kostet der Betrieb beider Tools im Self-Hosting?</h3>
+<p>Ein Hetzner CCX13 mit 2 dedizierten vCPU und 8 GB RAM kostet 12,49 €/Monat und reicht für AWX plus einen OpenTofu-Runner. Rechne mit 2 bis 4 Stunden Setup und etwa einer Stunde Wartung pro Monat. Gegenüber AAP mit rund 100 €/Node/Jahr amortisiert sich das ab etwa 20 Managed Nodes.</p>

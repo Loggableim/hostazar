@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Actions Self-Hosted Runner auf VPS betreiben 2026 | hostazar.com</title>
+  <meta name="description" content="GitHub Actions Self-Hosted Runner auf VPS betreiben 2026: Setup, systemd-Service, Docker, Caching, Sicherheit und Kostenvergleich – praxisnah erklärt.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hostazar.com/artikel/github-actions-self-hosted-runner-2026.html">
+  <link rel="stylesheet" href="/css/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hostazar.com/artikel/github-actions-self-hosted-runner-2026.html">
+  <meta property="og:title" content="GitHub Actions Self-Hosted Runner auf VPS betreiben 2026 | hostazar.com">
+  <meta property="og:description" content="GitHub Actions Self-Hosted Runner auf VPS betreiben 2026: Setup, systemd-Service, Docker, Caching, Sicherheit und Kostenvergleich – praxisnah erklärt.">
+  <meta property="og:image" content="https://hostazar.com/images/github-actions-self-hosted-runner-2026.webp">
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:site_name" content="Hostazar &mdash; VPS &amp; DevOps Portal">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="GitHub Actions Self-Hosted Runner auf VPS betreiben 2026 | hostazar.com">
+  <meta name="twitter:description" content="GitHub Actions Self-Hosted Runner auf VPS betreiben 2026: Setup, systemd-Service, Docker, Caching, Sicherheit und Kostenvergleich – praxisnah erklärt.">
+  <meta name="twitter:image" content="https://hostazar.com/images/github-actions-self-hosted-runner-2026.webp">
+  <script data-hz-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/css/consent-banner.css">
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "GitHub Actions Self-Hosted Runner auf VPS betreiben 2026 | hostazar.com",
+  "url": "https://hostazar.com/artikel/github-actions-self-hosted-runner-2026.html",
+  "description": "GitHub Actions Self-Hosted Runner auf VPS betreiben 2026: Setup, systemd-Service, Docker, Caching, Sicherheit und Kostenvergleich – praxisnah erklärt.",
+  "inLanguage": "de",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "hostazar.com",
+    "url": "https://hostazar.com"
+  },
+  "datePublished": "2026-09-19",
+  "dateModified": "2026-09-19",
+  "image": "https://hostazar.com/images/github-actions-self-hosted-runner-2026.webp",
+  "author": {
+    "@type": "Organization",
+    "name": "hostazar.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "hostazar.com"
+  },
+  "wordCount": 2111
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Startseite",
+      "item": "https://hostazar.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "GitHub Actions Self-Hosted Runner auf VPS betreiben 2026",
+      "item": "https://hostazar.com/artikel/github-actions-self-hosted-runner-2026.html"
+    }
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Braucht mein VPS offene Ports für den GitHub Actions Runner?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nein. Der Runner-Client arbeitet rein ausgehend: Er pollt regelmäßig api.github.com und den Actions-Service über HTTPS (Port 443) nach neuen Jobs. Du musst lediglich ausgehenden Verkehr erlauben. Eingehend reicht SSH auf einem Nicht-Standard-Port, idealerweise abgesichert per Fail2ban und Key-Auth."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Kann ich Self-Hosted Runner in einem öffentlichen Repository nutzen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Technisch ja, sicherheitstechnisch nur mit ephemeren Runnern und strikter Isolation. Fork-Pull-Requests können beliebigen Code ausführen. GitHub empfiehlt ausdrücklich, Self-Hosted Runner nicht für öffentliche Repos zu verwenden. Wenn es unvermeidbar ist: ephemerer Runner pro Job, kein Zugriff auf interne Netze, keine langlebigen Secrets, und der Runner läuft in einer Wegwerf-VM oder einem Container mit eingeschränkten Rechten."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Wie viele Runner kann ich auf einem VPS betreiben?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Als Faustregel einen Runner-Prozess pro vCPU, wenn die Jobs CPU-intensiv sind, und einen pro 2 GB RAM, wenn sie speicherhungrig sind. Auf einem 8-vCPU/16-GB-VPS laufen typischerweise 4 bis 6 parallele Runner zuverlässig. Beobachte Load Average und docker stats – ab Load 1,0 pro Kern warten die Jobs länger als sie rechnen."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Was passiert, wenn der VPS oder Runner ausfällt?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Laufende Jobs brechen ab und werden in der GitHub-UI als fehlgeschlagen markiert. Der Runner verschwindet nach etwa 10 bis 15 Minuten aus der Runner-Liste, sofern kein Heartbeat mehr eintrifft. Richte einen zweiten VPS als Standby ein oder definiere einen Fallback-Workflow auf GitHub-hosted Runnern, damit kritische Deployments nicht blockiert werden."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Funktionieren auch ARM64- oder GPU-Runner self-hosted?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ja, und das ist einer der stärksten Gründe für Self-Hosted. GitHub bietet ARM-Runner nur eingeschränkt und GPU-Runner gar nicht. Ein Hetzner CAX21 (ARM64, 4 vCPU, 8 GB) kostet rund 7 Euro im Monat und beschleunigt Multi-Arch-Builds erheblich. Für GPU-Workloads mietest du einen dedizierten Server mit NVIDIA-Karte und installierst den Runner wie oben beschrieben – achte nur darauf, dass der Benutzer runner in der video- und render-Gruppe ist."
+      }
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">hosta<span>zar</span></a>
+    <button class="nav-toggle" aria-label="Men&#252; &#246;ffnen">&#9776;</button>
+    <ul class="nav-links">
+      <li><a href="/">Startseite</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">🎮 Gaming</a>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#4CAF50">&#9670;</span> A-Z</h4>
+            <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">
+              <img src="/images/7-days-to-die-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
+              <img src="/images/ark-survival-ascended-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">
+              <img src="/images/conan-exiles-server-hosten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Conan Exiles Server mieten – Setup &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">
+              <img src="/images/cs2-server-mieten-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</span>
+            </a>
+            <a href="/artikel/dayz-server-mieten-2026.html" class="mega-item">
+              <img src="/images/dayz-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+            </a>
+            <a href="/artikel/enshrouded-server-hosting-2026.html" class="mega-item">
+              <img src="/images/enshrouded-server-hosting-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Enshrouded Server – Hosting-Guide &amp; Setup für Koop 2026</span>
+            </a>
+            <a href="/artikel/farming-simulator-25-server-mieten-2026.html" class="mega-item">
+              <img src="/images/farming-simulator-25-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Farming Simulator 25 Server mieten – Multiplayer-Guide 2026</span>
+            </a>
+            <a href="/artikel/grounded-server-hosting.html" class="mega-item">
+              <img src="/images/grounded-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Grounded Server hosten – Kosten, Setup &amp; Anbieter 2026</span>
+            </a>
+            <a href="/artikel/icarus-server-hosting.html" class="mega-item">
+              <img src="/images/icarus-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Icarus Server hosten – Dedicated Server für Koop 2026</span>
+            </a>
+            <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
+              <img src="/images/minecraft-server-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Server mieten oder selbst hosten? Der ultimative Vergleich 2026</span>
+            </a>
+            <a href="/artikel/nightingale-server-hosting.html" class="mega-item">
+              <img src="/images/nightingale-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nightingale Server hosten – Realm-Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
+              <img src="/images/palworld-server-hosting-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Palworld Server mieten oder selbst hosten? Der komplette Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/project-zomboid-server-hosting-2026.html" class="mega-item">
+              <img src="/images/project-zomboid-server-hosting-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Project Zomboid Server – Hosting &amp; Setup für Multiplayer 2026</span>
+            </a>
+            <a href="/artikel/rust-server-mieten-guide-2026.html" class="mega-item">
+              <img src="/images/rust-server-mieten-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Rust Server mieten – Kosten, Setup, Mods &amp; Anbieter 2026</span>
+            </a>
+            <a href="/artikel/satisfactory-server-mieten-oder-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/satisfactory-server-mieten-oder-selbst-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Satisfactory Server mieten oder selbst hosten? Der Guide 2026</span>
+            </a>
+            <a href="/artikel/scum-server-mieten.html" class="mega-item">
+              <img src="/images/scum-server-mieten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">SCUM Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+            </a>
+            <a href="/artikel/smalland-server-hosting.html" class="mega-item">
+              <img src="/images/smalland-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Smalland Server mieten – Guide für den Koop-Server 2026</span>
+            </a>
+            <a href="/artikel/sons-of-the-forest-server.html" class="mega-item">
+              <img src="/images/sons-of-the-forest-server.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Sons of the Forest Server hosten – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/space-engineers-server.html" class="mega-item">
+              <img src="/images/space-engineers-server.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Space Engineers Server mieten oder selbst hosten 2026</span>
+            </a>
+            <a href="/artikel/terraria-server-hosten-2026.html" class="mega-item">
+              <img src="/images/terraria-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Terraria Server hosten – Komplettanleitung für Multiplayer 2026</span>
+            </a>
+            <a href="/artikel/the-forest-server-hosting.html" class="mega-item">
+              <img src="/images/the-forest-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">The Forest Server hosten – Koop-Guide 2026</span>
+            </a>
+            <a href="/artikel/v-rising-server-mieten-2026.html" class="mega-item">
+              <img src="/images/v-rising-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">V Rising Server mieten oder selbst hosten? Guide 2026</span>
+            </a>
+            <a href="/artikel/factorio-server-hosting-2026.html" class="mega-item">
+              <img src="/images/factorio-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Factorio Server mieten oder selbst hosten? Der komplette Dedicated Server Guide 2026</span>
+            </a>
+          </div>
+          <div class="mega-column">
+            <h4><span style="color:#4CAF50">&#9670;</span> Neueste</h4>
+            <a href="/artikel/minecraft-server-mods-plugins-guide-2026.html" class="mega-item">
+              <img src="/images/minecraft-server-mods-plugins-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Server mit Mods und Plugins – Der ultimative Modding-Guide 2026</span>
+            </a>
+            <a href="/artikel/phasmophobia-server-mieten-2026.html" class="mega-item">
+              <img src="/images/phasmophobia-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Phasmophobia Server mieten 2026 – Geisterjagd Multiplayer Setup</span>
+            </a>
+            <a href="/artikel/baldurs-gate-3-server-mieten-2026.html" class="mega-item">
+              <img src="/images/baldurs-gate-3-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Baldurs Gate 3 Server mieten 2026 – D&amp;D Multiplayer &amp; Coop Setup</span>
+            </a>
+            <a href="/artikel/pubg-server-mieten-2026.html" class="mega-item">
+              <img src="/images/pubg-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">PUBG Server mieten 2026 – Preise, Slots &amp; Anbieter im Vergleich</span>
+            </a>
+            <a href="/artikel/lethal-company-server-mieten-2026.html" class="mega-item">
+              <img src="/images/lethal-company-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Lethal Company Server mieten – Multiplayer Setup Guide 2026</span>
+            </a>
+            <a href="/artikel/helldivers-2-server-hosten-2026.html" class="mega-item">
+              <img src="/images/helldivers-2-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Helldivers 2 Server hosten – Kooperative Missions-Pläne 2026</span>
+            </a>
+            <a href="/artikel/deep-rock-galactic-server-mieten-2026.html" class="mega-item">
+              <img src="/images/deep-rock-galactic-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Deep Rock Galactic Server mieten – 4-Spieler Koop Guide 2026</span>
+            </a>
+            <a href="/artikel/phasmophobia-server-hosten-2026.html" class="mega-item">
+              <img src="/images/phasmophobia-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Phasmophobia Server hosten – Geisterjagd Multiplayer 2026</span>
+            </a>
+            <a href="/artikel/escape-from-tarkov-server-hosten-2026.html" class="mega-item">
+              <img src="/images/escape-from-tarkov-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Escape from Tarkov Server hosten 2026 – Dedicated Server Setup &amp; Anleitung</span>
+            </a>
+            <a href="/artikel/beste-gaming-monitore-2026.html" class="mega-item">
+              <img src="/images/beste-gaming-monitore-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Beste Gaming-Monitore 2026 – 144Hz, 240Hz und OLED im Vergleich</span>
+            </a>
+            <a href="/artikel/gaming-pc-selbst-bauen-2026.html" class="mega-item">
+              <img src="/images/gaming-pc-selbst-bauen-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gaming-PC selbst bauen 2026 – Komponenten-Guide für jedes Budget</span>
+            </a>
+            <a href="/artikel/steam-deck-vs-asus-rog-ally-vs-lenovo-legion-go-2026.html" class="mega-item">
+              <img src="/images/steam-deck-vs-asus-rog-ally-vs-lenovo-legion-go-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Steam Deck vs Asus ROG Ally vs Lenovo Legion Go – Handheld-Vergleich 2026</span>
+            </a>
+            <a href="/artikel/ddos-schutz-gameserver-2026.html" class="mega-item">
+              <img src="/images/ddos-schutz-gameserver-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DDoS-Schutz für Gameserver – Anbieter &amp; Konfiguration 2026</span>
+            </a>
+            <a href="/artikel/minecraft-bedrock-vs-java-server-2026.html" class="mega-item">
+              <img src="/images/minecraft-bedrock-vs-java-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Bedrock vs. Java Server – Unterschiede &amp; Hosting 2026</span>
+            </a>
+            <a href="/artikel/raft-server-mieten-2026.html" class="mega-item">
+              <img src="/images/raft-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Raft Server mieten – Dedicated Server Guide &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/palworld-server-mods-guide-2026.html" class="mega-item">
+              <img src="/images/palworld-server-mods-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Palworld Mods &amp; Dedicated Server Guide 2026 – BepInEx, server.ini, Admin-Tools</span>
+            </a>
+            <a href="/artikel/pterodactyl-panel-installieren-2026.html" class="mega-item">
+              <img src="/images/pterodactyl-panel-installieren-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Pterodactyl Panel installieren – Gameserver-Management auf VPS 2026</span>
+            </a>
+            <a href="/artikel/dont-starve-together-server-hosten-2026.html" class="mega-item">
+              <img src="/images/dont-starve-together-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Don&#39;t Starve Together Server hosten – Dedicated Server Setup &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/fivem-server-mieten-2026.html" class="mega-item">
+              <img src="/images/fivem-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">FiveM (GTA V) Server mieten – Roleplay-Server Hosting Guide 2026</span>
+            </a>
+            <a href="/artikel/gaming-pc-finanzieren.html" class="mega-item">
+              <img src="/images/gaming-pc-finanzieren.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gaming-PC finanzieren – ETF-Entnahme oder Ratenkredit?</span>
+            </a>
+            <a href="/artikel/valheim-server-vps-mieten-2026.html" class="mega-item">
+              <img src="/images/valheim-server-vps-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026</span>
+            </a>
+            <a href="/artikel/gameserver-mieten-guide.html" class="mega-item">
+              <img src="/images/gameserver-mieten-guide.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gameserver mieten 2025 – Der ultimative Guide</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/gaming/">Alle Gaming-Artikel</a></div>
+        </div></div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">🌐 Webhosting</a>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#2196F3">&#9670;</span> A-Z</h4>
+            <a href="/artikel/lamp-stack-vs-lemp-stack-vergleich-2026.html" class="mega-item">
+              <img src="/images/lamp-stack-vs-lemp-stack-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LAMP Stack vs LEMP Stack – Der große Vergleich für dein Webprojekt 2026</span>
+            </a>
+            <a href="/artikel/nginx-vs-apache-webserver-vergleich-2026.html" class="mega-item">
+              <img src="/images/nginx-vs-apache-webserver-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nginx vs. Apache 2026 – Webserver im Vergleich</span>
+            </a>
+            <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="mega-item">
+              <img src="/images/cloud-hosting-vs-shared-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloud Hosting vs. Shared Hosting – Vergleich 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-tunnel-einrichten.html" class="mega-item">
+              <img src="/images/cloudflare-tunnel-einrichten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</span>
+            </a>
+            <a href="/artikel/docker-wordpress-hosten.html" class="mega-item">
+              <img src="/images/docker-wordpress-hosten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WordPress mit Docker hosten – Modernes Setup 2026</span>
+            </a>
+            <a href="/artikel/domain-kaufen-einrichten-2026.html" class="mega-item">
+              <img src="/images/domain-kaufen-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Domain kaufen und einrichten – Schritt-für-Schritt 2026</span>
+            </a>
+            <a href="/artikel/email-server-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/email-server-selbst-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</span>
+            </a>
+            <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html" class="mega-item">
+              <img src="/images/hetzner-cloud-vs-dediziert-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Hetzner Cloud vs. Dedizierter Server – Vergleich 2026</span>
+            </a>
+            <a href="/artikel/mysql-mariadb-optimierung.html" class="mega-item">
+              <img src="/images/mysql-mariadb-optimierung.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">MySQL &amp; MariaDB optimieren – Performance-Guide 2026</span>
+            </a>
+            <a href="/artikel/netcup-vps-erfahrungen-2026.html" class="mega-item">
+              <img src="/images/netcup-vps-erfahrungen-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Netcup VPS Erfahrungen 2026 – Test, Preise &amp; Bewertung</span>
+            </a>
+            <a href="/artikel/nextcloud-server-einrichten.html" class="mega-item">
+              <img src="/images/nextcloud-server-einrichten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nextcloud Server einrichten – Cloud-Speicher selbst hosten 2026</span>
+            </a>
+            <a href="/artikel/plesk-vs-cpanel-vergleich.html" class="mega-item">
+              <img src="/images/plesk-vs-cpanel-vergleich.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Plesk vs. cPanel – Der große Hosting-Panel-Vergleich 2026</span>
+            </a>
+          </div>
+          <div class="mega-column">
+            <h4><span style="color:#2196F3">&#9670;</span> Neueste</h4>
+            <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
+              <img src="/images/ssl-zertifikat-lets-encrypt-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">SSL-Zertifikat mit Let&#39;s Encrypt einrichten – Anleitung 2026</span>
+            </a>
+            <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
+              <img src="/images/webhosting-anbieter-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Die 5 besten Webhosting-Anbieter 2026 im Vergleich</span>
+            </a>
+            <a href="/artikel/webseite-sicherheit-2026.html" class="mega-item">
+              <img src="/images/webseite-sicherheit-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webseite sichern – Security-Checkliste für deine Website 2026</span>
+            </a>
+            <a href="/artikel/website-online-bringen-guide-2026.html" class="mega-item">
+              <img src="/images/website-online-bringen-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webseite online bringen – Der Komplettguide von A bis Z 2026</span>
+            </a>
+            <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
+              <img src="/images/wordpress-hosting-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WordPress Hosting Vergleich 2026 – Die besten Anbieter</span>
+            </a>
+            <a href="/artikel/caddy-web-server-einrichten-2026.html" class="mega-item">
+              <img src="/images/caddy-web-server-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Caddy Web Server einrichten – Moderner Reverse Proxy mit Auto-HTTPS 2026</span>
+            </a>
+            <a href="/artikel/hostinger-review-2026.html" class="mega-item">
+              <img src="/images/hostinger-review-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Hostinger Review 2026 – Webhosting im Test: Preise, Performance &amp; Eignung</span>
+            </a>
+            <a href="/artikel/cloud-vs-dedicated-server-2026.html" class="mega-item">
+              <img src="/images/cloud-vs-dedicated-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloud vs Dedicated Server 2026 – Kosten, Performance &amp; Use Cases</span>
+            </a>
+            <a href="/artikel/webhosting-sicherheit-ddos-schutz-waf-2026.html" class="mega-item">
+              <img src="/images/webhosting-sicherheit-ddos-schutz-waf-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webhosting-Sicherheit: DDoS-Schutz und WAF – Der Guide 2026</span>
+            </a>
+            <a href="/artikel/managed-wordpress-hosting-vergleich-2026.html" class="mega-item">
+              <img src="/images/managed-wordpress-hosting-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Managed WordPress Hosting im Vergleich 2026 – Die besten Anbieter</span>
+            </a>
+            <a href="/artikel/hugo-astro-static-site-vergleich-2026.html" class="mega-item">
+              <img src="/images/hugo-astro-static-site-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Hugo vs. Astro – Static Site Generator Hosting Vergleich 2026</span>
+            </a>
+            <a href="/artikel/webhosting-vserver-vergleich.html" class="mega-item">
+              <img src="/images/webhosting-vserver-vergleich.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webhosting vs. VServer – Was passt zu dir?</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/webhosting/">Alle Webhosting-Artikel</a></div>
+        </div></div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/">⚙️ DevOps</a>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#FF9800">&#9670;</span> A-Z</h4>
+            <a href="/artikel/docker-container-security-best-practices-2026.html" class="mega-item">
+              <img src="/images/docker-container-security-best-practices-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker Container Security – Best Practices und Absicherung für Docker-Container 2026</span>
+            </a>
+            <a href="/artikel/openvpn-server-vps-einrichten-2026.html" class="mega-item">
+              <img src="/images/openvpn-server-vps-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">OpenVPN Server auf VPS einrichten – Schritt-für-Schritt-Anleitung 2026</span>
+            </a>
+            <a href="/artikel/postgresql-vs-mysql-vergleich-2026.html" class="mega-item">
+              <img src="/images/postgresql-vs-mysql-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">PostgreSQL vs. MySQL 2026 – Datenbank-Hosting im Vergleich</span>
+            </a>
+            <a href="/artikel/raspberry-pi-homelab-server-2026.html" class="mega-item">
+              <img src="/images/raspberry-pi-homelab-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Raspberry Pi Homelab 2026 – Heimserver basteln</span>
+            </a>
+            <a href="/artikel/remote-work-tirol.html" class="mega-item">
+              <img src="/images/remote-work-tirol.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Remote Work in den Alpen: Mein Coworking-Setup in Tirol</span>
+            </a>
+            <a href="/artikel/ansible-automation-guide.html" class="mega-item">
+              <img src="/images/ansible-automation-guide.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</span>
+            </a>
+            <a href="/artikel/backup-strategien-vps-server-2026.html" class="mega-item">
+              <img src="/images/backup-strategien-vps-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Backup-Strategien für VPS und Server – Der Guide 2026</span>
+            </a>
+            <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="mega-item">
+              <img src="/images/docker-vs-podman-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</span>
+            </a>
+            <a href="/artikel/elk-stack-log-management.html" class="mega-item">
+              <img src="/images/elk-stack-log-management.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</span>
+            </a>
+            <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="mega-item">
+              <img src="/images/github-actions-ci-cd-pipeline-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</span>
+            </a>
+            <a href="/artikel/gitops-argocd-einrichten.html" class="mega-item">
+              <img src="/images/gitops-argocd-einrichten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</span>
+            </a>
+            <a href="/artikel/k3s-kubernetes-vps-2026.html" class="mega-item">
+              <img src="/images/k3s-kubernetes-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/linux-server-harden.html" class="mega-item">
+              <img src="/images/linux-server-harden.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Linux Server härten – Security-Baseline 2026</span>
+            </a>
+            <a href="/artikel/n8n-automation-server.html" class="mega-item">
+              <img src="/images/n8n-automation-server.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">n8n Automation Server hosten – Workflow-Automatisierung 2026</span>
+            </a>
+            <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" class="mega-item">
+              <img src="/images/nginx-reverse-proxy-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nginx Reverse Proxy konfigurieren – Einsteiger-Guide 2026</span>
+            </a>
+            <a href="/artikel/postgresql-vps-optimierung.html" class="mega-item">
+              <img src="/images/postgresql-vps-optimierung.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">PostgreSQL auf dem VPS optimieren – Tuning-Guide 2026</span>
+            </a>
+            <a href="/artikel/prometheus-grafana-monitoring-2026.html" class="mega-item">
+              <img src="/images/prometheus-grafana-monitoring-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Server Monitoring mit Prometheus &amp; Grafana – Setup 2026</span>
+            </a>
+            <a href="/artikel/terraform-infrastructure-as-code-2026.html" class="mega-item">
+              <img src="/images/terraform-infrastructure-as-code-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Terraform Infrastructure as Code – Einführung &amp; Beispiele 2026</span>
+            </a>
+            <a href="/artikel/traefik-reverse-proxy.html" class="mega-item">
+              <img src="/images/traefik-reverse-proxy.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Traefik Reverse Proxy einrichten – Moderner Docker-Proxy 2026</span>
+            </a>
+            <a href="/artikel/wireguard-vpn-server.html" class="mega-item">
+              <img src="/images/wireguard-vpn-server.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WireGuard VPN Server einrichten – Schnell &amp; Sicher 2026</span>
+            </a>
+            <a href="/artikel/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.html" class="mega-item">
+              <img src="/images/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">OpenRouter API vs. eigene GPU – Kostenvergleich 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-pages-vercel-netlify-vergleich-2026.html" class="mega-item">
+              <img src="/images/cloudflare-pages-vercel-netlify-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare Pages vs Vercel vs Netlify – Static Hosting Vergleich 2026</span>
+            </a>
+            <a href="/artikel/gaestebeitrag-finanz-junkie-server-kosten-investor-guide.html" class="mega-item">
+              <img src="/images/server-kosten-investor-guide.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Server mieten oder kaufen: Die versteckten Kosten der Digitalisierung – Ein Investor-Guide | Gastbeitrag</span>
+            </a>
+            <a href="/artikel/gitlab-ci-cd-pipeline-guide-2026.html" class="mega-item">
+              <img src="/images/gitlab-ci-cd-pipeline-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitLab CI/CD Pipeline einrichten – Schritt-für-Schritt Guide 2026</span>
+            </a>
+            <a href="/artikel/minio-object-storage-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/minio-object-storage-selbst-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">MinIO Object Storage selbst hosten 2026 – S3-kompatibel auf dem VPS</span>
+            </a>
+            <a href="/artikel/proxmox-heimserver-einrichten-2026.html" class="mega-item">
+              <img src="/images/proxmox-heimserver-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Proxmox Heimserver einrichten 2026 – Virtualisierung zuhause Schritt für Schritt</span>
+            </a>
+            <a href="/artikel/vps-mieten-vergleich-2026.html" class="mega-item">
+              <img src="/images/vps-mieten-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS mieten 2026: Die besten Anbieter, Preise &amp; Tipps für Entwickler</span>
+            </a>
+          </div>
+          <div class="mega-column">
+            <h4><span style="color:#FF9800">&#9670;</span> Neueste</h4>
+            <a href="/artikel/istio-service-mesh-2026.html" class="mega-item">
+              <img src="/images/istio-service-mesh-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Istio Service Mesh 2026 – Setup, Traffic Management &amp; mTLS auf Kubernetes</span>
+            </a>
+            <a href="/artikel/quantisierte-modelle-gguf-awq-gptq-exl2-bitsandbytes-2026.html" class="mega-item">
+              <img src="/images/quantisierte-modelle-gguf-awq-gptq-exl2-bitsandbytes-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Quantisierte Modelle: GGUF, AWQ, GPTQ, EXL2, Bitsandbytes – Was ist besser? 2026</span>
+            </a>
+            <a href="/artikel/text-generation-webui-oobabooga-einrichten-2026.html" class="mega-item">
+              <img src="/images/text-generation-webui-oobabooga-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Text Generation WebUI (oobabooga) einrichten – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/dedizierter-server-vs-vps-2026.html" class="mega-item">
+              <img src="/images/dedizierter-server-vs-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Dedizierter Server vs. VPS – Der große Vergleich 2026</span>
+            </a>
+            <a href="/artikel/helm-charts-kubernetes-guide-2026.html" class="mega-item">
+              <img src="/images/helm-charts-kubernetes-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Helm Charts – Kubernetes Package Manager Einführung &amp; Praxis 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-waf-einrichten-2026.html" class="mega-item">
+              <img src="/images/cloudflare-waf-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare WAF einrichten – DDoS-Schutz &amp; Bot-Filter 2026</span>
+            </a>
+            <a href="/artikel/discord-bot-vps-hosten-2026.html" class="mega-item">
+              <img src="/images/discord-bot-vps-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Discord Bot auf VPS hosten – Komplettanleitung 2026</span>
+            </a>
+            <a href="/artikel/jitsi-meet-server-vps-2026.html" class="mega-item">
+              <img src="/images/jitsi-meet-server-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Jitsi Meet Server selbst hosten – Videokonferenzen auf VPS 2026</span>
+            </a>
+            <a href="/artikel/plausible-analytics-vps-2026.html" class="mega-item">
+              <img src="/images/plausible-analytics-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Plausible Analytics – Selbstgehostetes Web-Analytics auf VPS 2026</span>
+            </a>
+            <a href="/artikel/portainer-docker-management-vps-2026.html" class="mega-item">
+              <img src="/images/portainer-docker-management-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Portainer – Docker Management UI auf VPS einrichten 2026</span>
+            </a>
+            <a href="/artikel/ghost-cms-hosting-vps-2026.html" class="mega-item">
+              <img src="/images/ghost-cms-hosting-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ghost CMS Hosting auf VPS 2026 – Blog-Software installieren &amp; betreiben</span>
+            </a>
+            <a href="/artikel/grafana-loki-log-aggregation-vps-2026.html" class="mega-item">
+              <img src="/images/grafana-loki-log-aggregation-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Grafana Loki Log-Aggregation auf VPS 2026 – Installations-Guide</span>
+            </a>
+            <a href="/artikel/lemp-stack-vps-einrichten-2026.html" class="mega-item">
+              <img src="/images/lemp-stack-vps-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LEMP Stack auf VPS einrichten 2026 – Anleitung &amp; Setup</span>
+            </a>
+            <a href="/artikel/redis-cache-vps-einrichten-2026.html" class="mega-item">
+              <img src="/images/uptime-kuma-monitoring-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Redis Cache auf VPS einrichten und optimieren 2026</span>
+            </a>
+            <a href="/artikel/teamspeak-server-mieten-2026.html" class="mega-item">
+              <img src="/images/teamspeak-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">TeamSpeak 3 Server mieten 2026 – Sprachserver für Gamer</span>
+            </a>
+            <a href="/artikel/uptime-kuma-monitoring-einrichten-2026.html" class="mega-item">
+              <img src="/images/uptime-kuma-monitoring-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Uptime Kuma einrichten – Status Pages &amp; Server-Monitoring 2026</span>
+            </a>
+            <a href="/artikel/vaultwarden-passwort-manager-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/vaultwarden-passwort-manager-selbst-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Vaultwarden Passwort-Manager selbst hosten – Sicherer als die Cloud 2026</span>
+            </a>
+            <a href="/artikel/contabo-vps-erfahrungen-2026.html" class="mega-item">
+              <img src="/images/contabo-vps-erfahrungen-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Contabo VPS Erfahrungen 2026 – Test, Preise &amp; Setup-Guide</span>
+            </a>
+            <a href="/artikel/free-llm-benchmark-2026.html" class="mega-item">
+              <img src="/images/free-llm-benchmark-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Free LLMs 2026 – Der ultimative Benchmark: 20 Modelle, 5 Kategorien, 100 Tests</span>
+            </a>
+            <a href="/artikel/gitea-git-server-vps-2026.html" class="mega-item">
+              <img src="/images/gitea-git-server-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gitea – Selfhosted Git-Server auf VPS installieren &amp; betreiben 2026</span>
+            </a>
+            <a href="/artikel/jenkins-ci-cd-pipeline-vps-2026.html" class="mega-item">
+              <img src="/images/jenkins-ci-cd-pipeline-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Jenkins CI/CD Pipeline auf dem VPS – Automatisierte Builds &amp; Deployments 2026</span>
+            </a>
+            <a href="/artikel/vps-anbieter-vergleich-2026.html" class="mega-item">
+              <img src="/images/vps-anbieter-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS-Anbieter Vergleich 2026 – Hetzner, Netcup, Contabo, IONOS im Test</span>
+            </a>
+            <a href="/artikel/webseite-geschwindigkeit-optimieren-2026.html" class="mega-item">
+              <img src="/images/webseite-geschwindigkeit-optimieren-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Website-Geschwindigkeit optimieren – PageSpeed-Guide 2026</span>
+            </a>
+            <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">
+              <img src="/images/docker-compose-vps-guide.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben</span>
+            </a>
+            <a href="/artikel/vps-absichern-2026.html" class="mega-item">
+              <img src="/images/vps-absichern-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</span>
+            </a>
+            <a href="/artikel/devops-tools-2024.html" class="mega-item">
+              <img src="/images/devops-tools-2024.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DevOps-Tools 2024 – Die 10 wichtigsten Tools im Überblick</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/devops/">Alle DevOps-Artikel</a></div>
+        </div></div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/ki-llm/">🤖 KI &amp; LLM</a>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#9C27B0">&#9670;</span> A-Z</h4>
+            <a href="/artikel/llm-lokal-hosten-2026.html" class="mega-item">
+              <img src="/images/llm-lokal-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</span>
+            </a>
+            <a href="/artikel/llama-cpp-cpu-vs-gpu-performance-2026.html" class="mega-item">
+              <img src="/images/llama-cpp-cpu-vs-gpu-performance-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">llama.cpp Performance 2026: CPU vs GPU – Tokens/s, BLAS-Backends &amp; Hardware-Vergleich</span>
+            </a>
+            <a href="/artikel/comfyui-auf-gpu-hosten.html" class="mega-item">
+              <img src="/images/comfyui-auf-gpu-hosten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">ComfyUI auf GPU hosten – Bild-KI Workflows 2026 mit Flux, SDXL &amp; SD3</span>
+            </a>
+            <a href="/artikel/ki-server-sicherheit-llm-api-absichern-2026.html" class="mega-item">
+              <img src="/images/ki-server-sicherheit-llm-api-absichern-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">KI-Server-Sicherheit: LLM API absichern, Rate-Limiting &amp; Monitoring 2026</span>
+            </a>
+            <a href="/artikel/ollama-llm-server-vps-2026.html" class="mega-item">
+              <img src="/images/ollama-llm-server-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ollama LLM Server auf VPS hosten 2026 – Lokale KI-Modelle selbst betreiben</span>
+            </a>
+            <a href="/artikel/runpod-serverless-vs-dedicated-gpu-2026.html" class="mega-item">
+              <img src="/images/runpod-serverless-vs-dedicated-gpu-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">RunPod Serverless vs Dedicated GPU 2026 – Was lohnt sich?</span>
+            </a>
+            <a href="/artikel/vast-ai-gpu-mieten-2026.html" class="mega-item">
+              <img src="/images/vast-ai-gpu-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Vast.ai GPU mieten 2026 – Erfahrungen, Kosten &amp; Tipps</span>
+            </a>
+            <a href="/artikel/ai-agent-frameworks-2026.html" class="mega-item">
+              <img src="/images/ai-agent-frameworks-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">AI Agent Frameworks 2026 – Langchain, CrewAI, AutoGen &amp; OpenHands im Vergleich</span>
+            </a>
+            <a href="/artikel/mistral-modelle-lokal-hosten-2026.html" class="mega-item">
+              <img src="/images/mistral-modelle-lokal-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Mistral Large &amp; Mixtral 8x22B lokal hosten – MoE-Modelle selbst betreiben 2026</span>
+            </a>
+            <a href="/artikel/cloud-gpu-kosten-vergleich-2026.html" class="mega-item">
+              <img src="/images/cloud-gpu-kosten-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloud GPU Kosten 2026 – Alle Anbieter im Preisvergleich (A100, H100, RTX 4090)</span>
+            </a>
+            <a href="/artikel/cuda-rocam-vulkan-lokale-llm-gpu-backend-vergleich-2026.html" class="mega-item">
+              <img src="/images/cuda-rocam-vulkan-lokale-llm-gpu-backend-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">CUDA, ROCm, Vulkan – Was brauchst du für lokale LLMs? GPU-Backend-Vergleich 2026</span>
+            </a>
+            <a href="/artikel/deepseek-r1-v3-lokal-hosten-2026.html" class="mega-item">
+              <img src="/images/deepseek-r1-v3-lokal-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DeepSeek R1 / V3 lokal hosten 2026 – Hardware, Quantisierung &amp; Setup-Guide</span>
+            </a>
+            <a href="/artikel/docker-llm-inference-container.html" class="mega-item">
+              <img src="/images/docker-llm-inference-container.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker-Container für LLM-Inference – Best Practices 2026</span>
+            </a>
+            <a href="/artikel/gpu-fuer-ki-modelle-mieten-2026.html" class="mega-item">
+              <img src="/images/gpu-fuer-ki-modelle-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GPU für KI-Modelle mieten 2026 – A100, H100, RTX 4090 im Vergleich</span>
+            </a>
+          </div>
+          <div class="mega-column">
+            <h4><span style="color:#9C27B0">&#9670;</span> Neueste</h4>
+            <a href="/artikel/gpu-ram-manager-2026.html" class="mega-item">
+              <img src="/images/gpu-ram-manager-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GPU-RAM-Manager 2026 – Welches LLM passt auf deine GPU? VRAM-Rechner &amp; Entscheidungsmatrix</span>
+            </a>
+            <a href="/artikel/llama-3-3-4-lokal-hosten-2026.html" class="mega-item">
+              <img src="/images/llama-3-3-4-lokal-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Llama 3.3 &amp; Llama 4 lokal hosten – Setup, Quantisierung &amp; Performance 2026</span>
+            </a>
+            <a href="/artikel/llm-fine-tuning-runpod-vastai-2026.html" class="mega-item">
+              <img src="/images/llm-fine-tuning-runpod-vastai-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LLM Fine-Tuning auf gemieteten GPUs 2026 – LoRA, QLoRA &amp; Full-Tuning auf RunPod &amp; Vast.ai</span>
+            </a>
+            <a href="/artikel/llm-frontends-vergleich-2026.html" class="mega-item">
+              <img src="/images/llm-frontends-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LLM-Frontends 2026 lokal hosten: Open WebUI, Jan, LobeChat, AnythingLLM, Big-AGI im Vergleich</span>
+            </a>
+            <a href="/artikel/nvidia-jetson-ki-am-edge-llm-embedded-2026.html" class="mega-item">
+              <img src="/images/nvidia-jetson-ki-am-edge-llm-embedded-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">NVIDIA Jetson für KI am Edge 2026 – LLMs auf embedded Hardware</span>
+            </a>
+            <a href="/artikel/ollama-vs-vllm-vs-lm-studio-2026.html" class="mega-item">
+              <img src="/images/ollama-vs-vllm-vs-lm-studio-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ollama vs vLLM vs LM Studio – LLM-Server-Software 2026 im Vergleich</span>
+            </a>
+            <a href="/artikel/open-webui-ollama-betreiben-2026.html" class="mega-item">
+              <img src="/images/open-webui-ollama-betreiben-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Open WebUI mit Ollama betreiben – Der bessere ChatGPT-Klon 2026</span>
+            </a>
+            <a href="/artikel/tabbyapi-aphrodite-sglang-llm-server-2026.html" class="mega-item">
+              <img src="/images/tabbyapi-aphrodite-sglang-llm-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">TabbyAPI, Aphrodite &amp; SGLang – Neue LLM-Server 2026 im Vergleich</span>
+            </a>
+            <a href="/artikel/vllm-auf-eigener-gpu-aufsetzen.html" class="mega-item">
+              <img src="/images/vllm-auf-eigener-gpu-aufsetzen.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention</span>
+            </a>
+            <a href="/artikel/vllm-multi-model-server-2026.html" class="mega-item">
+              <img src="/images/vllm-multi-model-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">KI-Server mit mehreren Modellen gleichzeitig betreiben – vLLM + Open WebUI 2026</span>
+            </a>
+            <a href="/artikel/ki-im-devops-einsatz-2026.html" class="mega-item">
+              <img src="/images/ki-im-devops-einsatz-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">KI im DevOps-Einsatz 2026 – Automatisierung, Monitoring &amp; LLM-Integration</span>
+            </a>
+            <a href="/artikel/llm-sicherheit-prompt-injection-schutz-2026.html" class="mega-item">
+              <img src="/images/llm-sicherheit-prompt-injection-schutz-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LLM-Sicherheit und Prompt-Injection – Schutzmaßnahmen 2026</span>
+            </a>
+            <a href="/artikel/ki-gestuetzte-code-reviews-praxis-2026.html" class="mega-item">
+              <img src="/images/ki-gestuetzte-code-reviews-praxis-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">KI-gestützte Code-Reviews in der Praxis – Tools &amp; Workflows 2026</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/ki-llm/">Alle KI &amp; LLM-Artikel</a></div>
+        </div></div>
+      </li>
+      <li><a href="/about.html">&#220;ber</a></li>
+    </ul>
+  </div>
+</nav>
+<main class="article-page">
+  <div class="container">
+    <div class="article-meta-top">
+      <span class="card-tag devops">DevOps</span>
+      <span>8 Min Lesezeit</span>
+    </div>
+    <h1>GitHub Actions Self-Hosted Runner auf VPS betreiben 2026</h1>
+<h2>Warum Self-Hosted Runner auf einem VPS?</h2>
+<p>GitHub-hosted Runner sind bequem, aber sie haben drei harte Grenzen: Preis, Hardware und Kontrolle. Sobald deine Pipeline regelmäßig über 2.000 Minuten pro Monat läuft, wird die Abrechnung nach Minuten teuer. Ein 8-vCPU-Linux-Runner kostet bei GitHub Actions <strong>0,032 USD pro Minute</strong> – bei 10.000 Minuten sind das 320 USD monatlich. Ein vergleichbarer VPS mit 8 vCPU liegt bei Hetzner oder Netcup eher bei 15 bis 25 Euro im Monat, und du bezahlst unabhängig von der Laufzeit.</p>
+<p>Der zweite Punkt ist die Hardware. GitHub-hosted Runner sind generische Standard-VMs ohne AVX-512-Tuning, ohne dedizierte NVMe und ohne Kontrolle über die CPU-Generation. Für Builds mit großen Docker-Layern, Rust-Kompilierung oder Machine-Learning-Tests ist das oft der Flaschenhals. Auf einem dedizierten VPS (z. B. Hetzner CCX-Serie) bekommst du garantierte vCPU-Kerne statt geteilter Burst-Kerne.</p>
+<p>Der dritte Punkt ist die Netzwerk- und Datenkontrolle. Self-Hosted Runner können auf interne Datenbanken, private Registries oder ein lokales Kubernetes-Cluster zugreifen, ohne dass du alles über das öffentliche Internet exponierst. Das ist besonders für Staging-Deployments und Integrationstests relevant.</p>
+<p>Die Kehrseite: Du bist selbst für Updates, Sicherheit, Monitoring und Ausfälle verantwortlich. Dieser Guide zeigt dir den kompletten Weg von der VPS-Bestellung bis zum gehärteten, ephemeren Runner-Fleet.</p>
+
+<h2>VPS-Auswahl: Specs, Anbieter und Preise 2026</h2>
+<p>Für CI/CD zählt vor allem Single-Core-Leistung und schnelle NVMe-I/O. Viele kleine Kerne bringen bei npm- oder Maven-Builds weniger als wenige schnelle Kerne. Als Faustregel gilt: <strong>ein vCPU-Kern pro parallelem Job</strong>, plus 1 bis 2 GB RAM pro Job.</p>
+<table>
+<thead><tr><th>Anbieter / Typ</th><th>vCPU</th><th>RAM</th><th>NVMe</th><th>Preis/Monat (ca.)</th></tr></thead>
+<tbody>
+<tr><td>Hetzner CX22</td><td>2 (shared)</td><td>4 GB</td><td>40 GB</td><td>3,79 €</td></tr>
+<tr><td>Hetzner CPX31</td><td>4 (AMD shared)</td><td>8 GB</td><td>160 GB</td><td>13,60 €</td></tr>
+<tr><td>Hetzner CX42</td><td>8 (shared)</td><td>16 GB</td><td>160 GB</td><td>16,40 €</td></tr>
+<tr><td>Hetzner CCX23</td><td>4 (dedicated)</td><td>16 GB</td><td>80 GB</td><td>24,90 €</td></tr>
+<tr><td>Netcup VPS 2000 G11</td><td>8 (shared)</td><td>8 GB</td><td>160 GB</td><td>11,99 €</td></tr>
+</tbody>
+</table>
+<p>Für die meisten Teams ist ein <strong>CX42 oder CPX31</strong> der Sweet Spot. Bei sehr großen Repos mit parallelen Matrix-Builds lohnt sich die dedizierte CCX-Serie, weil du dort keine Steal-Time durch Nachbarn hast. Achte auf unbegrenzten Traffic oder mindestens 20 TB Inklusivvolumen – Docker-Pulls und Cache-Uploads summieren sich schnell.</p>
+<p>Wichtig: Wähle den Standort nahe an deinen Deploy-Zielen und an den GitHub-Servern. GitHub betreibt Actions-Infrastruktur primär in Azure-Regionen in den USA und Europa. Ein VPS in Falkenstein oder Nürnberg liefert typischerweise 15–30 ms Latenz zu api.github.com – völlig ausreichend, da der Runner-Client die Jobs pollt.</p>
+
+<h2>Server vorbereiten: Ubuntu 24.04 LTS härten</h2>
+<p>Ich gehe von einem frischen Ubuntu 24.04 LTS aus. Erste Schritte als root:</p>
+<pre><code>apt update &amp;&amp; apt upgrade -y
+apt install -y curl git jq unzip build-essential ca-certificates gnupg lsb-release ufw
+timedatectl set-timezone Europe/Berlin
+
+# Swap anlegen (wichtig bei 4 GB RAM)
+fallocate -l 2G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+echo '/swapfile none swap sw 0 0' &gt;&gt; /etc/fstab</code></pre>
+<p>Dann Docker installieren – die meisten modernen Pipelines brauchen es ohnehin:</p>
+<pre><code>install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release &amp;&amp; echo $VERSION_CODENAME) stable" &gt; /etc/apt/sources.list.d/docker.list
+apt update
+apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin</code></pre>
+<p>Lege einen dedizierten, unprivilegierten Benutzer für den Runner an und gib ihm Docker-Rechte. Der Docker-Socket ist faktisch root-äquivalent – deshalb niemals den Runner als root laufen lassen.</p>
+<pre><code>useradd -m -s /bin/bash runner
+usermod -aG docker runner</code></pre>
+<p>Zum Schluss die Firewall. Der Runner benötigt <strong>keine eingehenden Ports</strong> – er baut ausschließlich ausgehende HTTPS-Verbindungen auf.</p>
+<pre><code>ufw default deny incoming
+ufw default allow outgoing
+ufw allow 22/tcp
+ufw enable</code></pre>
+
+<h2>Runner installieren und registrieren</h2>
+<p>Als Benutzer <code>runner</code> anmelden und das aktuelle Runner-Paket herunterladen. Prüfe vorher die neueste Version im <code>actions/runner</code>-Repository – zum Redaktionszeitpunkt war 2.321.0 aktuell.</p>
+<pre><code>su - runner
+mkdir -p ~/actions-runner &amp;&amp; cd ~/actions-runner
+RUNNER_VERSION=2.321.0
+curl -o actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz -L \
+  https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz
+tar xzf ./actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz</code></pre>
+<p>Für die Registrierung brauchst du ein Token. Das lässt sich über die GitHub-API mit einem Personal Access Token (Scope <code>repo</code> bzw. <code>administration</code>) erzeugen:</p>
+<pre><code>curl -sX POST -H "Authorization: Bearer $GH_PAT" \
+  -H "Accept: application/vnd.github+json" \
+  https://api.github.com/repos/OWNER/REPO/actions/runners/registration-token | jq -r .token</code></pre>
+<p>Jetzt konfigurierst du den Runner. Wichtig ist <code>--unattended</code> für Skripting und <code>--replace</code>, damit ein gleichnamiger alter Eintrag überschrieben wird:</p>
+<pre><code>./config.sh \
+  --url https://github.com/OWNER/REPO \
+  --token $REG_TOKEN \
+  --name hetzner-cx42-01 \
+  --labels self-hosted,linux,x64,hetzner-cx42,fast \
+  --work _work \
+  --unattended \
+  --replace</code></pre>
+<p>Für Organisationen nutzt du <code>--url https://github.com/ORG</code> und den Endpoint <code>/orgs/ORG/actions/runners/registration-token</code>. Org-weite Runner sind meist sinnvoller, weil du sie über Runner-Groups auf Repositories einschränken kannst.</p>
+
+<h2>Runner als systemd-Service betreiben</h2>
+<p>Ein per <code>./run.sh</code> gestarteter Runner stirbt bei SSH-Trennung oder Reboot. Nutze deshalb den mitgelieferten <code>svc.sh</code>-Wrapper, der eine systemd-Unit erzeugt:</p>
+<pre><code>sudo ./svc.sh install runner
+sudo ./svc.sh start
+sudo ./svc.sh status</code></pre>
+<p>Die Unit heißt nach dem Muster <code>actions.runner.OWNER-REPO.hetzner-cx42-01.service</code>. Prüfen mit:</p>
+<pre><code>systemctl status actions.runner.OWNER-REPO.hetzner-cx42-01.service
+journalctl -u actions.runner.OWNER-REPO.hetzner-cx42-01.service -f</code></pre>
+<p>Ergänze in der Unit-Datei unter <code>/etc/systemd/system/</code> ein paar Ressourcen-Limits, damit ein entgleister Build nicht den ganzen VPS lahmlegt:</p>
+<pre><code>[Service]
+MemoryMax=12G
+CPUQuota=750%
+TasksMax=4096</code></pre>
+<p>Nach Änderungen <code>sudo systemctl daemon-reload &amp;&amp; sudo systemctl restart actions.runner.*</code> ausführen. Bei mehreren Runnern auf einer Maschine lohnt sich ein Templating-Skript, das Name, Labels und Arbeitsverzeichnis pro Instanz setzt.</p>
+
+<h2>Mehrere Runner, Labels und Runner-Groups</h2>
+<p>Ein einzelner Runner verarbeitet genau einen Job gleichzeitig. Für parallele Workflows betreibst du entweder mehrere Runner-Prozesse auf demselben VPS (jeweils eigenes Verzeichnis und eigener Service) oder skalierst horizontal über mehrere VPS.</p>
+<p>Labels sind der Schlüssel für gezieltes Routing. Vergib sprechende Labels wie <code>fast</code>, <code>gpu</code>, <code>arm64</code> oder <code>internal-network</code> und referenziere sie im Workflow:</p>
+<pre><code>jobs:
+  test:
+    runs-on: [self-hosted, linux, x64, fast]</code></pre>
+<p>Runner-Groups (nur auf Org- und Enterprise-Ebene) erlauben dir, den Zugriff auf bestimmte Repositories zu beschränken. Das ist die wichtigste Absicherung gegen ungewollte Job-Ausführung aus fremden Repos. Lege mindestens zwei Groups an: <code>trusted</code> für Produktions-Deployments und <code>sandbox</code> für experimentelle Repos.</p>
+<p>Für große Setups lohnt sich <strong>Actions Runner Controller (ARC)</strong> auf Kubernetes oder die neueren <em>GitHub Actions Runner Scale Sets</em>. Damit skalierst du Runner-Pods bedarfsgesteuert auf null herunter und zahlst nur, wenn Jobs laufen. Für ein einzelnes Team mit einem VPS ist das Overkill – der manuelle Ansatz ist günstiger und transparenter.</p>
+
+<h2>Docker, Docker-in-Docker und Container-Jobs</h2>
+<p>Da der Runner direkt auf der VM läuft, hat er nativen Zugriff auf den Docker-Daemon. Container-Jobs funktionieren trotzdem, aber du musst den Socket in den Job-Container mounten:</p>
+<pre><code>jobs:
+  build:
+    runs-on: [self-hosted, linux, x64]
+    container:
+      image: node:22-bookworm
+      options: --user root -v /var/run/docker.sock:/var/run/docker.sock
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci &amp;&amp; npm test</code></pre>
+<p>Der Socket-Mount ist praktisch, aber ein Sicherheitsrisiko: Jeder Job kann damit beliebige Container mit Root-Rechten starten. Wenn du untrusted Code ausführst, nutze stattdessen <strong>Rootless Docker</strong> oder einen Docker-in-Docker-Sidecar mit eigenem Daemon.</p>
+<p>Für BuildKit-Beschleunigung aktiviere den <code>docker-container</code>-Driver und einen persistenten Build-Cache:</p>
+<pre><code>docker buildx create --name builder --driver docker-container --use
+docker buildx inspect --bootstrap</code></pre>
+<p>Ein <code>--cache-from type=local,src=/home/runner/.buildx-cache</code> plus <code>--cache-to type=local,dest=/home/runner/.buildx-cache-new,mode=max</code> reduziert Build-Zeiten bei großen Images oft um 60 bis 80 Prozent. Das ist der größte Einzelvorteil gegenüber GitHub-hosted Runnern, die bei jedem Job bei null anfangen.</p>
+
+<h2>Caching und Build-Performance</h2>
+<p>Persistenter Cache ist der Killer-Feature von Self-Hosted Runnern. Während GitHub-hosted Runner bei jedem Job eine leere VM bekommen, bleibt dein Cache auf der NVMe liegen.</p>
+<pre><code>- uses: actions/cache@v4
+  with:
+    path: |
+      ~/.npm
+      ~/.cache/pip
+      ~/.cargo/registry
+      ~/.m2/repository
+    key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/Cargo.lock') }}
+    restore-keys: |
+      ${{ runner.os }}-</code></pre>
+<p>Für kompilierte Sprachen bringt ein Compiler-Cache mehr als der Dependency-Cache. Bei Rust ist <code>sccache</code> mit S3-Backend oder lokalem Verzeichnis Pflicht, bei C/C++ <code>ccache</code>, bei Java der Gradle Build Cache.</p>
+<ul>
+<li><strong>npm:</strong> <code>npm ci --prefer-offline --no-audit</code> mit warmem <code>~/.npm</code>-Cache spart 40–70 %.</li>
+<li><strong>Rust:</strong> <code>sccache</code> plus <code>CARGO_INCREMENTAL=0</code> und <code>RUSTFLAGS="-C target-cpu=native"</code>.</li>
+<li><strong>Docker:</strong> BuildKit mit lokalem Cache-Backend, siehe oben.</li>
+<li><strong>Python:</strong> <code>uv</code> statt <code>pip</code> – 10- bis 20-fach schneller bei der Auflösung.</li>
+</ul>
+<p>Setze außerdem <code>actions/checkout@v4</code> mit <code>fetch-depth: 1</code>, außer du brauchst die Git-Historie. Bei monorepo-artigen Repos kann ein flacher Clone mehrere Sekunden sparen.</p>
+
+<h2>Sicherheit: Ephemeral Runner, OIDC und Netzwerk-Isolation</h2>
+<p>GitHub selbst warnt davor, Self-Hosted Runner in <strong>öffentlichen Repositories</strong> einzusetzen. Der Grund: Pull Requests von Forks können beliebigen Code auf deiner Maschine ausführen. Wenn du das trotzdem brauchst, gibt es nur einen vertretbaren Weg – <strong>ephemere Runner</strong>, die nach genau einem Job zerstört werden.</p>
+<pre><code>./config.sh --url https://github.com/OWNER/REPO \
+  --token $REG_TOKEN \
+  --name ephemeral-$RANDOM \
+  --ephemeral \
+  --unattended --replace</code></pre>
+<p>Der Runner meldet sich nach dem Job automatisch ab. Du kombinierst das mit einem Skript, das den Container oder die VM danach neu erstellt. Auf einem VPS lässt sich das mit einem systemd-Timer oder einem kleinen Go-/Python-Wrapper realisieren, der den Runner-Prozess nach jedem Job neu startet.</p>
+<p>Für Cloud-Deployments solltest du <strong>keine langfristigen Zugangsdaten</strong> auf dem VPS speichern. Nutze OIDC-Federation:</p>
+<pre><code>permissions:
+  id-token: write
+  contents: read
+
+steps:
+  - uses: aws-actions/configure-aws-credentials@v4
+    with:
+      role-to-assume: arn:aws:iam::123456789012:role/github-actions
+      aws-region: eu-central-1</code></pre>
+<p>Damit erhält der Job temporäre Credentials, die nach der Laufzeit verfallen. Ein kompromittierter Runner hat so keinen Zugriff auf dauerhafte Secrets. Ergänzend: Secrets niemals in <code>~/.env</code> oder Shell-History ablegen, sondern ausschließlich über GitHub Secrets und Masking.</p>
+<p>Netzwerkseitig gilt: Der VPS sollte keine eingehenden Verbindungen außer SSH akzeptieren. Wenn der Runner auf interne Systeme zugreifen muss, spanne ein WireGuard-Netz auf und route nur die nötigen Subnetze.</p>
+
+<h2>Monitoring, Updates und Wartung</h2>
+<p>Ein Runner, der stumm stirbt, kostet dich Stunden. Installiere <code>node_exporter</code> und <code>cadvisor</code> und scrape sie mit Prometheus. Die wichtigsten Metriken sind Disk-Füllstand (Docker-Images fressen schnell 100 GB), Load Average und die Anzahl wartender Jobs.</p>
+<pre><code># Docker-Aufräumen per Cron
+docker system prune -af --filter "until=168h"
+docker builder prune -af --filter "until=168h"</code></pre>
+<p>Runner-Updates sind manuell. Der Ablauf: Service stoppen, neue Version entpacken, <code>./config.sh remove --token $REMOVE_TOKEN</code>, neu konfigurieren, Service starten. Automatisiere das mit einem Ansible-Playbook oder einem kleinen Skript, das die Version aus der GitHub-API liest.</p>
+<p>Logs liegen unter <code>_diag/</code> im Runner-Verzeichnis. Bei hängenden Jobs hilft <code>journalctl -u actions.runner.* -n 200</code>. Richte einen Alert ein, wenn der Runner länger als 10 Minuten keinen Heartbeat sendet – in der GitHub-UI siehst du den Status unter <em>Settings → Actions → Runners</em>.</p>
+<p>Plane außerdem regelmäßige Reboots ein. Kernel-Updates, Docker-Daemon-Neustarts und Speicherfragmentierung machen einen wöchentlichen Reboot zur günstigsten Wartungsmaßnahme überhaupt.</p>
+
+<h2>Kostenvergleich: GitHub-hosted vs. Self-Hosted</h2>
+<p>GitHub berechnet Linux-Runner ab 2026 mit 0,008 USD/Minute (2 vCPU), 0,016 USD (4 vCPU), 0,032 USD (8 vCPU) und 0,064 USD (16 vCPU). Inklusivminuten: 2.000 bei Free, 3.000 bei Pro/Team, 50.000 bei Enterprise Cloud. Öffentliche Repositories erhalten weiterhin unbegrenzte kostenlose Minuten auf Standard-Runnern.</p>
+<table>
+<thead><tr><th>Nutzung pro Monat</th><th>GitHub-hosted</th><th>Self-Hosted VPS</th><th>Ersparnis</th></tr></thead>
+<tbody>
+<tr><td>2 vCPU, 1.000 min</td><td>8,00 USD</td><td>~3,79 € (CX22)</td><td>~55 %</td></tr>
+<tr><td>4 vCPU, 5.000 min</td><td>80,00 USD</td><td>~6,80 € (CX32)</td><td>~92 %</td></tr>
+<tr><td>8 vCPU, 10.000 min</td><td>320,00 USD</td><td>~16,40 € (CX42)</td><td>~95 %</td></tr>
+<tr><td>16 vCPU, 20.000 min</td><td>1.280,00 USD</td><td>~50–60 € (CCX43)</td><td>~96 %</td></tr>
+</tbody>
+</table>
+<p>Die Rechnung ignoriert allerdings deine Arbeitszeit. Rechne mit 4 bis 8 Stunden initialem Setup und danach 1 bis 2 Stunden Wartung pro Monat. Ab etwa 3.000 Minuten monatlicher Nutzung oder bei spezieller Hardware (GPU, ARM, viel RAM) kippt die Rechnung klar zugunsten von Self-Hosted.</p>
+<p>Ein Hybrid-Modell ist oft optimal: Self-Hosted Runner für die schweren, regelmäßigen Builds, GitHub-hosted Runner als Fallback für seltene Matrix-Jobs oder wenn der VPS ausfällt. Definiere im Workflow <code>runs-on: [self-hosted, linux, x64]</code> und halte zusätzlich einen GitHub-hosted Workflow für Notfälle bereit.</p>
+
+<h2>FAQ</h2>
+<h3>Braucht mein VPS offene Ports für den GitHub Actions Runner?</h3>
+<p>Nein. Der Runner-Client arbeitet rein ausgehend: Er pollt regelmäßig <code>api.github.com</code> und den Actions-Service über HTTPS (Port 443) nach neuen Jobs. Du musst lediglich ausgehenden Verkehr erlauben. Eingehend reicht SSH auf einem Nicht-Standard-Port, idealerweise abgesichert per Fail2ban und Key-Auth.</p>
+<h3>Kann ich Self-Hosted Runner in einem öffentlichen Repository nutzen?</h3>
+<p>Technisch ja, sicherheitstechnisch nur mit ephemeren Runnern und strikter Isolation. Fork-Pull-Requests können beliebigen Code ausführen. GitHub empfiehlt ausdrücklich, Self-Hosted Runner nicht für öffentliche Repos zu verwenden. Wenn es unvermeidbar ist: ephemerer Runner pro Job, kein Zugriff auf interne Netze, keine langlebigen Secrets, und der Runner läuft in einer Wegwerf-VM oder einem Container mit eingeschränkten Rechten.</p>
+<h3>Wie viele Runner kann ich auf einem VPS betreiben?</h3>
+<p>Als Faustregel einen Runner-Prozess pro vCPU, wenn die Jobs CPU-intensiv sind, und einen pro 2 GB RAM, wenn sie speicherhungrig sind. Auf einem 8-vCPU/16-GB-VPS laufen typischerweise 4 bis 6 parallele Runner zuverlässig. Beobachte Load Average und <code>docker stats</code> – ab Load 1,0 pro Kern warten die Jobs länger als sie rechnen.</p>
+<h3>Was passiert, wenn der VPS oder Runner ausfällt?</h3>
+<p>Laufende Jobs brechen ab und werden in der GitHub-UI als fehlgeschlagen markiert. Der Runner verschwindet nach etwa 10 bis 15 Minuten aus der Runner-Liste, sofern kein Heartbeat mehr eintrifft. Richte einen zweiten VPS als Standby ein oder definiere einen Fallback-Workflow auf GitHub-hosted Runnern, damit kritische Deployments nicht blockiert werden.</p>
+<h3>Funktionieren auch ARM64- oder GPU-Runner self-hosted?</h3>
+<p>Ja, und das ist einer der stärksten Gründe für Self-Hosted. GitHub bietet ARM-Runner nur eingeschränkt und GPU-Runner gar nicht. Ein Hetzner CAX21 (ARM64, 4 vCPU, 8 GB) kostet rund 7 Euro im Monat und beschleunigt Multi-Arch-Builds erheblich. Für GPU-Workloads mietest du einen dedizierten Server mit NVIDIA-Karte und installierst den Runner wie oben beschrieben – achte nur darauf, dass der Benutzer <code>runner</code> in der <code>video</code>- und <code>render</code>-Gruppe ist.</p>
+
+<section class="related-section">
+  <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>
+  <div class="related-grid">
+    <article class="blog-card">
+  <a href="/artikel/docker-compose-vs-kubernetes-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/docker-compose-vs-kubernetes-2026.webp" alt="Docker Compose vs. Kubernetes 2026 – Wann sich was lohnt" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>19. September 2026</span>
+      <span>10 Min</span>
+    </div>
+    <h3><a href="/artikel/docker-compose-vs-kubernetes-2026.html">Docker Compose vs. Kubernetes 2026 – Wann sich was lohnt</a></h3>
+    <p class="card-excerpt">Docker Compose vs. Kubernetes 2026: Kosten, Komplexität und Skalierung im direkten Vergleich – mit Entscheidungsmatrix, Preisen und Praxisbeispielen.</p>
+    <div class="card-footer">
+      <a href="/artikel/docker-compose-vs-kubernetes-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/borgbackup-vs-restic-for-vps-which-one-actually-saves-your-bacon-in-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/borgbackup-vs-restic-for-vps-which-one-actually-saves-your-bacon-in-2026.webp" alt="BorgBackup vs. Restic for VPS: Which One Actually Saves Your Bacon in 2026?" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>23. June 2026</span>
+      <span>7 Min</span>
+    </div>
+    <h3><a href="/artikel/borgbackup-vs-restic-for-vps-which-one-actually-saves-your-bacon-in-2026.html">BorgBackup vs. Restic for VPS: Which One Actually Saves Your Bacon in 2026?</a></h3>
+    <p class="card-excerpt">BorgBackup vs. Restic for VPS: Which One Actually Saves Your Bacon in 2026? - Ein ausführlicher Artikel auf hostazar.com</p>
+    <div class="card-footer">
+      <a href="/artikel/borgbackup-vs-restic-for-vps-which-one-actually-saves-your-bacon-in-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/ipv6-only-vps-in-2026-breaking-free-from-legacy-ipv4-without-losing-reach.html" class="card-img-link">
+    <div class="card-img"><img src="/images/ipv6-only-vps-in-2026-breaking-free-from-legacy-ipv4-without-losing-reach.webp" alt="IPv6-Only VPS in 2026: Breaking Free From Legacy IPv4 Without Losing Reach" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>23. June 2026</span>
+      <span>9 Min</span>
+    </div>
+    <h3><a href="/artikel/ipv6-only-vps-in-2026-breaking-free-from-legacy-ipv4-without-losing-reach.html">IPv6-Only VPS in 2026: Breaking Free From Legacy IPv4 Without Losing Reach</a></h3>
+    <p class="card-excerpt">IPv6-Only VPS in 2026: Breaking Free From Legacy IPv4 Without Losing Reach - Ein ausführlicher Artikel auf hostazar.com</p>
+    <div class="card-footer">
+      <a href="/artikel/ipv6-only-vps-in-2026-breaking-free-from-legacy-ipv4-without-losing-reach.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/migrating-from-docker-compose-to-kubernetes-in-2026-when-its-worth-the-pain-and-.html" class="card-img-link">
+    <div class="card-img"><img src="/images/migrating-from-docker-compose-to-kubernetes-in-2026-when-its-worth-the-pain-and-.webp" alt="Migrating from Docker Compose to Kubernetes in 2026: When It's Worth the Pain and When It Isn't" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>23. June 2026</span>
+      <span>9 Min</span>
+    </div>
+    <h3><a href="/artikel/migrating-from-docker-compose-to-kubernetes-in-2026-when-its-worth-the-pain-and-.html">Migrating from Docker Compose to Kubernetes in 2026: When It's Worth the Pain and When It Isn't</a></h3>
+    <p class="card-excerpt">Migrating from Docker Compose to Kubernetes in 2026: When It's Worth the Pain and When It Isn't - Ein ausführlicher Artikel auf hostazar.com</p>
+    <div class="card-footer">
+      <a href="/artikel/migrating-from-docker-compose-to-kubernetes-in-2026-when-its-worth-the-pain-and-.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/postgresql-connection-poolers-in-2026-pgbouncer-vs-pgpool-ii-on-a-single-vps.html" class="card-img-link">
+    <div class="card-img"><img src="/images/postgresql-connection-poolers-in-2026-pgbouncer-vs-pgpool-ii-on-a-single-vps.webp" alt="PostgreSQL Connection Poolers in 2026: PgBouncer vs. Pgpool-II on a Single VPS" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>23. June 2026</span>
+      <span>9 Min</span>
+    </div>
+    <h3><a href="/artikel/postgresql-connection-poolers-in-2026-pgbouncer-vs-pgpool-ii-on-a-single-vps.html">PostgreSQL Connection Poolers in 2026: PgBouncer vs. Pgpool-II on a Single VPS</a></h3>
+    <p class="card-excerpt">PostgreSQL Connection Poolers in 2026: PgBouncer vs. Pgpool-II on a Single VPS - Ein ausführlicher Artikel auf hostazar.com</p>
+    <div class="card-footer">
+      <a href="/artikel/postgresql-connection-poolers-in-2026-pgbouncer-vs-pgpool-ii-on-a-single-vps.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/vps-docker-registry-eigenen-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/vps-docker-registry-eigenen-2026.webp" alt="Eigene Docker Registry auf VPS betreiben – Guide 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>22. June 2026</span>
+      <span>13 Min</span>
+    </div>
+    <h3><a href="/artikel/vps-docker-registry-eigenen-2026.html">Eigene Docker Registry auf VPS betreiben – Guide 2026</a></h3>
+    <p class="card-excerpt">Wer regelmäßig mit Container-Images arbeitet, stößt mit dem öffentlichen Docker Hub schnell an Grenzen. Die kostenlose Variante erlaubt nur 200 Pulls pro 6 Stun</p>
+    <div class="card-footer">
+      <a href="/artikel/vps-docker-registry-eigenen-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+  </div>
+</section>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>hostazar.com</h4>
+        <p style="color:var(--text-muted);font-size:.85rem;max-width:300px">
+          Unabh&#228;ngige Hosting-Reviews, Gameserver-Guides und DevOps-Tutorials. Transparent, recherchiert und praxisnah, finanziert durch Affiliate-Links und Anzeigen.
+        </p>
+      </div>
+      <div class="footer-links-columns"><h5>Gaming</h5>
+        <a href="/artikel/7-days-to-die-server-hosten-2026.html">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</a>
+        <a href="/artikel/ark-survival-ascended-server-hosten-2026.html">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2026</a>
+        <a href="/artikel/conan-exiles-server-hosten.html">Conan Exiles Server mieten – Setup &amp; Kosten 2026</a>
+        <a href="/artikel/cs2-server-mieten-guide-2026.html">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</a>
+        <a href="/artikel/dayz-server-mieten-2026.html">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</a>
+        <a href="/gaming/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>Webhosting</h5>
+        <a href="/artikel/lamp-stack-vs-lemp-stack-vergleich-2026.html">LAMP Stack vs LEMP Stack – Der große Vergleich für dein Webprojekt 2026</a>
+        <a href="/artikel/nginx-vs-apache-webserver-vergleich-2026.html">Nginx vs. Apache 2026 – Webserver im Vergleich</a>
+        <a href="/artikel/cloud-hosting-vs-shared-hosting.html">Cloud Hosting vs. Shared Hosting – Vergleich 2026</a>
+        <a href="/artikel/cloudflare-tunnel-einrichten.html">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</a>
+        <a href="/artikel/docker-wordpress-hosten.html">WordPress mit Docker hosten – Modernes Setup 2026</a>
+        <a href="/webhosting/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>DevOps</h5>
+        <a href="/artikel/docker-container-security-best-practices-2026.html">Docker Container Security – Best Practices und Absicherung für Docker-Container 2026</a>
+        <a href="/artikel/openvpn-server-vps-einrichten-2026.html">OpenVPN Server auf VPS einrichten – Schritt-für-Schritt-Anleitung 2026</a>
+        <a href="/artikel/postgresql-vs-mysql-vergleich-2026.html">PostgreSQL vs. MySQL 2026 – Datenbank-Hosting im Vergleich</a>
+        <a href="/artikel/raspberry-pi-homelab-server-2026.html">Raspberry Pi Homelab 2026 – Heimserver basteln</a>
+        <a href="/artikel/remote-work-tirol.html">Remote Work in den Alpen: Mein Coworking-Setup in Tirol</a>
+        <a href="/devops/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>KI &amp; LLM</h5>
+        <a href="/artikel/llm-lokal-hosten-2026.html">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</a>
+        <a href="/artikel/llama-cpp-cpu-vs-gpu-performance-2026.html">llama.cpp Performance 2026: CPU vs GPU – Tokens/s, BLAS-Backends &amp; Hardware-Vergleich</a>
+        <a href="/artikel/comfyui-auf-gpu-hosten.html">ComfyUI auf GPU hosten – Bild-KI Workflows 2026 mit Flux, SDXL &amp; SD3</a>
+        <a href="/artikel/ki-server-sicherheit-llm-api-absichern-2026.html">KI-Server-Sicherheit: LLM API absichern, Rate-Limiting &amp; Monitoring 2026</a>
+        <a href="/artikel/ollama-llm-server-vps-2026.html">Ollama LLM Server auf VPS hosten 2026 – Lokale KI-Modelle selbst betreiben</a>
+        <a href="/ki-llm/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 hostazar.com</span>
+      <span>
+        <a href="/impressum.html">Impressum</a> &middot;
+        <a href="/datenschutz.html">Datenschutz</a> <a href="/datenschutz.html">Datenschutz</a>middot;
+        <a href="#" onclick="window.hzReopenBanner();return false;">Cookie-Einstellungen</a>
+      </span>
+    </div>
+    <div class="affiliate-note">
+      * Affiliate-Links: Wir erhalten ggf. eine Provision beim Kauf. Das kostet dich keinen Cent mehr.
+    </div>
+  </div>
+</footer>
+<script src="/data/script.js" defer></script>
+<script src="/js/consent-manager.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'devops',
+        excludeSlug: 'github-actions-self-hosted-runner-2026',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/devops/', label: 'DevOps' },
+        { label: 'GitHub Actions Self-Hosted Runner auf VPS betreiben 2026' }
+      ]
+    });
+  }
+});
+</script>
+</body>
+</html>

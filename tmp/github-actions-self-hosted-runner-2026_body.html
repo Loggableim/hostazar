@@ -1,0 +1,189 @@
+<h2>Warum Self-Hosted Runner auf einem VPS?</h2>
+<p>GitHub-hosted Runner sind bequem, aber sie haben drei harte Grenzen: Preis, Hardware und Kontrolle. Sobald deine Pipeline regelmäßig über 2.000 Minuten pro Monat läuft, wird die Abrechnung nach Minuten teuer. Ein 8-vCPU-Linux-Runner kostet bei GitHub Actions <strong>0,032 USD pro Minute</strong> – bei 10.000 Minuten sind das 320 USD monatlich. Ein vergleichbarer VPS mit 8 vCPU liegt bei Hetzner oder Netcup eher bei 15 bis 25 Euro im Monat, und du bezahlst unabhängig von der Laufzeit.</p>
+<p>Der zweite Punkt ist die Hardware. GitHub-hosted Runner sind generische Standard-VMs ohne AVX-512-Tuning, ohne dedizierte NVMe und ohne Kontrolle über die CPU-Generation. Für Builds mit großen Docker-Layern, Rust-Kompilierung oder Machine-Learning-Tests ist das oft der Flaschenhals. Auf einem dedizierten VPS (z. B. Hetzner CCX-Serie) bekommst du garantierte vCPU-Kerne statt geteilter Burst-Kerne.</p>
+<p>Der dritte Punkt ist die Netzwerk- und Datenkontrolle. Self-Hosted Runner können auf interne Datenbanken, private Registries oder ein lokales Kubernetes-Cluster zugreifen, ohne dass du alles über das öffentliche Internet exponierst. Das ist besonders für Staging-Deployments und Integrationstests relevant.</p>
+<p>Die Kehrseite: Du bist selbst für Updates, Sicherheit, Monitoring und Ausfälle verantwortlich. Dieser Guide zeigt dir den kompletten Weg von der VPS-Bestellung bis zum gehärteten, ephemeren Runner-Fleet.</p>
+
+<h2>VPS-Auswahl: Specs, Anbieter und Preise 2026</h2>
+<p>Für CI/CD zählt vor allem Single-Core-Leistung und schnelle NVMe-I/O. Viele kleine Kerne bringen bei npm- oder Maven-Builds weniger als wenige schnelle Kerne. Als Faustregel gilt: <strong>ein vCPU-Kern pro parallelem Job</strong>, plus 1 bis 2 GB RAM pro Job.</p>
+<table>
+<thead><tr><th>Anbieter / Typ</th><th>vCPU</th><th>RAM</th><th>NVMe</th><th>Preis/Monat (ca.)</th></tr></thead>
+<tbody>
+<tr><td>Hetzner CX22</td><td>2 (shared)</td><td>4 GB</td><td>40 GB</td><td>3,79 €</td></tr>
+<tr><td>Hetzner CPX31</td><td>4 (AMD shared)</td><td>8 GB</td><td>160 GB</td><td>13,60 €</td></tr>
+<tr><td>Hetzner CX42</td><td>8 (shared)</td><td>16 GB</td><td>160 GB</td><td>16,40 €</td></tr>
+<tr><td>Hetzner CCX23</td><td>4 (dedicated)</td><td>16 GB</td><td>80 GB</td><td>24,90 €</td></tr>
+<tr><td>Netcup VPS 2000 G11</td><td>8 (shared)</td><td>8 GB</td><td>160 GB</td><td>11,99 €</td></tr>
+</tbody>
+</table>
+<p>Für die meisten Teams ist ein <strong>CX42 oder CPX31</strong> der Sweet Spot. Bei sehr großen Repos mit parallelen Matrix-Builds lohnt sich die dedizierte CCX-Serie, weil du dort keine Steal-Time durch Nachbarn hast. Achte auf unbegrenzten Traffic oder mindestens 20 TB Inklusivvolumen – Docker-Pulls und Cache-Uploads summieren sich schnell.</p>
+<p>Wichtig: Wähle den Standort nahe an deinen Deploy-Zielen und an den GitHub-Servern. GitHub betreibt Actions-Infrastruktur primär in Azure-Regionen in den USA und Europa. Ein VPS in Falkenstein oder Nürnberg liefert typischerweise 15–30 ms Latenz zu api.github.com – völlig ausreichend, da der Runner-Client die Jobs pollt.</p>
+
+<h2>Server vorbereiten: Ubuntu 24.04 LTS härten</h2>
+<p>Ich gehe von einem frischen Ubuntu 24.04 LTS aus. Erste Schritte als root:</p>
+<pre><code>apt update &amp;&amp; apt upgrade -y
+apt install -y curl git jq unzip build-essential ca-certificates gnupg lsb-release ufw
+timedatectl set-timezone Europe/Berlin
+
+# Swap anlegen (wichtig bei 4 GB RAM)
+fallocate -l 2G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+echo '/swapfile none swap sw 0 0' &gt;&gt; /etc/fstab</code></pre>
+<p>Dann Docker installieren – die meisten modernen Pipelines brauchen es ohnehin:</p>
+<pre><code>install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release &amp;&amp; echo $VERSION_CODENAME) stable" &gt; /etc/apt/sources.list.d/docker.list
+apt update
+apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin</code></pre>
+<p>Lege einen dedizierten, unprivilegierten Benutzer für den Runner an und gib ihm Docker-Rechte. Der Docker-Socket ist faktisch root-äquivalent – deshalb niemals den Runner als root laufen lassen.</p>
+<pre><code>useradd -m -s /bin/bash runner
+usermod -aG docker runner</code></pre>
+<p>Zum Schluss die Firewall. Der Runner benötigt <strong>keine eingehenden Ports</strong> – er baut ausschließlich ausgehende HTTPS-Verbindungen auf.</p>
+<pre><code>ufw default deny incoming
+ufw default allow outgoing
+ufw allow 22/tcp
+ufw enable</code></pre>
+
+<h2>Runner installieren und registrieren</h2>
+<p>Als Benutzer <code>runner</code> anmelden und das aktuelle Runner-Paket herunterladen. Prüfe vorher die neueste Version im <code>actions/runner</code>-Repository – zum Redaktionszeitpunkt war 2.321.0 aktuell.</p>
+<pre><code>su - runner
+mkdir -p ~/actions-runner &amp;&amp; cd ~/actions-runner
+RUNNER_VERSION=2.321.0
+curl -o actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz -L \
+  https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz
+tar xzf ./actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz</code></pre>
+<p>Für die Registrierung brauchst du ein Token. Das lässt sich über die GitHub-API mit einem Personal Access Token (Scope <code>repo</code> bzw. <code>administration</code>) erzeugen:</p>
+<pre><code>curl -sX POST -H "Authorization: Bearer $GH_PAT" \
+  -H "Accept: application/vnd.github+json" \
+  https://api.github.com/repos/OWNER/REPO/actions/runners/registration-token | jq -r .token</code></pre>
+<p>Jetzt konfigurierst du den Runner. Wichtig ist <code>--unattended</code> für Skripting und <code>--replace</code>, damit ein gleichnamiger alter Eintrag überschrieben wird:</p>
+<pre><code>./config.sh \
+  --url https://github.com/OWNER/REPO \
+  --token $REG_TOKEN \
+  --name hetzner-cx42-01 \
+  --labels self-hosted,linux,x64,hetzner-cx42,fast \
+  --work _work \
+  --unattended \
+  --replace</code></pre>
+<p>Für Organisationen nutzt du <code>--url https://github.com/ORG</code> und den Endpoint <code>/orgs/ORG/actions/runners/registration-token</code>. Org-weite Runner sind meist sinnvoller, weil du sie über Runner-Groups auf Repositories einschränken kannst.</p>
+
+<h2>Runner als systemd-Service betreiben</h2>
+<p>Ein per <code>./run.sh</code> gestarteter Runner stirbt bei SSH-Trennung oder Reboot. Nutze deshalb den mitgelieferten <code>svc.sh</code>-Wrapper, der eine systemd-Unit erzeugt:</p>
+<pre><code>sudo ./svc.sh install runner
+sudo ./svc.sh start
+sudo ./svc.sh status</code></pre>
+<p>Die Unit heißt nach dem Muster <code>actions.runner.OWNER-REPO.hetzner-cx42-01.service</code>. Prüfen mit:</p>
+<pre><code>systemctl status actions.runner.OWNER-REPO.hetzner-cx42-01.service
+journalctl -u actions.runner.OWNER-REPO.hetzner-cx42-01.service -f</code></pre>
+<p>Ergänze in der Unit-Datei unter <code>/etc/systemd/system/</code> ein paar Ressourcen-Limits, damit ein entgleister Build nicht den ganzen VPS lahmlegt:</p>
+<pre><code>[Service]
+MemoryMax=12G
+CPUQuota=750%
+TasksMax=4096</code></pre>
+<p>Nach Änderungen <code>sudo systemctl daemon-reload &amp;&amp; sudo systemctl restart actions.runner.*</code> ausführen. Bei mehreren Runnern auf einer Maschine lohnt sich ein Templating-Skript, das Name, Labels und Arbeitsverzeichnis pro Instanz setzt.</p>
+
+<h2>Mehrere Runner, Labels und Runner-Groups</h2>
+<p>Ein einzelner Runner verarbeitet genau einen Job gleichzeitig. Für parallele Workflows betreibst du entweder mehrere Runner-Prozesse auf demselben VPS (jeweils eigenes Verzeichnis und eigener Service) oder skalierst horizontal über mehrere VPS.</p>
+<p>Labels sind der Schlüssel für gezieltes Routing. Vergib sprechende Labels wie <code>fast</code>, <code>gpu</code>, <code>arm64</code> oder <code>internal-network</code> und referenziere sie im Workflow:</p>
+<pre><code>jobs:
+  test:
+    runs-on: [self-hosted, linux, x64, fast]</code></pre>
+<p>Runner-Groups (nur auf Org- und Enterprise-Ebene) erlauben dir, den Zugriff auf bestimmte Repositories zu beschränken. Das ist die wichtigste Absicherung gegen ungewollte Job-Ausführung aus fremden Repos. Lege mindestens zwei Groups an: <code>trusted</code> für Produktions-Deployments und <code>sandbox</code> für experimentelle Repos.</p>
+<p>Für große Setups lohnt sich <strong>Actions Runner Controller (ARC)</strong> auf Kubernetes oder die neueren <em>GitHub Actions Runner Scale Sets</em>. Damit skalierst du Runner-Pods bedarfsgesteuert auf null herunter und zahlst nur, wenn Jobs laufen. Für ein einzelnes Team mit einem VPS ist das Overkill – der manuelle Ansatz ist günstiger und transparenter.</p>
+
+<h2>Docker, Docker-in-Docker und Container-Jobs</h2>
+<p>Da der Runner direkt auf der VM läuft, hat er nativen Zugriff auf den Docker-Daemon. Container-Jobs funktionieren trotzdem, aber du musst den Socket in den Job-Container mounten:</p>
+<pre><code>jobs:
+  build:
+    runs-on: [self-hosted, linux, x64]
+    container:
+      image: node:22-bookworm
+      options: --user root -v /var/run/docker.sock:/var/run/docker.sock
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci &amp;&amp; npm test</code></pre>
+<p>Der Socket-Mount ist praktisch, aber ein Sicherheitsrisiko: Jeder Job kann damit beliebige Container mit Root-Rechten starten. Wenn du untrusted Code ausführst, nutze stattdessen <strong>Rootless Docker</strong> oder einen Docker-in-Docker-Sidecar mit eigenem Daemon.</p>
+<p>Für BuildKit-Beschleunigung aktiviere den <code>docker-container</code>-Driver und einen persistenten Build-Cache:</p>
+<pre><code>docker buildx create --name builder --driver docker-container --use
+docker buildx inspect --bootstrap</code></pre>
+<p>Ein <code>--cache-from type=local,src=/home/runner/.buildx-cache</code> plus <code>--cache-to type=local,dest=/home/runner/.buildx-cache-new,mode=max</code> reduziert Build-Zeiten bei großen Images oft um 60 bis 80 Prozent. Das ist der größte Einzelvorteil gegenüber GitHub-hosted Runnern, die bei jedem Job bei null anfangen.</p>
+
+<h2>Caching und Build-Performance</h2>
+<p>Persistenter Cache ist der Killer-Feature von Self-Hosted Runnern. Während GitHub-hosted Runner bei jedem Job eine leere VM bekommen, bleibt dein Cache auf der NVMe liegen.</p>
+<pre><code>- uses: actions/cache@v4
+  with:
+    path: |
+      ~/.npm
+      ~/.cache/pip
+      ~/.cargo/registry
+      ~/.m2/repository
+    key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/Cargo.lock') }}
+    restore-keys: |
+      ${{ runner.os }}-</code></pre>
+<p>Für kompilierte Sprachen bringt ein Compiler-Cache mehr als der Dependency-Cache. Bei Rust ist <code>sccache</code> mit S3-Backend oder lokalem Verzeichnis Pflicht, bei C/C++ <code>ccache</code>, bei Java der Gradle Build Cache.</p>
+<ul>
+<li><strong>npm:</strong> <code>npm ci --prefer-offline --no-audit</code> mit warmem <code>~/.npm</code>-Cache spart 40–70 %.</li>
+<li><strong>Rust:</strong> <code>sccache</code> plus <code>CARGO_INCREMENTAL=0</code> und <code>RUSTFLAGS="-C target-cpu=native"</code>.</li>
+<li><strong>Docker:</strong> BuildKit mit lokalem Cache-Backend, siehe oben.</li>
+<li><strong>Python:</strong> <code>uv</code> statt <code>pip</code> – 10- bis 20-fach schneller bei der Auflösung.</li>
+</ul>
+<p>Setze außerdem <code>actions/checkout@v4</code> mit <code>fetch-depth: 1</code>, außer du brauchst die Git-Historie. Bei monorepo-artigen Repos kann ein flacher Clone mehrere Sekunden sparen.</p>
+
+<h2>Sicherheit: Ephemeral Runner, OIDC und Netzwerk-Isolation</h2>
+<p>GitHub selbst warnt davor, Self-Hosted Runner in <strong>öffentlichen Repositories</strong> einzusetzen. Der Grund: Pull Requests von Forks können beliebigen Code auf deiner Maschine ausführen. Wenn du das trotzdem brauchst, gibt es nur einen vertretbaren Weg – <strong>ephemere Runner</strong>, die nach genau einem Job zerstört werden.</p>
+<pre><code>./config.sh --url https://github.com/OWNER/REPO \
+  --token $REG_TOKEN \
+  --name ephemeral-$RANDOM \
+  --ephemeral \
+  --unattended --replace</code></pre>
+<p>Der Runner meldet sich nach dem Job automatisch ab. Du kombinierst das mit einem Skript, das den Container oder die VM danach neu erstellt. Auf einem VPS lässt sich das mit einem systemd-Timer oder einem kleinen Go-/Python-Wrapper realisieren, der den Runner-Prozess nach jedem Job neu startet.</p>
+<p>Für Cloud-Deployments solltest du <strong>keine langfristigen Zugangsdaten</strong> auf dem VPS speichern. Nutze OIDC-Federation:</p>
+<pre><code>permissions:
+  id-token: write
+  contents: read
+
+steps:
+  - uses: aws-actions/configure-aws-credentials@v4
+    with:
+      role-to-assume: arn:aws:iam::123456789012:role/github-actions
+      aws-region: eu-central-1</code></pre>
+<p>Damit erhält der Job temporäre Credentials, die nach der Laufzeit verfallen. Ein kompromittierter Runner hat so keinen Zugriff auf dauerhafte Secrets. Ergänzend: Secrets niemals in <code>~/.env</code> oder Shell-History ablegen, sondern ausschließlich über GitHub Secrets und Masking.</p>
+<p>Netzwerkseitig gilt: Der VPS sollte keine eingehenden Verbindungen außer SSH akzeptieren. Wenn der Runner auf interne Systeme zugreifen muss, spanne ein WireGuard-Netz auf und route nur die nötigen Subnetze.</p>
+
+<h2>Monitoring, Updates und Wartung</h2>
+<p>Ein Runner, der stumm stirbt, kostet dich Stunden. Installiere <code>node_exporter</code> und <code>cadvisor</code> und scrape sie mit Prometheus. Die wichtigsten Metriken sind Disk-Füllstand (Docker-Images fressen schnell 100 GB), Load Average und die Anzahl wartender Jobs.</p>
+<pre><code># Docker-Aufräumen per Cron
+docker system prune -af --filter "until=168h"
+docker builder prune -af --filter "until=168h"</code></pre>
+<p>Runner-Updates sind manuell. Der Ablauf: Service stoppen, neue Version entpacken, <code>./config.sh remove --token $REMOVE_TOKEN</code>, neu konfigurieren, Service starten. Automatisiere das mit einem Ansible-Playbook oder einem kleinen Skript, das die Version aus der GitHub-API liest.</p>
+<p>Logs liegen unter <code>_diag/</code> im Runner-Verzeichnis. Bei hängenden Jobs hilft <code>journalctl -u actions.runner.* -n 200</code>. Richte einen Alert ein, wenn der Runner länger als 10 Minuten keinen Heartbeat sendet – in der GitHub-UI siehst du den Status unter <em>Settings → Actions → Runners</em>.</p>
+<p>Plane außerdem regelmäßige Reboots ein. Kernel-Updates, Docker-Daemon-Neustarts und Speicherfragmentierung machen einen wöchentlichen Reboot zur günstigsten Wartungsmaßnahme überhaupt.</p>
+
+<h2>Kostenvergleich: GitHub-hosted vs. Self-Hosted</h2>
+<p>GitHub berechnet Linux-Runner ab 2026 mit 0,008 USD/Minute (2 vCPU), 0,016 USD (4 vCPU), 0,032 USD (8 vCPU) und 0,064 USD (16 vCPU). Inklusivminuten: 2.000 bei Free, 3.000 bei Pro/Team, 50.000 bei Enterprise Cloud. Öffentliche Repositories erhalten weiterhin unbegrenzte kostenlose Minuten auf Standard-Runnern.</p>
+<table>
+<thead><tr><th>Nutzung pro Monat</th><th>GitHub-hosted</th><th>Self-Hosted VPS</th><th>Ersparnis</th></tr></thead>
+<tbody>
+<tr><td>2 vCPU, 1.000 min</td><td>8,00 USD</td><td>~3,79 € (CX22)</td><td>~55 %</td></tr>
+<tr><td>4 vCPU, 5.000 min</td><td>80,00 USD</td><td>~6,80 € (CX32)</td><td>~92 %</td></tr>
+<tr><td>8 vCPU, 10.000 min</td><td>320,00 USD</td><td>~16,40 € (CX42)</td><td>~95 %</td></tr>
+<tr><td>16 vCPU, 20.000 min</td><td>1.280,00 USD</td><td>~50–60 € (CCX43)</td><td>~96 %</td></tr>
+</tbody>
+</table>
+<p>Die Rechnung ignoriert allerdings deine Arbeitszeit. Rechne mit 4 bis 8 Stunden initialem Setup und danach 1 bis 2 Stunden Wartung pro Monat. Ab etwa 3.000 Minuten monatlicher Nutzung oder bei spezieller Hardware (GPU, ARM, viel RAM) kippt die Rechnung klar zugunsten von Self-Hosted.</p>
+<p>Ein Hybrid-Modell ist oft optimal: Self-Hosted Runner für die schweren, regelmäßigen Builds, GitHub-hosted Runner als Fallback für seltene Matrix-Jobs oder wenn der VPS ausfällt. Definiere im Workflow <code>runs-on: [self-hosted, linux, x64]</code> und halte zusätzlich einen GitHub-hosted Workflow für Notfälle bereit.</p>
+
+<h2>FAQ</h2>
+<h3>Braucht mein VPS offene Ports für den GitHub Actions Runner?</h3>
+<p>Nein. Der Runner-Client arbeitet rein ausgehend: Er pollt regelmäßig <code>api.github.com</code> und den Actions-Service über HTTPS (Port 443) nach neuen Jobs. Du musst lediglich ausgehenden Verkehr erlauben. Eingehend reicht SSH auf einem Nicht-Standard-Port, idealerweise abgesichert per Fail2ban und Key-Auth.</p>
+<h3>Kann ich Self-Hosted Runner in einem öffentlichen Repository nutzen?</h3>
+<p>Technisch ja, sicherheitstechnisch nur mit ephemeren Runnern und strikter Isolation. Fork-Pull-Requests können beliebigen Code ausführen. GitHub empfiehlt ausdrücklich, Self-Hosted Runner nicht für öffentliche Repos zu verwenden. Wenn es unvermeidbar ist: ephemerer Runner pro Job, kein Zugriff auf interne Netze, keine langlebigen Secrets, und der Runner läuft in einer Wegwerf-VM oder einem Container mit eingeschränkten Rechten.</p>
+<h3>Wie viele Runner kann ich auf einem VPS betreiben?</h3>
+<p>Als Faustregel einen Runner-Prozess pro vCPU, wenn die Jobs CPU-intensiv sind, und einen pro 2 GB RAM, wenn sie speicherhungrig sind. Auf einem 8-vCPU/16-GB-VPS laufen typischerweise 4 bis 6 parallele Runner zuverlässig. Beobachte Load Average und <code>docker stats</code> – ab Load 1,0 pro Kern warten die Jobs länger als sie rechnen.</p>
+<h3>Was passiert, wenn der VPS oder Runner ausfällt?</h3>
+<p>Laufende Jobs brechen ab und werden in der GitHub-UI als fehlgeschlagen markiert. Der Runner verschwindet nach etwa 10 bis 15 Minuten aus der Runner-Liste, sofern kein Heartbeat mehr eintrifft. Richte einen zweiten VPS als Standby ein oder definiere einen Fallback-Workflow auf GitHub-hosted Runnern, damit kritische Deployments nicht blockiert werden.</p>
+<h3>Funktionieren auch ARM64- oder GPU-Runner self-hosted?</h3>
+<p>Ja, und das ist einer der stärksten Gründe für Self-Hosted. GitHub bietet ARM-Runner nur eingeschränkt und GPU-Runner gar nicht. Ein Hetzner CAX21 (ARM64, 4 vCPU, 8 GB) kostet rund 7 Euro im Monat und beschleunigt Multi-Arch-Builds erheblich. Für GPU-Workloads mietest du einen dedizierten Server mit NVIDIA-Karte und installierst den Runner wie oben beschrieben – achte nur darauf, dass der Benutzer <code>runner</code> in der <code>video</code>- und <code>render</code>-Gruppe ist.</p>

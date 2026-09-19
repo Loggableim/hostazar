@@ -1,0 +1,253 @@
+<h2>Warum Docker Security Hardening 2026 Pflicht ist</h2>
+
+<p>Container sind 2026 aus kaum einer Produktionsumgebung wegzudenken – und genau deshalb lohnt sich der Blick auf die Standardeinstellungen. Ein nacktes <code>docker run nginx</code> startet den Prozess als <strong>UID 0</strong>, mit einem vollen Set an Linux-Capabilities und Schreibzugriff auf das komplette Container-Filesystem. Wer aus dem Container ausbricht oder ihn über eine Applikationslücke übernimmt, landet in vielen Fällen direkt auf einem Kernel mit deutlich mehr Rechten als nötig.</p>
+
+<p>Die Zahlen sind ernüchternd: Analysen öffentlicher Registries zeigen seit Jahren, dass ein großer Teil der Images veraltete Basis-Layer mit bekannten CVEs enthält. Gleichzeitig steigt die Zahl der Angriffe auf CI/CD-Pipelines und Container-Registries deutlich – Supply-Chain-Angriffe wie kompromittierte npm- oder PyPI-Pakete sind 2026 der Normalfall, nicht die Ausnahme.</p>
+
+<p>Dieser Guide zeigt dir einen konkreten, umsetzbaren Härtungspfad für Docker in elf Schritten. Alle Beispiele laufen auf einem normalen Linux-VPS (z. B. Hetzner Cloud CX22 mit 2 vCPU und 4 GB RAM ab rund 4,51 €/Monat) und sind ohne Kubernetes umsetzbar. Wer mehr braucht, findet am Ende eine Checkliste und Kostenübersicht.</p>
+
+<h2>Der Docker-Angriffsvektor: Wo es 2026 wirklich brennt</h2>
+
+<p>Bevor du härtest, musst du wissen, was du eigentlich verteidigst. Docker besteht aus mehreren Komponenten mit sehr unterschiedlichem Risikoprofil: dem Daemon (<code>dockerd</code>), der als Root läuft, dem Docker-Socket <code>/var/run/docker.sock</code>, den Container-Runtimes (runc, crun) und dem Netzwerk-Stack (iptables/nftables, bridge, overlay).</p>
+
+<p>Die vier realistischen Angriffswege in der Praxis:</p>
+
+<ul>
+<li><strong>Container Escape</strong> über Kernel-Exploits, privilegierte Container oder gemountete Host-Pfade wie <code>/var/run/docker.sock</code>.</li>
+<li><strong>Kompromittierte Images</strong> mit Malware, Kryptominern oder Backdoors in Basis-Layern.</li>
+<li><strong>Secrets-Leaks</strong> über Umgebungsvariablen, die in <code>docker inspect</code>, Logs oder Crash-Dumps landen.</li>
+<li><strong>Laterale Bewegung</strong> im flachen Docker-Bridge-Netzwerk, in dem jeder Container jeden erreicht.</li>
+</ul>
+
+<p>Ein wichtiger Punkt: Der Docker-Daemon selbst ist 2026 weiterhin ein Root-Dienst. Wer Zugriff auf den Socket hat, hat faktisch Root auf dem Host – deshalb ist der Socket-Schutz kein Nice-to-have, sondern die wichtigste Einzelmaßnahme überhaupt.</p>
+
+<h2>Schritt 1: Minimal-Images und Multi-Stage-Builds</h2>
+
+<p>Jede zusätzliche Binary im Image ist potenzielle Angriffsfläche. Ein <code>ubuntu:24.04</code>-Image bringt rund 80 MB Nutzlast und hunderte Pakete mit, von denen deine Applikation vielleicht fünf braucht. Der Wechsel auf <code>alpine</code>, <code>distroless</code> oder <code>scratch</code> reduziert die CVE-Oberfläche oft um 80 bis 95 Prozent.</p>
+
+<p>Ein typisches gehärtetes Multi-Stage-Dockerfile sieht so aus:</p>
+
+<pre><code># Build-Stage
+FROM golang:1.23-alpine AS build
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /out/app ./cmd/app
+
+# Runtime-Stage
+FROM gcr.io/distroless/static-debian12:nonroot
+COPY --from=build /out/app /app
+USER nonroot:nonroot
+ENTRYPOINT ["/app"]
+</code></pre>
+
+<p>Der entscheidende Vorteil: Im finalen Image existiert weder eine Shell noch ein Paketmanager. Ein Angreifer, der Code-Ausführung erlangt, kann keine zusätzlichen Tools nachladen. Prüfe deine Image-Größe mit <code>docker images</code> und vergleiche – alles über 150 MB sollte kritisch hinterfragt werden.</p>
+
+<h2>Schritt 2: Non-Root-User im Container erzwingen</h2>
+
+<p>Standardmäßig läuft der Container-Prozess als Root. Auch wenn User Namespaces das auf dem Host abmildern, ist es im Container selbst weiterhin UID 0 – mit allen Konsequenzen für Schreibrechte und Kernel-Interaktion. Setze deshalb immer einen expliziten User.</p>
+
+<pre><code>FROM alpine:3.20
+RUN addgroup -g 10001 -S app && adduser -u 10001 -S app -G app
+WORKDIR /app
+COPY --chown=10001:10001 . .
+USER 10001:10001
+CMD ["./server"]
+</code></pre>
+
+<p>Beim Start kannst du das zusätzlich erzwingen, falls das Image es nicht sauber setzt:</p>
+
+<pre><code>docker run -d \
+  --user 10001:10001 \
+  --read-only \
+  --cap-drop=ALL \
+  --security-opt no-new-privileges:true \
+  myapp:1.0
+</code></pre>
+
+<p>Das Flag <code>--security-opt no-new-privileges:true</code> verhindert, dass ein Prozess über setuid-Binaries doch noch Root-Rechte erlangt. In Kombination mit einem Non-Root-User ist das eine der wirksamsten Einzelmaßnahmen und kostet praktisch keine Performance.</p>
+
+<h2>Schritt 3: Linux-Capabilities radikal reduzieren</h2>
+
+<p>Docker gibt Containern per Default 14 Linux-Capabilities – darunter <code>CAP_CHOWN</code>, <code>CAP_NET_RAW</code> und <code>CAP_SETUID</code>. Die meisten davon braucht eine normale Web-Applikation nie. Der saubere Ansatz lautet: alles droppen, dann gezielt einzelne Capabilities zurückgeben.</p>
+
+<table>
+<tr><th>Capability</th><th>Wofür nötig</th><th>Empfehlung</th></tr>
+<tr><td>CAP_NET_BIND_SERVICE</td><td>Ports unter 1024 binden</td><td>Nur wenn nötig (besser: Port 8080 nutzen)</td></tr>
+<tr><td>CAP_NET_RAW</td><td>Ping, Raw Sockets</td><td>Immer droppen</td></tr>
+<tr><td>CAP_SYS_ADMIN</td><td>Mounts, Namespaces</td><td>Niemals vergeben</td></tr>
+<tr><td>CAP_CHOWN</td><td>Dateibesitzer ändern</td><td>Meist droppen</td></tr>
+<tr><td>CAP_SYS_PTRACE</td><td>Debugging anderer Prozesse</td><td>Niemals vergeben</td></tr>
+</table>
+
+<pre><code>docker run -d \
+  --cap-drop=ALL \
+  --cap-add=NET_BIND_SERVICE \
+  --security-opt no-new-privileges \
+  nginx:1.27-alpine
+</code></pre>
+
+<p>Prüfe im laufenden Container mit <code>capsh --print</code> (falls vorhanden) oder über <code>docker inspect</code>, welche Capabilities tatsächlich aktiv sind. In Docker Compose setzt du das über <code>cap_drop: [ALL]</code> und <code>cap_add</code> in der Service-Definition.</p>
+
+<h2>Schritt 4: seccomp- und AppArmor-Profile einsetzen</h2>
+
+<p>Docker nutzt seit 1.10 ein Standard-seccomp-Profil, das rund 44 von über 300 Syscalls blockiert. Das ist ein guter Start, aber nicht ausreichend: Viele gefährliche Syscalls wie <code>ptrace</code> oder <code>keyctl</code> sind nur teilweise eingeschränkt.</p>
+
+<p>Ein eigenes, restriktives Profil erstellst du am einfachsten, indem du das Default-Profil kopierst und weiter einschränkst:</p>
+
+<pre><code># Default-Profil als Basis
+curl -sSL https://raw.githubusercontent.com/moby/moby/master/profiles/seccomp/default.json -o seccomp.json
+
+# Container mit eigenem Profil starten
+docker run -d \
+  --security-opt seccomp=./seccomp.json \
+  --security-opt apparmor=docker-default \
+  myapp:1.0
+</code></pre>
+
+<p>Für AppArmor gilt dasselbe Prinzip: Auf Ubuntu und Debian läuft <code>docker-default</code> automatisch, aber du kannst mit <code>aa-genprof</code> ein passgenaues Profil für deine Applikation erzeugen. Der Aufwand lohnt sich besonders für langlebige Dienste wie Datenbanken oder Reverse Proxies. Alternativ: <code>--security-opt seccomp=unconfined</code> ist <strong>niemals</strong> eine Option in Produktion.</p>
+
+<h2>Schritt 5: Read-Only-Root-Filesystem und Ressourcen-Limits</h2>
+
+<p>Ein beschreibbares Root-Filesystem ist ein Geschenk für Angreifer: Sie können Binaries ablegen, Cronjobs schreiben oder Webshells persistieren. Setze deshalb <code>--read-only</code> und gib nur explizit benötigte Pfade als tmpfs oder Volume frei.</p>
+
+<pre><code>docker run -d \
+  --read-only \
+  --tmpfs /tmp:rw,noexec,nosuid,size=64m \
+  --tmpfs /run:rw,noexec,nosuid,size=16m \
+  -v app-uploads:/var/www/uploads:rw \
+  --memory=512m \
+  --memory-swap=512m \
+  --cpus=1.0 \
+  --pids-limit=200 \
+  myapp:1.0
+</code></pre>
+
+<p>Die Ressourcen-Limits sind genauso wichtig wie die Dateisystem-Härtung. Ohne <code>--pids-limit</code> kann ein Fork-Bomb-Prozess den Host lahmlegen, ohne <code>--memory</code> frisst ein Memory-Leak die ganze Maschine. Als Faustregel gilt: <code>--memory</code> auf etwa 70 Prozent des erwarteten Peak-Verbrauchs setzen und <code>--pids-limit</code> auf das Zwei- bis Dreifache der normalen Prozessanzahl.</p>
+
+<p>Das Flag <code>noexec</code> auf tmpfs verhindert zusätzlich, dass ein Angreifer ein heruntergeladenes Binary direkt ausführt – ein kleiner Aufwand mit großer Wirkung.</p>
+
+<h2>Schritt 6: Netzwerk-Isolierung und Docker-Socket absichern</h2>
+
+<p>Im Docker-Default-Bridge-Netzwerk erreicht jeder Container jeden anderen. Das ist für Laterale Bewegung ideal. Erstelle stattdessen pro Anwendung ein eigenes, internes Netzwerk und verbinde nur, was wirklich kommunizieren muss.</p>
+
+<pre><code>docker network create --internal backend
+docker network create frontend
+
+docker run -d --network backend --name db postgres:16-alpine
+docker run -d --network backend --name api myapi:1.0
+docker run -d --network frontend -p 443:8443 --name proxy nginx:1.27-alpine
+docker network connect frontend api
+</code></pre>
+
+<p>Das <code>--internal</code>-Flag sorgt dafür, dass Container in diesem Netz keinen Zugang nach außen haben – perfekt für Datenbanken. Noch konsequenter ist <code>--network=none</code> für Container, die überhaupt keine Netzwerkverbindung brauchen.</p>
+
+<p>Der Docker-Socket ist der kritischste Punkt überhaupt. <strong>Mounte <code>/var/run/docker.sock</code> niemals in einen Container</strong>, den du nicht vollständig kontrollierst – wer den Socket hat, kann einen privilegierten Container starten und ist damit Root auf dem Host. Falls du unbedingt Docker-in-Docker brauchst, nutze einen Socket-Proxy wie <code>tecnativa/docker-socket-proxy</code>, der nur bestimmte API-Endpunkte freigibt.</p>
+
+<h2>Schritt 7: Secrets richtig verwalten</h2>
+
+<p>Umgebungsvariablen sind praktisch, aber kein Secret-Store. Sie tauchen in <code>docker inspect</code>, in <code>/proc/&lt;pid&gt;/environ</code>, in Crash-Dumps und in manchen Logging-Systemen auf. Nutze stattdessen Docker Secrets oder gemountete Dateien.</p>
+
+<pre><code># Secret aus Datei anlegen (Swarm-Modus)
+printf "supersecret" | docker secret create db_password -
+
+# In Compose: Secrets als Datei mounten
+services:
+  api:
+    image: myapi:1.0
+    secrets:
+      - db_password
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+</code></pre>
+
+<p>Im Container liegt das Secret dann unter <code>/run/secrets/db_password</code> als Datei mit restriktiven Rechten. Für Kubernetes-Umgebungen ist ein externer Store wie HashiCorp Vault oder der External Secrets Operator die bessere Wahl. Wichtig: Rotiere Secrets regelmäßig – spätestens alle 90 Tage, bei kritischen Zugängen alle 30 Tage.</p>
+
+<h2>Schritt 8: Image-Scanning und Supply-Chain-Security</h2>
+
+<p>Härtung beginnt vor dem Deployment. Scanne jedes Image in der CI-Pipeline und blockiere Builds mit kritischen Findings. Die drei wichtigsten Tools 2026 sind Trivy, Grype und Docker Scout.</p>
+
+<pre><code># Trivy: Scan mit Severity-Filter
+trivy image --severity HIGH,CRITICAL --exit-code 1 myapp:1.0
+
+# SBOM erzeugen
+syft myapp:1.0 -o spdx-json &gt; sbom.json
+
+# Image signieren
+cosign sign --key cosign.key registry.example.com/myapp:1.0
+
+# Signatur verifizieren
+cosign verify --key cosign.pub registry.example.com/myapp:1.0
+</code></pre>
+
+<p>Ergänzend solltest du Images immer mit festem Digest statt Tag pinnen: <code>nginx@sha256:abc123...</code> statt <code>nginx:latest</code>. Das verhindert, dass ein manipulierter Tag unbemerkt ein anderes Image zieht. In der CI gehört <code>--exit-code 1</code> bei HIGH und CRITICAL zum Standard, sonst wird der Scan ignoriert.</p>
+
+<h2>Schritt 9: Docker Daemon härten, Rootless Mode und Runtime-Security</h2>
+
+<p>Der Daemon selbst braucht Aufmerksamkeit. In <code>/etc/docker/daemon.json</code> setzt du sinnvolle Defaults für alle Container:</p>
+
+<pre><code>{
+  "icc": false,
+  "no-new-privileges": true,
+  "userns-remap": "default",
+  "live-restore": true,
+  "userland-proxy": false,
+  "log-driver": "json-file",
+  "log-opts": { "max-size": "10m", "max-file": "3" }
+}
+</code></pre>
+
+<p><code>userns-remap</code> bildet Container-Root auf einen unprivilegierten Host-User ab – ein Container-Escape landet dann nicht mehr als Root. Noch konsequenter ist der <strong>Rootless Mode</strong>: <code>dockerd-rootless-setuptool.sh install</code> startet den Daemon komplett als normaler User. Das ist seit Docker 20.10 stabil und heute der empfohlene Standard für Single-Host-Setups.</p>
+
+<p>Für Runtime-Erkennung setzt du Falco ein, das Syscalls auf Anomalien prüft (z. B. Shell-Start in einem Container, der keine Shell hat):</p>
+
+<pre><code>helm repo add falcosecurity https://falcosecurity.github.io/charts
+helm install falco falcosecurity/falco
+</code></pre>
+
+<p>Für maximale Isolation bieten sich gVisor oder Kata Containers an. Beide kapseln den Container in einer eigenen Kernel-Sandbox bzw. einer leichtgewichtigen VM, kosten aber 5 bis 20 Prozent Performance und deutlich mehr RAM (Kata: mindestens 1 GB pro Container). Für Multi-Tenant-Setups ist das den Aufpreis wert – ein VPS mit 16 GB RAM (ab ca. 15–20 €/Monat) trägt problemlos 10 bis 15 Kata-Container.</p>
+
+<h2>Härtungs-Checkliste, Monitoring und Kosten</h2>
+
+<p>Führe nach jeder Änderung <code>docker-bench-security</code> aus und vergleiche die Score-Entwicklung. Das Tool prüft über 100 Punkte aus dem CIS Docker Benchmark und gibt konkrete Handlungsempfehlungen aus:</p>
+
+<pre><code>docker run --rm --net host --pid host --userns host --cap-add audit_control \
+  -e DOCKER_CONTENT_TRUST=$DOCKER_CONTENT_TRUST \
+  -v /var/lib:/var/lib:ro \
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \
+  -v /etc:/etc:ro \
+  docker/docker-bench-security</code></pre>
+
+<p>Für Monitoring gilt: Logs mit <code>max-size</code> begrenzen (siehe daemon.json), Container-Events über <code>docker events</code> oder einen zentralen Collector (Loki, Elastic) sammeln und Alarme auf unerwartete Neustarts, OOM-Kills und neue Images setzen.</p>
+
+<table>
+<tr><th>Maßnahme</th><th>Aufwand</th><th>Wirkung</th></tr>
+<tr><td>Non-Root + no-new-privileges</td><td>15 Min</td><td>Sehr hoch</td></tr>
+<tr><td>cap-drop=ALL</td><td>10 Min</td><td>Sehr hoch</td></tr>
+<tr><td>Read-Only + tmpfs</td><td>20 Min</td><td>Hoch</td></tr>
+<tr><td>Seccomp/AppArmor</td><td>1–2 Std</td><td>Hoch</td></tr>
+<tr><td>Rootless Mode</td><td>1 Std</td><td>Sehr hoch</td></tr>
+<tr><td>Image-Scanning in CI</td><td>2 Std</td><td>Hoch</td></tr>
+<tr><td>Falco Runtime-Detection</td><td>3–4 Std</td><td>Mittel–Hoch</td></tr>
+</table>
+
+<p>Kostenmäßig ist Hardening fast kostenlos – es kostet Zeit, nicht Geld. Wer allerdings Runtime-Isolation (gVisor/Kata) oder ein Managed-Kubernetes mit Pod Security Standards braucht, zahlt für einen Cluster schnell 30 bis 80 €/Monat. Ein einfacher gehärteter Docker-Host auf einem VPS mit 4 vCPU und 8 GB RAM liegt bei etwa 8 bis 12 €/Monat und reicht für die meisten Self-Hosting-Szenarien völlig aus.</p>
+
+<h2>FAQ</h2>
+
+<h3>Reicht es, den Container als Non-Root-User laufen zu lassen?</h3>
+<p>Nein. Non-Root ist die wichtigste Einzelmaßnahme, aber ohne <code>--cap-drop=ALL</code>, <code>no-new-privileges</code> und ein Read-Only-Filesystem bleibt zu viel Angriffsfläche. Erst die Kombination aus User, Capabilities, seccomp und Ressourcen-Limits ergibt eine belastbare Härtung.</p>
+
+<h3>Kostet Docker Hardening Performance?</h3>
+<p>Die klassischen Maßnahmen (Non-Root, cap-drop, seccomp, Read-Only) kosten praktisch keine Performance – der Overhead liegt unter 1 Prozent. Nur gVisor und Kata Containers sind spürbar: Rechne mit 5 bis 20 Prozent Leistungsverlust und deutlich höherem RAM-Verbrauch (Kata ab etwa 1 GB pro Container).</p>
+
+<h3>Was ist der Unterschied zwischen Rootless Docker und userns-remap?</h3>
+<p>Bei <code>userns-remap</code> läuft der Daemon weiterhin als Root, nur die Container-UIDs werden auf unprivilegierte Host-UIDs abgebildet. Beim Rootless Mode läuft der gesamte Daemon als normaler User – das ist die konsequentere und sicherere Variante, hat aber Einschränkungen bei Ports unter 1024 und einigen Storage-Treibern.</p>
+
+<h3>Wie oft sollte ich meine Container-Images scannen?</h3>
+<p>Mindestens bei jedem Build in der CI, zusätzlich täglich per Cron für bereits deployte Images. Neue CVEs erscheinen laufend – ein Image, das vor drei Monaten sauber war, kann heute kritische Lücken haben. Automatisiere das mit Trivy und einem Scheduled Job.</p>
+
+<h3>Ist Docker Swarm 2026 noch sicher genug?</h3>
+<p>Swarm ist nicht unsicher, aber funktional eingefroren. Für einfache Single-Host-Setups mit Docker Compose und den hier gezeigten Maßnahmen brauchst du kein Kubernetes. Sobald du Multi-Tenancy, Pod Security Standards oder automatisches Secret-Rotieren willst, ist Kubernetes mit den Pod Security Admission Levels die bessere Wahl.</p>

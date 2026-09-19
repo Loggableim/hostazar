@@ -559,9 +559,10 @@ def publish(specs, push=True):
         # 1. image
         subject = spec.get('image_subject') or f'anthropomorphic animal character, {spec["title"]}'
         if not generate_hero_image(slug, subject):
-            log(f'  ! Bild fehlgeschlagen — versuche trotzdem weiter')
-        else:
-            log('  + Hero-Bild (PNG+WebP)')
+            log(f'  ! Bild fehlgeschlagen — Artikel wird übersprungen (kein Broken-Image)')
+            results['failed'].append(slug)
+            continue
+        log('  + Hero-Bild (PNG+WebP)')
 
         # 2. render + write article
         html = render_article_html(spec)

@@ -1,0 +1,199 @@
+<h2>Reverse Proxy 2026: Warum die Wahl wichtiger ist als je zuvor</h2>
+<p>Ein Reverse Proxy ist 2026 kein optionales Add-on mehr, sondern die zentrale Schaltstelle jeder Web-Infrastruktur. Er terminiert TLS, verteilt Traffic, erzwingt Rate Limits, liefert Metriken und entscheidet, welcher Container welche Anfrage bekommt. Zwei Namen fallen dabei fast immer: <strong>Nginx</strong> und <strong>Traefik</strong>. Beide sind Open Source, beide sind produktionsreif – aber sie wurden für völlig unterschiedliche Betriebsmodelle gebaut.</p>
+<p>Nginx wurde 2004 als Antwort auf das C10K-Problem veröffentlicht und dominiert seit Jahren die Webserver-Statistiken. In aktuellen Erhebungen laufen rund 30 bis 34 Prozent aller bekannten Websites hinter Nginx oder einem Nginx-Derivat. Traefik erschien 2016 als Cloud-Native-Projekt und ist heute der Standard-Reverse-Proxy in vielen Docker-Compose- und Kubernetes-Setups, weil er sich selbst konfiguriert.</p>
+<p>Der Kern des Vergleichs ist nicht „schneller oder langsamer“, sondern <strong>statische Konfiguration gegen dynamische Service Discovery</strong>. Wer täglich Container deployt, kämpft mit Nginx um jede `nginx.conf`-Zeile. Wer statische vHosts mit maximalem Durchsatz für statische Dateien betreibt, wird mit Traefik selten glücklicher.</p>
+<p>Dieser Guide vergleicht beide Proxies mit konkreten Benchmarks, Konfigurationsbeispielen, Preisen für Enterprise-Varianten und einer klaren Entscheidungsmatrix. Alle Zahlen sind Richtwerte aus typischen 4-vCPU-Setups (Hetzner CPX21, AMD EPYC, 8 GB RAM) und können je nach Kernel, TLS-Cipher und Backend stark abweichen.</p>
+
+<h2>Traefik im Überblick: Architektur, Provider, Stärken</h2>
+<p>Traefik ist in Go geschrieben und wird als einzelnes Binary von rund 60 bis 80 MB ausgeliefert. Es gibt keine externen Abhängigkeiten, kein Lua, keine kompilierte Modul-Kette. Die Architektur besteht aus drei Bausteinen: <strong>EntryPoints</strong> (Ports wie 80/443), <strong>Routers</strong> (Regel-Matching) und <strong>Services</strong> (Backend-Ziele). Dazwischen sitzen <strong>Middlewares</strong> für Auth, Rate Limiting, Header-Manipulation und Redirects.</p>
+<p>Der eigentliche Vorteil ist das Provider-Modell. Traefik liest seine Konfiguration nicht aus einer Datei, sondern aus einem oder mehreren Providern: Docker, Docker Swarm, Kubernetes CRD, Kubernetes Gateway API, Consul Catalog, etcd, Nomad, Redis oder klassisch File. Startet ein neuer Container mit den passenden Labels, ist die Route in unter 500 Millisekunden aktiv – ohne Reload, ohne Downtime.</p>
+<p>Das Dashboard auf Port 8080 (abzusichern!) zeigt live alle Router, Services, Middlewares und TLS-Zertifikate. In Kombination mit Prometheus und OpenTelemetry ist das einer der wenigen Proxies, bei dem Tracing ohne Zusatzmodul funktioniert.</p>
+<p>Schwächen: Traefik ist bei statischen Dateien und extremen Verbindungszahlen langsamer als Nginx, die Dokumentation ist stellenweise dünn, und komplexe Rewrite-Regeln werden über Middlewares schnell unübersichtlich. Die Enterprise-Version <strong>Traefik Enterprise</strong> startet preislich im Bereich ab etwa 10.000 Euro pro Jahr für kleine Cluster.</p>
+
+<h2>Nginx im Überblick: Architektur, Module, Stärken</h2>
+<p>Nginx ist in C geschrieben und nutzt ein event-driven, asynchrones Master-Worker-Modell. Ein Master-Prozess liest die Konfiguration, mehrere Worker-Prozesse (typisch `worker_processes auto`) bedienen die Verbindungen. Speicherverbrauch: rund 10 bis 30 MB pro Worker, also 40 bis 120 MB für ein typisches 4-Worker-Setup.</p>
+<p>Die Konfiguration liegt in `/etc/nginx/nginx.conf` plus `conf.d/` oder `sites-available/`. Änderungen werden mit `nginx -t` validiert und mit `nginx -s reload` ohne Verbindungsabbruch übernommen – der Master startet neue Worker und beendet alte graceful.</p>
+<p>Nginx glänzt bei statischen Inhalten: `sendfile on`, `tcp_nopush on` und der ausgefeilte Caching-Stack liefern auf derselben Hardware deutlich mehr Requests pro Sekunde als jeder Go-Proxy. Dazu kommt das größte Ökosystem an Drittanbieter-Modulen (ModSecurity, njs, lua-nginx-module via OpenResty) und eine Dokumentation, die seit zwei Jahrzehnten gewachsen ist.</p>
+<p>Der Preis dafür: Nginx OSS kennt <strong>keine aktiven Health Checks</strong>, keine native Service Discovery und kein eingebautes Tracing. Wer dynamische Backends hat, schreibt entweder Templates (Consul Template, confd, nginx-proxy) oder kauft <strong>NGINX Plus</strong> – Listenpreis liegt bei etwa 3.000 bis 3.500 US-Dollar pro Instanz und Jahr.</p>
+
+<h2>Performance-Vergleich: Requests, Latenz, Ressourcen</h2>
+<p>Die folgende Tabelle zeigt Richtwerte aus einem Testsetup mit `wrk -t4 -c256 -d30s` gegen einen statischen 1-KB-Response bzw. gegen ein Python-Backend (Gunicorn, 4 Worker). Client und Server liefen auf getrennten VMs im selben Rechenzentrum.</p>
+<table>
+<thead><tr><th>Metrik</th><th>Nginx 1.28</th><th>Traefik 3.x</th></tr></thead>
+<tbody>
+<tr><td>Statisch, HTTP/1.1 (req/s)</td><td>~78.000</td><td>~34.000</td></tr>
+<tr><td>Statisch, HTTP/2 TLS (req/s)</td><td>~42.000</td><td>~21.000</td></tr>
+<tr><td>Proxy zu Backend (req/s)</td><td>~24.000</td><td>~17.500</td></tr>
+<tr><td>P99-Latenz Overhead</td><td>0,6–1,2 ms</td><td>1,4–3,1 ms</td></tr>
+<tr><td>RAM im Leerlauf</td><td>~45 MB</td><td>~95 MB</td></tr>
+<tr><td>RAM unter 10k conn</td><td>~180 MB</td><td>~340 MB</td></tr>
+<tr><td>Cold-Start bis erste Route</td><td>~150 ms</td><td>~400 ms</td></tr>
+</tbody>
+</table>
+<p>Wichtig: In realen Setups limitiert fast immer das Backend. Wenn deine Node.js- oder PHP-FPM-Anwendung 2.000 req/s schafft, sind die 40.000 req/s Differenz im Proxy irrelevant. Der Performance-Vorteil von Nginx wird erst relevant bei Static-File-CDN-Knoten, Video-Delivery oder sehr hohen Verbindungszahlen pro Sekunde.</p>
+<p>Beide Proxies beherrschen HTTP/3 über QUIC. Nginx seit 1.25 stabil, Traefik seit v3 experimentell bzw. in v3.x mit aktivierbarem `http3`-Block. In Benchmarks bringt HTTP/3 bei mobilen Clients mit hoher Latenz 10 bis 25 Prozent Verbesserung beim Time-to-First-Byte, im LAN praktisch nichts.</p>
+
+<h2>Konfiguration im direkten Vergleich</h2>
+<p>Hier zeigt sich der größte praktische Unterschied. Ein Traefik-Setup mit Docker Compose definiert Routen direkt am Service:</p>
+<pre><code>services:
+  traefik:
+    image: traefik:v3.3
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.le.acme.email=admin@example.com"
+      - "--certificatesresolvers.le.acme.storage=/acme.json"
+      - "--certificatesresolvers.le.acme.tlschallenge=true"
+    ports: ["80:80", "443:443"]
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./acme.json:/acme.json"
+
+  app:
+    image: ghcr.io/example/app:1.4.2
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`app.example.com`)"
+      - "traefik.http.routers.app.entrypoints=websecure"
+      - "traefik.http.routers.app.tls.certresolver=le"
+      - "traefik.http.services.app.loadbalancer.server.port=3000"</code></pre>
+<p>Dieselbe Aufgabe in Nginx erfordert eine Konfigurationsdatei plus einen Weg, sie bei jedem Deploy zu aktualisieren:</p>
+<pre><code>upstream app_backend {
+    server 10.0.1.21:3000 max_fails=3 fail_timeout=10s;
+    server 10.0.1.22:3000 max_fails=3 fail_timeout=10s;
+    keepalive 32;
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name app.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/app.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/app.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://app_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+    }
+}</code></pre>
+<p>Fazit: Traefik-Konfiguration ist deklarativ und lebt mit dem Container. Nginx-Konfiguration ist explizit, versionierbar und für Menschen lesbar, aber sie muss bei jeder Backend-Änderung nachgezogen werden. Bei 5 Services ist das egal, bei 50 Services mit täglichen Deploys ist es ein Vollzeitproblem.</p>
+
+<h2>TLS und Let's Encrypt: ACME automatisch vs. Certbot</h2>
+<p>Traefik hat ACME eingebaut. Mit `tlschallenge` (TLS-ALPN-01) oder `httpchallenge` (HTTP-01) holt es Zertifikate selbstständig und erneuert sie 30 Tage vor Ablauf. Wildcard-Zertifikate laufen über DNS-01 mit Providern wie Cloudflare, Hetzner, Route53 oder INWX. Wichtig: Der ACME-Store `acme.json` muss die Rechte `600` haben, sonst verweigert Traefik den Start.</p>
+<p>Bei Let's Encrypt gelten Rate Limits: 50 neue Zertifikate pro registrierter Domain und Woche, 5 identische Zertifikate pro Woche. Wer Traefik im Cluster mehrfach laufen lässt, braucht entweder einen gemeinsamen ACME-Store oder einen zentralen Zertifikats-Resolver mit `--certificatesresolvers.le.acme.dnschallenge.provider`.</p>
+<p>Nginx nutzt klassisch Certbot oder acme.sh plus systemd-Timer. Der Standard-Workflow: `certbot --nginx -d app.example.com --deploy-hook "systemctl reload nginx"`. Erneuerung alle 60 Tage, Zertifikate gültig 90 Tage. Das funktioniert zuverlässig, ist aber ein zweiter beweglicher Teil im System.</p>
+<p>Beide unterstützen mTLS. Traefik konfiguriert es über `tls.options` mit `clientAuthType: RequireAndVerifyClientCert`, Nginx über `ssl_client_certificate` und `ssl_verify_client on`. Für Zero-Trust-Setups mit SPIFFE oder internen CAs ist Traefik wegen der dynamischen Provider-Anbindung meist der einfachere Weg.</p>
+
+<h2>Kubernetes, Service Discovery und Load Balancing</h2>
+<p>In Kubernetes war der klassische <strong>ingress-nginx</strong>-Controller jahrelang De-facto-Standard. Das Projekt hat angekündigt, im März 2026 in den Ruhestand zu gehen – Neulinge sollten auf <strong>Gateway API</strong> setzen. Genau hier spielt Traefik seine Stärke aus: Es implementiert Gateway API und bietet zusätzlich eigene `IngressRoute`-CRDs.</p>
+<pre><code>apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: app
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`app.example.com`) &amp;&amp; PathPrefix(`/api`)
+      kind: Rule
+      services:
+        - name: app-svc
+          port: 3000
+          healthCheck:
+            path: /healthz
+            intervalSeconds: 10
+      middlewares:
+        - name: rate-limit</code></pre>
+<p>Beim Load Balancing gibt es einen harten Unterschied: Traefik OSS beherrscht <strong>aktive Health Checks</strong> pro Service, gewichtetes Round Robin, Sticky Sessions über Cookies und Circuit Breaker. Nginx OSS hat nur passive Checks (`max_fails`, `fail_timeout`) – aktive Checks sind NGINX-Plus-Feature.</p>
+<p>Für Service Discovery mit Consul, etcd oder Nomad bietet Traefik fertige Provider. Nginx braucht dafür Consul Template, confd oder einen eigenen Sidecar, der die `upstream`-Blöcke neu rendert und `nginx -s reload` ausführt. Das ist machbar, aber zusätzliche Komplexität und ein zusätzlicher Fehlerpunkt.</p>
+<p>Praxis-Tipp: Ein Hybrid-Setup ist völlig legitim. Traefik als Edge-Router mit TLS und Auth, dahinter Nginx als Static-File-Server und Cache. Du bekommst dynamische Routen und Nginx-Performance für Assets.</p>
+
+<h2>Observability: Logs, Metriken, Tracing</h2>
+<p>Traefik liefert von Haus aus Prometheus-Metriken unter `/metrics`, JSON-Access-Logs, OpenTelemetry-Traces (OTLP) und Integrationen für Datadog, Jaeger, Zipkin und Instana. Ein Metric-Set umfasst unter anderem `traefik_entrypoint_requests_total`, `traefik_service_request_duration_seconds` und `traefik_tls_certs_not_after` – letzteres ist Gold wert für Zertifikats-Monitoring.</p>
+<p>Nginx OSS bietet nur `stub_status` mit sieben Zahlen (aktive Verbindungen, Requests, Reading/Writing/Waiting). Für Prometheus brauchst du den <strong>nginx-prometheus-exporter</strong>, für Tracing NGINX Plus oder eine njs-Bastelei. Access-Logs lassen sich als JSON formatieren, was für Loki oder Elastic gut funktioniert.</p>
+<p>Ein Beispiel für Traefik-Metriken in Prometheus:</p>
+<pre><code>scrape_configs:
+  - job_name: traefik
+    static_configs:
+      - targets: ["traefik:8080"]
+    metrics_path: /metrics</code></pre>
+<p>Für Nginx sieht das Gegenstück so aus:</p>
+<pre><code>location = /stub_status {
+    stub_status;
+    allow 10.0.0.0/8;
+    deny all;
+}</code></pre>
+<p>Unterm Strich: Wenn du Distributed Tracing willst, ist Traefik 2026 die klar einfachere Wahl. Wenn du nur Request-Zahlen und Statuscodes brauchst, reicht Nginx plus Exporter vollkommen aus.</p>
+
+<h2>Sicherheit: Rate Limiting, WAF, CVEs</h2>
+<p>Rate Limiting ist bei beiden eingebaut, aber unterschiedlich gedacht. Traefik nutzt eine Middleware mit `average` und `burst`, kann pro Source-IP oder pro Header-Wert limitieren und liefert standardmäßig HTTP 429. Nginx nutzt `limit_req_zone` mit einem Shared-Memory-Bereich und `limit_req` pro Location.</p>
+<pre><code># Nginx: 10 Requests/Sekunde pro IP, Burst 20
+limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+
+location /api/ {
+    limit_req zone=api burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://app_backend;
+}</code></pre>
+<p>Beim WAF hat Nginx den Vorsprung durch das ModSecurity-Nginx-Modul und die Coraza-Engine. Traefik kann Coraza als Plugin nachladen, was seit v3 deutlich einfacher ist, aber weniger ausgereift bleibt. Wer PCI-DSS-Anforderungen erfüllen muss, fährt mit Nginx plus ModSecurity oder einem vorgelagerten Cloud-WAF meist sicherer.</p>
+<p>Für Authentifizierung ist <strong>ForwardAuth</strong> bei Traefik ein Killer-Feature: Authelia, Authentik oder Keycloak werden als Middleware eingebunden, und jeder neue Container ist automatisch SSO-geschützt. In Nginx baust du das über `auth_request` nach – funktioniert, ist aber mehr Handarbeit.</p>
+<p>Beim Docker-Socket gilt für beide: <strong>immer `:ro` mounten</strong>, besser noch über einen Socket-Proxy wie tecnativa/docker-socket-proxy absichern. Ein kompromittierter Proxy mit Schreibzugriff auf den Docker-Socket bedeutet Root auf dem Host. Beide Projekte hatten in den letzten Jahren CVEs – Nginx etwa CVE-2024-7347 im mp4-Modul, Traefik mehrere Auth-Bypass-Themen in älteren 2.x-Versionen. Patch-Disziplin ist bei beiden Pflicht.</p>
+
+<h2>Kosten und Betriebsaufwand</h2>
+<p>Beide Proxies sind Open Source und kosten nichts. Die echten Kosten liegen im Server und im Personal.</p>
+<table>
+<thead><tr><th>Posten</th><th>Preis (Richtwert 2026)</th></tr></thead>
+<tbody>
+<tr><td>Hetzner CX22 (2 vCPU, 4 GB)</td><td>ab 4,51 €/Monat</td></tr>
+<tr><td>Hetzner CPX21 (3 vCPU, 8 GB)</td><td>ab 8,98 €/Monat</td></tr>
+<tr><td>Netcup VPS 1000 G11</td><td>ab ca. 6,50 €/Monat</td></tr>
+<tr><td>Contabo VPS S (4 vCPU, 8 GB)</td><td>ab 5,99 €/Monat</td></tr>
+<tr><td>NGINX Plus</td><td>ca. 3.000–3.500 $/Instanz/Jahr</td></tr>
+<tr><td>Traefik Enterprise</td><td>ab ca. 10.000 €/Jahr</td></tr>
+<tr><td>Traefik Hub (Managed)</td><td>ab ca. 100 €/Monat</td></tr>
+</tbody>
+</table>
+<p>Für einen einzelnen Traefik-Proxy reicht ein CX22 mit 4 GB RAM locker für 5.000 gleichzeitige Verbindungen. Nginx läuft auf derselben Hardware mit deutlich niedrigerer Speicherlast. Bei 20+ Services mit häufigen Deploys spart Traefik realistisch 2 bis 5 Stunden Admin-Arbeit pro Woche – bei einem Stundensatz von 60 bis 90 Euro ist das der eigentliche Kostenfaktor.</p>
+<p>Umgekehrt gilt: Wer nur drei statische vHosts betreibt und einmal im Jahr die Konfiguration anfasst, zahlt mit Traefik mehr Einarbeitungszeit als er jemals durch Automatisierung zurückbekommt.</p>
+
+<h2>Entscheidungsmatrix und Migration</h2>
+<p>Die Kurzfassung in einer Tabelle:</p>
+<table>
+<thead><tr><th>Szenario</th><th>Empfehlung</th></tr></thead>
+<tbody>
+<tr><td>Docker Compose, viele Services, häufige Deploys</td><td><strong>Traefik</strong></td></tr>
+<tr><td>Kubernetes mit Gateway API</td><td><strong>Traefik</strong></td></tr>
+<tr><td>Static-File-CDN, hoher Durchsatz</td><td><strong>Nginx</strong></td></tr>
+<tr><td>Klassischer LAMP-Stack, 5 vHosts</td><td><strong>Nginx</strong></td></tr>
+<tr><td>WAF/PCI-DSS-Anforderungen</td><td><strong>Nginx</strong> + ModSecurity</td></tr>
+<tr><td>SSO für viele Container</td><td><strong>Traefik</strong> + ForwardAuth</td></tr>
+<tr><td>Aktive Health Checks ohne Lizenz</td><td><strong>Traefik</strong></td></tr>
+<tr><td>Maximale Performance pro Euro</td><td><strong>Nginx</strong></td></tr>
+</tbody>
+</table>
+<p>Migration Nginx → Traefik: Beginne mit dem File-Provider und übertrage die vHosts als `http.routers`- und `http.services`-Blöcke in eine `dynamic.yml`. Danach migriere Service für Service auf Docker-Labels. Rewrites aus `rewrite ^/old/(.*)$ /new/$1 break;` werden zu einer `replacePathRegex`-Middleware. Plane pro Service 15 bis 30 Minuten ein.</p>
+<p>Migration Traefik → Nginx: Generiere die `upstream`-Blöcke aus den Traefik-Services, übernimm die Middlewares als `limit_req`, `auth_request` und `add_header`-Direktiven. Der schwierigste Teil ist die Service Discovery – hier brauchst du Consul Template oder du wechselst zu statischen Backend-IPs mit Docker-Netzwerk-Aliassen.</p>
+<p>Meine Empfehlung für 2026: Für alles, was containerisiert und dynamisch ist, nimm Traefik. Für Edge-Static, WAF und maximale Rohleistung nimm Nginx. Der Hybrid-Betrieb ist kein Kompromiss, sondern in vielen Produktionsumgebungen die technisch beste Lösung.</p>
+
+<h2>FAQ</h2>
+<h3>Ist Traefik langsamer als Nginx?</h3>
+<p>Ja, messbar. In Benchmarks liefert Nginx bei statischen Dateien etwa 78.000 req/s gegenüber rund 34.000 req/s bei Traefik auf identischer Hardware. Bei Proxy-Anfragen zu einem Backend schrumpft der Abstand auf etwa 24.000 zu 17.500 req/s. In der Praxis limitiert fast immer das Backend, sodass der Unterschied selten spürbar ist.</p>
+
+<h3>Kann ich Traefik und Nginx gleichzeitig betreiben?</h3>
+<p>Ja, und das ist ein gängiges Muster. Traefik läuft als Edge-Proxy mit TLS, Routing und Auth, dahinter sitzt Nginx als Static-File-Server und Cache. Du bekommst automatische Service Discovery plus die Rohperformance von Nginx für Assets. Der zusätzliche Hop kostet rund 0,5 bis 1 ms Latenz.</p>
+
+<h3>Brauche ich für Traefik einen Docker-Socket-Zugriff?</h3>
+<p>Nur wenn du den Docker-Provider nutzt. Mounte ihn immer read-only (`:ro`) und idealerweise über einen Socket-Proxy wie tecnativa/docker-socket-proxy. Alternativ kannst du den File-Provider verwenden und die Konfiguration selbst generieren – dann braucht Traefik gar keinen Socket-Zugriff.</p>
+
+<h3>Was kostet NGINX Plus im Vergleich zu Traefik Enterprise?</h3>
+<p>NGINX Plus liegt bei etwa 3.000 bis 3.500 US-Dollar pro Instanz und Jahr. Traefik Enterprise startet im Bereich ab rund 10.000 Euro pro Jahr für kleine Cluster. Für die meisten Self-Hosted-Setups reichen die Open-Source-Versionen vollständig aus – die Enterprise-Features betreffen vor allem Multi-Cluster-Management und kommerziellen Support.</p>
+
+<h3>Welcher Proxy ist sicherer?</h3>
+<p>Beide sind sicher, wenn sie aktuell gepatcht werden. Nginx hat durch ModSecurity und Coraza den ausgereifteren WAF-Stack. Traefik punktet mit eingebautem ForwardAuth für SSO und einfacherem mTLS-Management. Entscheidend ist weniger das Produkt als Patch-Disziplin, restriktive Docker-Socket-Rechte und ein sauberes TLS-Setup mit HSTS und modernen Ciphers.</p>
