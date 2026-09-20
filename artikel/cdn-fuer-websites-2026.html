@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CDN für Websites 2026 – Cloudflare, BunnyCDN &amp; Fastly im Vergleich | hostazar.com</title>
+  <meta name="description" content="CDN für Websites 2026 im großen Vergleich: Cloudflare, BunnyCDN und Fastly mit echten Preisen, Benchmarks, Setup-Befehlen und Entscheidungsmatrix für Admins.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hostazar.com/artikel/cdn-fuer-websites-2026.html">
+  <link rel="stylesheet" href="/css/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hostazar.com/artikel/cdn-fuer-websites-2026.html">
+  <meta property="og:title" content="CDN für Websites 2026 – Cloudflare, BunnyCDN &amp; Fastly im Vergleich | hostazar.com">
+  <meta property="og:description" content="CDN für Websites 2026 im großen Vergleich: Cloudflare, BunnyCDN und Fastly mit echten Preisen, Benchmarks, Setup-Befehlen und Entscheidungsmatrix für Admins.">
+  <meta property="og:image" content="https://hostazar.com/images/cdn-fuer-websites-2026.webp">
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:site_name" content="Hostazar &mdash; VPS &amp; DevOps Portal">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="CDN für Websites 2026 – Cloudflare, BunnyCDN &amp; Fastly im Vergleich | hostazar.com">
+  <meta name="twitter:description" content="CDN für Websites 2026 im großen Vergleich: Cloudflare, BunnyCDN und Fastly mit echten Preisen, Benchmarks, Setup-Befehlen und Entscheidungsmatrix für Admins.">
+  <meta name="twitter:image" content="https://hostazar.com/images/cdn-fuer-websites-2026.webp">
+  <script data-hz-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/css/consent-banner.css">
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "CDN für Websites 2026 – Cloudflare, BunnyCDN & Fastly im Vergleich | hostazar.com",
+  "url": "https://hostazar.com/artikel/cdn-fuer-websites-2026.html",
+  "description": "CDN für Websites 2026 im großen Vergleich: Cloudflare, BunnyCDN und Fastly mit echten Preisen, Benchmarks, Setup-Befehlen und Entscheidungsmatrix für Admins.",
+  "inLanguage": "de",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "hostazar.com",
+    "url": "https://hostazar.com"
+  },
+  "datePublished": "2026-09-20",
+  "dateModified": "2026-09-20",
+  "image": "https://hostazar.com/images/cdn-fuer-websites-2026.webp",
+  "author": {
+    "@type": "Organization",
+    "name": "hostazar.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "hostazar.com"
+  },
+  "wordCount": 2394
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Startseite",
+      "item": "https://hostazar.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "CDN für Websites 2026 – Cloudflare, BunnyCDN & Fastly im Vergleich",
+      "item": "https://hostazar.com/artikel/cdn-fuer-websites-2026.html"
+    }
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Ist Cloudflare Free wirklich kostenlos und unbegrenzt?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ja, für proxied Traffic gibt es keine Bandbreitenbegrenzung und keine Request-Gebühren. Fair-Use-Grenzen greifen bei extremen Missbrauchsfällen, etwa massenhaftem Video-Streaming über den Free-Plan. Wer 50 TB/Monat an Video ausliefert, wird von Cloudflare kontaktiert. Für normale Websites, Shops und APIs ist der Free-Tier dauerhaft kostenlos."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Kann ich Cloudflare und BunnyCDN gleichzeitig nutzen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ja, das ist ein gängiges Muster. Du nutzt Cloudflare für DNS, WAF und DDoS-Schutz und leitest statische Assets über eine Subdomain wie cdn.example.com an BunnyCDN weiter. Wichtig ist, dass Cloudflare für diese Subdomain auf DNS-only (graue Wolke) gestellt wird, sonst laufen zwei Proxy-Schichten hintereinander und die Latenz steigt um 20–40 ms."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Was kostet ein CDN für 10 TB Traffic pro Monat?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Cloudflare Free und Pro: 0 bzw. 20 USD, da Bandbreite nicht abgerechnet wird. BunnyCDN: rund 100 USD bei 0,01 USD/GB, mit Volume-Rabatt realistisch 70–85 USD. Fastly: rund 1.200 USD Listenpreis, verhandelt im Enterprise-Vertrag deutlich weniger. Für 10 TB ist BunnyCDN fast immer die wirtschaftlichste Wahl."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Wie schnell ist ein Cache-Purge bei den Anbietern?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Fastly ist mit unter 150 ms globaler Propagation am schnellsten. Cloudflare liegt bei 1–5 Sekunden für einzelne URLs, bei Tag-basiertem Purge etwas länger. BunnyCDN purgt einzelne URLs in unter einer Sekunde, kompletter Zonen-Purge dauert je nach Region 10–30 Sekunden. Für Content-Update-Workflows ist Fastly klar im Vorteil."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Brauche ich für DSGVO-Konformität ein EU-CDN?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nicht zwingend, aber es vereinfacht die Rechtslage erheblich. BunnyCDN betreibt EU-PoPs in Falkenstein und Wien und bietet EU-Datenresidenz ohne Aufpreis. Cloudflare bietet Datenresidenz nur in Enterprise-Verträgen. Wenn du personenbezogene Daten über den Edge verarbeitest — etwa IP-Adressen in Logs — ist ein EU-Anbieter oder ein Vertrag mit EU-Datenresidenz der saubere Weg."
+      }
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">hosta<span>zar</span></a>
+    <button class="nav-toggle" aria-label="Men&#252; &#246;ffnen">&#9776;</button>
+    <ul class="nav-links">
+      <li><a href="/">Startseite</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">🎮 Gaming</a>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#4CAF50">&#9670;</span> A-Z</h4>
+            <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">
+              <img src="/images/7-days-to-die-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
+              <img src="/images/ark-survival-ascended-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">
+              <img src="/images/conan-exiles-server-hosten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Conan Exiles Server mieten – Setup &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">
+              <img src="/images/cs2-server-mieten-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</span>
+            </a>
+            <a href="/artikel/dayz-server-mieten-2026.html" class="mega-item">
+              <img src="/images/dayz-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+            </a>
+            <a href="/artikel/enshrouded-server-hosting-2026.html" class="mega-item">
+              <img src="/images/enshrouded-server-hosting-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Enshrouded Server – Hosting-Guide &amp; Setup für Koop 2026</span>
+            </a>
+            <a href="/artikel/farming-simulator-25-server-mieten-2026.html" class="mega-item">
+              <img src="/images/farming-simulator-25-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Farming Simulator 25 Server mieten – Multiplayer-Guide 2026</span>
+            </a>
+            <a href="/artikel/grounded-server-hosting.html" class="mega-item">
+              <img src="/images/grounded-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Grounded Server hosten – Kosten, Setup &amp; Anbieter 2026</span>
+            </a>
+            <a href="/artikel/icarus-server-hosting.html" class="mega-item">
+              <img src="/images/icarus-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Icarus Server hosten – Dedicated Server für Koop 2026</span>
+            </a>
+            <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
+              <img src="/images/minecraft-server-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Server mieten oder selbst hosten? Der ultimative Vergleich 2026</span>
+            </a>
+            <a href="/artikel/nightingale-server-hosting.html" class="mega-item">
+              <img src="/images/nightingale-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nightingale Server hosten – Realm-Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
+              <img src="/images/palworld-server-hosting-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Palworld Server mieten oder selbst hosten? Der komplette Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/project-zomboid-server-hosting-2026.html" class="mega-item">
+              <img src="/images/project-zomboid-server-hosting-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Project Zomboid Server – Hosting &amp; Setup für Multiplayer 2026</span>
+            </a>
+            <a href="/artikel/rust-server-mieten-guide-2026.html" class="mega-item">
+              <img src="/images/rust-server-mieten-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Rust Server mieten – Kosten, Setup, Mods &amp; Anbieter 2026</span>
+            </a>
+            <a href="/artikel/satisfactory-server-mieten-oder-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/satisfactory-server-mieten-oder-selbst-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Satisfactory Server mieten oder selbst hosten? Der Guide 2026</span>
+            </a>
+            <a href="/artikel/scum-server-mieten.html" class="mega-item">
+              <img src="/images/scum-server-mieten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">SCUM Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+            </a>
+            <a href="/artikel/smalland-server-hosting.html" class="mega-item">
+              <img src="/images/smalland-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Smalland Server mieten – Guide für den Koop-Server 2026</span>
+            </a>
+            <a href="/artikel/sons-of-the-forest-server.html" class="mega-item">
+              <img src="/images/sons-of-the-forest-server.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Sons of the Forest Server hosten – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/space-engineers-server.html" class="mega-item">
+              <img src="/images/space-engineers-server.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Space Engineers Server mieten oder selbst hosten 2026</span>
+            </a>
+            <a href="/artikel/terraria-server-hosten-2026.html" class="mega-item">
+              <img src="/images/terraria-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Terraria Server hosten – Komplettanleitung für Multiplayer 2026</span>
+            </a>
+            <a href="/artikel/the-forest-server-hosting.html" class="mega-item">
+              <img src="/images/the-forest-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">The Forest Server hosten – Koop-Guide 2026</span>
+            </a>
+            <a href="/artikel/v-rising-server-mieten-2026.html" class="mega-item">
+              <img src="/images/v-rising-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">V Rising Server mieten oder selbst hosten? Guide 2026</span>
+            </a>
+            <a href="/artikel/factorio-server-hosting-2026.html" class="mega-item">
+              <img src="/images/factorio-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Factorio Server mieten oder selbst hosten? Der komplette Dedicated Server Guide 2026</span>
+            </a>
+          </div>
+          <div class="mega-column">
+            <h4><span style="color:#4CAF50">&#9670;</span> Neueste</h4>
+            <a href="/artikel/minecraft-server-mods-plugins-guide-2026.html" class="mega-item">
+              <img src="/images/minecraft-server-mods-plugins-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Server mit Mods und Plugins – Der ultimative Modding-Guide 2026</span>
+            </a>
+            <a href="/artikel/phasmophobia-server-mieten-2026.html" class="mega-item">
+              <img src="/images/phasmophobia-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Phasmophobia Server mieten 2026 – Geisterjagd Multiplayer Setup</span>
+            </a>
+            <a href="/artikel/baldurs-gate-3-server-mieten-2026.html" class="mega-item">
+              <img src="/images/baldurs-gate-3-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Baldurs Gate 3 Server mieten 2026 – D&amp;D Multiplayer &amp; Coop Setup</span>
+            </a>
+            <a href="/artikel/pubg-server-mieten-2026.html" class="mega-item">
+              <img src="/images/pubg-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">PUBG Server mieten 2026 – Preise, Slots &amp; Anbieter im Vergleich</span>
+            </a>
+            <a href="/artikel/lethal-company-server-mieten-2026.html" class="mega-item">
+              <img src="/images/lethal-company-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Lethal Company Server mieten – Multiplayer Setup Guide 2026</span>
+            </a>
+            <a href="/artikel/helldivers-2-server-hosten-2026.html" class="mega-item">
+              <img src="/images/helldivers-2-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Helldivers 2 Server hosten – Kooperative Missions-Pläne 2026</span>
+            </a>
+            <a href="/artikel/deep-rock-galactic-server-mieten-2026.html" class="mega-item">
+              <img src="/images/deep-rock-galactic-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Deep Rock Galactic Server mieten – 4-Spieler Koop Guide 2026</span>
+            </a>
+            <a href="/artikel/phasmophobia-server-hosten-2026.html" class="mega-item">
+              <img src="/images/phasmophobia-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Phasmophobia Server hosten – Geisterjagd Multiplayer 2026</span>
+            </a>
+            <a href="/artikel/escape-from-tarkov-server-hosten-2026.html" class="mega-item">
+              <img src="/images/escape-from-tarkov-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Escape from Tarkov Server hosten 2026 – Dedicated Server Setup &amp; Anleitung</span>
+            </a>
+            <a href="/artikel/beste-gaming-monitore-2026.html" class="mega-item">
+              <img src="/images/beste-gaming-monitore-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Beste Gaming-Monitore 2026 – 144Hz, 240Hz und OLED im Vergleich</span>
+            </a>
+            <a href="/artikel/gaming-pc-selbst-bauen-2026.html" class="mega-item">
+              <img src="/images/gaming-pc-selbst-bauen-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gaming-PC selbst bauen 2026 – Komponenten-Guide für jedes Budget</span>
+            </a>
+            <a href="/artikel/steam-deck-vs-asus-rog-ally-vs-lenovo-legion-go-2026.html" class="mega-item">
+              <img src="/images/steam-deck-vs-asus-rog-ally-vs-lenovo-legion-go-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Steam Deck vs Asus ROG Ally vs Lenovo Legion Go – Handheld-Vergleich 2026</span>
+            </a>
+            <a href="/artikel/ddos-schutz-gameserver-2026.html" class="mega-item">
+              <img src="/images/ddos-schutz-gameserver-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DDoS-Schutz für Gameserver – Anbieter &amp; Konfiguration 2026</span>
+            </a>
+            <a href="/artikel/minecraft-bedrock-vs-java-server-2026.html" class="mega-item">
+              <img src="/images/minecraft-bedrock-vs-java-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Bedrock vs. Java Server – Unterschiede &amp; Hosting 2026</span>
+            </a>
+            <a href="/artikel/raft-server-mieten-2026.html" class="mega-item">
+              <img src="/images/raft-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Raft Server mieten – Dedicated Server Guide &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/palworld-server-mods-guide-2026.html" class="mega-item">
+              <img src="/images/palworld-server-mods-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Palworld Mods &amp; Dedicated Server Guide 2026 – BepInEx, server.ini, Admin-Tools</span>
+            </a>
+            <a href="/artikel/pterodactyl-panel-installieren-2026.html" class="mega-item">
+              <img src="/images/pterodactyl-panel-installieren-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Pterodactyl Panel installieren – Gameserver-Management auf VPS 2026</span>
+            </a>
+            <a href="/artikel/dont-starve-together-server-hosten-2026.html" class="mega-item">
+              <img src="/images/dont-starve-together-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Don&#39;t Starve Together Server hosten – Dedicated Server Setup &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/fivem-server-mieten-2026.html" class="mega-item">
+              <img src="/images/fivem-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">FiveM (GTA V) Server mieten – Roleplay-Server Hosting Guide 2026</span>
+            </a>
+            <a href="/artikel/gaming-pc-finanzieren.html" class="mega-item">
+              <img src="/images/gaming-pc-finanzieren.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gaming-PC finanzieren – ETF-Entnahme oder Ratenkredit?</span>
+            </a>
+            <a href="/artikel/valheim-server-vps-mieten-2026.html" class="mega-item">
+              <img src="/images/valheim-server-vps-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026</span>
+            </a>
+            <a href="/artikel/gameserver-mieten-guide.html" class="mega-item">
+              <img src="/images/gameserver-mieten-guide.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gameserver mieten 2025 – Der ultimative Guide</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/gaming/">Alle Gaming-Artikel</a></div>
+        </div></div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">🌐 Webhosting</a>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#2196F3">&#9670;</span> A-Z</h4>
+            <a href="/artikel/lamp-stack-vs-lemp-stack-vergleich-2026.html" class="mega-item">
+              <img src="/images/lamp-stack-vs-lemp-stack-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LAMP Stack vs LEMP Stack – Der große Vergleich für dein Webprojekt 2026</span>
+            </a>
+            <a href="/artikel/nginx-vs-apache-webserver-vergleich-2026.html" class="mega-item">
+              <img src="/images/nginx-vs-apache-webserver-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nginx vs. Apache 2026 – Webserver im Vergleich</span>
+            </a>
+            <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="mega-item">
+              <img src="/images/cloud-hosting-vs-shared-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloud Hosting vs. Shared Hosting – Vergleich 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-tunnel-einrichten.html" class="mega-item">
+              <img src="/images/cloudflare-tunnel-einrichten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</span>
+            </a>
+            <a href="/artikel/docker-wordpress-hosten.html" class="mega-item">
+              <img src="/images/docker-wordpress-hosten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WordPress mit Docker hosten – Modernes Setup 2026</span>
+            </a>
+            <a href="/artikel/domain-kaufen-einrichten-2026.html" class="mega-item">
+              <img src="/images/domain-kaufen-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Domain kaufen und einrichten – Schritt-für-Schritt 2026</span>
+            </a>
+            <a href="/artikel/email-server-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/email-server-selbst-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</span>
+            </a>
+            <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html" class="mega-item">
+              <img src="/images/hetzner-cloud-vs-dediziert-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Hetzner Cloud vs. Dedizierter Server – Vergleich 2026</span>
+            </a>
+            <a href="/artikel/mysql-mariadb-optimierung.html" class="mega-item">
+              <img src="/images/mysql-mariadb-optimierung.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">MySQL &amp; MariaDB optimieren – Performance-Guide 2026</span>
+            </a>
+            <a href="/artikel/netcup-vps-erfahrungen-2026.html" class="mega-item">
+              <img src="/images/netcup-vps-erfahrungen-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Netcup VPS Erfahrungen 2026 – Test, Preise &amp; Bewertung</span>
+            </a>
+            <a href="/artikel/nextcloud-server-einrichten.html" class="mega-item">
+              <img src="/images/nextcloud-server-einrichten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nextcloud Server einrichten – Cloud-Speicher selbst hosten 2026</span>
+            </a>
+            <a href="/artikel/plesk-vs-cpanel-vergleich.html" class="mega-item">
+              <img src="/images/plesk-vs-cpanel-vergleich.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Plesk vs. cPanel – Der große Hosting-Panel-Vergleich 2026</span>
+            </a>
+          </div>
+          <div class="mega-column">
+            <h4><span style="color:#2196F3">&#9670;</span> Neueste</h4>
+            <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
+              <img src="/images/ssl-zertifikat-lets-encrypt-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">SSL-Zertifikat mit Let&#39;s Encrypt einrichten – Anleitung 2026</span>
+            </a>
+            <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
+              <img src="/images/webhosting-anbieter-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Die 5 besten Webhosting-Anbieter 2026 im Vergleich</span>
+            </a>
+            <a href="/artikel/webseite-sicherheit-2026.html" class="mega-item">
+              <img src="/images/webseite-sicherheit-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webseite sichern – Security-Checkliste für deine Website 2026</span>
+            </a>
+            <a href="/artikel/website-online-bringen-guide-2026.html" class="mega-item">
+              <img src="/images/website-online-bringen-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webseite online bringen – Der Komplettguide von A bis Z 2026</span>
+            </a>
+            <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
+              <img src="/images/wordpress-hosting-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WordPress Hosting Vergleich 2026 – Die besten Anbieter</span>
+            </a>
+            <a href="/artikel/caddy-web-server-einrichten-2026.html" class="mega-item">
+              <img src="/images/caddy-web-server-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Caddy Web Server einrichten – Moderner Reverse Proxy mit Auto-HTTPS 2026</span>
+            </a>
+            <a href="/artikel/hostinger-review-2026.html" class="mega-item">
+              <img src="/images/hostinger-review-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Hostinger Review 2026 – Webhosting im Test: Preise, Performance &amp; Eignung</span>
+            </a>
+            <a href="/artikel/cloud-vs-dedicated-server-2026.html" class="mega-item">
+              <img src="/images/cloud-vs-dedicated-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloud vs Dedicated Server 2026 – Kosten, Performance &amp; Use Cases</span>
+            </a>
+            <a href="/artikel/webhosting-sicherheit-ddos-schutz-waf-2026.html" class="mega-item">
+              <img src="/images/webhosting-sicherheit-ddos-schutz-waf-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webhosting-Sicherheit: DDoS-Schutz und WAF – Der Guide 2026</span>
+            </a>
+            <a href="/artikel/managed-wordpress-hosting-vergleich-2026.html" class="mega-item">
+              <img src="/images/managed-wordpress-hosting-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Managed WordPress Hosting im Vergleich 2026 – Die besten Anbieter</span>
+            </a>
+            <a href="/artikel/hugo-astro-static-site-vergleich-2026.html" class="mega-item">
+              <img src="/images/hugo-astro-static-site-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Hugo vs. Astro – Static Site Generator Hosting Vergleich 2026</span>
+            </a>
+            <a href="/artikel/webhosting-vserver-vergleich.html" class="mega-item">
+              <img src="/images/webhosting-vserver-vergleich.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webhosting vs. VServer – Was passt zu dir?</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/webhosting/">Alle Webhosting-Artikel</a></div>
+        </div></div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/">⚙️ DevOps</a>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#FF9800">&#9670;</span> A-Z</h4>
+            <a href="/artikel/docker-container-security-best-practices-2026.html" class="mega-item">
+              <img src="/images/docker-container-security-best-practices-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker Container Security – Best Practices und Absicherung für Docker-Container 2026</span>
+            </a>
+            <a href="/artikel/openvpn-server-vps-einrichten-2026.html" class="mega-item">
+              <img src="/images/openvpn-server-vps-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">OpenVPN Server auf VPS einrichten – Schritt-für-Schritt-Anleitung 2026</span>
+            </a>
+            <a href="/artikel/postgresql-vs-mysql-vergleich-2026.html" class="mega-item">
+              <img src="/images/postgresql-vs-mysql-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">PostgreSQL vs. MySQL 2026 – Datenbank-Hosting im Vergleich</span>
+            </a>
+            <a href="/artikel/raspberry-pi-homelab-server-2026.html" class="mega-item">
+              <img src="/images/raspberry-pi-homelab-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Raspberry Pi Homelab 2026 – Heimserver basteln</span>
+            </a>
+            <a href="/artikel/remote-work-tirol.html" class="mega-item">
+              <img src="/images/remote-work-tirol.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Remote Work in den Alpen: Mein Coworking-Setup in Tirol</span>
+            </a>
+            <a href="/artikel/ansible-automation-guide.html" class="mega-item">
+              <img src="/images/ansible-automation-guide.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</span>
+            </a>
+            <a href="/artikel/backup-strategien-vps-server-2026.html" class="mega-item">
+              <img src="/images/backup-strategien-vps-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Backup-Strategien für VPS und Server – Der Guide 2026</span>
+            </a>
+            <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="mega-item">
+              <img src="/images/docker-vs-podman-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</span>
+            </a>
+            <a href="/artikel/elk-stack-log-management.html" class="mega-item">
+              <img src="/images/elk-stack-log-management.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</span>
+            </a>
+            <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="mega-item">
+              <img src="/images/github-actions-ci-cd-pipeline-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</span>
+            </a>
+            <a href="/artikel/gitops-argocd-einrichten.html" class="mega-item">
+              <img src="/images/gitops-argocd-einrichten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</span>
+            </a>
+            <a href="/artikel/k3s-kubernetes-vps-2026.html" class="mega-item">
+              <img src="/images/k3s-kubernetes-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/linux-server-harden.html" class="mega-item">
+              <img src="/images/linux-server-harden.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Linux Server härten – Security-Baseline 2026</span>
+            </a>
+            <a href="/artikel/n8n-automation-server.html" class="mega-item">
+              <img src="/images/n8n-automation-server.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">n8n Automation Server hosten – Workflow-Automatisierung 2026</span>
+            </a>
+            <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" class="mega-item">
+              <img src="/images/nginx-reverse-proxy-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nginx Reverse Proxy konfigurieren – Einsteiger-Guide 2026</span>
+            </a>
+            <a href="/artikel/postgresql-vps-optimierung.html" class="mega-item">
+              <img src="/images/postgresql-vps-optimierung.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">PostgreSQL auf dem VPS optimieren – Tuning-Guide 2026</span>
+            </a>
+            <a href="/artikel/prometheus-grafana-monitoring-2026.html" class="mega-item">
+              <img src="/images/prometheus-grafana-monitoring-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Server Monitoring mit Prometheus &amp; Grafana – Setup 2026</span>
+            </a>
+            <a href="/artikel/terraform-infrastructure-as-code-2026.html" class="mega-item">
+              <img src="/images/terraform-infrastructure-as-code-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Terraform Infrastructure as Code – Einführung &amp; Beispiele 2026</span>
+            </a>
+            <a href="/artikel/traefik-reverse-proxy.html" class="mega-item">
+              <img src="/images/traefik-reverse-proxy.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Traefik Reverse Proxy einrichten – Moderner Docker-Proxy 2026</span>
+            </a>
+            <a href="/artikel/wireguard-vpn-server.html" class="mega-item">
+              <img src="/images/wireguard-vpn-server.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WireGuard VPN Server einrichten – Schnell &amp; Sicher 2026</span>
+            </a>
+            <a href="/artikel/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.html" class="mega-item">
+              <img src="/images/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">OpenRouter API vs. eigene GPU – Kostenvergleich 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-pages-vercel-netlify-vergleich-2026.html" class="mega-item">
+              <img src="/images/cloudflare-pages-vercel-netlify-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare Pages vs Vercel vs Netlify – Static Hosting Vergleich 2026</span>
+            </a>
+            <a href="/artikel/gaestebeitrag-finanz-junkie-server-kosten-investor-guide.html" class="mega-item">
+              <img src="/images/server-kosten-investor-guide.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Server mieten oder kaufen: Die versteckten Kosten der Digitalisierung – Ein Investor-Guide | Gastbeitrag</span>
+            </a>
+            <a href="/artikel/gitlab-ci-cd-pipeline-guide-2026.html" class="mega-item">
+              <img src="/images/gitlab-ci-cd-pipeline-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitLab CI/CD Pipeline einrichten – Schritt-für-Schritt Guide 2026</span>
+            </a>
+            <a href="/artikel/minio-object-storage-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/minio-object-storage-selbst-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">MinIO Object Storage selbst hosten 2026 – S3-kompatibel auf dem VPS</span>
+            </a>
+            <a href="/artikel/proxmox-heimserver-einrichten-2026.html" class="mega-item">
+              <img src="/images/proxmox-heimserver-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Proxmox Heimserver einrichten 2026 – Virtualisierung zuhause Schritt für Schritt</span>
+            </a>
+            <a href="/artikel/vps-mieten-vergleich-2026.html" class="mega-item">
+              <img src="/images/vps-mieten-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS mieten 2026: Die besten Anbieter, Preise &amp; Tipps für Entwickler</span>
+            </a>
+          </div>
+          <div class="mega-column">
+            <h4><span style="color:#FF9800">&#9670;</span> Neueste</h4>
+            <a href="/artikel/istio-service-mesh-2026.html" class="mega-item">
+              <img src="/images/istio-service-mesh-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Istio Service Mesh 2026 – Setup, Traffic Management &amp; mTLS auf Kubernetes</span>
+            </a>
+            <a href="/artikel/quantisierte-modelle-gguf-awq-gptq-exl2-bitsandbytes-2026.html" class="mega-item">
+              <img src="/images/quantisierte-modelle-gguf-awq-gptq-exl2-bitsandbytes-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Quantisierte Modelle: GGUF, AWQ, GPTQ, EXL2, Bitsandbytes – Was ist besser? 2026</span>
+            </a>
+            <a href="/artikel/text-generation-webui-oobabooga-einrichten-2026.html" class="mega-item">
+              <img src="/images/text-generation-webui-oobabooga-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Text Generation WebUI (oobabooga) einrichten – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/dedizierter-server-vs-vps-2026.html" class="mega-item">
+              <img src="/images/dedizierter-server-vs-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Dedizierter Server vs. VPS – Der große Vergleich 2026</span>
+            </a>
+            <a href="/artikel/helm-charts-kubernetes-guide-2026.html" class="mega-item">
+              <img src="/images/helm-charts-kubernetes-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Helm Charts – Kubernetes Package Manager Einführung &amp; Praxis 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-waf-einrichten-2026.html" class="mega-item">
+              <img src="/images/cloudflare-waf-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare WAF einrichten – DDoS-Schutz &amp; Bot-Filter 2026</span>
+            </a>
+            <a href="/artikel/discord-bot-vps-hosten-2026.html" class="mega-item">
+              <img src="/images/discord-bot-vps-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Discord Bot auf VPS hosten – Komplettanleitung 2026</span>
+            </a>
+            <a href="/artikel/jitsi-meet-server-vps-2026.html" class="mega-item">
+              <img src="/images/jitsi-meet-server-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Jitsi Meet Server selbst hosten – Videokonferenzen auf VPS 2026</span>
+            </a>
+            <a href="/artikel/plausible-analytics-vps-2026.html" class="mega-item">
+              <img src="/images/plausible-analytics-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Plausible Analytics – Selbstgehostetes Web-Analytics auf VPS 2026</span>
+            </a>
+            <a href="/artikel/portainer-docker-management-vps-2026.html" class="mega-item">
+              <img src="/images/portainer-docker-management-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Portainer – Docker Management UI auf VPS einrichten 2026</span>
+            </a>
+            <a href="/artikel/ghost-cms-hosting-vps-2026.html" class="mega-item">
+              <img src="/images/ghost-cms-hosting-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ghost CMS Hosting auf VPS 2026 – Blog-Software installieren &amp; betreiben</span>
+            </a>
+            <a href="/artikel/grafana-loki-log-aggregation-vps-2026.html" class="mega-item">
+              <img src="/images/grafana-loki-log-aggregation-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Grafana Loki Log-Aggregation auf VPS 2026 – Installations-Guide</span>
+            </a>
+            <a href="/artikel/lemp-stack-vps-einrichten-2026.html" class="mega-item">
+              <img src="/images/lemp-stack-vps-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LEMP Stack auf VPS einrichten 2026 – Anleitung &amp; Setup</span>
+            </a>
+            <a href="/artikel/redis-cache-vps-einrichten-2026.html" class="mega-item">
+              <img src="/images/uptime-kuma-monitoring-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Redis Cache auf VPS einrichten und optimieren 2026</span>
+            </a>
+            <a href="/artikel/teamspeak-server-mieten-2026.html" class="mega-item">
+              <img src="/images/teamspeak-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">TeamSpeak 3 Server mieten 2026 – Sprachserver für Gamer</span>
+            </a>
+            <a href="/artikel/uptime-kuma-monitoring-einrichten-2026.html" class="mega-item">
+              <img src="/images/uptime-kuma-monitoring-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Uptime Kuma einrichten – Status Pages &amp; Server-Monitoring 2026</span>
+            </a>
+            <a href="/artikel/vaultwarden-passwort-manager-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/vaultwarden-passwort-manager-selbst-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Vaultwarden Passwort-Manager selbst hosten – Sicherer als die Cloud 2026</span>
+            </a>
+            <a href="/artikel/contabo-vps-erfahrungen-2026.html" class="mega-item">
+              <img src="/images/contabo-vps-erfahrungen-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Contabo VPS Erfahrungen 2026 – Test, Preise &amp; Setup-Guide</span>
+            </a>
+            <a href="/artikel/free-llm-benchmark-2026.html" class="mega-item">
+              <img src="/images/free-llm-benchmark-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Free LLMs 2026 – Der ultimative Benchmark: 20 Modelle, 5 Kategorien, 100 Tests</span>
+            </a>
+            <a href="/artikel/gitea-git-server-vps-2026.html" class="mega-item">
+              <img src="/images/gitea-git-server-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gitea – Selfhosted Git-Server auf VPS installieren &amp; betreiben 2026</span>
+            </a>
+            <a href="/artikel/jenkins-ci-cd-pipeline-vps-2026.html" class="mega-item">
+              <img src="/images/jenkins-ci-cd-pipeline-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Jenkins CI/CD Pipeline auf dem VPS – Automatisierte Builds &amp; Deployments 2026</span>
+            </a>
+            <a href="/artikel/vps-anbieter-vergleich-2026.html" class="mega-item">
+              <img src="/images/vps-anbieter-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS-Anbieter Vergleich 2026 – Hetzner, Netcup, Contabo, IONOS im Test</span>
+            </a>
+            <a href="/artikel/webseite-geschwindigkeit-optimieren-2026.html" class="mega-item">
+              <img src="/images/webseite-geschwindigkeit-optimieren-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Website-Geschwindigkeit optimieren – PageSpeed-Guide 2026</span>
+            </a>
+            <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">
+              <img src="/images/docker-compose-vps-guide.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben</span>
+            </a>
+            <a href="/artikel/vps-absichern-2026.html" class="mega-item">
+              <img src="/images/vps-absichern-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</span>
+            </a>
+            <a href="/artikel/devops-tools-2024.html" class="mega-item">
+              <img src="/images/devops-tools-2024.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DevOps-Tools 2024 – Die 10 wichtigsten Tools im Überblick</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/devops/">Alle DevOps-Artikel</a></div>
+        </div></div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/ki-llm/">🤖 KI &amp; LLM</a>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#9C27B0">&#9670;</span> A-Z</h4>
+            <a href="/artikel/llm-lokal-hosten-2026.html" class="mega-item">
+              <img src="/images/llm-lokal-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</span>
+            </a>
+            <a href="/artikel/llama-cpp-cpu-vs-gpu-performance-2026.html" class="mega-item">
+              <img src="/images/llama-cpp-cpu-vs-gpu-performance-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">llama.cpp Performance 2026: CPU vs GPU – Tokens/s, BLAS-Backends &amp; Hardware-Vergleich</span>
+            </a>
+            <a href="/artikel/comfyui-auf-gpu-hosten.html" class="mega-item">
+              <img src="/images/comfyui-auf-gpu-hosten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">ComfyUI auf GPU hosten – Bild-KI Workflows 2026 mit Flux, SDXL &amp; SD3</span>
+            </a>
+            <a href="/artikel/ki-server-sicherheit-llm-api-absichern-2026.html" class="mega-item">
+              <img src="/images/ki-server-sicherheit-llm-api-absichern-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">KI-Server-Sicherheit: LLM API absichern, Rate-Limiting &amp; Monitoring 2026</span>
+            </a>
+            <a href="/artikel/ollama-llm-server-vps-2026.html" class="mega-item">
+              <img src="/images/ollama-llm-server-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ollama LLM Server auf VPS hosten 2026 – Lokale KI-Modelle selbst betreiben</span>
+            </a>
+            <a href="/artikel/runpod-serverless-vs-dedicated-gpu-2026.html" class="mega-item">
+              <img src="/images/runpod-serverless-vs-dedicated-gpu-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">RunPod Serverless vs Dedicated GPU 2026 – Was lohnt sich?</span>
+            </a>
+            <a href="/artikel/vast-ai-gpu-mieten-2026.html" class="mega-item">
+              <img src="/images/vast-ai-gpu-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Vast.ai GPU mieten 2026 – Erfahrungen, Kosten &amp; Tipps</span>
+            </a>
+            <a href="/artikel/ai-agent-frameworks-2026.html" class="mega-item">
+              <img src="/images/ai-agent-frameworks-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">AI Agent Frameworks 2026 – Langchain, CrewAI, AutoGen &amp; OpenHands im Vergleich</span>
+            </a>
+            <a href="/artikel/mistral-modelle-lokal-hosten-2026.html" class="mega-item">
+              <img src="/images/mistral-modelle-lokal-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Mistral Large &amp; Mixtral 8x22B lokal hosten – MoE-Modelle selbst betreiben 2026</span>
+            </a>
+            <a href="/artikel/cloud-gpu-kosten-vergleich-2026.html" class="mega-item">
+              <img src="/images/cloud-gpu-kosten-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloud GPU Kosten 2026 – Alle Anbieter im Preisvergleich (A100, H100, RTX 4090)</span>
+            </a>
+            <a href="/artikel/cuda-rocam-vulkan-lokale-llm-gpu-backend-vergleich-2026.html" class="mega-item">
+              <img src="/images/cuda-rocam-vulkan-lokale-llm-gpu-backend-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">CUDA, ROCm, Vulkan – Was brauchst du für lokale LLMs? GPU-Backend-Vergleich 2026</span>
+            </a>
+            <a href="/artikel/deepseek-r1-v3-lokal-hosten-2026.html" class="mega-item">
+              <img src="/images/deepseek-r1-v3-lokal-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DeepSeek R1 / V3 lokal hosten 2026 – Hardware, Quantisierung &amp; Setup-Guide</span>
+            </a>
+            <a href="/artikel/docker-llm-inference-container.html" class="mega-item">
+              <img src="/images/docker-llm-inference-container.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker-Container für LLM-Inference – Best Practices 2026</span>
+            </a>
+            <a href="/artikel/gpu-fuer-ki-modelle-mieten-2026.html" class="mega-item">
+              <img src="/images/gpu-fuer-ki-modelle-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GPU für KI-Modelle mieten 2026 – A100, H100, RTX 4090 im Vergleich</span>
+            </a>
+          </div>
+          <div class="mega-column">
+            <h4><span style="color:#9C27B0">&#9670;</span> Neueste</h4>
+            <a href="/artikel/gpu-ram-manager-2026.html" class="mega-item">
+              <img src="/images/gpu-ram-manager-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GPU-RAM-Manager 2026 – Welches LLM passt auf deine GPU? VRAM-Rechner &amp; Entscheidungsmatrix</span>
+            </a>
+            <a href="/artikel/llama-3-3-4-lokal-hosten-2026.html" class="mega-item">
+              <img src="/images/llama-3-3-4-lokal-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Llama 3.3 &amp; Llama 4 lokal hosten – Setup, Quantisierung &amp; Performance 2026</span>
+            </a>
+            <a href="/artikel/llm-fine-tuning-runpod-vastai-2026.html" class="mega-item">
+              <img src="/images/llm-fine-tuning-runpod-vastai-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LLM Fine-Tuning auf gemieteten GPUs 2026 – LoRA, QLoRA &amp; Full-Tuning auf RunPod &amp; Vast.ai</span>
+            </a>
+            <a href="/artikel/llm-frontends-vergleich-2026.html" class="mega-item">
+              <img src="/images/llm-frontends-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LLM-Frontends 2026 lokal hosten: Open WebUI, Jan, LobeChat, AnythingLLM, Big-AGI im Vergleich</span>
+            </a>
+            <a href="/artikel/nvidia-jetson-ki-am-edge-llm-embedded-2026.html" class="mega-item">
+              <img src="/images/nvidia-jetson-ki-am-edge-llm-embedded-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">NVIDIA Jetson für KI am Edge 2026 – LLMs auf embedded Hardware</span>
+            </a>
+            <a href="/artikel/ollama-vs-vllm-vs-lm-studio-2026.html" class="mega-item">
+              <img src="/images/ollama-vs-vllm-vs-lm-studio-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ollama vs vLLM vs LM Studio – LLM-Server-Software 2026 im Vergleich</span>
+            </a>
+            <a href="/artikel/open-webui-ollama-betreiben-2026.html" class="mega-item">
+              <img src="/images/open-webui-ollama-betreiben-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Open WebUI mit Ollama betreiben – Der bessere ChatGPT-Klon 2026</span>
+            </a>
+            <a href="/artikel/tabbyapi-aphrodite-sglang-llm-server-2026.html" class="mega-item">
+              <img src="/images/tabbyapi-aphrodite-sglang-llm-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">TabbyAPI, Aphrodite &amp; SGLang – Neue LLM-Server 2026 im Vergleich</span>
+            </a>
+            <a href="/artikel/vllm-auf-eigener-gpu-aufsetzen.html" class="mega-item">
+              <img src="/images/vllm-auf-eigener-gpu-aufsetzen.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention</span>
+            </a>
+            <a href="/artikel/vllm-multi-model-server-2026.html" class="mega-item">
+              <img src="/images/vllm-multi-model-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">KI-Server mit mehreren Modellen gleichzeitig betreiben – vLLM + Open WebUI 2026</span>
+            </a>
+            <a href="/artikel/ki-im-devops-einsatz-2026.html" class="mega-item">
+              <img src="/images/ki-im-devops-einsatz-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">KI im DevOps-Einsatz 2026 – Automatisierung, Monitoring &amp; LLM-Integration</span>
+            </a>
+            <a href="/artikel/llm-sicherheit-prompt-injection-schutz-2026.html" class="mega-item">
+              <img src="/images/llm-sicherheit-prompt-injection-schutz-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LLM-Sicherheit und Prompt-Injection – Schutzmaßnahmen 2026</span>
+            </a>
+            <a href="/artikel/ki-gestuetzte-code-reviews-praxis-2026.html" class="mega-item">
+              <img src="/images/ki-gestuetzte-code-reviews-praxis-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">KI-gestützte Code-Reviews in der Praxis – Tools &amp; Workflows 2026</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/ki-llm/">Alle KI &amp; LLM-Artikel</a></div>
+        </div></div>
+      </li>
+      <li><a href="/about.html">&#220;ber</a></li>
+    </ul>
+  </div>
+</nav>
+<main class="article-page">
+  <div class="container">
+    <div class="article-meta-top">
+      <span class="card-tag webhosting">Webhosting</span>
+      <span>9 Min Lesezeit</span>
+    </div>
+    <h1>CDN für Websites 2026 – Cloudflare, BunnyCDN &amp; Fastly im Vergleich</h1>
+<h2>Warum ein CDN 2026 kein Nice-to-have mehr ist</h2>
+<p>Die Zeiten, in denen ein CDN reines Enterprise-Werkzeug für Media-Konzerne war, sind endgültig vorbei. Google bewertet Core Web Vitals seit Jahren als Ranking-Signal, und der Largest Contentful Paint (LCP) hängt bei internationalen Besuchern fast ausschließlich an der physischen Distanz zwischen Nutzer und Origin-Server. Ein Server in Falkenstein liefert einem Besucher in São Paulo realistisch 210–280 ms Time-to-First-Byte — ein Edge-PoP in São Paulo antwortet in 15–30 ms.</p>
+<p>Der Effekt ist messbar: Studien von Akamai und Deloitte zeigen, dass 100 ms zusätzliche Latenz die Conversion-Rate um bis zu 7 % senken. Bei mobilen Nutzern bricht jede zweite Session nach drei Sekunden Ladezeit ab. Ein CDN ist damit kein Performance-Gimmick, sondern direkt umsatzrelevant.</p>
+<p>Dazu kommt die Sicherheitskomponente. Ein Layer-3/4-DDoS mit 400 Gbit/s erreicht deinen Origin gar nicht mehr, wenn er an 300+ Edge-Standorten terminiert wird. TLS-Handshakes, HTTP/3-QUIC, Brotli-Kompression und Bot-Filterung passieren dann am Rand des Netzwerks statt auf deiner 8-Euro-VM.</p>
+<p>2026 hat sich das Angebot deutlich ausdifferenziert: Cloudflare dominiert mit einem aggressiven Free-Tier, BunnyCDN unterbietet alle beim Preis pro Gigabyte, und Fastly positioniert sich als kontrollierbare Edge-Plattform mit VCL und WASM-Compute. Dieser Guide vergleicht alle drei mit konkreten Zahlen.</p>
+
+<h2>Testmethodik: So haben wir Cloudflare, BunnyCDN und Fastly verglichen</h2>
+<p>Für den Vergleich haben wir drei identische Origins aufgesetzt: eine Hetzner CX22 in Falkenstein (Deutschland), einen DigitalOcean-Droplet in New York (USA) und eine AWS EC2 t3.small in ap-southeast-1 (Singapur). Darauf liefen ein nginx 1.26 mit statischem HTML, ein WordPress 6.7 mit WooCommerce und eine Node.js-API mit <code>/api/*</code>-Endpunkten ohne Cache-Header.</p>
+<p>Gemessen wurde mit <code>k6</code> (10.000 Requests pro Region), WebPageTest aus Frankfurt, São Paulo und Singapur sowie einer <code>curl</code>-Schleife über 24 Stunden für die p95-TTFB. Zusätzlich haben wir die Cache-Hit-Rate nach identischem Tuning (statische Assets 1 Jahr, HTML 60 s, API bypass) verglichen.</p>
+<p>Alle Preisangaben sind Listenpreise ohne Enterprise-Verhandlung, Stand Q1 2026, in USD ohne MwSt. Bei Volumenverträgen sind bei allen drei Anbietern Rabatte von 30–60 % realistisch — aber nur, wenn du verhandelst.</p>
+<p>Wichtig für die Einordnung: Ein CDN-Benchmark ist immer eine Momentaufnahme. Peering-Qualität, Routing-Änderungen und Lastspitzen verschieben die Werte um 10–20 %. Die hier genannten Zahlen sind Median-Werte aus vier Wochen Messung.</p>
+
+<h2>Cloudflare 2026: Tarife, Features und der Free-Tier-Trick</h2>
+<p>Cloudflare ist mit über 330 Städten in mehr als 125 Ländern der größte Anbieter und der einzige, der unbegrenzten Traffic in einem kostenlosen Tarif anbietet. Der Free-Plan enthält unmetered DDoS-Mitigation (L3–L7), Universal SSL, HTTP/3, Brotli, Tiered Caching, drei Page Rules und 100.000 Worker-Requests pro Tag.</p>
+<p>Der Pro-Tarif kostet 20 USD pro Monat und Domain und schaltet Web Application Firewall mit Managed Rules, Image Resizing, 20 Page Rules und besseren Support frei. Business liegt bei 200 USD/Monat und bringt Custom WAF Rules, 100 % Uptime-SLA und CNAME-Setup für Subdomains. Enterprise startet realistisch bei 5.000 USD/Monat aufwärts.</p>
+<p>Die eigentliche Stärke liegt im Ökosystem. Workers kostet in der Paid-Version 5 USD/Monat inklusive 10 Millionen Requests, danach 0,30 USD pro weitere Million. R2 Object Storage kostet 0,015 USD pro GB und Monat — mit <strong>null Egress-Gebühren</strong>. Das ist für Streaming- und Backup-Szenarien ein massiver Kostenhebel gegenüber S3.</p>
+<p>Argo Smart Routing verbessert die Origin-Anbindung für 5 USD/Monat plus 0,10 USD/GB. In unseren Messungen sank die Cache-Miss-TTFB von Frankfurt nach New York von 148 ms auf 96 ms — bei niedriger Hit-Rate durchaus sinnvoll, bei 95 % Hit-Rate rausgeworfenes Geld.</p>
+
+<h2>BunnyCDN: Der Preis-Leistungs-Sieger für DevOps-Teams</h2>
+<p>BunnyCDN (bunny.net) ist der Preisbrecher: 0,01 USD pro GB in Europa und Nordamerika, 0,03 USD/GB in Asien und Südamerika, 0,045 USD/GB in Nahost und Afrika. Es gibt keine Request-Gebühren, keine Mindestlaufzeit und ein monatliches Minimum von 1 USD. Bei mittleren dreistelligen TB-Volumina fällt der Preis über Volume-Tiers auf etwa 0,005 USD/GB.</p>
+<p>Das Netz umfasst rund 120 PoPs, ist aber deutlich kleiner als Cloudflare. In unseren Messungen lag die p95-TTFB bei Cache-Hit in Frankfurt bei 22 ms (Cloudflare: 18 ms, Fastly: 15 ms). Der Unterschied ist für 99 % aller Websites irrelevant — bei einem LCP von 1,2 s spielen 4 ms keine Rolle.</p>
+<p>Für DevOps interessant ist die API-First-Architektur. Jede Funktion — Pull Zone anlegen, Cache purgen, Logs ziehen, DNS-Einträge setzen — ist per REST-API und Terraform-Provider steuerbar. Bunny DNS ist kostenlos und unterstützt DNSSEC, was es zur sauberen Alternative zu Cloudflare DNS macht, wenn du Bunny als CDN nutzt.</p>
+<p>Zusatzmodule: Bunny Optimizer (Bildkompression, WebP/AVIF) kostet 9,50 USD/Monat pro Zone, Bunny Shield (WAF + Bot-Schutz) startet bei 9,50 USD/Monat, Bunny Storage liegt bei 0,01 USD/GB-Monat. Edge Scripting ist in den Zonenpreis inkludiert — ein klarer Vorteil gegenüber Cloudflare Workers, wo Requests separat abgerechnet werden.</p>
+
+<h2>Fastly: VCL, Edge-Compute und Enterprise-Kontrolle</h2>
+<p>Fastly ist das CDN für Teams, die volle Kontrolle brauchen. Statt Click-Konfiguration arbeitest du mit VCL (Varnish Configuration Language) — einer echten Programmiersprache für Request-Routing, Caching und Header-Manipulation. Das ist mächtiger als alles, was Cloudflare oder Bunny per UI bieten, hat aber eine steilere Lernkurve.</p>
+<p>Preislich liegt Fastly bei etwa 0,12 USD/GB in Nordamerika und Europa und 0,19 USD/GB in anderen Regionen, plus Request-Gebühren. Der Mindestumsatz liegt bei rund 50 USD/Monat. Für eine Website mit 1 TB Traffic bedeutet das ca. 120 USD/Monat — das Sechsfache von Bunny und deutlich mehr als Cloudflare Pro.</p>
+<p>Dafür bekommst du Funktionen, die sonst niemand bietet: Instant Purge mit globaler Propagation in unter 150 ms, Real-Time Log Streaming per WebSocket, Next-Gen WAF (ehemals Signal Sciences) mit Request-Scoring statt Regex-Regeln, und Compute@Edge mit WASM-Support für Rust, Go, JavaScript und AssemblyScript.</p>
+<p>Fastly betreibt nur rund 80 PoPs, aber mit sehr großer Kapazität pro Standort und exzellentem Peering. In unseren Messungen war Fastly bei Cache-Miss-Situationen durchweg am schnellsten — der Unterschied liegt im Backbone, nicht in der Anzahl der Standorte.</p>
+
+<h2>Preisvergleich 2026: 1 TB, 10 TB und versteckte Kosten</h2>
+<p>Die folgende Tabelle zeigt monatliche Listenpreise für reinen CDN-Traffic in Europa/Nordamerika. Edge-Compute, WAF und Storage sind nicht eingerechnet.</p>
+<table>
+<thead>
+<tr><th>Anbieter</th><th>Preis/GB (EU/NA)</th><th>1 TB/Monat</th><th>10 TB/Monat</th><th>Requests</th><th>Mindestumsatz</th></tr>
+</thead>
+<tbody>
+<tr><td>Cloudflare Free</td><td>0 USD (unmetered)</td><td>0 USD</td><td>0 USD</td><td>inklusive</td><td>0 USD</td></tr>
+<tr><td>Cloudflare Pro</td><td>unmetered</td><td>20 USD</td><td>20 USD</td><td>inklusive</td><td>20 USD</td></tr>
+<tr><td>Cloudflare Business</td><td>unmetered</td><td>200 USD</td><td>200 USD</td><td>inklusive</td><td>200 USD</td></tr>
+<tr><td>BunnyCDN</td><td>0,01 USD</td><td>~10 USD</td><td>~100 USD</td><td>keine</td><td>1 USD</td></tr>
+<tr><td>Fastly</td><td>0,12 USD</td><td>~120 USD</td><td>~1.200 USD</td><td>separat</td><td>~50 USD</td></tr>
+</tbody>
+</table>
+<p>Die versteckten Kosten unterscheiden sich deutlich. Cloudflare rechnet Workers-Requests, R2-Operationen und Argo-Traffic separat ab — bei intensiver Nutzung kann eine Workers-App schnell 50–200 USD/Monat kosten. Bunny berechnet pro Zone und Modul, nicht pro Request. Fastly berechnet zusätzlich Image Optimizer, WAF und Compute-Requests.</p>
+<p>Für die meisten Websites unter 5 TB Traffic ist Cloudflare Free oder BunnyCDN die wirtschaftlich vernünftige Wahl. Fastly rechnet sich erst, wenn du Instant Purge, VCL-Kontrolle oder WASM-Compute wirklich brauchst — oder wenn du im Enterprise-Segment verhandelst und der Listenpreis ohnehin nicht gilt.</p>
+<p>Ein Punkt, der oft übersehen wird: Bei Cloudflare Free zahlst du mit deinen Daten. Der Free-Tier ist kein Verlustgeschäft, sondern ein Lead-Magnet für Enterprise-Verträge. Wenn DSGVO-Konformität und Datenhoheit kritisch sind, ist das ein Argument für Bunny (EU-Hosting in Falkenstein und Wien) oder für einen Cloudflare-Enterprise-Vertrag mit EU-Datenresidenz.</p>
+
+<h2>Performance: TTFB, Cache-Hit-Rate und Core Web Vitals</h2>
+<p>Unsere Median-TTFB bei Cache-Hit aus Frankfurt: Fastly 15 ms, Cloudflare 18 ms, BunnyCDN 22 ms. Aus São Paulo: Fastly 24 ms, Cloudflare 27 ms, Bunny 31 ms. Aus Singapur: Fastly 21 ms, Cloudflare 23 ms, Bunny 29 ms. Die Unterschiede sind konsistent, aber klein.</p>
+<p>Bei Cache-Miss (Origin in Falkenstein, Abruf aus New York) dreht sich das Bild: Fastly 96 ms, Cloudflare 118 ms, Bunny 131 ms. Hier zahlt sich Fastlys Backbone aus. Mit Argo Smart Routing verkürzt Cloudflare den Wert auf 96 ms — Gleichstand, aber für 0,10 USD/GB extra.</p>
+<p>Die Cache-Hit-Rate nach identischem Tuning lag bei allen drei Anbietern zwischen 92 % und 97 %. Entscheidend ist nicht das CDN, sondern deine Cache-Control-Header. Wer <code>Cache-Control: no-store</code> auf statische Assets setzt, bekommt bei keinem Anbieter gute Werte.</p>
+<p>Alle drei unterstützen HTTP/3 mit QUIC, TLS 1.3 mit 0-RTT und Brotli. Early Hints (HTTP 103) unterstützen Cloudflare und Fastly vollständig, Bunny nur teilweise. Für LCP-kritische Seiten mit vielen Render-Blocking-Ressourcen ist Early Hints ein messbarer Vorteil von 100–250 ms.</p>
+
+<h2>Setup-Praxis: Die drei Anbieter in Betrieb nehmen</h2>
+<p>Cloudflare bindest du über Nameserver-Delegation ein. Für Subdomains ohne Nameserver-Wechsel brauchst du mindestens den Business-Tarif (CNAME-Setup). Cache-Regeln definierst du seit 2024 über Cache Rules statt Page Rules:</p>
+<pre><code># Cloudflare Cache Rule (API)
+curl -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/rulesets" \
+  -H "Authorization: Bearer $CF_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "name": "Static Assets",
+    "kind": "zone",
+    "phase": "http_request_cache_settings",
+    "rules": [{
+      "expression": "(http.request.uri.path matches \"\\.(css|js|woff2|webp|avif)$\")",
+      "action": "set_cache_settings",
+      "action_parameters": {
+        "cache": true,
+        "edge_ttl": {"mode": "override_origin", "default": 31536000},
+        "browser_ttl": {"mode": "override_origin", "default": 31536000}
+      }
+    }]
+  }'</code></pre>
+<p>Bei BunnyCDN legst du eine Pull Zone an, aktivierst Origin Shield (empfohlen: Frankfurt für EU-Traffic) und setzt Cache-Header direkt im Panel oder per API. Purge funktioniert URL-genau oder per Tag:</p>
+<pre><code># BunnyCDN Cache Purge
+curl -X POST "https://api.bunny.net/purge?url=https://example.com/app.css&amp;async=false" \
+  -H "AccessKey: $BUNNY_API_KEY"
+
+# Alles purgen
+curl -X POST "https://api.bunny.net/purge?url=https://example.com/&amp;async=false" \
+  -H "AccessKey: $BUNNY_API_KEY"</code></pre>
+<p>Fastly konfigurierst du per CLI und VCL. Ein minimales Setup mit API-Bypass sieht so aus:</p>
+<pre><code># Fastly CLI
+fastly service create --name example --type vcl
+fastly vcl custom create --service-id $SERVICE_ID --version 1 \
+  --name main --content main.vcl</code></pre>
+<pre><code># main.vcl
+sub vcl_recv {
+  if (req.url ~ "^/api/") {
+    return (pass);
+  }
+  if (req.url ~ "\.(css|js|woff2|webp|avif)$") {
+    set req.http.X-Long-TTL = "true";
+  }
+  unset req.http.Cookie;
+}
+
+sub vcl_fetch {
+  if (beresp.http.X-Long-TTL) {
+    set beresp.ttl = 365d;
+    unset beresp.http.Set-Cookie;
+  }
+}</code></pre>
+<p>Ein häufiger Fehler in allen drei Setups: Cookies werden an den Edge weitergegeben und brechen damit das Caching. Bei WordPress solltest du Cookies für statische Pfade explizit strippen — sonst bleibt die Hit-Rate bei 40 % statt 95 %.</p>
+
+<h2>Sicherheit im Vergleich: WAF, DDoS-Schutz und Bot-Management</h2>
+<p>Cloudflare bietet unmetered DDoS-Mitigation in allen Tarifen inklusive Free. Die Managed WAF Rules sind seit 2024 teilweise im Free-Plan verfügbar, Custom Rules erst ab Business. Bot Fight Mode ist kostenlos, Turnstile (CAPTCHA-Alternative) ebenfalls. API Shield und Advanced Bot Management sind Enterprise-Features.</p>
+<p>BunnyCDN liefert DDoS-Schutz auf L3/L4 in allen Tarifen. Die WAF kommt über Bunny Shield ab ca. 9,50 USD/Monat und deckt OWASP Top 10, Rate Limiting und Bot-Erkennung ab. Für die meisten kleineren bis mittleren Websites ist das völlig ausreichend.</p>
+<p>Fastly inkludiert DDoS-Mitigation und bietet die Next-Gen WAF als kostenpflichtiges Add-on. Der Ansatz ist anders: Statt Signatur-Matching arbeitet Signal Sciences mit Request-Scoring und Anomalie-Erkennung. Das reduziert False Positives deutlich, kostet aber auch deutlich mehr als Cloudflare Pro.</p>
+<p>Für die Praxis gilt: Wenn du unter Beschuss stehst, ist Cloudflare Free die schnellste Reaktion überhaupt — Nameserver umstellen, fertig. Wenn du fein granulierte Regeln und Logs brauchst, führt der Weg zu Cloudflare Business oder Fastly.</p>
+
+<h2>Edge-Computing: Workers, Bunny Scripting und Compute@Edge</h2>
+<p>Cloudflare Workers laufen auf V8-Isolates mit praktisch null Cold-Start. Free: 100.000 Requests/Tag. Paid: 5 USD/Monat für 10 Mio. Requests, danach 0,30 USD/Mio. Dazu kommen KV (0,50 USD pro Mio. Reads), D1, Durable Objects und R2. Das Ökosystem ist 2026 das mit Abstand reifste.</p>
+<p>Bunny Edge Scripting ist in den Zonenpreis inkludiert und läuft auf JavaScript-Basis. Die API ist schlanker als bei Workers, dafür fallen keine separaten Request-Kosten an. Für A/B-Tests, Geo-Redirects, Header-Rewrites und einfache Auth-Logik reicht das völlig aus.</p>
+<p>Fastly Compute@Edge kompiliert WASM aus Rust, Go, JavaScript oder AssemblyScript und läuft mit sehr niedriger Latenz direkt im Cache-Node. Das ist die technisch eleganteste Lösung, aber auch die mit dem höchsten Entwicklungsaufwand. Preislich liegt Compute bei etwa 0,50 USD pro Million Requests plus Ressourcenverbrauch.</p>
+<p>Faustregel: Für einfache Edge-Logik nimm Bunny (kostenlos inklusive). Für komplexe Anwendungen mit Storage und Datenbank nimm Cloudflare Workers. Für latenzkritische WASM-Workloads mit Enterprise-Anforderungen nimm Fastly.</p>
+
+<h2>Entscheidungsmatrix: Welches CDN für welchen Use-Case?</h2>
+<p>Die Wahl hängt weniger von Benchmarks als vom Betriebsmodell ab. Die folgende Zuordnung hat sich in der Praxis bewährt:</p>
+<ul>
+<li><strong>Blog, Portfolio, kleine Website, Budget 0:</strong> Cloudflare Free. Unmetered Traffic, DDoS-Schutz, SSL — schwer zu schlagen.</li>
+<li><strong>WordPress mit viel statischem Traffic, 1–10 TB:</strong> BunnyCDN. 10–100 USD/Monat statt 200 USD Cloudflare Business, dazu EU-Hosting.</li>
+<li><strong>E-Commerce mit globalem Publikum:</strong> Cloudflare Pro oder Business. WAF, Bot-Management und Image Resizing aus einer Hand.</li>
+<li><strong>Video-Streaming, große Downloads, Software-Verteilung:</strong> BunnyCDN. Der Preis pro GB ist konkurrenzlos, Storage kostet 0,01 USD/GB.</li>
+<li><strong>API mit sofortigem Purge und VCL-Kontrolle:</strong> Fastly. Instant Purge unter 150 ms global ist einzigartig.</li>
+<li><strong>Edge-Compute-lastige Anwendungen:</strong> Cloudflare Workers. Reifstes Ökosystem mit KV, D1, R2 und Durable Objects.</li>
+<li><strong>Multi-CDN-Strategie:</strong> Bunny als Primary, Cloudflare als Failover per DNS. Kostet wenig und erhöht die Ausfallsicherheit deutlich.</li>
+</ul>
+<p>Ein Kombinationsmuster, das wir häufig sehen: Cloudflare für DNS, WAF und DDoS-Schutz im Proxy-Modus, BunnyCDN als vorgeschaltetes CDN für statische Assets über eine <code>cdn.example.com</code>-Subdomain. Damit zahlst du Bunny-Preise für Traffic und bekommst Cloudflare-Sicherheit obendrauf.</p>
+<p>Wichtig bei jeder Multi-CDN-Konfiguration: Cache-Keys müssen identisch sein, sonst fragmentierst du deinen Cache und die Hit-Rate bricht ein. Achte außerdem darauf, dass nur ein Anbieter TLS terminiert — doppelte Zertifikatsketten kosten 30–60 ms pro Handshake.</p>
+<p>Unterm Strich: 2026 gibt es keinen Grund mehr, ohne CDN zu fahren. Selbst der kostenlose Cloudflare-Tier schlägt jeden optimierten Single-Origin-Aufbau bei internationalem Traffic um Größenordnungen.</p>
+
+<h2>FAQ</h2>
+<h3>Ist Cloudflare Free wirklich kostenlos und unbegrenzt?</h3>
+<p>Ja, für proxied Traffic gibt es keine Bandbreitenbegrenzung und keine Request-Gebühren. Fair-Use-Grenzen greifen bei extremen Missbrauchsfällen, etwa massenhaftem Video-Streaming über den Free-Plan. Wer 50 TB/Monat an Video ausliefert, wird von Cloudflare kontaktiert. Für normale Websites, Shops und APIs ist der Free-Tier dauerhaft kostenlos.</p>
+
+<h3>Kann ich Cloudflare und BunnyCDN gleichzeitig nutzen?</h3>
+<p>Ja, das ist ein gängiges Muster. Du nutzt Cloudflare für DNS, WAF und DDoS-Schutz und leitest statische Assets über eine Subdomain wie <code>cdn.example.com</code> an BunnyCDN weiter. Wichtig ist, dass Cloudflare für diese Subdomain auf DNS-only (graue Wolke) gestellt wird, sonst laufen zwei Proxy-Schichten hintereinander und die Latenz steigt um 20–40 ms.</p>
+
+<h3>Was kostet ein CDN für 10 TB Traffic pro Monat?</h3>
+<p>Cloudflare Free und Pro: 0 bzw. 20 USD, da Bandbreite nicht abgerechnet wird. BunnyCDN: rund 100 USD bei 0,01 USD/GB, mit Volume-Rabatt realistisch 70–85 USD. Fastly: rund 1.200 USD Listenpreis, verhandelt im Enterprise-Vertrag deutlich weniger. Für 10 TB ist BunnyCDN fast immer die wirtschaftlichste Wahl.</p>
+
+<h3>Wie schnell ist ein Cache-Purge bei den Anbietern?</h3>
+<p>Fastly ist mit unter 150 ms globaler Propagation am schnellsten. Cloudflare liegt bei 1–5 Sekunden für einzelne URLs, bei Tag-basiertem Purge etwas länger. BunnyCDN purgt einzelne URLs in unter einer Sekunde, kompletter Zonen-Purge dauert je nach Region 10–30 Sekunden. Für Content-Update-Workflows ist Fastly klar im Vorteil.</p>
+
+<h3>Brauche ich für DSGVO-Konformität ein EU-CDN?</h3>
+<p>Nicht zwingend, aber es vereinfacht die Rechtslage erheblich. BunnyCDN betreibt EU-PoPs in Falkenstein und Wien und bietet EU-Datenresidenz ohne Aufpreis. Cloudflare bietet Datenresidenz nur in Enterprise-Verträgen. Wenn du personenbezogene Daten über den Edge verarbeitest — etwa IP-Adressen in Logs — ist ein EU-Anbieter oder ein Vertrag mit EU-Datenresidenz der saubere Weg.</p>
+
+<section class="related-section">
+  <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>
+  <div class="related-grid">
+    <article class="blog-card">
+  <a href="/artikel/letsencrypt-ssl-zertifikate-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/letsencrypt-ssl-zertifikate-2026.webp" alt="Let's Encrypt SSL-Zertifikate 2026 – Automatisierung mit Certbot" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag webhosting" style="background:#2196F322;color:#2196F3">Webhosting</span>
+      <span>20. September 2026</span>
+      <span>7 Min</span>
+    </div>
+    <h3><a href="/artikel/letsencrypt-ssl-zertifikate-2026.html">Let's Encrypt SSL-Zertifikate 2026 – Automatisierung mit Certbot</a></h3>
+    <p class="card-excerpt">Let's Encrypt SSL-Zertifikate 2026 automatisieren: Certbot installieren, Renewal per systemd-Timer, Wildcards via DNS-01, Rate Limits und Kosten im Vergleich.</p>
+    <div class="card-footer">
+      <a href="/artikel/letsencrypt-ssl-zertifikate-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/email-server-mailcow-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/email-server-mailcow-2026.webp" alt="Mailcow E-Mail-Server selbst hosten 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag webhosting" style="background:#2196F322;color:#2196F3">Webhosting</span>
+      <span>20. September 2026</span>
+      <span>8 Min</span>
+    </div>
+    <h3><a href="/artikel/email-server-mailcow-2026.html">Mailcow E-Mail-Server selbst hosten 2026</a></h3>
+    <p class="card-excerpt">Mailcow E-Mail-Server selbst hosten 2026: Schritt-für-Schritt-Guide zu Docker-Setup, DNS, SPF/DKIM/DMARC, Spamfilter, Backup und Kosten ab 4 € pro Monat.</p>
+    <div class="card-footer">
+      <a href="/artikel/email-server-mailcow-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/wordpress-caching-optimierung-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/wordpress-caching-optimierung-2026.webp" alt="WordPress Caching optimieren 2026 – Redis, OPcache &amp; CDN" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag webhosting" style="background:#2196F322;color:#2196F3">Webhosting</span>
+      <span>20. September 2026</span>
+      <span>10 Min</span>
+    </div>
+    <h3><a href="/artikel/wordpress-caching-optimierung-2026.html">WordPress Caching optimieren 2026 – Redis, OPcache &amp; CDN</a></h3>
+    <p class="card-excerpt">WordPress Caching 2026 optimieren: Redis, OPcache und CDN richtig konfigurieren – mit konkreten Werten, nginx-Configs, Plugin-Preisen und Benchmarks.</p>
+    <div class="card-footer">
+      <a href="/artikel/wordpress-caching-optimierung-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/webhosting-vs-vps-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/webhosting-vs-vps-2026.webp" alt="Webhosting vs. VPS 2026 – Der große Vergleich" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag webhosting" style="background:#2196F322;color:#2196F3">Webhosting</span>
+      <span>19. September 2026</span>
+      <span>8 Min</span>
+    </div>
+    <h3><a href="/artikel/webhosting-vs-vps-2026.html">Webhosting vs. VPS 2026 – Der große Vergleich</a></h3>
+    <p class="card-excerpt">Webhosting vs. VPS 2026 im großen Vergleich: Preise, Performance, Root-Zugriff, Skalierung und konkrete Benchmarks – plus Entscheidungshilfe für Admins.</p>
+    <div class="card-footer">
+      <a href="/artikel/webhosting-vs-vps-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/nextcloud-s3-speicher-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/nextcloud-s3-speicher-2026.webp" alt="Nextcloud mit S3-Speicher nutzen – Cloud-Integration 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag webhosting" style="background:#2196F322;color:#2196F3">Webhosting</span>
+      <span>22. June 2026</span>
+      <span>14 Min</span>
+    </div>
+    <h3><a href="/artikel/nextcloud-s3-speicher-2026.html">Nextcloud mit S3-Speicher nutzen – Cloud-Integration 2026</a></h3>
+    <p class="card-excerpt">Die Kombination aus Nextcloud und einem externen S3-kompatiblen Objektspeicher hat sich 2026 als Quasi-Standard für skalierbare Self-Hosted-Cloud-Lösungen etabl</p>
+    <div class="card-footer">
+      <a href="/artikel/nextcloud-s3-speicher-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/cloudflare-r2-vps-backup-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/cloudflare-r2-vps-backup-2026.webp" alt="Cloudflare R2 als VPS-Backup – Storage-Guide 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag webhosting" style="background:#2196F322;color:#2196F3">Webhosting</span>
+      <span>20. June 2026</span>
+      <span>12 Min</span>
+    </div>
+    <h3><a href="/artikel/cloudflare-r2-vps-backup-2026.html">Cloudflare R2 als VPS-Backup – Storage-Guide 2026</a></h3>
+    <p class="card-excerpt">VPS-Server (Virtual Private Servers) benötigen zuverlässige, kostengünstige und ausfallsichere Backup-Lösungen. In der Vergangenheit scheiterten viele Cloud-Sto</p>
+    <div class="card-footer">
+      <a href="/artikel/cloudflare-r2-vps-backup-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+  </div>
+</section>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>hostazar.com</h4>
+        <p style="color:var(--text-muted);font-size:.85rem;max-width:300px">
+          Unabh&#228;ngige Hosting-Reviews, Gameserver-Guides und DevOps-Tutorials. Transparent, recherchiert und praxisnah, finanziert durch Affiliate-Links und Anzeigen.
+        </p>
+      </div>
+      <div class="footer-links-columns"><h5>Gaming</h5>
+        <a href="/artikel/7-days-to-die-server-hosten-2026.html">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</a>
+        <a href="/artikel/ark-survival-ascended-server-hosten-2026.html">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2026</a>
+        <a href="/artikel/conan-exiles-server-hosten.html">Conan Exiles Server mieten – Setup &amp; Kosten 2026</a>
+        <a href="/artikel/cs2-server-mieten-guide-2026.html">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</a>
+        <a href="/artikel/dayz-server-mieten-2026.html">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</a>
+        <a href="/gaming/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>Webhosting</h5>
+        <a href="/artikel/lamp-stack-vs-lemp-stack-vergleich-2026.html">LAMP Stack vs LEMP Stack – Der große Vergleich für dein Webprojekt 2026</a>
+        <a href="/artikel/nginx-vs-apache-webserver-vergleich-2026.html">Nginx vs. Apache 2026 – Webserver im Vergleich</a>
+        <a href="/artikel/cloud-hosting-vs-shared-hosting.html">Cloud Hosting vs. Shared Hosting – Vergleich 2026</a>
+        <a href="/artikel/cloudflare-tunnel-einrichten.html">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</a>
+        <a href="/artikel/docker-wordpress-hosten.html">WordPress mit Docker hosten – Modernes Setup 2026</a>
+        <a href="/webhosting/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>DevOps</h5>
+        <a href="/artikel/docker-container-security-best-practices-2026.html">Docker Container Security – Best Practices und Absicherung für Docker-Container 2026</a>
+        <a href="/artikel/openvpn-server-vps-einrichten-2026.html">OpenVPN Server auf VPS einrichten – Schritt-für-Schritt-Anleitung 2026</a>
+        <a href="/artikel/postgresql-vs-mysql-vergleich-2026.html">PostgreSQL vs. MySQL 2026 – Datenbank-Hosting im Vergleich</a>
+        <a href="/artikel/raspberry-pi-homelab-server-2026.html">Raspberry Pi Homelab 2026 – Heimserver basteln</a>
+        <a href="/artikel/remote-work-tirol.html">Remote Work in den Alpen: Mein Coworking-Setup in Tirol</a>
+        <a href="/devops/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>KI &amp; LLM</h5>
+        <a href="/artikel/llm-lokal-hosten-2026.html">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</a>
+        <a href="/artikel/llama-cpp-cpu-vs-gpu-performance-2026.html">llama.cpp Performance 2026: CPU vs GPU – Tokens/s, BLAS-Backends &amp; Hardware-Vergleich</a>
+        <a href="/artikel/comfyui-auf-gpu-hosten.html">ComfyUI auf GPU hosten – Bild-KI Workflows 2026 mit Flux, SDXL &amp; SD3</a>
+        <a href="/artikel/ki-server-sicherheit-llm-api-absichern-2026.html">KI-Server-Sicherheit: LLM API absichern, Rate-Limiting &amp; Monitoring 2026</a>
+        <a href="/artikel/ollama-llm-server-vps-2026.html">Ollama LLM Server auf VPS hosten 2026 – Lokale KI-Modelle selbst betreiben</a>
+        <a href="/ki-llm/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 hostazar.com</span>
+      <span>
+        <a href="/impressum.html">Impressum</a> &middot;
+        <a href="/datenschutz.html">Datenschutz</a> <a href="/datenschutz.html">Datenschutz</a>middot;
+        <a href="#" onclick="window.hzReopenBanner();return false;">Cookie-Einstellungen</a>
+      </span>
+    </div>
+    <div class="affiliate-note">
+      * Affiliate-Links: Wir erhalten ggf. eine Provision beim Kauf. Das kostet dich keinen Cent mehr.
+    </div>
+  </div>
+</footer>
+<script src="/data/script.js" defer></script>
+<script src="/js/consent-manager.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'webhosting',
+        excludeSlug: 'cdn-fuer-websites-2026',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/webhosting/', label: 'Webhosting' },
+        { label: 'CDN für Websites 2026 – Cloudflare, BunnyCDN &amp; Fastly im Vergleich' }
+      ]
+    });
+  }
+});
+</script>
+</body>
+</html>

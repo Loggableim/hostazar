@@ -1,0 +1,211 @@
+<h2>Warum 2026 noch einen eigenen Mailserver betreiben?</h2>
+
+<p>Die großen Anbieter haben ihre Preise in den letzten Jahren deutlich angezogen. Microsoft 365 Business Basic liegt 2026 bei rund 6,80 € pro Nutzer und Monat, Google Workspace Starter bei etwa 6,90 €. Bei 15 Postfächern sind das schnell über 1.200 € im Jahr – für eine Funktion, die technisch seit 40 Jahren unverändert funktioniert. Gleichzeitig verschärfen sich Datenschutzanforderungen: Wer Mandanten-, Patienten- oder Personalakten per E-Mail verarbeitet, braucht einen Auftragsverarbeitungsvertrag, Einblick in die Serverstandorte und oft auch Verschlüsselung im Ruhezustand.</p>
+
+<p>Mailcow ist 2026 die ausgereifteste Open-Source-Lösung für diesen Zweck. Das Projekt bündelt Postfix, Dovecot, Rspamd, ClamAV, SOGo, MariaDB, Redis, Unbound und einen eigenen Netfilter-Container in einem Docker-Compose-Stack. Die Oberfläche ist vollständig deutsch, die Dokumentation gepflegt, und die Update-Routine reduziert sich auf einen einzigen Befehl. Über 15.000 Installationen weltweit sprechen für die Reife.</p>
+
+<p>Der Preis dafür ist Verantwortung: Deliverability, IP-Reputation, DNS-Pflege und Backups liegen bei dir. Dieser Guide zeigt dir den kompletten Weg von der leeren VPS-Instanz bis zum produktiven Postfach – inklusive der Fehler, die 90 % aller Erstinstallationen in die Spam-Ordner ihrer Empfänger befördern.</p>
+
+<h2>Hardware-Anforderungen und Kosten im Vergleich</h2>
+
+<p>Mailcow ist kein Leichtgewicht. Der offizielle Mindestwert liegt bei 1 vCPU, 6 GB RAM und 20 GB Speicher – realistisch solltest du nicht unter 8 GB RAM gehen, weil ClamAV und Rspamd unter Last gerne 2 bis 3 GB allein belegen. Für 20 bis 50 Postfächer hat sich folgendes Profil bewährt:</p>
+
+<table>
+<tr><th>Ressource</th><th>Minimum</th><th>Empfohlen (bis 50 Postfächer)</th></tr>
+<tr><td>CPU</td><td>1 vCPU</td><td>4 vCPU (dediziert bevorzugt)</td></tr>
+<tr><td>RAM</td><td>6 GB</td><td>8–16 GB</td></tr>
+<tr><td>Speicher</td><td>20 GB SSD</td><td>160 GB NVMe</td></tr>
+<tr><td>Traffic</td><td>20 TB/Monat</td><td>unmetered oder 32 TB</td></tr>
+<tr><td>IPv4</td><td>1 dediziert</td><td>1 dediziert + PTR-fähig</td></tr>
+</table>
+
+<p>Bei den Anbietern sieht es 2026 so aus: Netcup VPS 2000 G11 (4 vCPU, 8 GB, 160 GB NVMe) kostet etwa 8,49 € monatlich. Hetzner CX32 (4 vCPU, 8 GB, 80 GB) liegt bei rund 6,80 €, die dedizierte CCX13 (2 vCPU AMD, 8 GB) bei etwa 12,49 €. Contabo VPS S gibt es ab 4,50 €, allerdings mit schwankender I/O-Performance. Ein dedizierter vCPU-Kern ist bei Mail wichtig: Shared-CPU-VPS können bei Rspamd-Scans unter Last in die Timeouts laufen und Mails verzögert ausliefern.</p>
+
+<p>Ein zweiter Punkt wiegt schwerer als die Hardware: Die IP-Adresse muss einen gültigen PTR-Eintrag (Reverse DNS) haben und darf nicht auf einer Blockliste stehen. Prüfe das <em>vor</em> der Bestellung mit <code>dig -x DEINE_IP</code> und einem Blick auf mxtoolbox.com/blacklists.aspx. Manche Billighoster vergeben IPs aus bereits verbrannten /24-Netzen – dann kämpfst du monatelang gegen Spamfilter.</p>
+
+<h2>Server vorbereiten: DNS, PTR und Firewall</h2>
+
+<p>Bevor Docker überhaupt installiert wird, muss die Namensauflösung stehen. Mailcow verweigert in manchen Konfigurationen den Start, wenn der Hostname nicht auflösbar ist. Setze zuerst den A-Record für deinen Mailhost:</p>
+
+<pre><code># Auf dem Server
+hostnamectl set-hostname mail.example.com
+echo "203.0.113.42 mail.example.com mail" &gt;&gt; /etc/hosts
+
+# Prüfen (muss die öffentliche IP zurückgeben)
+dig +short mail.example.com</code></pre>
+
+<p>Der PTR-Eintrag wird nicht bei dir, sondern beim Hoster gesetzt – bei Hetzner, Netcup und Contabo geht das im Webinterface unter „Reverse DNS“ oder per Support-Ticket. Ohne PTR landen praktisch alle ausgehenden Mails bei Gmail und Outlook im Spam. Der PTR muss exakt auf <code>mail.example.com</code> zeigen, nicht auf <code>example.com</code>.</p>
+
+<p>Die Firewall (ufw oder nftables) braucht folgende Ports. Achtung: Port 25 ist bei vielen Hostern standardmäßig gesperrt und muss freigeschaltet werden – bei Hetzner und Netcup nach Verifizierung deiner Daten üblicherweise innerhalb von 24 Stunden.</p>
+
+<table>
+<tr><th>Port</th><th>Protokoll</th><th>Zweck</th></tr>
+<tr><td>25</td><td>TCP</td><td>SMTP eingehend (Server-zu-Server)</td></tr>
+<tr><td>465</td><td>TCP</td><td>SMTPS (implizites TLS)</td></tr>
+<tr><td>587</td><td>TCP</td><td>Submission mit STARTTLS</td></tr>
+<tr><td>143 / 993</td><td>TCP</td><td>IMAP / IMAPS</td></tr>
+<tr><td>110 / 995</td><td>TCP</td><td>POP3 / POP3S</td></tr>
+<tr><td>4190</td><td>TCP</td><td>Sieve (Serverseitige Filter)</td></tr>
+<tr><td>80 / 443</td><td>TCP</td><td>ACME-Challenge und Web-UI</td></tr>
+</table>
+
+<h2>Mailcow installieren: Der Docker-Stack</h2>
+
+<p>Die Installation selbst dauert keine 15 Minuten. Voraussetzung ist ein aktuelles Debian 12 oder Ubuntu 24.04 LTS mit Docker Engine 27+ und dem Compose-Plugin.</p>
+
+<pre><code>apt update &amp;&amp; apt install -y git curl ca-certificates
+curl -fsSL https://get.docker.com | sh
+systemctl enable --now docker
+
+cd /opt
+git clone https://github.com/mailcow/mailcow-dockerized
+cd mailcow-dockerized
+./generate_config.sh</code></pre>
+
+<p>Das Skript fragt nach dem Hostnamen (hier <code>mail.example.com</code>) und der Zeitzone (<code>Europe/Berlin</code>). Danach öffnest du <code>mailcow.conf</code> und setzt die wichtigsten Werte:</p>
+
+<pre><code>MAILCOW_HOSTNAME=mail.example.com
+TZ=Europe/Berlin
+HTTP_PORT=80
+HTTPS_PORT=443
+HTTP_BIND=0.0.0.0
+HTTPS_BIND=0.0.0.0
+SKIP_LETS_ENCRYPT=n
+ENABLE_IPV6=n
+SKIP_CLAMD=n
+SKIP_SOGO=n
+SKIP_FTS=n</code></pre>
+
+<p>Wer RAM sparen muss, setzt <code>SKIP_CLAMD=y</code> und verliert damit den Virenscanner – bei reinem Text-Mailverkehr vertretbar, sobald Anhänge konsequent geblockt werden. Ein zweiter Sparhebel ist <code>SKIP_FTS=y</code>, was die Volltextsuche in SOGo deaktiviert und rund 1 GB RAM freigibt.</p>
+
+<p>Jetzt der Start. Der erste <code>pull</code> lädt etwa 2,5 GB an Images:</p>
+
+<pre><code>docker compose pull
+docker compose up -d
+docker compose ps</code></pre>
+
+<p>Nach 60 bis 90 Sekunden erreichst du die Admin-Oberfläche unter <code>https://mail.example.com</code>. Der Standard-Login lautet <code>admin</code> mit Passwort <code>moohoo</code> – ändere das sofort unter System → Administrator. Der Stack umfasst typischerweise 14 Container; fehlt einer, hilft <code>docker compose logs --tail=50 &lt;container&gt;</code>.</p>
+
+<h2>DNS vollständig konfigurieren: SPF, DKIM, DMARC, MTA-STS</h2>
+
+<p>Das ist der Abschnitt, an dem die meisten Installationen scheitern. Ohne vollständiges DNS-Setup ist dein Server technisch funktionsfähig, aber praktisch unbrauchbar. Lege folgende Records an – TTL überall 300 während der Einrichtung, später 3600:</p>
+
+<table>
+<tr><th>Typ</th><th>Name</th><th>Wert</th></tr>
+<tr><td>A</td><td>mail.example.com</td><td>203.0.113.42</td></tr>
+<tr><td>MX</td><td>example.com</td><td>mail.example.com (Priorität 10)</td></tr>
+<tr><td>TXT</td><td>example.com</td><td>v=spf1 mx ~all</td></tr>
+<tr><td>TXT</td><td>dkim._domainkey.example.com</td><td>v=DKIM1;k=rsa;p=MIIBIjANBg…</td></tr>
+<tr><td>TXT</td><td>_dmarc.example.com</td><td>v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com; adkim=s; aspf=s</td></tr>
+<tr><td>CNAME</td><td>autodiscover.example.com</td><td>mail.example.com</td></tr>
+<tr><td>CNAME</td><td>autoconfig.example.com</td><td>mail.example.com</td></tr>
+<tr><td>SRV</td><td>_autodiscover._tcp.example.com</td><td>0 0 443 mail.example.com</td></tr>
+</table>
+
+<p>Den DKIM-Schlüssel generierst du nicht per Hand, sondern in der Mailcow-UI unter Konfiguration → Optionen → ARC/DKIM-Schlüssel → „DKIM-Schlüssel hinzufügen“. Wähle 2048 Bit und den Selektor <code>dkim</code>. Mailcow zeigt dir anschließend den fertigen TXT-Record zum Kopieren. Der private Schlüssel bleibt serverseitig unter <code>/opt/mailcow-dockerized/data/dkim/</code> – sichere dieses Verzeichnis mit.</p>
+
+<p>Beim SPF-Record gilt: <code>~all</code> (Softfail) ist der sichere Start. Wechsle erst nach zwei bis vier Wochen sauberer Versandhistorie auf <code>-all</code> (Hardfail). Wer Mails über einen externen Newsletter-Dienst versendet, muss dessen Include ergänzen: <code>v=spf1 mx include:_spf.anbieter.tld ~all</code>. Vergiss nicht, dass SPF maximal 10 DNS-Lookups erlaubt – jeder <code>include</code> zählt.</p>
+
+<p>Ergänzend solltest du MTA-STS und TLS-RPT aktivieren. Mailcow liefert die Policy-Datei automatisch unter <code>https://mail.example.com/.well-known/mta-sts.txt</code> aus. Der zugehörige TXT-Record lautet <code>_mta-sts.example.com</code> mit <code>v=STSv1; id=20260101000000</code>, plus <code>_smtp._tls.example.com</code> mit <code>v=TLSRPTv1; rua=mailto:tlsrpt@example.com</code>. Das erzwingt verschlüsselte Zustellung und liefert dir Reports über TLS-Fehler.</p>
+
+<h2>Domains, Postfächer und Aliase anlegen</h2>
+
+<p>In der Mailcow-UI unter E-Mail → Domains fügst du deine Domain hinzu. Setze die Mailbox-Quota realistisch – 5 GB pro Nutzer sind 2026 üblich, bei Archivpostfächern 20 GB. Die Domain-Gesamtquota begrenzt den Speicherverbrauch und verhindert, dass ein Nutzer die Partition füllt.</p>
+
+<p>Für jedes Postfach vergibst du ein starkes Passwort (mindestens 16 Zeichen) und aktivierst „TLS erzwingen“ sowie „Sieve-Filter erlauben“. Bei Aliassen unterscheidet Mailcow zwischen:</p>
+
+<ul>
+<li><strong>Alias-Adressen</strong> – Weiterleitung auf ein oder mehrere Postfächer (z. B. <code>info@</code> → drei Empfänger)</li>
+<li><strong>Catch-All</strong> – fängt alle nicht zugeordneten Adressen einer Domain ab; nur mit konsequentem Spamfilter sinnvoll</li>
+<li><strong>Sieve-Filter</strong> – serverseitige Regeln, die auch bei IMAP-Clients ohne Filter greifen</li>
+</ul>
+
+<p>Für den Versand über externe Clients nutzt du SMTP auf Port 587 mit STARTTLS oder Port 465 mit implizitem TLS. Der Benutzername ist immer die vollständige E-Mail-Adresse. Thunderbird erkennt die Einstellungen über autoconfig automatisch, sobald die CNAME-Records oben gesetzt sind.</p>
+
+<p>Ein oft vergessener Punkt: <strong>Rate Limits</strong>. Unter Konfiguration → Optionen → Rate Limits setzt du Standardwerte wie 20 Mails pro Minute und 500 pro Stunde pro Postfach. Das verhindert, dass ein kompromittiertes Konto deine IP innerhalb von Minuten auf sämtliche Blocklisten katapultiert.</p>
+
+<h2>Spamfilter mit Rspamd richtig einstellen</h2>
+
+<p>Rspamd ist Mailcows stärkstes Argument. Der Filter arbeitet mit Bayes-Klassifikation, Fuzzy-Hashing, DNSBL-Abfragen und DMARC-Auswertung. Standardmäßig lernt er nur aus manuell markierten Mails – deshalb solltest du die Lernfunktion aktivieren.</p>
+
+<p>Richte zuerst das Bayes-Training ein. Lege im UI unter System → Konfiguration → Rspamd-Override zwei Postfächer an: <code>spam@example.com</code> und <code>ham@example.com</code>. Alle Mails, die dorthin kopiert werden, trainieren automatisch den Filter. Bei einer frischen Installation dauert es 200 bis 500 Mails, bis die Trefferquote über 95 % liegt.</p>
+
+<p>Die wichtigsten Schwellwerte stehen in <code>data/conf/rspamd/local.d/actions.conf</code>:</p>
+
+<pre><code>reject = 15;
+add_header = 6;
+greylist = 4;</code></pre>
+
+<p>Ein <code>reject</code>-Wert von 15 ist konservativ und verhindert False Positives. Wer viele Spam-Mails erhält, kann auf 12 senken. Wichtiger als die Schwelle ist die Greylisting-Strategie: Mailcow aktiviert es per Default und verzögert unbekannte Absender um 5 bis 15 Minuten – das blockt rund 60 % aller Bot-Mails, ohne legitime Korrespondenz dauerhaft zu verlieren.</p>
+
+<p>Ergänzend lohnt sich ein Blick auf die DNSBL-Konfiguration unter <code>data/conf/rspamd/local.d/dnsbl.conf</code>. Die voreingestellten Listen (Spamhaus ZEN, Barracuda, SORBS) sind gut gewählt. Füge <code>uribl.spameatingmonkey.net</code> hinzu, wenn du viel Link-Spam siehst. Achtung: Zu viele DNSBLs erhöhen die Scan-Zeit und produzieren False Positives.</p>
+
+<h2>Backup-Strategie: Was wirklich gesichert werden muss</h2>
+
+<p>Mailcow bringt ein Backup-Skript mit, das du unbedingt automatisieren solltest. Die drei relevanten Komponenten sind Datenbank (MariaDB), Maildirs und die Konfiguration inklusive DKIM-Schlüssel.</p>
+
+<pre><code>cd /opt/mailcow-dockerized
+./helper-scripts/backup_and_restore.sh backup all</code></pre>
+
+<p>Das Skript legt ein Verzeichnis unter <code>/opt/mailcow-dockerized/backup/</code> an. Bei 50 GB Maildaten dauert der Lauf 10 bis 25 Minuten und erzeugt etwa 15 GB komprimierte Daten. Plane ihn nachts per Cronjob:</p>
+
+<pre><code>0 3 * * * cd /opt/mailcow-dockerized &amp;&amp; ./helper-scripts/backup_and_restore.sh backup all &gt;&gt; /var/log/mailcow-backup.log 2&gt;&amp;1</code></pre>
+
+<p>Entscheidend ist die 3-2-1-Regel: drei Kopien, zwei verschiedene Medien, eine extern. Nutze <code>rsync</code> oder <code>restic</code>, um das Backup-Verzeichnis auf einen zweiten Server oder in einen S3-kompatiblen Object Storage zu spiegeln. Bei Hetzner Storage Box (1 TB für 3,81 €/Monat) oder Wasabi (ab 6,99 $/TB) kostet die Absicherung weniger als ein Mittagessen.</p>
+
+<p>Teste die Wiederherstellung <em>bevor</em> du sie brauchst. Der Restore läuft in drei Schritten: Stack stoppen, <code>./helper-scripts/backup_and_restore.sh restore</code> ausführen, Stack starten. Ein ungetestetes Backup ist kein Backup.</p>
+
+<h2>Updates, Wartung und Monitoring</h2>
+
+<p>Mailcow veröffentlicht alle vier bis acht Wochen ein Update. Die Routine ist bewusst simpel gehalten:</p>
+
+<pre><code>cd /opt/mailcow-dockerized
+./update.sh</code></pre>
+
+<p>Das Skript zieht neue Images, führt Datenbankmigrationen aus und startet den Stack neu. Die Ausfallzeit liegt typischerweise bei 30 bis 90 Sekunden – lege das Update in ein Wartungsfenster am frühen Morgen. Vor jedem Update gehört ein Backup dazu; das Skript fragt nicht danach.</p>
+
+<p>Für Monitoring reicht ein externer Uptime-Check auf Port 443 plus ein Mail-Roundtrip-Test. Letzteren baust du mit einem Cronjob, der sich selbst eine Mail schickt und den Eingang prüft. Ergänzend lohnt sich <code>docker stats</code> als täglicher Blick: Ein Container, der dauerhaft über 80 % RAM liegt, ist ein Frühwarnsignal.</p>
+
+<p>Logs findest du unter <code>data/logs/</code>. Postfix-Logs rotieren automatisch, Rspamd-Logs solltest du auf 14 Tage begrenzen. Bei Auffälligkeiten – etwa einem plötzlichen Anstieg ausgehender Mails – greifst du sofort ein: Postfach sperren, Passwort ändern, Logs auf SMTP-AUTH-Versuche prüfen.</p>
+
+<h2>Deliverability: IP-Reputation und Blocklisten</h2>
+
+<p>Ein frischer Server hat keine Reputation. Gmail und Microsoft bewerten neue IPs zunächst skeptisch, egal wie perfekt SPF und DKIM sind. Rechne mit vier bis acht Wochen Warmup-Zeit.</p>
+
+<p>Die wichtigsten Maßnahmen: Versende in den ersten zwei Wochen maximal 50 Mails pro Tag, steigere wöchentlich um 50 %. Vermeide es, direkt nach der Installation Massenmails an unbekannte Empfänger zu schicken. Prüfe deine IP täglich auf den großen Blocklisten (Spamhaus, Barracuda, SpamCop, UCEPROTECT).</p>
+
+<p>Richte einen Postmaster-Account ein und trage ihn in der DMARC-Policy als <code>rua</code>-Adresse ein. Die Reports zeigen dir, welche Server in deinem Namen senden – oft entdeckst du dabei vergessene Newsletter-Dienste oder alte Weiterleitungen.</p>
+
+<p>Ein technischer Hebel, der viel bewirkt: <strong>Korrekte HELO-Namen</strong>. Postfix muss sich mit <code>mail.example.com</code> melden, nicht mit dem internen Container-Namen. Mailcow setzt das automatisch, wenn <code>MAILCOW_HOSTNAME</code> stimmt. Prüfe es mit einem Test an <code>check-auth@verifier.port25.com</code> – die Antwortmail enthält eine vollständige Auswertung von SPF, DKIM, DMARC und SpamAssassin-Score.</p>
+
+<h2>Mailcow vs. Alternativen: Der ehrliche Vergleich</h2>
+
+<table>
+<tr><th>Lösung</th><th>RAM-Bedarf</th><th>Web-UI</th><th>Aufwand</th></tr>
+<tr><td>Mailcow</td><td>6–8 GB</td><td>Ja, sehr umfangreich</td><td>Mittel</td></tr>
+<tr><td>Mailu</td><td>2–4 GB</td><td>Ja, schlanker</td><td>Mittel</td></tr>
+<tr><td>Mail-in-a-Box</td><td>1–2 GB</td><td>Ja, minimalistisch</td><td>Niedrig</td></tr>
+<tr><td>Poste.io</td><td>1–2 GB</td><td>Ja (Free-Version limitiert)</td><td>Niedrig</td></tr>
+<tr><td>Google Workspace</td><td>–</td><td>Ja</td><td>Keiner</td></tr>
+</table>
+
+<p>Mailcow gewinnt bei Funktionsumfang und Multi-Domain-Verwaltung. Wer nur ein bis drei Postfächer für sich selbst braucht, ist mit Mail-in-a-Box oder einem Managed-Angebot oft besser bedient – der Wartungsaufwand von 3 bis 5 Stunden pro Monat bleibt bestehen, unabhängig von der Postfachzahl.</p>
+
+<p>Für Teams ab 10 Nutzern mit Datenschutzanforderungen, mehreren Domains oder dem Wunsch nach vollständiger Datenhoheit ist Mailcow 2026 die klarste Wahl. Bei 15 Postfächern sparst du gegenüber Microsoft 365 rund 1.100 € pro Jahr – abzüglich etwa 100 € Serverkosten bleiben über 1.000 € übrig, die den Wartungsaufwand mehr als rechtfertigen.</p>
+
+<h2>FAQ</h2>
+
+<h3>Wie viel RAM braucht Mailcow wirklich?</h3>
+<p>Die offizielle Angabe von 6 GB ist ein Minimum. Für den produktiven Betrieb mit ClamAV, Rspamd und SOGo solltest du 8 GB einplanen. Mit <code>SKIP_CLAMD=y</code> und <code>SKIP_FTS=y</code> läuft der Stack auch auf 4 GB stabil, dann fehlen aber Virenscan und Volltextsuche.</p>
+
+<h3>Warum landen meine Mails trotz SPF und DKIM im Spam?</h3>
+<p>In 80 % der Fälle fehlt der PTR-Eintrag (Reverse DNS) oder die IP steht auf einer Blockliste. Prüfe beides mit <code>dig -x DEINE_IP</code> und mxtoolbox.com. Weitere häufige Ursachen: fehlender DMARC-Record, falscher HELO-Name oder eine zu junge IP ohne Reputation. Plane vier bis acht Wochen Warmup ein.</p>
+
+<h3>Muss ich Port 25 freischalten lassen?</h3>
+<p>Ja. Die meisten Hoster (Hetzner, Netcup, Contabo, IONOS) sperren Port 25 standardmäßig gegen Spam-Missbrauch. Die Freischaltung erfolgt nach Identitätsprüfung, dauert je nach Anbieter zwischen zwei Stunden und drei Werktagen. Ohne Port 25 kannst du keine Mails von anderen Servern empfangen.</p>
+
+<h3>Kann ich Mailcow hinter einem Reverse Proxy betreiben?</h3>
+<p>Ja, aber nur mit Einschränkungen. Der vorgeschaltete Proxy muss die Ports 25, 465, 587, 143, 993 und 4190 als TCP-Stream durchreichen – das ist bei den meisten Web-Proxies nicht vorgesehen. Praktikabel ist es, nur HTTP/HTTPS über den Proxy zu leiten und die Mail-Ports direkt auf den Mailcow-Host zu binden.</p>
+
+<h3>Wie migriere ich bestehende Postfächer zu Mailcow?</h3>
+<p>Nutze <code>imapsync</code> oder die eingebaute Funktion „Mailbox migrieren“ in der Mailcow-UI. Für IMAP-zu-IMAP-Migrationen hat sich imapsync mit <code>--useuid --delete2</code> bewährt. Plane bei 20 GB Daten etwa zwei bis vier Stunden pro Postfach ein und führe die Migration außerhalb der Geschäftszeiten durch.</p>

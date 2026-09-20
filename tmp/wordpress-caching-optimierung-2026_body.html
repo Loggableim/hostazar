@@ -1,0 +1,300 @@
+<h2>Warum Caching 2026 über Erfolg oder Misserfolg entscheidet</h2>
+
+<p>WordPress rendert out of the box jede einzelne Seite dynamisch: PHP lädt und kompiliert Dateien, MySQL beantwortet Dutzende Queries, das Theme baut das HTML zusammen. Auf einem typischen vServer mit 2 vCPU und 4 GB RAM bedeutet das <strong>800–1.400 ms Time to First Byte (TTFB)</strong> bei ungecachten Requests. Genau derselbe Server liefert mit einem vollständigen Caching-Stack <strong>40–120 ms TTFB</strong> – ein Faktor 10 bis 20, ohne dass eine Zeile Anwendungscode geändert wird.</p>
+
+<p>Das ist 2026 kein Kosmetikthema mehr. Interaction to Next Paint (INP) hat First Input Delay als Core-Web-Vital-Metrik ersetzt, und Google bewertet Ladezeiten weiterhin als Ranking-Signal. Studien aus dem E-Commerce zeigen konsistent: <strong>jede zusätzliche Sekunde Ladezeit kostet 7–12 % Conversion</strong>. Bei 100.000 monatlichen Besuchern und 2 % Basis-Conversion-Rate sind das mehrere hundert verlorene Bestellungen pro Monat.</p>
+
+<p>Der wirtschaftliche Hebel liegt aber nicht nur im Umsatz, sondern in den Serverkosten. Ein Shop, der 50 Requests/Sekunde ungecacht braucht, benötigt dafür rund 8 vCPU und 16 GB RAM – etwa 60–90 €/Monat bei Hetzner oder Netcup. Mit Full-Page-Cache aus dem RAM stemmt dieselbe Seite 500+ Requests/Sekunde auf einem <strong>CX22 für 3,79 €/Monat</strong>. Caching ist damit die günstigste Skalierungsmaßnahme überhaupt.</p>
+
+<p>Dieser Guide baut den kompletten Stack von unten nach oben auf: OPcache für PHP-Bytecode, Redis für den Object Cache, Nginx FastCGI für Full-Page-Caching, ein CDN für die Edge – plus Messmethoden, Preisvergleiche und die typischen Fallstricke, an denen 80 % aller Setups scheitern.</p>
+
+<h2>Der vierstufige Caching-Stack im Überblick</h2>
+
+<p>Caching ist kein einzelnes Plugin, sondern ein Schichtenmodell. Jede Ebene fängt andere Arbeit ab, und die Wirkung multipliziert sich, statt sich zu addieren. Wer nur ein Plugin installiert und OPcache sowie Redis ignoriert, lässt typischerweise 60 % der möglichen Performance liegen.</p>
+
+<table>
+<thead>
+<tr><th>Ebene</th><th>Tool</th><th>Was gecacht wird</th><th>Typische Ersparnis</th></tr>
+</thead>
+<tbody>
+<tr><td>1. Bytecode</td><td>OPcache (+JIT)</td><td>Kompiliertes PHP</td><td>30–50 % CPU-Zeit</td></tr>
+<tr><td>2. Object Cache</td><td>Redis / Memcached</td><td>DB-Queries, Options, Transients</td><td>40–70 % Query-Last</td></tr>
+<tr><td>3. Page Cache</td><td>Nginx FastCGI / Plugin</td><td>Fertiges HTML</td><td>90–98 % TTFB</td></tr>
+<tr><td>4. Edge</td><td>Cloudflare / Bunny / Fastly</td><td>HTML, Assets, Bilder</td><td>50–200 ms Latenz</td></tr>
+</tbody>
+</table>
+
+<p>Die Reihenfolge beim Aufbau ist wichtig: Erst OPcache, dann Redis, dann Page Cache, zuletzt CDN. Wer mit dem CDN beginnt und dabei einen langsamen Origin behält, verschiebt das Problem nur – jeder Cache-Miss trifft weiterhin einen überlasteten Server, und bei Cloudflare &amp; Co. zahlst du für jeden Miss mit Latenz.</p>
+
+<p>Ein zweiter Grundsatz: <strong>Jede Ebene braucht eine saubere Invalidierungsstrategie.</strong> Ein Cache, der nach einem Beitrags-Update alte Inhalte ausliefert, ist schlimmer als kein Cache. Dazu später mehr im Abschnitt zu Exclusions.</p>
+
+<h2>OPcache richtig konfigurieren</h2>
+
+<p>OPcache ist in jedem modernen PHP 8.x enthalten und meist bereits aktiv, aber mit Standardwerten, die für kleine Blogs gedacht sind. Die Standardeinstellung <code>opcache.memory_consumption=128</code> reicht für WooCommerce mit 40 Plugins nicht aus – dann kommt es zu ständigen Cache-Evictions und der Bytecode wird neu kompiliert.</p>
+
+<p>Eine praxiserprobte Konfiguration für PHP 8.3/8.4 auf einem Server mit 4 GB RAM:</p>
+
+<pre><code>; /etc/php/8.3/fpm/php.ini
+opcache.enable=1
+opcache.enable_cli=0
+opcache.memory_consumption=256
+opcache.interned_strings_buffer=32
+opcache.max_accelerated_files=20000
+opcache.validate_timestamps=0
+opcache.revalidate_freq=0
+opcache.save_comments=1
+opcache.fast_shutdown=1
+opcache.jit=1255
+opcache.jit_buffer_size=128M
+</code></pre>
+
+<p>Die kritischen Werte: <code>max_accelerated_files=20000</code> deckt auch große Plugin-Stacks ab (WordPress selbst nutzt rund 3.000 Dateien, WooCommerce mit Extensions schnell 12.000). <code>interned_strings_buffer=32</code> verhindert, dass Strings aus dem Cache fliegen. <code>save_comments=1</code> ist Pflicht, weil viele Plugins Doctrine- oder PHPUnit-Annotationen zur Laufzeit auslesen.</p>
+
+<p><strong>Achtung bei <code>validate_timestamps=0</code>:</strong> PHP prüft dann nicht mehr, ob sich Dateien geändert haben. Das spart pro Request 5–15 ms, bedeutet aber, dass du nach jedem Deployment <code>systemctl reload php8.3-fpm</code> ausführen musst. Automatisiere das in deinem Deploy-Skript, sonst debugst du stundenlang an Änderungen, die „nicht ankommen".</p>
+
+<p>JIT mit <code>opcache.jit=1255</code> und 128 MB Buffer bringt bei typischen WordPress-Workloads 3–8 % – bei rein CPU-lastigen Plugins (Bildverarbeitung, PDF-Generierung) deutlich mehr. Prüfen lässt sich die Trefferquote mit <code>php -i | grep -i opcache</code> oder einem opcache-status-Script: <strong>Zielwert ist eine Hit Rate über 99 % und 0 wasted memory</strong>.</p>
+
+<h2>Redis Object Cache für WordPress</h2>
+
+<p>Der Object Cache ist die zweite Ebene und der am meisten unterschätzte Hebel. WordPress speichert Options, Transients und Query-Ergebnisse standardmäßig in einem nicht-persistenten Array – jeder Request fragt also dieselben Daten erneut aus MySQL ab. Ein WooCommerce-Shop feuert dabei leicht <strong>120–250 Queries pro Seitenaufruf</strong>.</p>
+
+<p>Installation auf Debian/Ubuntu:</p>
+
+<pre><code>apt install redis-server php8.3-redis
+systemctl enable --now redis-server
+
+# /etc/redis/redis.conf
+maxmemory 512mb
+maxmemory-policy allkeys-lru
+save ""
+appendonly no
+tcp-keepalive 60
+timeout 300
+</code></pre>
+
+<p><code>save ""</code> und <code>appendonly no</code> deaktivieren die Persistenz. Das ist für einen Object Cache korrekt: Geht Redis verloren, füllt WordPress den Cache einfach neu. Persistenz kostet nur I/O und kann bei einem vollen Disk den Server blockieren. <code>allkeys-lru</code> sorgt dafür, dass bei erreichtem <code>maxmemory</code> die ältesten Keys fliegen statt Schreibfehler zu produzieren.</p>
+
+<p>In der <code>wp-config.php</code> oberhalb von <code>/* That's all, stop editing! */</code>:</p>
+
+<pre><code>define('WP_CACHE', true);
+define('WP_REDIS_HOST', '127.0.0.1');
+define('WP_REDIS_PORT', 6379);
+define('WP_REDIS_DATABASE', 0);
+define('WP_REDIS_TIMEOUT', 1);
+define('WP_REDIS_READ_TIMEOUT', 1);
+define('WP_REDIS_MAXTTL', 86400);
+define('WP_REDIS_PREFIX', 'hz_');
+</code></pre>
+
+<p>Danach das Plugin <em>Redis Object Cache</em> (kostenlos) installieren und per WP-CLI aktivieren: <code>wp redis enable</code>. Die Verifikation erfolgt über <code>redis-cli info stats</code> – entscheidend sind <code>keyspace_hits</code> gegen <code>keyspace_misses</code>. Eine Quote von <strong>über 90 % Hits</strong> ist das Ziel; darunter stimmt meist die <code>maxmemory</code>-Größe nicht oder ein Plugin umgeht den Object Cache.</p>
+
+<p>Für Agenturen mit vielen Sites lohnt sich Object Cache Pro (ab rund 95 US-Dollar/Monat für unbegrenzte Installationen) – es bringt asynchrones Schreiben, bessere Metriken und einen integrierten Page-Cache. Für einzelne Shops reicht die kostenlose Variante vollständig aus.</p>
+
+<h2>Full-Page-Cache: Nginx FastCGI vs. Redis Page Cache</h2>
+
+<p>Die dritte Ebene liefert fertiges HTML direkt aus dem Webserver. Nginx kann das ohne jedes Plugin über <code>fastcgi_cache</code> – das ist die schnellste und ressourcenschonendste Variante, weil PHP-FPM für einen Cache-Hit gar nicht erst anläuft.</p>
+
+<pre><code># /etc/nginx/conf.d/cache.conf
+fastcgi_cache_path /var/cache/nginx/wpcache
+    levels=1:2 keys_zone=WPCACHE:100m
+    inactive=60m max_size=10g;
+
+fastcgi_cache_key "$scheme$request_method$host$request_uri";
+fastcgi_cache_valid 200 301 302 60m;
+fastcgi_cache_valid 404 1m;
+fastcgi_cache_use_stale error timeout invalid_header
+    updating http_500 http_503;
+fastcgi_cache_background_update on;
+fastcgi_cache_lock on;
+fastcgi_ignore_headers Cache-Control Expires Set-Cookie;
+add_header X-FastCGI-Cache $upstream_cache_status;
+</code></pre>
+
+<p><code>keys_zone=WPCACHE:100m</code> reserviert 100 MB für Schlüssel-Metadaten – das reicht für rund 800.000 URLs. <code>max_size=10g</code> begrenzt den HTML-Cache auf der Platte. <code>fastcgi_cache_lock on</code> verhindert den gefürchteten Cache-Stampede: Wenn 200 Requests gleichzeitig auf eine leere Cache-URL treffen, rendert nur einer, alle anderen warten. <code>fastcgi_cache_use_stale</code> liefert bei einem PHP-FPM-Absturz weiterhin alte Inhalte aus – der Shop bleibt online, statt 502-Fehler zu werfen.</p>
+
+<p>Der Header <code>X-FastCGI-Cache</code> zeigt dir bei jedem Aufruf <code>HIT</code>, <code>MISS</code>, <code>BYPASS</code> oder <code>EXPIRED</code>. Prüfen mit <code>curl -I https://example.com/</code>. Ohne diesen Header fliegst du blind.</p>
+
+<table>
+<thead>
+<tr><th>Kriterium</th><th>Nginx FastCGI Cache</th><th>Redis Page Cache (Plugin)</th></tr>
+</thead>
+<tbody>
+<tr><td>TTFB bei Hit</td><td>15–40 ms</td><td>45–90 ms</td></tr>
+<tr><td>PHP-FPM nötig?</td><td>Nein</td><td>Ja</td></tr>
+<tr><td>Admin-Komfort</td><td>Manuell / WP-CLI-Purge</td><td>Automatisch</td></tr>
+<tr><td>RAM-Verbrauch</td><td>Platte + 100 MB Metadaten</td><td>1–4 GB RAM</td></tr>
+<tr><td>Multi-Server</td><td>Nein (lokal)</td><td>Ja (zentral)</td></tr>
+</tbody>
+</table>
+
+<p>Für Single-Server-Setups ist Nginx FastCGI klar überlegen. Redis Page Cache gewinnt erst, wenn du hinter einem Load Balancer mehrere Webserver betreibst und einen gemeinsamen, zentralen Cache brauchst.</p>
+
+<h2>Page-Cache-Plugins im Vergleich</h2>
+
+<p>Wenn du keinen Root-Zugriff hast oder den Komfort der automatischen Invalidierung willst, ist ein Plugin die richtige Wahl. Die Preis- und Funktionslage 2026:</p>
+
+<table>
+<thead>
+<tr><th>Plugin</th><th>Preis</th><th>Full-Page</th><th>Redis</th><th>CDN-Integration</th></tr>
+</thead>
+<tbody>
+<tr><td>LiteSpeed Cache</td><td>0 €</td><td>Ja (nur LiteSpeed/OLS)</td><td>Ja</td><td>QUIC.cloud</td></tr>
+<tr><td>WP Rocket</td><td>59 $/Jahr</td><td>Ja</td><td>Nur mit Add-on</td><td>Cloudflare</td></tr>
+<tr><td>FlyingPress</td><td>60 $/Jahr</td><td>Ja</td><td>Ja</td><td>Bunny, Cloudflare</td></tr>
+<tr><td>W3 Total Cache</td><td>0 € / 99 $/Jahr Pro</td><td>Ja</td><td>Ja</td><td>Viele</td></tr>
+<tr><td>WP Super Cache</td><td>0 €</td><td>Ja</td><td>Nein</td><td>Nein</td></tr>
+</tbody>
+</table>
+
+<p><strong>Empfehlung nach Stack:</strong> Läuft dein Server auf OpenLiteSpeed (z. B. bei einem LiteSpeed-basierten Hoster), ist LiteSpeed Cache kostenlos und funktional kaum zu schlagen – ESI, Critical CSS und Bildoptimierung inklusive. Auf Nginx/Apache mit eigenem Root-Zugriff fährst du mit Nginx FastCGI + Redis Object Cache günstiger und schneller. Auf Shared Hosting ohne Root ist WP Rocket oder FlyingPress die pragmatische Wahl.</p>
+
+<p>Eine dringende Warnung: <strong>Betreibe niemals zwei Full-Page-Cache-Systeme parallel.</strong> WP Rocket plus Nginx FastCGI plus Cloudflare APO erzeugt dreifache Invalidierungslogik – du bekommst inkonsistente Inhalte und debugst Tage. Wähle eine Ebene pro Schicht und dokumentiere sie.</p>
+
+<h2>CDN-Anbindung: Cloudflare, Bunny, Fastly</h2>
+
+<p>Das CDN ist die vierte Ebene und reduziert vor allem die Latenz für geografisch entfernte Besucher. Ein Nutzer in Singapur wartet auf einen Server in Frankfurt mindestens 180 ms pro Roundtrip – bei sechs Roundtrips sind das über eine Sekunde, bevor überhaupt gerendert wird.</p>
+
+<table>
+<thead>
+<tr><th>Anbieter</th><th>Preis</th><th>PoPs</th><th>Besonderheit</th></tr>
+</thead>
+<tbody>
+<tr><td>Cloudflare Free</td><td>0 €</td><td>330+</td><td>DDoS-Schutz, HTTP/3, Brotli</td></tr>
+<tr><td>Cloudflare Pro</td><td>20 $/Monat</td><td>330+</td><td>Bildoptimierung, WAF</td></tr>
+<tr><td>Cloudflare APO</td><td>5 $/Monat</td><td>330+</td><td>HTML-Cache für WordPress</td></tr>
+<tr><td>Bunny CDN</td><td>ab 0,01 $/GB</td><td>119</td><td>Sehr günstig, EU-Fokus</td></tr>
+<tr><td>Fastly</td><td>ab 50 $/Monat</td><td>80+</td><td>VCL, Instant Purge</td></tr>
+</tbody>
+</table>
+
+<p>Für die meisten WordPress-Sites ist <strong>Cloudflare Free plus APO für 5 $/Monat</strong> das beste Preis-Leistungs-Verhältnis. APO cached HTML an der Edge und invalidiert automatisch bei neuen Beiträgen – damit sparst du deinem Origin bis zu 90 % der Requests. Wichtig: APO funktioniert nur, wenn du <em>keinen</em> konkurrierenden Page-Cache im Plugin betreibst, der eigene Cache-Header setzt.</p>
+
+<p>Für reine Asset-Auslieferung (Bilder, CSS, JS) ist Bunny CDN mit 0,01 $/GB konkurrenzlos günstig: 1 TB Traffic kostet 10 $. Setze im CDN immer <strong>Brotli, HTTP/3 und Early Hints</strong> aktiv und konfiguriere Cache-Control-Header mit <code>immutable</code> und einem Jahr TTL für versionierte Assets:</p>
+
+<pre><code>location ~* \.(css|js|woff2|webp|avif)$ {
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+    access_log off;
+}
+</code></pre>
+
+<h2>Datenbank-Cache und Query-Optimierung</h2>
+
+<p>Auch mit Redis Object Cache bleiben einige Queries übrig – und die Datenbank ist meist der langsamste Teil des Stacks. Der wichtigste Hebel ist der InnoDB Buffer Pool: Er sollte <strong>60–70 % des verfügbaren RAM</strong> belegen.</p>
+
+<pre><code># /etc/mysql/mariadb.conf.d/99-tuning.cnf
+[mysqld]
+innodb_buffer_pool_size = 2G
+innodb_log_file_size = 512M
+innodb_flush_method = O_DIRECT
+innodb_flush_log_at_trx_commit = 2
+max_connections = 150
+tmp_table_size = 64M
+max_heap_table_size = 64M
+</code></pre>
+
+<p>Bei 4 GB RAM sind 2 GB Buffer Pool ein guter Wert. <code>innodb_flush_log_at_trx_commit = 2</code> opfert theoretisch bis zu eine Sekunde Daten bei einem Stromausfall, verdoppelt aber den Durchsatz bei schreibintensiven Workloads – für WordPress mit aktivem Redis-Cache ein akzeptabler Trade-off.</p>
+
+<p>Der MySQL Query Cache existiert in MySQL 8.0 nicht mehr und ist auch in MariaDB ab 10.6 standardmäßig deaktiviert. Setze ihn nicht reaktiv in Betrieb – er skaliert nicht über mehrere Kerne und wird zum Flaschenhals.</p>
+
+<p>Zwei regelmäßige Wartungsschritte bringen zusätzlich 10–20 %: <code>wp transient delete --expired</code> entfernt abgelaufene Transients, die sich sonst in <code>wp_options</code> stapeln. Und die Autoload-Größe sollte <strong>unter 800 KB</strong> bleiben – prüfen mit:</p>
+
+<pre><code>SELECT SUM(LENGTH(option_value)) AS autoload_size
+FROM wp_options WHERE autoload = 'yes';
+</code></pre>
+
+<p>Alles darüber wird bei <em>jedem</em> Request in den Speicher geladen, auch mit Redis. Ursache sind meist schlecht programmierte Plugins, die ihre Settings ohne <code>autoload=no</code> speichern.</p>
+
+<h2>Cache-Invalidierung und Exclusions</h2>
+
+<p>Das ist der Teil, an dem die meisten Setups scheitern. Ein aggressiver Page Cache liefert eingeloggten Kunden den Warenkorb eines anderen aus – oder zeigt nach dem Login noch die „Anmelden"-Navigation. Die Regel lautet: <strong>Alles, was pro Nutzer oder pro Session variiert, darf nie gecacht werden.</strong></p>
+
+<p>Diese Pfade gehören immer auf die Bypass-Liste:</p>
+
+<ul>
+<li><code>/wp-admin/</code>, <code>/wp-login.php</code>, <code>/wp-json/</code> (außer öffentliche Endpoints)</li>
+<li>WooCommerce: <code>/cart/</code>, <code>/checkout/</code>, <code>/my-account/</code>, <code>?add-to-cart=</code></li>
+<li>Alle Requests mit Cookie <code>wordpress_logged_in_*</code>, <code>woocommerce_cart_hash</code>, <code>wp-postpass_*</code></li>
+<li>Query-Strings wie <code>?preview=true</code>, <code>?s=</code> (Suche), <code>?p=</code></li>
+<li>RSS-Feeds mit Kommentaren, Kommentar-POSTs</li>
+</ul>
+
+<p>In Nginx sieht das so aus:</p>
+
+<pre><code>set $skip_cache 0;
+if ($request_method = POST) { set $skip_cache 1; }
+if ($query_string != "") { set $skip_cache 1; }
+if ($request_uri ~* "/wp-admin/|/cart/|/checkout/|/my-account/|/wp-json/") {
+    set $skip_cache 1;
+}
+if ($http_cookie ~* "wordpress_logged_in|woocommerce_cart_hash|wp-postpass_") {
+    set $skip_cache 1;
+}
+fastcgi_cache_bypass $skip_cache;
+fastcgi_no_cache $skip_cache;
+</code></pre>
+
+<p>Für die Invalidierung nach Content-Änderungen gibt es drei Strategien: <strong>TTL-basiert</strong> (einfach, aber bis zu 60 Minuten veraltete Inhalte), <strong>Event-basiert</strong> über Plugin-Hooks (präzise, aber fehleranfällig) und <strong>Purge-per-WP-CLI</strong> im Deploy-Skript. In der Praxis kombiniert man alle drei: kurze TTL von 10–15 Minuten für stark frequentierte URLs, Plugin-Purge für Beiträge und manueller Purge nach Deployments.</p>
+
+<h2>Messen, Benchmarken, Monitoring</h2>
+
+<p>Ohne Messung ist Caching-Optimierung Raten. Die drei wichtigsten Werkzeuge sind <code>curl</code> für den Cache-Status, <code>ab</code> oder <code>k6</code> für Lasttests und WebPageTest für die reale Nutzererfahrung.</p>
+
+<pre><code># Cache-Status prüfen
+curl -sI https://example.com/ | grep -i x-fastcgi-cache
+
+# Lasttest: 1000 Requests, 50 parallel
+ab -n 1000 -c 50 -H "Accept-Encoding: gzip" https://example.com/
+
+# Mit k6 (moderner, aussagekräftiger)
+k6 run --vus 50 --duration 60s script.js
+</code></pre>
+
+<p>Die Zielwerte, an denen du dich orientieren solltest:</p>
+
+<table>
+<thead>
+<tr><th>Metrik</th><th>Gut</th><th>Akzeptabel</th><th>Handlungsbedarf</th></tr>
+</thead>
+<tbody>
+<tr><td>TTFB (Cache Hit)</td><td>&lt; 100 ms</td><td>100–250 ms</td><td>&gt; 250 ms</td></tr>
+<tr><td>LCP (mobil)</td><td>&lt; 2,0 s</td><td>2,0–2,5 s</td><td>&gt; 2,5 s</td></tr>
+<tr><td>INP</td><td>&lt; 150 ms</td><td>150–200 ms</td><td>&gt; 200 ms</td></tr>
+<tr><td>OPcache Hit Rate</td><td>&gt; 99 %</td><td>95–99 %</td><td>&lt; 95 %</td></tr>
+<tr><td>Redis Hit Rate</td><td>&gt; 92 %</td><td>85–92 %</td><td>&lt; 85 %</td></tr>
+<tr><td>Queries pro Request</td><td>&lt; 30</td><td>30–60</td><td>&gt; 60</td></tr>
+</tbody>
+</table>
+
+<p>Für die Query-Analyse im laufenden Betrieb ist <em>Query Monitor</em> das beste kostenlose Tool – es zeigt pro Request alle Queries, deren Herkunft (Plugin, Theme, Core) und die Dauer. Ergänzend lohnt ein Blick in <code>SHOW FULL PROCESSLIST</code> bei Lastspitzen sowie das Slow Query Log mit <code>long_query_time = 0.5</code>.</p>
+
+<p>Für kontinuierliches Monitoring empfiehlt sich ein externer Uptime- und Performance-Dienst (UptimeRobot kostenlos, Better Stack ab 24 $/Monat) plus Server-Metriken über Netdata oder Prometheus mit Node Exporter. Achte besonders auf <strong>Redis-Evictions</strong> (<code>evicted_keys</code> in <code>redis-cli info stats</code>) – steigen sie, ist <code>maxmemory</code> zu klein, und der Object Cache verliert genau die Keys, die am häufigsten gebraucht werden.</p>
+
+<h2>Häufige Fehler und Troubleshooting</h2>
+
+<p><strong>Fehler 1: Eingeloggte Nutzer sehen fremde Inhalte.</strong> Ursache ist fast immer ein fehlender Cookie-Bypass. Prüfe mit einem zweiten Browser, der eingeloggt ist, und kontrolliere den <code>X-FastCGI-Cache</code>-Header – er muss <code>BYPASS</code> zeigen, nicht <code>HIT</code>.</p>
+
+<p><strong>Fehler 2: Änderungen erscheinen nicht nach dem Deployment.</strong> Bei <code>opcache.validate_timestamps=0</code> musst du PHP-FPM reloaden. Ergänze in deinem Deploy-Skript <code>systemctl reload php8.3-fpm &amp;&amp; nginx -s reload</code> und einen Cache-Purge.</p>
+
+<p><strong>Fehler 3: Redis läuft voll und evictet ständig.</strong> Bei einem großen WooCommerce-Shop mit 50.000 Produkten braucht der Object Cache realistisch 1–2 GB. Setze <code>maxmemory</code> auf 25 % des Server-RAM und prüfe <code>used_memory_human</code> über 24 Stunden, bevor du final konfigurierst.</p>
+
+<p><strong>Fehler 4: CDN cached 404-Fehler.</strong> Ein Tippfehler in einer URL, einmal von einem Crawler aufgerufen, wird sonst stundenlang ausgeliefert. Setze im CDN eine kurze TTL für 4xx-Statuscodes (60 Sekunden) und schließe <code>/wp-json/</code> sowie Query-Strings vom Edge-Cache aus.</p>
+
+<p><strong>Fehler 5: Zu viele Caching-Plugins.</strong> WP Rocket + Autoptimize + W3TC gleichzeitig erzeugen widersprüchliche Header und doppeltes Minifying. Ein Plugin pro Aufgabe, nicht mehr. Und <strong>Fehler 6:</strong> JIT mit <code>opcache.jit=1255</code> kann bei einzelnen Page-Buildern (Elementor, Divi) zu sporadischen Fatal Errors führen – teste nach dem Aktivieren 48 Stunden lang alle Templates, bevor du live gehst.</p>
+
+<h2>FAQ</h2>
+
+<h3>Brauche ich Redis, wenn ich schon einen Full-Page-Cache habe?</h3>
+<p>Ja, für die meisten Sites. Der Page Cache beschleunigt nur anonyme, gecachte Seitenaufrufe. Sobald ein Nutzer eingeloggt ist, sich etwas in den Warenkorb legt oder eine Seite gecacht werden darf (Checkout, Mein Konto), greift er nicht – und dann laufen alle Queries ungebremst gegen MySQL. Redis Object Cache senkt die Query-Last in diesen Fällen um 40–70 % und schützt dich vor Lastspitzen. Bei reinen Blogs mit wenig dynamischem Traffic kannst du darauf verzichten.</p>
+
+<h3>Was kostet ein vollständig optimierter WordPress-Stack pro Monat?</h3>
+<p>Ein realistisches Setup: Hetzner CX22 (2 vCPU, 4 GB) für 3,79 €, Cloudflare Free für 0 €, LiteSpeed Cache oder Nginx FastCGI + Redis Object Cache für 0 €. Macht insgesamt unter 5 €/Monat und liefert TTFB-Werte unter 100 ms. Wer Komfort will, addiert WP Rocket (59 $/Jahr ≈ 4,50 €/Monat) und Cloudflare APO (5 $/Monat). Ein Shared-Hosting-Tarif mit vergleichbarer Performance kostet typischerweise 15–30 €/Monat.</p>
+
+<h3>Wie oft muss ich den Cache leeren?</h3>
+<p>So selten wie möglich. Bei korrekt konfigurierter Event-Invalidierung musst du nie manuell eingreifen. Als Sicherheitsnetz empfiehlt sich eine TTL von 10–15 Minuten für stark frequentierte URLs und 60 Minuten für den Rest. Manueller Purge ist nur nach Deployments, Theme-Änderungen oder Plugin-Updates nötig – automatisiere das per WP-CLI (<code>wp cache flush</code>, <code>wp litespeed-purge all</code>) im Deployment-Skript.</p>
+
+<h3>Schadet aggressives Caching dem SEO?</h3>
+<p>Nein, im Gegenteil – solange die Invalidierung funktioniert. Google bewertet Ladezeit und Core Web Vitals als Ranking-Faktoren, und ein Cache verbessert LCP und INP messbar. Kritisch wird es nur, wenn du versehentlich gecachte 404-Seiten, veraltete Canonical-Tags oder eingeloggten Nutzern falsche Inhalte auslieferst. Prüfe nach dem Setup die Google Search Console auf Abdeckungsfehler und lasse ein Crawl-Tool (Screaming Frog, 259 €/Jahr) über die Seite laufen.</p>
+
+<h3>Redis oder Memcached für den Object Cache?</h3>
+<p>Redis. Memcached ist minimal schneller bei reinen Get/Set-Operationen, unterstützt aber keine Datenstrukturen, keine Persistenz-Optionen und – entscheidend – keine Key-Prefixes pro Site. Für Multisite-Installationen oder mehrere WordPress-Instanzen auf einem Server ist Redis wegen <code>WP_REDIS_PREFIX</code> und <code>WP_REDIS_DATABASE</code> klar die bessere Wahl. Memcached lohnt nur, wenn du bereits eine Memcached-Infrastruktur betreibst oder extrem wenig RAM zur Verfügung hast.</p>
