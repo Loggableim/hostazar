@@ -1,0 +1,209 @@
+<h2>Warum DNS 2026 komplexer ist als je zuvor</h2>
+
+<p>DNS war lange Zeit ein „einmal einstellen und vergessen"-Thema. 2026 sieht das anders aus: E-Mail-Provider verlangen SPF, DKIM und DMARC, Let's Encrypt prüft CAA-Records, Gameserver brauchen SRV-Einträge für Voice und Minecraft-Ports, und Cloudflare, Hetzner und Route 53 bieten unterschiedliche Feature-Sets. Wer seine Zone falsch aufsetzt, verliert Mails, bekommt keine Zertifikate oder wundert sich über 4 Stunden Downtime nach einem Umzug.</p>
+
+<p>Dieser Guide erklärt dir die wichtigsten Record-Typen praxisnah — A, AAAA, CNAME, MX, TXT, SRV, CAA und NS — mit konkreten Werten, TTL-Empfehlungen und Debugging-Befehlen. Du erfährst außerdem, wie du eine Migration ohne Ausfall planst und welche Preise 2026 für DNS-Hosting realistisch sind.</p>
+
+<p>Zielgruppe sind Server-Admins, DevOps-Engineers und Gamer, die ihre eigene Domain verwalten — egal ob auf einem cPanel-Hosting für 4,99 €/Monat oder in einer selbstgebauten BIND-Umgebung auf einem 5-€-VPS.</p>
+
+<h2>DNS-Grundlagen: Zone, Nameserver und TTL</h2>
+
+<p>Jede Domain gehört zu einer <strong>Zone</strong>, die auf mindestens zwei autoritativen Nameservern (NS-Records) liegt. Diese Nameserver werden bei der Registry hinterlegt — bei .de ist das die DENIC, bei .com die ICANN-akkreditierte Registry Verisign. Fragt ein Resolver nach <code>example.de</code>, läuft die Kette Root → TLD → autoritativer NS ab.</p>
+
+<p>Die <strong>TTL</strong> (Time To Live) bestimmt in Sekunden, wie lange ein Resolver einen Record cachen darf. Typische Werte:</p>
+
+<ul>
+<li><strong>300</strong> (5 Min) — während Migrationen und bei dynamischen Diensten</li>
+<li><strong>3600</strong> (1 Std) — Standard für A, MX, TXT</li>
+<li><strong>86400</strong> (24 Std) — statische Records wie CAA oder NS</li>
+</ul>
+
+<p>Wichtig: TTL wird in Sekunden angegeben, nicht in Minuten. Ein häufiger Fehler ist <code>TTL 3600</code> als „3600 Minuten" zu interpretieren — das wären 60 Stunden. Senke die TTL mindestens 24 Stunden <em>vor</em> einem Serverwechsel auf 300, damit die Propagation nach dem Umschalten schnell greift.</p>
+
+<h2>A- und AAAA-Records: IPv4 und IPv6 richtig setzen</h2>
+
+<p>Der A-Record verbindet einen Hostnamen mit einer IPv4-Adresse, der AAAA-Record mit einer IPv6-Adresse. Beide sind unabhängig — ein Client mit IPv6-Priorität nutzt AAAA, wenn vorhanden. Fehlt AAAA, fällt er auf A zurück.</p>
+
+<pre><code>example.de.      3600  IN  A     203.0.113.42
+example.de.      3600  IN  AAAA  2001:db8::1
+www.example.de.  3600  IN  A     203.0.113.42
+mc.example.de.   300   IN  A     198.51.100.77</code></pre>
+
+<p>Für Gameserver empfiehlt sich ein eigener Subdomain-A-Record (z. B. <code>mc.example.de</code>), damit du die IP später ändern kannst, ohne Spieler zu verwirren. Bei Webhosting mit Load-Balancer setzt du <strong>mehrere A-Records</strong> auf unterschiedliche IPs — der Client wählt per Round-Robin. Das ist kein echtes Failover, aber eine einfache Lastverteilung.</p>
+
+<p>Prüfe deine Einträge immer mit <code>dig</code>:</p>
+
+<pre><code>dig +short example.de A
+dig +short example.de AAAA
+dig @1.1.1.1 example.de A
+dig +trace example.de</code></pre>
+
+<p>Achte darauf, dass die IP im A-Record zur tatsächlichen Server-IP passt. Ein Tippfehler in einem Oktett (z. B. 203.0.114.42 statt 203.0.113.42) führt zu „Connection timed out" — und das suchst du stundenlang.</p>
+
+<h2>CNAME-Records: Alias statt fester IP</h2>
+
+<p>Ein CNAME zeigt auf einen anderen Hostnamen, nicht auf eine IP. Der Resolver löst die Kette weiter auf. Das ist ideal für Subdomains, die auf wechselnde Infrastruktur zeigen — etwa ein CDN oder ein verwalteter Mail-Dienst.</p>
+
+<pre><code>www.example.de.     3600  IN  CNAME  example.de.
+shop.example.de.    3600  IN  CNAME  shops.myshopify.com.
+cdn.example.de.     300   IN  CNAME  d1234.cloudfront.net.</code></pre>
+
+<p><strong>Wichtig:</strong> Am Zone Apex (also direkt <code>example.de</code>) ist ein CNAME laut RFC 1034 nicht erlaubt, weil dort zwingend SOA- und NS-Records stehen müssen. Cloudflare und einige andere Anbieter lösen das mit <em>CNAME Flattening</em> — sie lesen den CNAME-Zielwert aus und schreiben intern A-Records. Bei BIND oder einem einfachen Hosting-Panel funktioniert das nicht.</p>
+
+<p>Ein weiterer Stolperstein: Ein CNAME darf nicht mit anderen Records am selben Namen koexistieren. Du kannst also nicht gleichzeitig <code>www</code> als CNAME und als MX definieren. Für Mail brauchst du einen eigenen A-Record oder MX auf einer anderen Subdomain.</p>
+
+<h2>MX-Records: E-Mail-Routing mit Prioritäten</h2>
+
+<p>MX-Records bestimmen, wohin Mails für deine Domain gehen. Der niedrigere Wert hat höhere Priorität. Du brauchst immer mindestens zwei MX-Einträge, damit Mails bei Ausfall eines Servers nicht verloren gehen.</p>
+
+<pre><code>example.de.  3600  IN  MX  10  mx1.example.de.
+example.de.  3600  IN  MX  20  mx2.example.de.
+example.de.  3600  IN  MX  30  fallback.mailprovider.net.</code></pre>
+
+<p>Der MX-Zielwert <strong>muss</strong> ein A- oder AAAA-Record sein — niemals ein CNAME. Viele Provider (Google Workspace, Microsoft 365, mailbox.org) geben dir fertige MX-Sets. Google Workspace nutzt z. B. <code>smtp.google.com</code> mit Priorität 1, Microsoft 365 <code>example-de.mail.protection.outlook.com</code> mit Priorität 0.</p>
+
+<p>Vergiss nicht den <strong>PTR-Record</strong> (Reverse DNS). Der wird nicht in deiner Zone, sondern beim IP-Inhaber (Hoster) gesetzt. Ohne passenden PTR landen deine Mails bei Gmail und Outlook oft im Spam. Bei Hetzner und netcup kannst du rDNS im Kundenpanel konfigurieren — bei Hetzner Cloud über die API:</p>
+
+<pre><code>hcloud server set-rdns --ip 203.0.113.42 --ptr mail.example.de srv-web-01</code></pre>
+
+<h2>TXT-Records: SPF, DKIM, DMARC und Verifizierung</h2>
+
+<p>TXT-Records sind der Alleskönner. Sie enthalten SPF-Regeln, DKIM-Public-Keys, DMARC-Policies und Domain-Verifizierungen für Google, Microsoft und Cloudflare.</p>
+
+<p><strong>SPF</strong> legt fest, welche Server für deine Domain senden dürfen:</p>
+
+<pre><code>example.de. 3600 IN TXT "v=spf1 include:_spf.google.com include:mailing.example.net ip4:203.0.113.42 -all"</code></pre>
+
+<p>Die Endung <code>-all</code> bedeutet „alles andere ablehnen" (Hard Fail), <code>~all</code> ist Soft Fail. 2026 empfehlen die meisten Provider <code>-all</code>. Achtung: Maximal 10 DNS-Lookups sind erlaubt — jeder <code>include</code> zählt.</p>
+
+<p><strong>DKIM</strong> signiert ausgehende Mails. Der Public Key liegt unter einem Selektor:</p>
+
+<pre><code>google._domainkey.example.de. 3600 IN TXT "v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A..."</code></pre>
+
+<p><strong>DMARC</strong> verbindet SPF und DKIM und gibt eine Policy vor:</p>
+
+<pre><code>_dmarc.example.de. 3600 IN TXT "v=DMARC1; p=quarantine; rua=mailto:dmarc@example.de; pct=100; adkim=s; aspf=s"</code></pre>
+
+<p>Starte mit <code>p=none</code> und werte die Reports 2–4 Wochen aus, bevor du auf <code>quarantine</code> oder <code>reject</code> umstellst. Sonst sperrst du versehentlich legitime Absender aus.</p>
+
+<h2>SRV, CAA und NS: Spezialrecords für Gameserver und TLS</h2>
+
+<p><strong>SRV-Records</strong> sind für Gameserver essenziell. Sie erlauben Ports und Ziele in der Domain zu verstecken. Minecraft-Voice-Chat, Teamspeak oder Microsoft 365 Autodiscover nutzen sie:</p>
+
+<pre><code>_minecraft._tcp.example.de. 3600 IN SRV 0 5 25565 mc.example.de.
+_ts3._udp.example.de.       3600 IN SRV 0 5 9987  voice.example.de.</code></pre>
+
+<p>Format: <code>Priorität Gewichtung Port Ziel</code>. Clients, die SRV unterstützen, verbinden sich dann einfach mit <code>example.de</code> statt <code>mc.example.de:25565</code>.</p>
+
+<p><strong>CAA-Records</strong> schränken ein, welche Certificate Authorities TLS-Zertifikate für deine Domain ausstellen dürfen. Seit Let's Encrypt CAA prüft, ist das ein wirksamer Schutz gegen Missbrauch:</p>
+
+<pre><code>example.de. 86400 IN CAA 0 issue "letsencrypt.org"
+example.de. 86400 IN CAA 0 issuewild "letsencrypt.org"
+example.de. 86400 IN CAA 0 iodef "mailto:security@example.de"</code></pre>
+
+<p><strong>NS-Records</strong> delegieren Subzonen. Für die meisten Setups brauchst du sie nur am Apex. Willst du eine Subdomain an einen anderen Anbieter delegieren (z. B. <code>dev.example.de</code> an Cloudflare), legst du NS-Records mit den Ziel-Nameservern an.</p>
+
+<h2>DNS einrichten: cPanel, Plesk, Cloudflare und Route 53</h2>
+
+<p>Die Einrichtung unterscheidet sich je nach Panel. Ein Überblick über die gängigen Optionen 2026:</p>
+
+<table>
+<tr><th>Anbieter</th><th>Preis</th><th>Besonderheit</th></tr>
+<tr><td>Cloudflare Free</td><td>0 €</td><td>Anycast, CNAME Flattening, DNSSEC, Proxy</td></tr>
+<tr><td>Hetzner DNS</td><td>0 €</td><td>API-first, keine Web-UI-Grenzen</td></tr>
+<tr><td>INWX</td><td>ab 0,50 €/Zone/Monat</td><td>Volle API, gute .de-Verwaltung</td></tr>
+<tr><td>AWS Route 53</td><td>0,50 $/Zone + 0,40 $/Mio. Queries</td><td>Alias-Records, Health Checks</td></tr>
+<tr><td>cPanel (Hosting)</td><td>im Paket (ab 4,99 €/Monat)</td><td>Zone Editor, kein DNSSEC</td></tr>
+</table>
+
+<p>In <strong>cPanel</strong> findest du den Zone Editor unter „Domains → Zone Editor". Dort trägst du Records mit Name, TTL und Typ ein. Achte auf den Punkt am Ende von FQDNs — cPanel hängt automatisch den Zonennamen an.</p>
+
+<p>In <strong>Cloudflare</strong> aktivierst du den orangenen Proxy nur für HTTP/HTTPS. Für Gameserver, SSH oder Mail-Ports muss der Record auf „DNS only" (grau) stehen, sonst funktioniert die Verbindung nicht.</p>
+
+<p>Bei <strong>Route 53</strong> nutzt du Alias-Records statt CNAMEs am Apex — das ist kostenlos bei Queries auf AWS-Ressourcen und löst das Apex-Problem sauber.</p>
+
+<h2>DNSSEC, DoH und DoT: Sicherheit 2026</h2>
+
+<p><strong>DNSSEC</strong> signiert DNS-Antworten kryptografisch und verhindert Cache-Poisoning. Aktivierung läuft in zwei Schritten: Zuerst im DNS-Anbieter einschalten (erzeugt KSK/ZSK), dann den DS-Record beim Registrar hinterlegen. Bei .de unterstützt die DENIC DNSSEC flächendeckend.</p>
+
+<pre><code>dig +dnssec example.de A
+dig example.de DS
+delv @1.1.1.1 example.de A</code></pre>
+
+<p>Für Clients empfehlen sich verschlüsselte Resolver: <strong>DoH</strong> (DNS over HTTPS) und <strong>DoT</strong> (DNS over TLS). Öffentliche Resolver mit Support:</p>
+
+<ul>
+<li>Cloudflare: <code>1.1.1.1</code> / <code>1.0.0.1</code> (DoH: https://cloudflare-dns.com/dns-query)</li>
+<li>Google: <code>8.8.8.8</code> / <code>8.8.4.4</code></li>
+<li>Quad9: <code>9.9.9.9</code> (blockt Malware-Domains)</li>
+<li>DNS0.eu: <code>193.110.81.0</code> (EU, DSGVO-freundlich)</li>
+</ul>
+
+<p>Auf einem Linux-Server konfigurierst du DoT mit systemd-resolved in <code>/etc/systemd/resolved.conf</code>:</p>
+
+<pre><code>[Resolve]
+DNS=1.1.1.1#cloudflare-dns.com 9.9.9.9#dns.quad9.net
+DNSOverTLS=yes
+DNSSEC=yes
+Cache=yes</code></pre>
+
+<h2>TTL, Propagation und typische Fehler</h2>
+
+<p>Die berühmte „48-Stunden-Propagation" ist ein Mythos. In der Praxis greifen Änderungen nach Ablauf der alten TTL — bei 300 Sekunden also nach 5 Minuten, bei 86400 nach 24 Stunden. Was wirklich passiert: Zwischen-Caches (Provider, Firmennetzwerke) halten alte Werte länger.</p>
+
+<p>Die häufigsten Fehler, die wir in Support-Tickets sehen:</p>
+
+<ol>
+<li><strong>Fehlender Punkt am Ende:</strong> <code>www.example.de.example.de</code> statt <code>www.example.de.</code></li>
+<li><strong>CNAME am Apex:</strong> Wird von BIND abgelehnt oder führt zu Konflikten mit MX.</li>
+<li><strong>MX auf CNAME:</strong> RFC-Verstoß, viele Mailserver lehnen ab.</li>
+<li><strong>Zu hohe TTL vor Migration:</strong> 86400 Sekunden = bis zu 24 Std. Downtime.</li>
+<li><strong>SPF-Lookup-Limit überschritten:</strong> Mehr als 10 Includes → Permerror.</li>
+<li><strong>Wildcard zu breit:</strong> <code>*.example.de</code> fängt auch Tippfehler-Domains für Mail ab.</li>
+</ol>
+
+<p>Prüfe nach jeder Änderung mit mehreren Resolvern, um Caching-Effekte zu erkennen:</p>
+
+<pre><code>for ns in 1.1.1.1 8.8.8.8 9.9.9.9 208.67.222.222; do
+  echo -n "$ns: "; dig +short @$ns example.de A
+done</code></pre>
+
+<h2>Migrations-Checkliste: Domain umziehen ohne Ausfall</h2>
+
+<p>Ein Umzug auf einen neuen Hoster oder DNS-Provider ist der kritischste Moment. Mit dieser Reihenfolge vermeidest du Ausfälle:</p>
+
+<ol>
+<li><strong>T-48h:</strong> TTL aller Records auf 300 senken.</li>
+<li><strong>T-24h:</strong> Neue Zone beim Ziel-Provider anlegen, alle Records 1:1 kopieren (dig-Abgleich per Skript).</li>
+<li><strong>T-1h:</strong> DNSSEC deaktivieren, falls aktiv (sonst brechen Resolver mit alten DS-Records).</li>
+<li><strong>T-0:</strong> NS-Records beim Registrar auf die neuen Nameserver umstellen.</li>
+<li><strong>T+1h:</strong> Mit <code>dig +trace</code> prüfen, ob die Delegation greift.</li>
+<li><strong>T+24h:</strong> Alle Dienste testen: Web, Mail, Gameserver, TLS-Zertifikate.</li>
+<li><strong>T+72h:</strong> DNSSEC neu aktivieren, TTL wieder auf 3600 erhöhen.</li>
+</ol>
+
+<p>Für den Record-Abgleich vor dem Umzug hilft ein kleiner Bash-Loop:</p>
+
+<pre><code>for type in A AAAA MX TXT CAA; do
+  echo "== $type =="
+  dig +short example.de $type
+done > zone-backup.txt</code></pre>
+
+<p>Vergiss nicht, auch Subdomains und Wildcards zu sichern. Ein fehlender <code>mail.example.de</code>-Record ist nach dem Umzug schnell ein echtes Problem.</p>
+
+<h2>FAQ</h2>
+
+<h3>Was ist der Unterschied zwischen A- und CNAME-Record?</h3>
+<p>Ein A-Record zeigt direkt auf eine IPv4-Adresse (z. B. 203.0.113.42), ein CNAME auf einen anderen Hostnamen (z. B. cdn.example.net). CNAMEs sind flexibler, weil du bei IP-Wechsel nur das Ziel anpassen musst, dürfen aber nicht am Zone Apex verwendet werden und nicht mit MX-Records koexistieren.</p>
+
+<h3>Wie lange dauert die DNS-Propagation wirklich?</h3>
+<p>So lange, wie die alte TTL beträgt — meist 5 Minuten bis 24 Stunden. Bei einer TTL von 300 Sekunden sind Änderungen nach rund 5 Minuten bei den meisten Resolvern sichtbar. Reduziere die TTL 24–48 Stunden vor einer geplanten Änderung, um die Wartezeit zu minimieren.</p>
+
+<h3>Kann ich einen MX-Record auf einen CNAME zeigen lassen?</h3>
+<p>Nein. Laut RFC 2181 darf der MX-Zielwert kein CNAME sein. Viele Mailserver akzeptieren das nicht oder behandeln es als Fehler. Verwende stattdessen einen A- oder AAAA-Record für den Mailserver-Hostnamen.</p>
+
+<h3>Brauche ich DNSSEC zwingend?</h3>
+<p>Zwingend nicht, aber dringend empfohlen. DNSSEC schützt vor Cache-Poisoning und Spoofing. Voraussetzung ist, dass dein DNS-Provider und dein Registrar DNSSEC unterstützen — bei .de ist das über die DENIC flächendeckend gegeben. Plane die Aktivierung sorgfältig, da Fehler die Domain komplett unauflösbar machen können.</p>
+
+<h3>Was kostet DNS-Hosting 2026?</h3>
+<p>Cloudflare und Hetzner DNS sind kostenlos. INWX verlangt ab 0,50 € pro Zone und Monat, AWS Route 53 berechnet 0,50 $ pro Zone plus 0,40 $ pro Million Queries. Bei Shared Hosting (cPanel, Plesk) ist DNS meist im Paket ab 4,99 €/Monat inklusive — dafür fehlen oft DNSSEC und API-Zugriff.</p>

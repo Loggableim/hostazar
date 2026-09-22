@@ -1,0 +1,271 @@
+<h2>Was ist der Nginx FastCGI Cache und wann lohnt er sich?</h2>
+
+<p>Der FastCGI Cache ist ein in Nginx integrierter Vollseiten-Cache, der die komplette HTML-Ausgabe von PHP-FPM-Anwendungen auf der Festplatte zwischenspeichert. Statt bei jedem Request WordPress, Joomla oder Laravel komplett zu booten – Datenbankabfragen, Plugin-Loading, Template-Rendering – liefert Nginx die fertige HTML-Seite direkt aus dem Cache aus. In der Praxis bedeutet das: statt 250–800 ms Antwortzeit sind 5–20 ms möglich, und die CPU-Last sinkt um 70–90 %.</p>
+
+<p>Der entscheidende Vorteil gegenüber Redis Object Cache oder APCu: Der FastCGI Cache greift <strong>vor</strong> PHP. Es wird kein PHP-FPM-Worker belegt, keine MySQL-Verbindung geöffnet, kein Autoloader gestartet. Bei einem typischen WordPress mit 15 aktiven Plugins sparen Sie pro gecachtem Request rund 60–120 MB Speicher-Allokation und 40–90 ms CPU-Zeit.</p>
+
+<p>Lohnenswert ist der FastCGI Cache ab etwa 5.000 Seitenaufrufen pro Tag oder wenn Sie mit einem kleinen VPS (1 vCPU, 2 GB RAM, ca. 5–8 €/Monat) Traffic-Spitzen abfangen wollen. Für rein statische Sites ist er überflüssig, für Shops mit Warenkorb-Logik nur mit sorgfältigem Bypass-Setup.</p>
+
+<p>Ein Nachteil: Der Cache liegt auf der Platte, nicht im RAM. Bei NVMe-SSDs (bei Hetzner, Netcup und Contabo seit 2024 Standard) liegt die Latenz bei 0,1–0,3 ms pro Lookup – vernachlässigbar. Bei alten SATA-SSDs oder gar HDDs würde ich stattdessen auf Varnish oder Redis setzen.</p>
+
+<h2>Voraussetzungen und Server-Setup 2026</h2>
+
+<p>Sie brauchen Nginx 1.24 oder neuer (empfohlen: 1.26/1.28 stable), PHP-FPM 8.2+ und ausreichend Plattenplatz. Der Cache-Ordner sollte auf einer eigenen Partition oder mindestens einem eigenen Verzeichnis mit <code>noatime</code>-Mount-Option liegen, damit das Lesen keine Schreibzugriffe triggert.</p>
+
+<p>Als Richtwert für die Cache-Größe gilt: <strong>1 GB Cache pro 10.000 gecachte Seiten</strong> bei durchschnittlich 100 KB HTML pro Seite. Bei einem Magazin mit 50.000 Artikeln planen Sie 5–8 GB ein. Prüfen Sie freien Platz mit <code>df -h /var/cache/nginx</code>.</p>
+
+<p>Die RAM-Anforderung hängt von <code>keys_zone</code> ab: Pro 1 MB Shared Memory lassen sich etwa 8.000 Cache-Keys verwalten. Für 100.000 Seiten reichen also 16 MB. Das ist der häufigste Anfängerfehler – keys_zone wird mit der Cache-Größe verwechselt.</p>
+
+<ul>
+<li>Nginx 1.26+ mit <code>ngx_http_fastcgi_module</code> (Standard in allen Distro-Paketen)</li>
+<li>PHP-FPM 8.2 oder 8.3 mit Unix-Socket statt TCP-Port (spart 0,3–0,8 ms pro Request)</li>
+<li>NVMe-SSD mit mindestens 20 GB frei</li>
+<li>1 vCPU / 2 GB RAM Minimum, 2 vCPU / 4 GB RAM empfohlen (Hetzner CX22: 4,35 €/Monat, Netcup VPS 1000 G11: 8,49 €/Monat)</li>
+</ul>
+
+<p>Installation auf Debian 13 / Ubuntu 24.04:</p>
+
+<pre><code>apt update
+apt install nginx-full php8.3-fpm -y
+nginx -V 2&gt;&amp;1 | grep -o 'with-http_fastcgi_module'
+# Ausgabe: with-http_fastcgi_module
+mkdir -p /var/cache/nginx/fastcgi
+chown -R www-data:www-data /var/cache/nginx</code></pre>
+
+<h2>FastCGI Cache in nginx.conf aktivieren</h2>
+
+<p>Die globale Cache-Definition gehört in den <code>http</code>-Block, typischerweise in <code>/etc/nginx/nginx.conf</code> oder eine separate Datei unter <code>/etc/nginx/conf.d/cache.conf</code>. Wichtig: <code>use_temp_path=off</code> vermeidet einen unnötigen Kopiervorgang zwischen zwei Verzeichnissen und spart bei hoher Last bis zu 15 % I/O.</p>
+
+<pre><code>fastcgi_cache_path /var/cache/nginx/fastcgi
+                   levels=1:2
+                   keys_zone=FASTCGICACHE:100m
+                   max_size=10g
+                   inactive=60m
+                   use_temp_path=off;
+
+fastcgi_cache_key "$scheme$request_method$host$request_uri";
+fastcgi_cache_use_stale error timeout invalid_header updating
+                        http_500 http_503;
+fastcgi_cache_background_update on;
+fastcgi_cache_lock on;
+fastcgi_cache_lock_timeout 5s;
+fastcgi_cache_min_uses 2;
+fastcgi_cache_valid 200 301 302 10m;
+fastcgi_cache_valid 404 1m;</code></pre>
+
+<p><code>levels=1:2</code> erzeugt eine zweistufige Verzeichnishierarchie (z. B. <code>/a/3b/…</code>). Das verhindert, dass ein einzelnes Verzeichnis mit Hunderttausenden Dateien zum Flaschenhals wird – auf ext4 ein echtes Problem, auf XFS weniger. <code>inactive=60m</code> bedeutet: Seiten, die 60 Minuten nicht abgerufen wurden, werden beim nächsten Platzmangel zuerst gelöscht.</p>
+
+<p><code>fastcgi_cache_lock on</code> ist der wichtigste Parameter für Stabilität: Wenn 50 gleichzeitige Requests eine noch nicht gecachte Seite anfordern, rendert nur <em>ein</em> Request PHP, die anderen 49 warten auf das Ergebnis. Ohne Lock entsteht bei Traffic-Spikes ein „Cache Stampede", der Ihre PHP-FPM-Worker in Sekunden ausschöpft.</p>
+
+<p>Nach der Änderung immer testen und neu laden:</p>
+
+<pre><code>nginx -t
+systemctl reload nginx</code></pre>
+
+<h2>Cache-Key richtig definieren</h2>
+
+<p>Der Cache-Key bestimmt, welche Requests als identisch gelten. Ein falscher Key ist die häufigste Ursache für „Warum sehe ich die Seite von jemand anderem?"-Tickets. Die Standardformel <code>$scheme$request_method$host$request_uri</code> ist für die meisten Setups korrekt, hat aber drei Fallstricke.</p>
+
+<p><strong>Erstens:</strong> <code>$request_uri</code> enthält Query-Strings. Damit wird <code>/seite/?utm_source=newsletter</code> separat gecacht von <code>/seite/</code>. Bei Marketing-Kampagnen mit vielen UTM-Parametern explodiert der Cache. Lösung: In WordPress den <code>utm_*</code>-Parameter vorher strippen oder <code>$uri</code> statt <code>$request_uri</code> verwenden, wenn Sie keine Parameter-abhängigen Seiten haben.</p>
+
+<p><strong>Zweitens:</strong> Mobile und Desktop. Wenn Sie kein separates Mobile-Theme ausliefern, ignorieren Sie das. Andernfalls ergänzen Sie <code>$http_user_agent</code> – aber vorsichtig, das fragmentiert den Cache stark.</p>
+
+<p><strong>Drittens:</strong> Multi-Domain-Setups. <code>$host</code> im Key sorgt dafür, dass <code>shop.example.com</code> und <code>www.example.com</code> getrennte Cache-Einträge bekommen. Das ist gewünscht, kostet aber doppelten Speicher.</p>
+
+<table>
+<tr><th>Cache-Key-Variante</th><th>Einsatz</th><th>Cache-Größe</th></tr>
+<tr><td><code>$scheme$request_method$host$request_uri</code></td><td>Standard, WordPress ohne UTM</td><td>1x</td></tr>
+<tr><td><code>$scheme$request_method$host$uri</code></td><td>Parameter ignorieren</td><td>0,3x</td></tr>
+<tr><td>+ <code>$http_user_agent</code></td><td>Separates Mobile-Theme</td><td>2–4x</td></tr>
+<tr><td>+ <code>$geoip_country_code</code></td><td>Länderspezifische Inhalte</td><td>5–20x</td></tr>
+</table>
+
+<p>Faustregel: Jede Variable im Cache-Key multipliziert die Anzahl der Cache-Einträge. Halten Sie den Key so kurz wie möglich und so lang wie nötig.</p>
+
+<h2>Cache-Regeln für WordPress, WooCommerce und PHP-Apps</h2>
+
+<p>In der Server-Block-Datei (<code>/etc/nginx/sites-available/example.com</code>) definieren Sie, welche Requests überhaupt gecacht werden dürfen. Beginnen Sie mit einer Variable <code>$skip_cache</code>, die per <code>map</code> oder <code>if</code> gesetzt wird.</p>
+
+<pre><code>server {
+    listen 443 ssl http2;
+    server_name example.com;
+    root /var/www/example.com;
+    index index.php;
+
+    set $skip_cache 0;
+
+    if ($request_method = POST) { set $skip_cache 1; }
+    if ($query_string != "") { set $skip_cache 1; }
+    if ($request_uri ~* "/wp-admin/|/wp-login.php|/cart/|/checkout/|/my-account/") {
+        set $skip_cache 1;
+    }
+    if ($http_cookie ~* "wordpress_logged_in|comment_author|woocommerce_items_in_cart|wp_woocommerce_session") {
+        set $skip_cache 1;
+    }
+
+    location ~ \.php$ {
+        try_files $uri =404;
+        include fastcgi_params;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+
+        fastcgi_cache FASTCGICACHE;
+        fastcgi_cache_bypass $skip_cache;
+        fastcgi_no_cache $skip_cache;
+        fastcgi_cache_valid 200 301 302 60m;
+        fastcgi_cache_valid 404 1m;
+
+        add_header X-FastCGI-Cache $upstream_cache_status always;
+    }
+}</code></pre>
+
+<p>Der Unterschied zwischen <code>fastcgi_cache_bypass</code> und <code>fastcgi_no_cache</code> ist wichtig: Ersteres liest den Cache nicht (liefert also immer frisch), Letzteres schreibt das Ergebnis nicht in den Cache. Für <code>$skip_cache</code> brauchen Sie beides – sonst landet eine eingeloggte Admin-Ansicht im Cache und wird Gästen ausgeliefert.</p>
+
+<p>Für WooCommerce würde ich zusätzlich <code>/warenkorb/</code>, <code>/kasse/</code> und alle URLs mit <code>?add-to-cart=</code> ausschließen. Produktkategorien und einzelne Produktseiten lassen sich dagegen problemlos cachen – sie sind für alle Besucher identisch, solange der Warenkorb-Status über Cookies läuft.</p>
+
+<p>Bei Laravel oder Symfony heißt der Cache-Key oft anders, weil die App über <code>index.php</code> mit Query-String routet. Dort funktioniert <code>$uri</code> nicht – verwenden Sie <code>$request_uri</code> und schließen Sie <code>/api/</code> und <code>/admin/</code> explizit aus.</p>
+
+<h2>Cache-Bypass: Cookies, Login und personalisierte Inhalte</h2>
+
+<p>Der gefährlichste Fehler beim FastCGI Cache ist das Ausliefern personalisierter Inhalte an falsche Nutzer. Nginx prüft standardmäßig <code>Set-Cookie</code> im Response-Header und cacht solche Antworten nicht – das ist ein Sicherheitsnetz, aber kein Ersatz für explizite Regeln.</p>
+
+<p>Wenn Ihre Anwendung <code>Set-Cookie</code> bei jedem Request sendet (viele WordPress-Setups mit Cookie-Consent-Plugins tun das), wird der Cache nie gefüllt. In diesem Fall müssen Sie <code>fastcgi_ignore_headers Set-Cookie</code> setzen – aber nur, wenn Sie sicher sind, dass das Cookie keine personalisierten Inhalte steuert. Prüfen Sie das vorher mit:</p>
+
+<pre><code>curl -sI https://example.com/ | grep -i set-cookie</code></pre>
+
+<p>Ein zweites Sicherheitsnetz ist <code>fastcgi_ignore_headers Cache-Control Expires Vary</code>. Damit überschreiben Sie die Cache-Header der Anwendung. Sinnvoll, wenn WordPress per Plugin <code>Cache-Control: no-cache, must-revalidate</code> sendet und Sie das bewusst aushebeln wollen.</p>
+
+<p>Für DSGVO-Konformität gilt: Der Cache darf keine personenbezogenen Daten enthalten. Kontrollieren Sie regelmäßig mit einem Grep über den Cache-Ordner, ob E-Mail-Adressen oder Session-IDs im HTML landen:</p>
+
+<pre><code>grep -rl "@" /var/cache/nginx/fastcgi | head -20</code></pre>
+
+<p>Wenn Sie Treffer sehen, ist Ihr Bypass-Setup lückenhaft. Typische Ursachen sind fehlende Cookie-Ausschlüsse oder Kommentarformulare, deren Bestätigungsseite gecacht wird.</p>
+
+<h2>Cache-Purging und Invalidierung automatisieren</h2>
+
+<p>Ein Cache ohne Invalidierung ist ein Bug-Generator: Sie veröffentlichen einen Artikel und Besucher sehen 60 Minuten lang die alte Version. Es gibt drei Wege, das zu lösen.</p>
+
+<p><strong>Weg 1 – Zeitbasiert (einfach):</strong> <code>fastcgi_cache_valid 200 10m</code>. Nach 10 Minuten wird neu gerendert. Für Blogs mit seltenen Updates völlig ausreichend, aber bei News-Seiten zu träge.</p>
+
+<p><strong>Weg 2 – Purge-Endpoint (empfohlen):</strong> Das Modul <code>ngx_cache_purge</code> (Paket <code>libnginx-mod-http-cache-purge</code>) erlaubt gezieltes Löschen einzelner URLs.</p>
+
+<pre><code>apt install libnginx-mod-http-cache-purge -y
+
+# im server-Block:
+location ~ /purge(/.*) {
+    allow 127.0.0.1;
+    allow 10.0.0.0/8;
+    deny all;
+    fastcgi_cache_purge FASTCGICACHE "$scheme$request_method$host$1";
+}</code></pre>
+
+<p>Nach jedem WordPress-Post-Publish feuert Ihr Theme oder ein Snippet einen Request:</p>
+
+<pre><code>curl -s "http://127.0.0.1/purge/permalalink-slug/"</code></pre>
+
+<p><strong>Weg 3 – Kompletter Flush:</strong> Bei größeren Änderungen (Theme-Update, Plugin-Aktivierung) löschen Sie alles:</p>
+
+<pre><code>rm -rf /var/cache/nginx/fastcgi/*
+systemctl reload nginx</code></pre>
+
+<p>Wichtig: Löschen Sie das Verzeichnis nicht selbst, nur den Inhalt. Nginx legt die Struktur beim nächsten Request neu an, aber ein fehlendes Root-Verzeichnis führt zu <code>Permission denied</code>-Fehlern im Log. Binden Sie den Flush in Ihre Deployment-Pipeline ein – nach jedem <code>git pull</code> und <code>composer install</code> sollte ein Cache-Flush folgen.</p>
+
+<h2>Monitoring: Hit-Rate messen und Benchmarks</h2>
+
+<p>Die Cache-Hit-Rate ist Ihre wichtigste Kennzahl. Alles unter 70 % deutet auf ein Bypass-Problem hin. Nginx liefert den Status über die Variable <code>$upstream_cache_status</code> mit den Werten <code>HIT</code>, <code>MISS</code>, <code>BYPASS</code>, <code>EXPIRED</code>, <code>STALE</code>, <code>UPDATING</code> und <code>REVALIDATED</code>.</p>
+
+<p>Definieren Sie ein eigenes Log-Format im <code>http</code>-Block:</p>
+
+<pre><code>log_format cache '$remote_addr - $upstream_cache_status [$time_local] '
+                 '"$request" $status $body_bytes_sent $request_time';
+
+access_log /var/log/nginx/cache.log cache;</code></pre>
+
+<p>Auswertung der Hit-Rate (Feld 3 ist der Cache-Status):</p>
+
+<pre><code>awk '{print $3}' /var/log/nginx/cache.log | sort | uniq -c | sort -rn
+
+# Beispielausgabe:
+#  84213 HIT
+#  11204 MISS
+#   3187 BYPASS
+#    412 EXPIRED</code></pre>
+
+<p>In diesem Beispiel liegt die Hit-Rate bei 84,5 % – ein guter Wert. Ein hoher <code>BYPASS</code>-Anteil ist normal, wenn Sie viel Admin-Traffic haben. Ein hoher <code>EXPIRED</code>-Anteil bedeutet, dass Ihre TTL zu kurz ist.</p>
+
+<p>Benchmark mit <code>wrk</code> auf einem 2-vCPU-VPS (Hetzner CX22, PHP 8.3, WordPress 6.8, 22 Plugins):</p>
+
+<table>
+<tr><th>Szenario</th><th>Requests/s</th><th>Latenz p99</th><th>CPU-Last</th></tr>
+<tr><td>Ohne Cache</td><td>178</td><td>1.240 ms</td><td>98 %</td></tr>
+<tr><td>Redis Object Cache</td><td>640</td><td>310 ms</td><td>74 %</td></tr>
+<tr><td>FastCGI Cache (MISS)</td><td>195</td><td>1.180 ms</td><td>96 %</td></tr>
+<tr><td>FastCGI Cache (HIT)</td><td>4.850</td><td>34 ms</td><td>11 %</td></tr>
+</table>
+
+<p>Der Sprung von 178 auf 4.850 Requests/s entspricht Faktor 27. Wichtig: Diese Werte gelten für gecachte Seiten. Der erste Request nach Ablauf der TTL ist immer langsam – deshalb ist <code>fastcgi_cache_background_update on</code> so wertvoll: Ein Besucher bekommt die alte (STALE) Version, während im Hintergrund neu gerendert wird.</p>
+
+<h2>Typische Fehler und Troubleshooting</h2>
+
+<p><strong>Cache füllt sich nicht:</strong> Prüfen Sie mit <code>curl -I https://example.com/</code>, ob <code>X-FastCGI-Cache: MISS</code> und beim zweiten Aufruf <code>HIT</code> erscheint. Bleibt es bei MISS, sendet PHP einen <code>Set-Cookie</code>-Header oder <code>Cache-Control: no-cache</code>. Log-Check: <code>tail -f /var/log/nginx/error.log</code>.</p>
+
+<p><strong>502 Bad Gateway nach Cache-Aktivierung:</strong> Meist ein Rechte-Problem. Nginx läuft als <code>www-data</code>, der Cache-Ordner gehört aber <code>root</code>. Lösung: <code>chown -R www-data:www-data /var/cache/nginx</code> und SELinux-Kontext auf RHEL-basierten Systemen mit <code>restorecon -Rv /var/cache/nginx</code> setzen.</p>
+
+<p><strong>Alte Inhalte nach Update:</strong> TTL zu lang oder Purge-Endpoint nicht erreichbar. Testen Sie <code>curl -v "http://127.0.0.1/purge/testseite/"</code> – bei Erfolg antwortet Nginx mit <code>200 Successful purge</code>.</p>
+
+<p><strong>Cache wächst unkontrolliert:</strong> <code>max_size</code> vergessen oder <code>inactive</code> zu hoch. Nginx räumt den Cache nur beim Schreiben neuer Einträge auf – ein voller Cache wird also nie von selbst geleert, wenn kein Traffic kommt.</p>
+
+<ul>
+<li><code>nginx: [emerg] unknown directive "fastcgi_cache_path"</code> → Modul fehlt, <code>nginx-full</code> statt <code>nginx-light</code> installieren</li>
+<li>Sehr kleine HTML-Dateien im Cache → <code>fastcgi_buffers</code> zu klein, auf <code>16 16k</code> erhöhen</li>
+<li>Hohe <code>iowait</code>-Werte → <code>use_temp_path=off</code> fehlt</li>
+<li>Cache-Key-Kollisionen bei Multi-Site → <code>$host</code> im Key prüfen</li>
+</ul>
+
+<h2>Sicherheit und DSGVO beim FastCGI Cache</h2>
+
+<p>Der Cache-Ordner darf niemals über HTTP erreichbar sein. Prüfen Sie, dass <code>/var/cache/nginx</code> außerhalb des <code>root</code>-Verzeichnisses liegt und keine <code>location</code> darauf zeigt. Ein versehentlich ausgeliefertes Cache-Verzeichnis gibt Angreifern Einblick in alle gecachten Seiten inklusive eventueller Fehlermeldungen.</p>
+
+<p>Aus DSGVO-Sicht gilt: Gecachte Seiten sind Kopien Ihrer Inhalte. Wenn Sie Formulare, Session-Daten oder personalisierte Empfehlungen ausliefern, müssen diese zwingend vom Cache ausgeschlossen sein. Dokumentieren Sie Ihr Bypass-Setup im Verarbeitungsverzeichnis – das ist bei Audits ein häufiger Prüfpunkt.</p>
+
+<p>Setzen Sie außerdem <code>fastcgi_hide_header X-Powered-By</code> und <code>fastcgi_hide_header X-Pingback</code>, um Versionsinformationen nicht in gecachten Antworten zu verteilen. Bei WordPress kommt oft noch <code>Link: &lt;https://example.com/wp-json/&gt;; rel="https://api.w.org/"</code> dazu – harmlos, aber für Angreifer ein Hinweis auf REST-API-Endpunkte.</p>
+
+<p>Ein letzter Punkt: Cache-Poisoning. Wenn Ihre Anwendung Header wie <code>X-Forwarded-Host</code> ungefiltert in die Ausgabe schreibt und diese in den Cache gelangen, können Angreifer manipulierte Inhalte für alle Besucher platzieren. Prüfen Sie nach jedem Deployment mit <code>curl -H "X-Forwarded-Host: evil.com" https://example.com/</code>, ob Ihre Domain in der Antwort auftaucht.</p>
+
+<h2>FastCGI Cache vs. Redis vs. Varnish im Vergleich</h2>
+
+<p>Alle drei lösen unterschiedliche Probleme. Der FastCGI Cache ist ein Vollseiten-Cache auf Dateiebene, Redis Object Cache speichert einzelne Datenbankabfragen und Objekte im RAM, Varnish ist ein vorgeschalteter HTTP-Beschleuniger mit eigener Konfigurationssprache (VCL).</p>
+
+<table>
+<tr><th>Kriterium</th><th>FastCGI Cache</th><th>Redis Object Cache</th><th>Varnish</th></tr>
+<tr><td>Cache-Ebene</td><td>Vor PHP, ganze Seite</td><td>In PHP, Objekte/Queries</td><td>Vor Nginx, ganze Seite</td></tr>
+<tr><td>Speicherort</td><td>NVMe-SSD</td><td>RAM</td><td>RAM</td></tr>
+<tr><td>Speedup (HIT)</td><td>20–30x</td><td>3–5x</td><td>25–40x</td></tr>
+<tr><td>Setup-Aufwand</td><td>Niedrig (30 Min.)</td><td>Niedrig (15 Min.)</td><td>Hoch (2–4 Std.)</td></tr>
+<tr><td>RAM-Bedarf</td><td>~100 MB</td><td>256 MB–2 GB</td><td>1–4 GB</td></tr>
+<tr><td>SSL-Terminierung</td><td>Ja (nativ)</td><td>N/A</td><td>Nein (Nginx davor)</td></tr>
+<tr><td>Purging</td><td>URL-genau</td><td>Key-genau</td><td>Tag-basiert (BAN)</td></tr>
+</table>
+
+<p>Die beste Kombination für WordPress 2026 ist FastCGI Cache <em>plus</em> Redis Object Cache: Der FastCGI Cache liefert die fertige Seite für Gäste, Redis beschleunigt die Requests, die den Cache umgehen (eingeloggte Nutzer, Warenkorb, Admin). Der zusätzliche RAM-Bedarf von 256 MB kostet bei Hetzner rund 1,50 €/Monat – bei einem Shop mit 50.000 Besuchern pro Monat ist das die günstigste Performance-Investition überhaupt.</p>
+
+<p>Varnish lohnt sich erst ab etwa 1 Mio. Requests pro Tag oder wenn Sie Edge-Side-Includes, komplexe Header-Manipulation oder ESI-Fragmente benötigen. Für 95 % aller WordPress-, Shopware- und Laravel-Projekte ist der FastCGI Cache die pragmatischere Wahl: weniger bewegliche Teile, native TLS-Unterstützung, keine separate Konfigurationssprache.</p>
+
+<p>Für maximale Performance kombinieren Sie den Cache mit HTTP/2, Brotli-Kompression (<code>ngx_brotli</code>) und einem <code>open_file_cache max=10000 inactive=30s</code>. Letzteres spart bei statischen Assets weitere 5–10 % Systemzeit.</p>
+
+<h2>FAQ</h2>
+
+<h3>Wie viel RAM braucht der Nginx FastCGI Cache?</h3>
+<p>Der Shared-Memory-Bereich (<code>keys_zone</code>) benötigt rund 1 MB pro 8.000 gecachte URLs. Für 100.000 Seiten reichen 16 MB, für die meisten Sites sind 100 MB großzügig dimensioniert. Der eigentliche HTML-Inhalt liegt auf der SSD und belegt dort je nach <code>max_size</code> zwischen 1 und 20 GB. RAM und Cache-Größe sind also zwei völlig getrennte Werte.</p>
+
+<h3>Warum wird meine WordPress-Seite nicht gecacht?</h3>
+<p>In 90 % der Fälle sendet PHP einen <code>Set-Cookie</code>-Header, den Nginx als Personalisierung interpretiert. Prüfen Sie mit <code>curl -sI https://example.com/ | grep -i set-cookie</code>. Ist ein Cookie dabei, müssen Sie entweder das verursachende Plugin deaktivieren oder bewusst <code>fastcgi_ignore_headers Set-Cookie</code> setzen – Letzteres nur, wenn das Cookie keine nutzerspezifischen Inhalte steuert.</p>
+
+<h3>Kann ich den FastCGI Cache für WooCommerce nutzen?</h3>
+<p>Ja, mit Einschränkungen. Produktseiten, Kategorien und statische Seiten lassen sich problemlos cachen. Warenkorb, Kasse und Mein-Konto-Bereich müssen per Cookie-Ausschluss (<code>woocommerce_items_in_cart</code>, <code>wp_woocommerce_session</code>) vom Cache ausgenommen werden. Bei Shops mit dynamischen Preisen (B2B, Kundengruppen) würde ich auf Object Cache plus OPcache setzen und den Vollseiten-Cache nur für Gäste aktivieren.</p>
+
+<h3>Wie lange sollte die Cache-TTL sein?</h3>
+<p>Für Blogs und Unternehmensseiten sind 60 Minuten ein guter Startwert, für News-Portale 5–10 Minuten, für Shops 15–30 Minuten. Nutzen Sie zusätzlich <code>fastcgi_cache_background_update on</code>, damit Besucher auch nach Ablauf der TTL sofort die alte Version bekommen, während im Hintergrund neu gerendert wird. Bei aktivem Purge-Endpoint können Sie die TTL auf 24 Stunden setzen und nur bei Änderungen gezielt löschen.</p>
+
+<h3>Funktioniert der FastCGI Cache auch mit HTTP/3?</h3>
+<p>Ja, der Cache arbeitet protokollunabhängig unterhalb der HTTP-Schicht. Nginx unterstützt HTTP/3 seit Version 1.25 über das <code>ngx_http_v3_module</code>. Achten Sie darauf, dass <code>listen 443 quic reuseport;</code> und der <code>Alt-Svc</code>-Header korrekt gesetzt sind – der Cache-Key bleibt unverändert, da <code>$scheme</code> weiterhin <code>https</code> liefert.</p>

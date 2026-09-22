@@ -1,0 +1,229 @@
+<h2>Website auf neuen Server migrieren 2026: Warum jetzt der richtige Zeitpunkt ist</h2>
+
+<p>Ein Serverumzug ist 2026 für viele Betreiber keine Kür, sondern Pflicht. Mehrere zentrale Stack-Komponenten laufen in diesem Jahr aus dem Support: Debian 11 „Bullseye" erhält LTS-Updates nur noch bis 31. August 2026, PHP 8.1 bekam seine letzten Security-Fixes im Dezember 2025, und Ubuntu 20.04 LTS ist bereits seit Mai 2025 ohne Standard-Support. Wer auf solchen Systemen hostet, fährt ohne Sicherheitsupdates – bei einem öffentlich erreichbaren Webserver ein echtes Risiko.</p>
+
+<p>Gleichzeitig ist die Hardware günstiger geworden. Ein Hetzner Cloud CX22 mit 2 vCPU, 4 GB RAM und 40 GB NVMe kostet 2026 rund 4,35 € pro Monat, ein CPX21 mit 3 dedizierten vCPU etwa 8,98 €. Vor fünf Jahren zahlte man für vergleichbare Leistung das Drei- bis Vierfache. Der Umzug ist damit oft auch ein Kostensenkungsprojekt.</p>
+
+<p>Dieser Guide führt Schritt für Schritt durch die komplette Migration – von der Bestandsaufnahme über <code>rsync</code> und Datenbank-Dumps bis zum DNS-Cutover und Rollback-Plan. Die Zeitangaben sind realistisch für ein typisches WordPress-, Shopware- oder Laravel-Projekt mit 5 bis 50 GB Daten und 1 bis 5 Datenbanken. Rechnen Sie mit 3 bis 6 Stunden Arbeitszeit plus 24 bis 48 Stunden Beobachtungsphase.</p>
+
+<h2>Schritt 1: Bestandsaufnahme – was muss wirklich mit?</h2>
+
+<p>Vor dem ersten Befehl steht die Inventarisierung. Erfassen Sie alles, was die Website ausmacht: Dateien, Datenbanken, Cronjobs, DNS-Einträge, Mail-Konten, SSL-Zertifikate, externe API-Keys und Webhooks. Vergessene Cronjobs und Webhooks sind die häufigste Ursache für „die Seite läuft, aber irgendwas fehlt" nach dem Umzug.</p>
+
+<p>Ein schneller Überblick über die Dateigrößen hilft bei der Wahl des Zielservers:</p>
+
+<pre><code>du -sh /var/www/*
+du -sh /var/www/html/wp-content/uploads
+mysql -e "SELECT table_schema, ROUND(SUM(data_length+index_length)/1024/1024,1) AS mb FROM information_schema.tables GROUP BY table_schema ORDER BY mb DESC;"
+crontab -l
+systemctl list-timers --all</code></pre>
+
+<p>Notieren Sie außerdem die exakten Versionen, denn sie bestimmen den Zielserver:</p>
+
+<table>
+<thead><tr><th>Komponente</th><th>Befehl</th><th>Relevanz</th></tr></thead>
+<tbody>
+<tr><td>PHP</td><td><code>php -v</code></td><td>Ziel muss gleiche oder neuere Minor-Version haben</td></tr>
+<tr><td>MySQL/MariaDB</td><td><code>mysql --version</code></td><td>Dump-Format und Kollationen</td></tr>
+<tr><td>nginx/Apache</td><td><code>nginx -v</code></td><td>Rewrite-Regeln, .htaccess</td></tr>
+<tr><td>Node.js</td><td><code>node -v</code></td><td>Build-Toolchain</td></tr>
+<tr><td>OS</td><td><code>cat /etc/os-release</code></td><td>EOL-Status</td></tr>
+</tbody>
+</table>
+
+<p>Bei WordPress listen Sie zusätzlich alle aktiven Plugins und Themes auf, weil inaktive Plugins oft veraltete Code-Pfade enthalten, die auf neuer PHP-Version crashen: <code>wp plugin list --status=active --format=table</code>. Prüfen Sie parallel, ob Plugins wie Caching- oder Security-Tools an die Server-IP gebunden sind – manche Lizenzen sind hostgebunden und müssen nach dem Umzug neu aktiviert werden.</p>
+
+<h2>Schritt 2: Zielserver auswählen und bestellen</h2>
+
+<p>Die Wahl hängt von drei Faktoren ab: benötigte CPU-Leistung, Speicherplatz und ob Sie den Server selbst administrieren wollen. Für klassisches Webhosting mit WordPress reicht oft ein VPS der 5-Euro-Klasse. Shops mit vielen gleichzeitigen Sessions und Redis-Cache sollten bei 8 GB RAM einsteigen.</p>
+
+<table>
+<thead><tr><th>Anbieter / Produkt</th><th>Specs</th><th>Preis/Monat</th><th>Geeignet für</th></tr></thead>
+<tbody>
+<tr><td>Hetzner CX22</td><td>2 vCPU, 4 GB, 40 GB NVMe</td><td>ca. 4,35 €</td><td>Blogs, kleine Shops</td></tr>
+<tr><td>Hetzner CPX21</td><td>3 vCPU, 8 GB, 80 GB NVMe</td><td>ca. 8,98 €</td><td>Shopware, WooCommerce</td></tr>
+<tr><td>netcup VPS 1000 G11</td><td>4 vCPU, 8 GB, 256 GB NVMe</td><td>ca. 6,49 €</td><td>Multi-Site-Setups</td></tr>
+<tr><td>Contabo VPS S</td><td>4 vCPU, 8 GB, 200 GB NVMe</td><td>ca. 5,99 €</td><td>Preisorientierte Projekte</td></tr>
+<tr><td>Managed WordPress (Kinsta/Raidboxes)</td><td>1 Site, 10 GB, CDN</td><td>25–35 €</td><td>Ohne Server-Admin-Aufwand</td></tr>
+</tbody>
+</table>
+
+<p>Achten Sie beim Bestellen auf drei Dinge: <strong>IPv4-Adresse inklusive</strong> (bei Hetzner kostet eine zusätzliche IPv4 0,50 €/Monat), <strong>Backup-Option</strong> (bei Hetzner 20 % Aufpreis) und <strong>Rechenzentrumsstandort</strong> in Deutschland oder Österreich für DSGVO-Konformität. Wer EU-weit ausliefert, sollte Nürnberg, Falkenstein oder Wien wählen – Latenzen unter 25 ms zu den meisten deutschen ISPs.</p>
+
+<p>Bestellen Sie den Zielserver mindestens 48 Stunden vor dem geplanten Cutover. So bleibt Zeit für Setup, Test und die Propagierung der DNS-Einträge. Richten Sie direkt nach dem ersten Login einen Nicht-Root-User mit SSH-Key ein und deaktivieren Sie Passwort-Login in <code>/etc/ssh/sshd_config</code> (<code>PasswordAuthentication no</code>, <code>PermitRootLogin no</code>).</p>
+
+<h2>Schritt 3: Backup-Strategie vor der Migration</h2>
+
+<p>Die eiserne Regel lautet 3-2-1: drei Kopien, zwei Medien, eine außerhalb des Servers. Vor jeder Migration erstellen Sie ein vollständiges Backup, das Sie <em>nicht</em> auf dem Quellserver liegen lassen. Ein Backup auf derselben Platte ist kein Backup.</p>
+
+<p>Für Dateien und Datenbanken getrennt:</p>
+
+<pre><code># Dateien
+tar czf /root/backup-dateien-$(date +%F).tar.gz -C /var/www html
+
+# Datenbank (MySQL/MariaDB, konsistent ohne Lock)
+mysqldump --single-transaction --quick --routines --triggers \
+  --default-character-set=utf8mb4 -u root -p datenbank | gzip -9 &gt; /root/db-$(date +%F).sql.gz
+
+# PostgreSQL
+pg_dump -Fc -U postgres datenbank &gt; /root/db-$(date +%F).dump</code></pre>
+
+<p>Kopieren Sie die Archive sofort per <code>rsync</code> oder <code>scp</code> auf einen dritten Speicherort – ein Storage Box, S3-Bucket oder lokales NAS. Prüfen Sie die Integrität mit <code>gunzip -t</code> bzw. <code>tar tzf</code>, bevor Sie weitermachen. Ein ungetestetes Backup ist wertlos.</p>
+
+<p>Für wiederkehrende Migrationen lohnt sich <code>restic</code> oder <code>borgbackup</code> mit deduplizierten Snapshots. Restic schreibt verschlüsselt in einen S3-kompatiblen Bucket und braucht für 50 GB typischerweise unter 10 Minuten bei inkrementellen Läufen.</p>
+
+<h2>Schritt 4: DNS vorbereiten und TTL senken</h2>
+
+<p>Der kritischste Teil der Migration ist der DNS-Cutover, weil er nicht sofort global wirkt. Resolver cachen Einträge gemäß ihrer TTL. Steht Ihre A-Record-TTL auf 86400 (24 Stunden), dauert die Umstellung potenziell einen ganzen Tag. Senken Sie die TTL deshalb <strong>mindestens 48 Stunden vorher</strong> auf 300 Sekunden (5 Minuten).</p>
+
+<pre><code>dig +short example.com A
+dig +short example.com AAAA
+dig +short www.example.com CNAME
+dig NS example.com</code></pre>
+
+<p>Erfassen Sie alle relevanten Records in einer Tabelle, bevor Sie etwas ändern. Dazu gehören A, AAAA, CNAME, MX, TXT (SPF, DKIM, DMARC), und bei Subdomain-Setups auch Wildcards. Vergessen Sie nicht Einträge für Mail, denn ein falsch migrierter MX-Record führt zu stundenlangem Mailverlust.</p>
+
+<p>Legen Sie auf dem Zielserver bereits eine Test-Subdomain an, etwa <code>neu.example.com</code>, die auf die neue IP zeigt. Damit können Sie die komplette Installation durchtesten, ohne die Live-Seite zu berühren. Der spätere Cutover ist dann nur noch ein Wechsel des A-Records von <code>example.com</code> und <code>www</code>.</p>
+
+<h2>Schritt 5: Dateien übertragen mit rsync</h2>
+
+<p><code>rsync</code> ist das Werkzeug der Wahl, weil es inkrementell arbeitet und abgebrochene Transfers fortsetzen kann. Übertragen Sie immer über SSH, nie über FTP. Der erste Lauf dauert bei 20 GB und 100 Mbit/s etwa 30 Minuten, jeder weitere Lauf nur Sekunden.</p>
+
+<pre><code>rsync -avz --delete --numeric-ids \
+  --exclude='.git' --exclude='node_modules' --exclude='*.log' \
+  -e "ssh -p 22 -o Compression=no" \
+  /var/www/html/ deploy@203.0.113.10:/var/www/html/</code></pre>
+
+<p>Führen Sie den Transfer in einer <code>tmux</code>- oder <code>screen</code>-Session aus, damit ein Verbindungsabbruch den Lauf nicht killt. Bei sehr großen Datenmengen ist ein <code>tar</code>-Stream über SSH schneller, weil der rsync-Overhead entfällt:</p>
+
+<pre><code>tar czf - -C /var/www html | ssh deploy@203.0.113.10 "tar xzf - -C /var/www"</code></pre>
+
+<p>Nach dem Transfer vergleichen Sie die Dateianzahl und Größe auf beiden Seiten mit <code>du -sh</code> und <code>find /var/www/html -type f | wc -l</code>. Setzen Sie anschließend die Besitzrechte korrekt: <code>chown -R www-data:www-data /var/www/html</code> und für Verzeichnisse <code>find /var/www/html -type d -exec chmod 755 {} \;</code>, für Dateien <code>644</code>.</p>
+
+<h2>Schritt 6: Datenbanken migrieren</h2>
+
+<p>Datenbanken müssen konsistent gedumpt werden. Bei InnoDB-Tabellen sorgt <code>--single-transaction</code> für einen konsistenten Snapshot ohne Tabellen-Locks – die Live-Seite bleibt während des Dumps erreichbar. Bei MyISAM-Tabellen gibt es diese Option nicht, dort ist ein kurzes Wartungsfenster nötig.</p>
+
+<pre><code># Auf dem Quellserver
+mysqldump --single-transaction --quick --routines --triggers --events \
+  --default-character-set=utf8mb4 -u root -p datenbank | gzip -9 &gt; db.sql.gz
+
+# Transfer
+scp db.sql.gz deploy@203.0.113.10:/root/
+
+# Auf dem Zielserver
+gunzip -c /root/db.sql.gz | mysql -u root -p datenbank</code></pre>
+
+<p>Vergessen Sie nicht die Benutzer und Rechte. Ein Dump enthält keine <code>CREATE USER</code>-Statements. Erstellen Sie die Datenbankbenutzer auf dem Zielserver manuell und vergeben Sie nur die nötigen Rechte:</p>
+
+<pre><code>CREATE USER 'webuser'@'localhost' IDENTIFIED BY 'starkesPasswort';
+GRANT SELECT, INSERT, UPDATE, DELETE ON datenbank.* TO 'webuser'@'localhost';
+FLUSH PRIVILEGES;</code></pre>
+
+<p>Prüfen Sie nach dem Import die Zeilenzahlen der wichtigsten Tabellen auf beiden Servern. Bei WordPress sind das <code>wp_posts</code>, <code>wp_postmeta</code> und <code>wp_options</code>. Weicht eine Zahl ab, war der Dump unvollständig. Denken Sie außerdem daran, in der <code>wp-config.php</code> oder <code>.env</code>-Datei die neuen Zugangsdaten einzutragen.</p>
+
+<h2>Schritt 7: Webserver, PHP und SSL konfigurieren</h2>
+
+<p>Installieren Sie auf dem Zielserver den gleichen Webserver-Stack. Bei nginx legen Sie einen vHost unter <code>/etc/nginx/sites-available/example.com</code> an und verlinken ihn nach <code>sites-enabled</code>. Wichtig sind korrekte <code>root</code>- und <code>index</code>-Direktiven sowie die PHP-FPM-Socket-Zuordnung.</p>
+
+<pre><code>server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name example.com www.example.com;
+    root /var/www/html;
+    index index.php index.html;
+
+    client_max_body_size 64M;
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+    }
+}</code></pre>
+
+<p>Installieren Sie PHP 8.3 oder 8.4 – beide sind 2026 aktiv unterstützt. PHP 8.4 bringt Property Hooks und schnellere JIT-Kompilierung; bei typischen WordPress-Setups messen wir 8 bis 15 % mehr Requests pro Sekunde gegenüber 8.2. Passen Sie <code>memory_limit</code> (256M), <code>upload_max_filesize</code> (64M) und <code>opcache.memory_consumption</code> (256) an.</p>
+
+<p>Für SSL nutzen Sie Let's Encrypt via certbot. Der Befehl richtet Zertifikat, Renewal-Timer und HTTP-zu-HTTPS-Redirect in einem Rutsch ein:</p>
+
+<pre><code>certbot --nginx -d example.com -d www.example.com --redirect --agree-tos -m admin@example.com</code></pre>
+
+<p>Erzwingen Sie TLS 1.3 und moderne Cipher Suites, aktivieren Sie HSTS erst nach erfolgreichem Test (<code>add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;</code>). Prüfen Sie das Ergebnis mit <code>openssl s_client -connect example.com:443 -tls1_3</code> und über den SSL Labs Test – Ziel ist ein A+ Rating.</p>
+
+<h2>Schritt 8: Testphase auf dem neuen Server</h2>
+
+<p>Testen Sie die neue Installation, bevor DNS umgestellt wird. Der eleganteste Weg ist ein temporärer Eintrag in <code>/etc/hosts</code> auf Ihrem lokalen Rechner, der die Domain auf die neue IP zwingt:</p>
+
+<pre><code># /etc/hosts (lokal)
+203.0.113.10  example.com www.example.com</code></pre>
+
+<p>Alternativ prüfen Sie per <code>curl</code> mit erzwungener Auflösung, ohne die lokale Konfiguration zu ändern:</p>
+
+<pre><code>curl -I --resolve example.com:443:203.0.113.10 https://example.com
+curl -s --resolve example.com:443:203.0.113.10 https://example.com | head -50</code></pre>
+
+<p>Arbeiten Sie diese Checkliste ab:</p>
+
+<ul>
+<li>Startseite, Unterseiten, 404-Seite laden korrekt</li>
+<li>Login in Backend und Admin-Panel funktioniert</li>
+<li>Formulare senden Mails (SMTP testen, nicht <code>mail()</code>)</li>
+<li>Checkout-Prozess inklusive Zahlungsanbieter-Callback</li>
+<li>Bilder und Assets werden ausgeliefert (kein Mixed Content)</li>
+<li>Cronjobs laufen (Logs prüfen)</li>
+<li>Redirects von alten URLs greifen</li>
+<li>Cache-Plugin leert korrekt</li>
+</ul>
+
+<p>Messen Sie zusätzlich die Ladezeit mit <code>curl -w "@curl-format.txt" -o /dev/null -s https://example.com</code> oder <code>ab -n 500 -c 20</code>. Vergleichen Sie TTFB alt gegen neu – ein gut konfigurierter neuer Server sollte mindestens 20 % schneller sein, sonst stimmt etwas mit Opcache oder Datenbank-Indizes nicht.</p>
+
+<h2>Schritt 9: Der Cutover – DNS umstellen</h2>
+
+<p>Wählen Sie ein Zeitfenster mit niedrigem Traffic, idealerweise Dienstag bis Donnerstag zwischen 2:00 und 5:00 Uhr. Setzen Sie die Live-Seite in den Wartungsmodus, damit während des Wechsels keine Bestellungen oder Kommentare verloren gehen, die nur in der alten Datenbank landen würden.</p>
+
+<p>Der Ablauf in Kurzform:</p>
+
+<ol>
+<li>Wartungsmodus auf dem alten Server aktivieren</li>
+<li>Letzten inkrementellen <code>rsync</code>-Lauf ausführen</li>
+<li>Finalen Datenbank-Dump erstellen und importieren</li>
+<li>A-Records für <code>example.com</code> und <code>www</code> auf die neue IP ändern</li>
+<li>Wartungsmodus auf dem neuen Server deaktivieren</li>
+<li>Propagierung beobachten</li>
+</ol>
+
+<p>Die Propagierung prüfen Sie mit mehreren Resolvern:</p>
+
+<pre><code>dig @1.1.1.1 +short example.com
+dig @8.8.8.8 +short example.com
+dig @9.9.9.9 +short example.com</code></pre>
+
+<p>Bei TTL 300 ist die Umstellung nach spätestens 10 Minuten bei über 95 % der Nutzer angekommen. Behalten Sie den alten Server mindestens 14 Tage online, aber schalten Sie ihn in den Read-Only-Modus. So können Sie bei Problemen binnen Minuten zurückrollen, indem Sie den A-Record wieder auf die alte IP zeigen lassen.</p>
+
+<h2>Schritt 10: Nach der Migration – Monitoring und Aufräumen</h2>
+
+<p>Nach dem Cutover beginnt die Beobachtungsphase. Installieren Sie ein Monitoring, das Erreichbarkeit, Antwortzeit und Zertifikatsablauf überwacht. Uptime Kuma ist selbst gehostet kostenlos, Netdata liefert detaillierte Systemmetriken mit einem Ein-Zeilen-Installer.</p>
+
+<pre><code>curl -Ss https://get.netdata.cloud/kickstart.sh | bash</code></pre>
+
+<p>Achten Sie in den ersten 48 Stunden auf diese Kennzahlen: HTTP-5xx-Rate (Ziel: unter 0,1 %), durchschnittliche Antwortzeit, CPU-Last, freier RAM und Datenbankverbindungen. Steigt die 5xx-Rate, prüfen Sie zuerst <code>/var/log/nginx/error.log</code> und <code>/var/log/php8.3-fpm.log</code>.</p>
+
+<p>Räumen Sie danach auf: alte DNS-Einträge entfernen, verwaiste Subdomains löschen, SSL-Zertifikate auf dem alten Server widerrufen, Backups rotieren. Aktualisieren Sie außerdem Ihre Dokumentation – Server-IP, Zugangsdaten, Cronjobs und Deployment-Pipeline. Und kündigen Sie den alten Vertrag erst, wenn die neue Umgebung zwei Wochen stabil läuft.</p>
+
+<p>Zum Schluss lohnt ein Performance-Tuning: aktivieren Sie Brotli-Kompression, HTTP/3 (QUIC) in nginx 1.25+, einen Redis-Object-Cache und ein CDN für statische Assets. In Kombination mit dem frischen PHP 8.4 bringt das typischerweise 30 bis 50 % schnellere Ladezeiten gegenüber dem alten Setup.</p>
+
+<h2>FAQ</h2>
+
+<h3>Wie lange dauert eine Website-Migration auf einen neuen Server?</h3>
+<p>Für ein typisches WordPress- oder Shopware-Projekt mit 5 bis 50 GB Daten dauert die technische Migration 3 bis 6 Stunden. Hinzu kommen 24 bis 48 Stunden Beobachtungsphase nach dem DNS-Cutover. Der kritischste Teil ist die DNS-Propagierung, die bei TTL 300 nach etwa 10 Minuten bei den meisten Nutzern abgeschlossen ist.</p>
+
+<h3>Muss ich während der Migration die Domain umstellen?</h3>
+<p>Nein, die Domain bleibt gleich. Sie ändern nur den A-Record, der auf die neue Server-IP zeigt. Die Domain selbst muss nicht transferiert werden, solange Sie Zugriff auf die DNS-Verwaltung haben. Nur wenn Sie gleichzeitig den Registrar wechseln wollen, ist ein zusätzlicher Auth-Code und eine Wartezeit von 5 bis 7 Tagen einzuplanen.</p>
+
+<h3>Was passiert mit E-Mails während des Serverumzugs?</h3>
+<p>E-Mails laufen über MX-Records und sind unabhängig von der Website-IP. Wenn Sie Mail auf demselben Server hosten, müssen Sie Postfix oder Dovecot mitmigrieren und den MX-Record separat umstellen. Planen Sie dafür ein eigenes Wartungsfenster ein, denn während der MX-Propagierung können Mails verzögert oder abgelehnt werden.</p>
+
+<h3>Wie rollbacke ich eine fehlgeschlagene Migration?</h3>
+<p>Der Rollback ist einfach, solange der alte Server noch läuft: Setzen Sie den A-Record zurück auf die alte IP. Innerhalb der DNS-TTL (bei 300 Sekunden also 5 Minuten) sind alle Nutzer wieder auf dem alten System. Deshalb sollten Sie den Quellserver mindestens 14 Tage nach dem Cutover nicht abschalten oder kündigen.</p>
+
+<h3>Kann ich die Migration ohne Ausfallzeit durchführen?</h3>
+<p>Eine echte Null-Ausfallzeit ist bei klassischem Hosting schwer, aber nahezu ausfallfrei möglich. Nutzen Sie inkrementelle rsync-Läufe, einen finalen kurzen Wartungsmodus von 5 bis 15 Minuten für den letzten Datenbank-Dump und eine niedrige DNS-TTL. Bei statischen Sites oder solchen mit Read-Only-Phase lässt sich der Wechsel komplett ohne sichtbare Unterbrechung durchführen.</p>

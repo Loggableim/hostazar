@@ -1,0 +1,226 @@
+<h2>Was ist ein RAG-System – und warum 2026 selbst hosten?</h2>
+<p>Retrieval-Augmented Generation (RAG) kombiniert eine Vektordatenbank mit einem Large Language Model. Statt Wissen im Modellgewicht zu speichern, werden Dokumente in Chunks zerlegt, per Embedding-Modell in Vektoren umgewandelt und bei jeder Anfrage semantisch durchsucht. Die gefundenen Textstellen landen als Kontext im Prompt des LLM. Das Ergebnis: aktuelle, quellenbelegte Antworten ohne teures Fine-Tuning.</p>
+<p>2026 sind die Argumente für Selfhosting deutlich konkreter geworden. Ein <strong>Qwen3-32B</strong> oder <strong>Llama 3.3 70B</strong> in 4-Bit-Quantisierung erreicht bei deutschsprachigen RAG-Aufgaben rund 90–95 % der Antwortqualität von GPT-4o – bei null Token-Kosten und voller Datenhoheit. Bei 5.000 internen Anfragen pro Tag mit je 4.000 Kontext-Tokens summiert sich die API-Rechnung schnell auf 900–1.400 € monatlich.</p>
+<p>Der eigentliche Treiber ist aber Compliance. DSGVO, EU AI Act und interne Richtlinien verbieten es häufig, Kundendaten, Verträge oder Sourcecode an US-amerikanische Inferenz-Endpunkte zu senden. Ein lokal betriebener Stack aus Qdrant, BGE-M3 und vLLM löst dieses Problem strukturell – der Datenpfad verlässt nie das eigene Rechenzentrum.</p>
+<p>Dieser Guide zeigt die komplette Architektur, konkrete Hardware-Kosten, ein lauffähiges Docker-Setup und die Retrieval-Optimierungen, die in der Praxis über Erfolg oder Frust entscheiden.</p>
+
+<h2>Architektur: Die fünf Komponenten eines RAG-Stacks</h2>
+<p>Ein produktives RAG-System besteht aus fünf klar trennbaren Schichten. Wer sie vermischt, debuggt später tagelang an falschen Stellen – schlechte Antworten kommen in 80 % der Fälle aus dem Retrieval, nicht aus dem LLM.</p>
+<ul>
+<li><strong>Ingestion:</strong> Parser für PDF, DOCX, HTML, Markdown und Confluence-Exporte, danach Chunking mit Overlap.</li>
+<li><strong>Embedding-Service:</strong> Ein Modell wie BGE-M3 oder multilingual-e5-large, das Chunks in Vektoren (768–1024 Dimensionen) übersetzt.</li>
+<li><strong>Vektordatenbank:</strong> Speichert Vektoren plus Payload (Quelle, Datum, Abteilung) und führt ANN-Suche via HNSW aus.</li>
+<li><strong>Retriever + Reranker:</strong> Hybrid Search aus BM25 und Dense Retrieval, danach Cross-Encoder-Reranking der Top-50-Kandidaten.</li>
+<li><strong>LLM-Serving:</strong> vLLM, Ollama oder llama.cpp mit OpenAI-kompatibler API, plus Prompt-Template und Zitations-Logik.</li>
+</ul>
+<p>Dazu kommen zwei Querschnittsthemen: ein <strong>Orchestrierungs-Layer</strong> (LangChain, LlamaIndex oder ein eigener FastAPI-Service) und <strong>Observability</strong> mit Langfuse oder Phoenix, um Recall@k und Halluzinationsraten zu messen.</p>
+<p>Für den Einstieg reicht ein einzelner Server mit einer GPU. Ab etwa 50 gleichzeitigen Nutzern trennt man Embedding und LLM auf zwei Maschinen, weil Embedding-Batches sonst die Token-Generierung blockieren.</p>
+
+<h2>Hardware-Anforderungen und echte Kosten 2026</h2>
+<p>Die Faustregel für VRAM lautet: <code>Modellgröße in Mrd. Parametern × 0,6 GB</code> bei 4-Bit-Quantisierung, plus KV-Cache. Der KV-Cache ist der unterschätzte Faktor – ein 32B-Modell mit GQA belegt bei 32.768 Token Kontext bereits 8–12 GB zusätzlich.</p>
+<table>
+<tr><th>Setup</th><th>GPU / VRAM</th><th>Modell</th><th>Kosten/Monat</th></tr>
+<tr><td>Einstieg</td><td>RTX 4000 SFF Ada, 20 GB</td><td>Qwen3-14B Q4 + BGE-M3</td><td>ca. 184 € (Hetzner GEX44)</td></tr>
+<tr><td>Produktiv klein</td><td>RTX 6000 Ada, 48 GB</td><td>Llama 3.3 70B Q3 / Qwen3-32B Q5</td><td>ca. 650–750 €</td></tr>
+<tr><td>Produktiv groß</td><td>2× L40S, 96 GB</td><td>70B Q5, 32k Kontext, Batch 32</td><td>ca. 1.200–1.500 €</td></tr>
+<tr><td>CPU-only</td><td>Ryzen 9, 128 GB RAM</td><td>8B Q4, 4–6 tok/s</td><td>ca. 60–90 € (AX42)</td></tr>
+</table>
+<p>Wer nur testen will, mietet stundenweise: RTX 4090 bei Vast.ai oder RunPod kostet 0,35–0,55 $/h, eine A100 80 GB liegt bei 1,20–1,80 $/h. Für einen Benchmark-Marathon über ein Wochenende ist das günstiger als jeder Monatsvertrag.</p>
+<p>RAM und NVMe sind ebenfalls relevant. Rechnen Sie mit <strong>1 GB RAM pro 1 Mio. Vektoren</strong> bei 1024 Dimensionen und int8-Quantisierung. Eine Million Chunks mit Payload belegen auf NVMe etwa 4–6 GB – bei 10 Mio. Chunks sollten Sie auf eine dedizierte NVMe mit ≥ 500 GB und ≥ 3.000 MB/s setzen.</p>
+
+<h2>Vektordatenbanken im Vergleich: Qdrant, Weaviate, Milvus, pgvector</h2>
+<p>Die Wahl der Vektordatenbank bestimmt Betriebsaufwand und Skalierungsgrenze. Alle vier Kandidaten beherrschen HNSW und Filterung, unterscheiden sich aber deutlich in Reife und Ressourcenhunger.</p>
+<table>
+<tr><th>System</th><th>Sprache</th><th>Stärke</th><th>Schwäche</th></tr>
+<tr><td>Qdrant</td><td>Rust</td><td>Filter + Vektor kombiniert, geringer RAM-Bedarf, saubere REST/gRPC-API</td><td>kein natives BM25, Sparse-Vektoren nötig</td></tr>
+<tr><td>Weaviate</td><td>Go</td><td>Hybrid Search out-of-the-box, Module für Reranker</td><td>höherer RAM-Verbrauch, komplexere Konfiguration</td></tr>
+<tr><td>Milvus</td><td>Go/C++</td><td>Milliarden Vektoren, GPU-Index (CAGRA)</td><td>braucht etcd, MinIO, Pulsar – 3 Container Minimum</td></tr>
+<tr><td>pgvector</td><td>C</td><td>kein neuer Dienst, Transaktionen, SQL-Joins</td><td>ab ~5 Mio. Vektoren Indexaufbau zäh</td></tr>
+</table>
+<p>Für 90 % der Selfhosting-Szenarien ist <strong>Qdrant</strong> die pragmatische Wahl: ein Container, 512 MB RAM im Leerlauf, exzellente Payload-Filter. Wer bereits PostgreSQL betreibt und unter 2 Mio. Chunks bleibt, fährt mit <strong>pgvector 0.8</strong> und HNSW-Index am günstigsten – ein Backup weniger.</p>
+<p>Ein häufiger Fehler: zu viele Dimensionen. BGE-M3 liefert 1024 Dimensionen, unterstützt aber Matryoshka-Truncation auf 512 oder 256. Bei 256 Dimensionen sinkt der Recall nur um 2–4 %, während der Speicherbedarf und die Suchlatenz um 60–75 % fallen.</p>
+
+<h2>Embedding-Modelle lokal betreiben</h2>
+<p>Embeddings sind der billigste Teil des Stacks und werden dennoch oft vernachlässigt. Ein gutes mehrsprachiges Modell ist Pflicht, sobald deutsche Fachbegriffe im Spiel sind – englische Modelle verlieren hier 15–25 % Recall.</p>
+<ul>
+<li><strong>BGE-M3</strong> (1024 dim, 8k Kontext): referenzstark, multilingual, liefert Dense + Sparse + ColBERT in einem Forward Pass.</li>
+<li><strong>multilingual-e5-large-instruct</strong> (1024 dim): sehr gute Instruction-Following-Embeddings, 512 Token Limit.</li>
+<li><strong>Qwen3-Embedding-4B</strong> (2560 dim): Top-Recall bei langen Dokumenten, aber 8 GB VRAM im FP16.</li>
+<li><strong>nomic-embed-text-v1.5</strong> (768 dim): schnell und klein, für Prototypen auf CPU ausreichend.</li>
+</ul>
+<p>Der Durchsatz entscheidet über die Ingestion-Dauer. Auf einer RTX 4090 verarbeitet BGE-M3 etwa 400–600 Chunks à 512 Token pro Sekunde. Eine Million Chunks sind damit in rund 30–40 Minuten eingebettet. Auf einer 8-Kern-CPU sinkt der Wert auf 20–40 Chunks/s – dieselbe Datenmenge braucht dann 7–14 Stunden.</p>
+<pre><code># Embedding-Service als OpenAI-kompatibler Endpunkt
+pip install vllm==0.8.5
+vllm serve BAAI/bge-m3 \
+  --task embed \
+  --max-model-len 8192 \
+  --gpu-memory-utilization 0.30 \
+  --port 8001</code></pre>
+<p>Wichtig: <strong>Embedding-Modell und Query-Modell müssen identisch sein</strong>. Ein Wechsel des Embedding-Modells erfordert immer eine vollständige Neuindexierung – planen Sie das von Anfang an als Routineoperation ein und versionieren Sie den Collections-Namen, etwa <code>dokumente_bgem3_v2</code>.</p>
+
+<h2>LLM-Auswahl und Serving: Ollama vs. vLLM vs. llama.cpp</h2>
+<p>Drei Serving-Stacks dominieren 2026, und sie bedienen unterschiedliche Zwecke. Die Wahl falsch zu treffen kostet entweder Durchsatz oder Nerven.</p>
+<table>
+<tr><th>Stack</th><th>Durchsatz (32B, Batch 32)</th><th>Vorteil</th><th>Nachteil</th></tr>
+<tr><td>Ollama</td><td>300–600 tok/s</td><td>Setup in 5 Minuten, Modellverwaltung eingebaut</td><td>kein Continuous Batching über Requests</td></tr>
+<tr><td>vLLM</td><td>1.500–2.500 tok/s</td><td>PagedAttention, Prefix-Caching, maximaler Durchsatz</td><td>strikte GPU-Anforderung, längere Konfiguration</td></tr>
+<tr><td>llama.cpp</td><td>150–400 tok/s</td><td>CPU/GPU-Hybrid, GGUF-Quantisierung, minimale Abhängigkeiten</td><td>wenig Multi-User-Features</td></tr>
+</table>
+<p>Für einen einzelnen Nutzer oder ein kleines Team ist <strong>Ollama</strong> völlig ausreichend. Sobald mehrere Personen parallel arbeiten, ist <strong>vLLM</strong> Pflicht – das Prefix-Caching zahlt sich bei RAG besonders aus, weil der Systemprompt und der abgerufene Kontext bei ähnlichen Fragen oft zu 60–80 % identisch sind.</p>
+<p>Bei der Modellwahl gilt: Für deutschsprachiges RAG sind <strong>Qwen3-32B</strong>, <strong>Mistral Small 3.2 24B</strong> und <strong>Llama 3.3 70B</strong> die soliden Optionen. Ein 14B-Modell reicht, wenn der Kontext sauber gerankt ist – Retrieval-Qualität schlägt Modellgröße fast immer.</p>
+<pre><code># vLLM mit AWQ-Quantisierung und Prefix-Caching
+vllm serve Qwen/Qwen3-32B-AWQ \
+  --quantization awq \
+  --max-model-len 32768 \
+  --gpu-memory-utilization 0.90 \
+  --enable-prefix-caching \
+  --tensor-parallel-size 1 \
+  --port 8000</code></pre>
+
+<h2>Installation: Docker-Compose-Setup in 30 Minuten</h2>
+<p>Das folgende Setup bringt Qdrant, Ollama und Open WebUI in einem Compose-File auf einen GPU-Server. Voraussetzung: Ubuntu 24.04, NVIDIA-Treiber ≥ 550, Docker 27 mit nvidia-container-toolkit.</p>
+<pre><code># nvidia-container-toolkit installieren
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+  | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+sudo apt install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker</code></pre>
+<pre><code># docker-compose.yml
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.13.4
+    restart: unless-stopped
+    ports: ["6333:6333", "6334:6334"]
+    volumes: ["./qdrant_storage:/qdrant/storage"]
+    environment:
+      QDRANT__SERVICE__API_KEY: "${QDRANT_API_KEY}"
+
+  ollama:
+    image: ollama/ollama:0.6.8
+    restart: unless-stopped
+    ports: ["11434:11434"]
+    volumes: ["./ollama:/root/.ollama"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:v0.6.10
+    restart: unless-stopped
+    ports: ["3000:8080"]
+    depends_on: [qdrant, ollama]
+    environment:
+      OLLAMA_BASE_URL: "http://ollama:11434"
+      VECTOR_DB: "qdrant"
+      QDRANT_URI: "http://qdrant:6333"
+      QDRANT_API_KEY: "${QDRANT_API_KEY}"
+      RAG_EMBEDDING_ENGINE: "ollama"
+      RAG_EMBEDDING_MODEL: "bge-m3"
+      RAG_TOP_K: "8"
+      CHUNK_SIZE: "1200"
+      CHUNK_OVERLAP: "200"
+    volumes: ["./openwebui:/app/backend/data"]</code></pre>
+<p>Starten Sie den Stack mit <code>docker compose up -d</code> und laden Sie das Modell: <code>docker exec -it ollama ollama pull qwen3:14b</code>. Anschließend legen Sie die Collection manuell an, um HNSW und Quantisierung zu kontrollieren – Open WebUI würde sonst Defaults verwenden.</p>
+<pre><code>curl -X PUT http://localhost:6333/collections/dokumente \
+  -H "api-key: $QDRANT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "vectors": {"size": 1024, "distance": "Cosine"},
+    "hnsw_config": {"m": 16, "ef_construct": 200},
+    "optimizers_config": {"default_segment_number": 4},
+    "quantization_config": {"scalar": {"type": "int8", "always_ram": true}}
+  }'</code></pre>
+
+<h2>Ingestion-Pipeline: Chunking, Metadaten, Inkremmente</h2>
+<p>Chunking ist die wichtigste Einzelentscheidung im gesamten Stack. Zu kleine Chunks zerstören den Zusammenhang, zu große verwässern das Embedding. Bewährt haben sich <strong>800–1.200 Token mit 15–20 % Overlap</strong> bei Fließtext und <strong>semantisches Chunking an Überschriften</strong> bei technischer Dokumentation.</p>
+<p>Speichern Sie immer Payload-Metadaten mit: <code>source</code>, <code>page</code>, <code>heading_path</code>, <code>updated_at</code>, <code>tenant</code>. Ohne <code>heading_path</code> kann das LLM später keine sinnvolle Quellenangabe erzeugen, und ohne <code>tenant</code> ist Mandantentrennung unmöglich.</p>
+<pre><code>from qdrant_client import QdrantClient, models
+import httpx, hashlib
+
+qdrant = QdrantClient(url="http://localhost:6333", api_key=QDRANT_API_KEY)
+
+def embed(texts: list[str]) -> list[list[float]]:
+    r = httpx.post(
+        "http://localhost:8001/v1/embeddings",
+        json={"model": "BAAI/bge-m3", "input": texts},
+        timeout=120,
+    )
+    return [d["embedding"] for d in r.json()["data"]]
+
+def upsert_chunks(chunks: list[dict], batch: int = 64):
+    for i in range(0, len(chunks), batch):
+        part = chunks[i:i + batch]
+        vectors = embed([c["text"] for c in part])
+        points = [
+            models.PointStruct(
+                id=hashlib.md5(c["text"].encode()).hexdigest(),
+                vector=v,
+                payload={
+                    "text": c["text"],
+                    "source": c["source"],
+                    "heading_path": c.get("heading_path", ""),
+                    "updated_at": c["updated_at"],
+                    "tenant": c.get("tenant", "default"),
+                },
+            )
+            for c, v in zip(part, vectors)
+        ]
+        qdrant.upsert(collection_name="dokumente", points=points)</code></pre>
+<p>Für inkrementelle Updates nutzen Sie deterministische IDs (Hash über den Chunk-Text). Geänderte Dokumente erzeugen dann neue IDs, alte werden per Filter auf <code>source</code> gelöscht. Ein vollständiger Reindex von 500.000 Chunks dauert auf einer RTX 4090 etwa 20 Minuten – das ist als nächtlicher Cronjob völlig vertretbar.</p>
+
+<h2>Retrieval-Qualität: Hybrid Search und Reranking</h2>
+<p>Reines Dense Retrieval scheitert bei exakten Begriffen: Artikelnummern, Funktionsnamen, Akronyme. Die Lösung ist Hybrid Search – Dense-Vektoren plus Sparse-Vektoren (BM25-ähnlich), fusioniert per Reciprocal Rank Fusion.</p>
+<p>Qdrant unterstützt Sparse-Vektoren nativ. BGE-M3 liefert beide Repräsentationen in einem Durchlauf, sodass Sie nur eine Collection mit zwei Vektorfeldern benötigen. Die Fusion erfolgt serverseitig über die Query-API mit <code>prefetch</code> und <code>fusion=rrf</code>.</p>
+<pre><code>curl -X POST http://localhost:6333/collections/dokumente/points/query \
+  -H "api-key: $QDRANT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prefetch": [
+      {"query": {"nearest": [0.12, -0.44, "..."], "using": "dense"}, "limit": 50},
+      {"query": {"nearest": {"indices": [12, 884, 9021], "values": [0.8, 0.5, 0.3]}, "using": "sparse"}, "limit": 50}
+    ],
+    "query": {"fusion": "rrf"},
+    "limit": 20,
+    "filter": {"must": [{"key": "tenant", "match": {"value": "einkauf"}}]}
+  }'</code></pre>
+<p>Danach folgt ein Cross-Encoder-Reranker. <strong>bge-reranker-v2-m3</strong> benötigt auf einer RTX 4090 für 50 Kandidaten à 512 Token etwa 60–90 ms und hebt den Recall@5 typischerweise um 12–20 Prozentpunkte. Das ist die günstigste Qualitätssteigerung im gesamten Stack – vor jedem Modell-Upgrade zuerst hier optimieren.</p>
+<p>Stellen Sie <code>ef_search</code> bewusst ein: Der Default von 128 ist für kleine Collections zu hoch. Bei 100.000 Vektoren reicht <code>hnsw_ef=64</code> für 97 % Recall bei halbierter Latenz.</p>
+
+<h2>Monitoring, Skalierung und Sicherheit</h2>
+<p>Messen Sie vier Metriken kontinuierlich: <strong>Retrieval-Recall@k</strong> gegen ein kuratiertes Testset aus 100–200 Fragen, <strong>Time-to-First-Token</strong>, <strong>Tokens/s</strong> und <strong>Halluzinationsrate</strong> via LLM-as-Judge. Ohne diese Zahlen optimieren Sie blind.</p>
+<p>Für Tracing empfiehlt sich Langfuse (self-hosted, ein Docker-Compose) oder Arize Phoenix. Beide protokollieren Prompt, abgerufene Chunks und Antwort – genau die Daten, die Sie für Fehleranalysen brauchen.</p>
+<p>Sicherheit ist bei RAG kein Nebenthema. Drei Maßnahmen sind Pflicht: <strong>API-Keys</strong> für Qdrant und vLLM (vLLM via <code>--api-key</code>), <strong>Netzwerktrennung</strong> – die Vektordatenbank darf nie öffentlich erreichbar sein – und <strong>Prompt-Injection-Filter</strong> auf den abgerufenen Chunks, da eingeschleuste Dokumente sonst Systemanweisungen überschreiben können.</p>
+<p>Skalierung erfolgt in drei Stufen: Erst Reranker auf eine zweite GPU auslagern, dann Embedding-Service trennen, zuletzt Qdrant im Cluster-Modus mit drei Nodes und Replication Factor 2 betreiben. Ab etwa 200 gleichzeitigen Nutzern wird ein Load Balancer vor zwei vLLM-Instanzen mit geteiltem Prefix-Cache sinnvoll.</p>
+
+<h2>Kostenvergleich: Selfhosting vs. OpenAI API</h2>
+<p>Die Rechnung kippt früher als viele denken. Angenommen werden 4.000 Anfragen pro Tag, je 1.500 Prompt-Tokens (davon 1.000 RAG-Kontext) und 400 Ausgabe-Tokens.</p>
+<table>
+<tr><th>Variante</th><th>Monatliche Kosten</th><th>Anmerkung</th></tr>
+<tr><td>GPT-4o API</td><td>ca. 480 €</td><td>2,50 $/1M Input, 10 $/1M Output</td></tr>
+<tr><td>GPT-4o-mini API</td><td>ca. 32 €</td><td>deutlich schwächer bei Fachfragen</td></tr>
+<tr><td>Selfhost RTX 6000 Ada</td><td>ca. 700 €</td><td>inkl. Strom, Wartung, unbegrenzte Tokens</td></tr>
+<tr><td>Selfhost 2× L40S</td><td>ca. 1.350 €</td><td>trägt ~15.000 Anfragen/Tag</td></tr>
+</table>
+<p>Bei 4.000 Anfragen/Tag ist die API also noch günstiger – der Break-even gegenüber GPT-4o liegt bei etwa 6.000 Anfragen täglich. Der eigentliche Gewinn liegt nicht im Preis, sondern in Datenhoheit, Planbarkeit und der Möglichkeit, eigene Embedding- und Reranking-Modelle frei einzusetzen.</p>
+<p>Ein oft übersehener Kostenblock: Der Betriebsaufwand. Rechnen Sie mit 0,2–0,5 Vollzeitäquivalenten für Updates, Reindexierung und Monitoring. Wer diese Personalkosten scheut, sollte einen Managed-RAG-Dienst prüfen, statt einen halb gewarteten Stack zu betreiben.</p>
+
+<h2>FAQ</h2>
+
+<h3>Wie viel VRAM brauche ich für ein RAG-System mit 70B-Modell?</h3>
+<p>Ein Llama-3.3-70B in Q4_K_M benötigt rund 40 GB für die Gewichte. Dazu kommen KV-Cache und Aktivierungen: Bei 16.384 Token Kontext und Batch 8 sind das weitere 12–18 GB. Realistisch brauchen Sie also 64–80 GB VRAM, etwa zwei L40S oder eine H100. Für Einsteiger ist ein 14B- oder 32B-Modell mit gutem Retrieval die wirtschaftlichere Wahl.</p>
+
+<h3>Reicht pgvector statt Qdrant für ein RAG-System?</h3>
+<p>Bis etwa 2 Mio. Vektoren mit 1024 Dimensionen ist pgvector 0.8 mit HNSW-Index problemlos nutzbar und spart einen zusätzlichen Dienst. Darüber hinaus steigen Indexaufbau-Zeiten und RAM-Bedarf überproportional. Sobald Sie Hybrid Search mit Sparse-Vektoren oder Mandantentrennung mit hoher Filterrate benötigen, ist Qdrant die bessere Wahl.</p>
+
+<h3>Welches Embedding-Modell ist für deutsche Dokumente am besten?</h3>
+<p>BGE-M3 ist 2026 der beste Kompromiss aus Recall, Kontextlänge (8.192 Token) und Ressourcenbedarf. multilingual-e5-large-instruct ist bei kurzen, instruktionsartigen Texten leicht überlegen. Qwen3-Embedding-4B erzielt die höchsten Recall-Werte bei langen Fachdokumenten, kostet aber 8 GB VRAM im FP16 und ist damit für Embedding-Services auf Shared-GPUs unpraktisch.</p>
+
+<h3>Wie oft muss ich meinen Vektorindex neu aufbauen?</h3>
+<p>Nur bei einem Wechsel des Embedding-Modells oder der Chunking-Strategie ist ein vollständiger Reindex nötig. Für inhaltliche Änderungen genügt inkrementelles Upsert mit deterministischen IDs: geänderte Chunks überschreiben, gelöschte per Filter auf <code>source</code> entfernen. Planen Sie dennoch einen monatlichen Voll-Reindex als Qualitätssicherung ein – Fragmentierung durch häufige Updates kostet sonst 5–10 % Recall.</p>
+
+<h3>Lohnt sich Selfhosting überhaupt gegenüber der OpenAI API?</h3>
+<p>Rein monetär kippt die Rechnung erst bei etwa 6.000 Anfragen pro Tag gegenüber GPT-4o. Der eigentliche Grund für Selfhosting ist Datenhoheit: DSGVO-Konformität, keine Übermittlung von Kundendaten an Dritte und volle Kontrolle über Modellversionen. Wenn diese Anforderungen nicht bestehen, ist eine API-Lösung bei kleinen Volumina günstiger und wartungsärmer.</p>
