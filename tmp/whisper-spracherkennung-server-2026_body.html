@@ -1,0 +1,194 @@
+<h2>Warum Whisper 2026 selbst hosten?</h2>
+<p>OpenAI Whisper ist seit 2022 Open Source und hat sich bis 2026 zum De-facto-Standard für Speech-to-Text entwickelt. Die Cloud-Preise sind allerdings nicht gesunken: OpenAI verlangt weiterhin <strong>0,006 USD pro Minute</strong> für <code>whisper-1</code> und <code>gpt-4o-transcribe</code> — das sind <strong>0,36 USD pro Stunde</strong> Audio. Bei 1.000 Stunden Material im Monat landen Sie bei 360 USD, ohne Datenhoheit und ohne Kontrolle über Latenz oder Modellversion.</p>
+<p>Self-Hosting lohnt sich 2026 in fast allen Szenarien: Ein dedizierter GPU-Server bei Hetzner kostet rund 184 EUR im Monat und schafft mit <code>large-v3-turbo</code> und Batch-Inferenz mehrere tausend Stunden Audio monatlich. Der Break-even liegt bei etwa <strong>500 Stunden pro Monat</strong> — darunter ist die Cloud günstiger, darüber ist Self-Hosting um den Faktor 10 bis 15 billiger.</p>
+<p>Dazu kommen Argumente, die sich nicht in Euro messen lassen: DSGVO-Konformität bei Arzt-, Anwalts- oder Personalgesprächen, keine Rate-Limits, keine Modell-Deprecations, eigene Diarisierung und die Möglichkeit, fein-getunte Modelle (Fine-Tuning auf Fachvokabular) einzusetzen.</p>
+<p>Dieser Guide zeigt konkret, welche Modelle 2026 relevant sind, welche Hardware Sie brauchen, wie Sie <code>faster-whisper</code> und <code>whisper.cpp</code> installieren, eine OpenAI-kompatible API in Docker betreiben und was das Ganze real kostet.</p>
+
+<h2>Whisper-Modelle 2026 im Vergleich</h2>
+<p>Die Modellfamilie hat sich seit <code>large-v3</code> deutlich verändert. <strong>large-v3-turbo</strong> (Oktober 2024) reduziert den Decoder von 32 auf 4 Layer, behält aber den Encoder — das Ergebnis ist 6- bis 8-mal schneller bei nahezu identischer Qualität. <strong>distil-large-v3</strong> und <strong>distil-large-v3.5</strong> sind destillierte Varianten mit 756M Parametern, die vor allem für Streaming interessant sind.</p>
+<table>
+<thead><tr><th>Modell</th><th>Parameter</th><th>VRAM (fp16)</th><th>RTF (RTX 4090, batched)</th><th>WER Deutsch (Common Voice)</th></tr></thead>
+<tbody>
+<tr><td>tiny</td><td>39 M</td><td>~1 GB</td><td>0,005</td><td>~22 %</td></tr>
+<tr><td>base</td><td>74 M</td><td>~1 GB</td><td>0,008</td><td>~16 %</td></tr>
+<tr><td>small</td><td>244 M</td><td>~2 GB</td><td>0,012</td><td>~12 %</td></tr>
+<tr><td>medium</td><td>769 M</td><td>~5 GB</td><td>0,03</td><td>~8,5 %</td></tr>
+<tr><td>large-v3</td><td>1.550 M</td><td>~10 GB</td><td>0,06</td><td>~5,5 %</td></tr>
+<tr><td>large-v3-turbo</td><td>809 M</td><td>~6 GB</td><td>0,02</td><td>~6,0 %</td></tr>
+<tr><td>distil-large-v3.5</td><td>756 M</td><td>~6 GB</td><td>0,015</td><td>~6,5 %</td></tr>
+</tbody>
+</table>
+<p><strong>RTF</strong> (Real-Time Factor) bedeutet: 0,02 heißt, eine Stunde Audio wird in 72 Sekunden transkribiert. Die Werte gelten für Batch-Größe 16 mit Silero-VAD und <code>float16</code>. Auf einer RTX 4000 SFF Ada (20 GB) rechnen Sie mit dem 2,5-fachen RTF, auf einer A100 mit dem 0,6-fachen.</p>
+<p>Für deutschsprachige Produktionsworkloads ist <strong>large-v3-turbo</strong> 2026 die beste Wahl: Der Qualitätsverlust gegenüber <code>large-v3</code> liegt bei etwa 0,5 Prozentpunkten WER, der Speedup bei Faktor 3. Nur bei stark akzentuiertem Audio, Fachjargon oder mehrsprachigen Meetings mit Code-Switching lohnt sich noch <code>large-v3</code>.</p>
+
+<h2>Hardware-Anforderungen: GPU vs. CPU</h2>
+<p>Die wichtigste Entscheidung ist GPU oder CPU. GPU-Inferenz mit <code>float16</code> ist 15- bis 40-mal schneller als CPU-Inferenz mit <code>int8</code>, kostet aber monatlich 3- bis 5-mal mehr. Bei weniger als 200 Stunden Audio pro Monat ist eine CPU-Lösung fast immer wirtschaftlicher.</p>
+<ul>
+<li><strong>GPU-Minimum:</strong> 8 GB VRAM für <code>large-v3-turbo</code> mit Batch-Größe 8 (RTX 3070, RTX 4060 Ti).</li>
+<li><strong>GPU-Empfehlung:</strong> 16–24 GB VRAM (RTX 4080/4090, RTX 4000 Ada, L4, A10) für Batch-Größe 16–32 und parallele Diarisierung.</li>
+<li><strong>CPU-Minimum:</strong> 8 moderne Kerne (AVX2 zwingend, AVX512 oder AMX ein großer Vorteil).</li>
+<li><strong>RAM:</strong> 4 GB pro Worker bei CPU-Betrieb, 2 GB bei GPU-Betrieb plus Modell-Cache.</li>
+<li><strong>Storage:</strong> NVMe zwingend — das Laden der Modelle und das Chunking großer Audiodateien ist I/O-lastig.</li>
+</ul>
+<p>Intel Sapphire Rapids mit AMX-Beschleunigung erreicht bei <code>int8</code> überraschend gute Werte: Ein Xeon Gold 5412U transkribiert <code>large-v3-turbo</code> mit RTF 0,35 — das ist etwa 3-mal Echtzeit. AMD EPYC Genoa (9004) liegt mit AVX512 bei RTF 0,5 bis 0,7.</p>
+<p>Wichtig: <code>faster-whisper</code> nutzt CTranslate2 und braucht <strong>cuBLAS und cuDNN 9</strong>. Bei NVIDIA-Treibern ab 550 sind die Bibliotheken über <code>nvidia-cublas-cu12</code> und <code>nvidia-cudnn-cu12</code> per pip installierbar — das erspart manuelles CUDA-Toolkit-Management im Container.</p>
+
+<h2>Installation mit faster-whisper</h2>
+<p><code>faster-whisper</code> ist der Standard für Server-Deployments: CTranslate2-Backend, 4-mal schneller als das Referenz-Repository von OpenAI, geringerer VRAM-Verbrauch und native Batch-Inferenz.</p>
+<pre><code>python3 -m venv /opt/whisper/venv
+source /opt/whisper/venv/bin/activate
+pip install --upgrade pip
+pip install faster-whisper==1.1.1 nvidia-cublas-cu12 nvidia-cudnn-cu12
+</code></pre>
+<p>Ein minimales Transkriptionsskript mit Batch-Pipeline, VAD und Wort-Zeitstempeln:</p>
+<pre><code>from faster_whisper import WhisperModel, BatchedInferencePipeline
+
+model = WhisperModel(
+    "large-v3-turbo",
+    device="cuda",
+    compute_type="float16",
+    download_root="/opt/whisper/models",
+    num_workers=2,
+)
+pipe = BatchedInferencePipeline(model=model)
+
+segments, info = pipe.transcribe(
+    "interview.mp3",
+    batch_size=16,
+    language="de",
+    vad_filter=True,
+    vad_parameters={"min_silence_duration_ms": 500},
+    word_timestamps=True,
+    beam_size=5,
+    condition_on_previous_text=False,
+)
+
+print(f"Sprache: {info.language} ({info.language_probability:.2f})")
+for s in segments:
+    print(f"[{s.start:7.2f} -> {s.end:7.2f}] {s.text.strip()}")
+</code></pre>
+<p>Setzen Sie <code>condition_on_previous_text=False</code>, wenn Sie Halluzinations-Schleifen bei langen Stillepassagen vermeiden wollen — ein bekanntes Whisper-Problem, bei dem das Modell Sätze wiederholt oder Untertitel-Floskeln erfindet. Der Silero-VAD-Filter entfernt Stille vor der Inferenz und spart bei Meeting-Aufnahmen 20 bis 40 Prozent Rechenzeit.</p>
+<p>Für maximale Geschwindigkeit aktivieren Sie <code>compute_type="int8_float16"</code> — das halbiert den VRAM-Bedarf bei etwa 1 Prozent WER-Verlust. Auf älteren GPUs ohne Tensor-Cores (Pascal, Turing) ist <code>int8</code> sogar schneller als <code>float16</code>.</p>
+
+<h2>whisper.cpp für CPU und Edge-Deployment</h2>
+<p><code>whisper.cpp</code> von Georgi Gerganov ist die richtige Wahl, wenn Sie keine GPU haben, auf ARM (Hetzner CAX, Raspberry Pi 5, Apple Silicon) arbeiten oder eine einzelne statische Binary ohne Python-Abhängigkeiten brauchen. Der Build mit CUDA- oder Metal-Support ist ein Einzeiler:</p>
+<pre><code>git clone https://github.com/ggml-org/whisper.cpp
+cd whisper.cpp
+cmake -B build -DGGML_CUDA=1 -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+bash ./models/download-ggml-model.sh large-v3-turbo
+</code></pre>
+<p>Der integrierte HTTP-Server ersetzt eine komplette API:</p>
+<pre><code>./build/bin/whisper-server \
+  -m models/ggml-large-v3-turbo.bin \
+  --host 0.0.0.0 --port 8080 \
+  -t 8 -p 4 --convert
+</code></pre>
+<p><code>-t 8</code> setzt 8 Threads, <code>-p 4</code> erlaubt 4 parallele Requests. Auf einem Hetzner AX102 (Ryzen 9 7950X3D, 16 Kerne) erreichen Sie mit <code>large-v3-turbo</code> in <code>q5_0</code>-Quantisierung etwa RTF 0,9 — also knapp schneller als Echtzeit bei 8 Threads. Mit <code>small</code> sinkt der RTF auf 0,25.</p>
+<p>Der Vorteil: Der gesamte Dienst läuft in unter 200 MB RAM-Overhead, startet in 300 Millisekunden und kann problemlos in einen systemd-Service oder Kubernetes-Sidecar verpackt werden. Für Batch-Verarbeitung großer Archive ist <code>faster-whisper</code> auf GPU trotzdem die bessere Wahl.</p>
+
+<h2>Docker-Deployment mit OpenAI-kompatibler API</h2>
+<p>Für den Produktivbetrieb wollen Sie eine API, die sich wie OpenAI anfühlt — dann können bestehende Clients (LangChain, Open WebUI, n8n, eigene Skripte) einfach die <code>base_url</code> umbiegen. <strong>Speaches</strong> (vormals faster-whisper-server) ist 2026 die ausgereifteste Lösung.</p>
+<pre><code>docker run -d --name speaches \
+  --gpus all \
+  -p 8000:8000 \
+  -v /srv/whisper/models:/home/ubuntu/.cache/huggingface/hub \
+  -e WHISPER__INFERENCE_DEVICE=cuda \
+  -e WHISPER__COMPUTE_TYPE=float16 \
+  -e WHISPER__TTL=-1 \
+  -e API_KEY=sk-hostazar-geheim \
+  ghcr.io/speaches-ai/speaches:latest-cuda
+</code></pre>
+<p>Danach funktioniert der OpenAI-Endpunkt eins zu eins:</p>
+<pre><code>curl http://localhost:8000/v1/audio/transcriptions \
+  -H "Authorization: Bearer sk-hostazar-geheim" \
+  -F file=@meeting.mp3 \
+  -F model=Systran/faster-whisper-large-v3-turbo \
+  -F language=de \
+  -F response_format=verbose_json
+</code></pre>
+<p>Das Image lädt Modelle beim ersten Request automatisch von Hugging Face und cached sie im Volume. Mit <code>WHISPER__TTL=-1</code> bleiben sie dauerhaft im VRAM — der erste Request dauert dann 8 bis 15 Sekunden (Modell-Load), alle weiteren 200 bis 400 Millisekunden für kurze Clips.</p>
+<p>Für Diarisierung kombinieren Sie Speaches mit <strong>WhisperX</strong> oder <strong>pyannote.audio 3.1</strong> in einem separaten Container. WhisperX liefert Wort-Alignment über <code>wav2vec2</code> mit einer Genauigkeit von ±50 ms und Speaker-Labels pro Segment — das ist der Standard für Untertitel und Meeting-Protokolle.</p>
+
+<h2>Batch-Transkription und Performance-Tuning</h2>
+<p>Der größte Performance-Hebel ist die Batch-Größe. Whisper verarbeitet 30-Sekunden-Fenster; bei Batch-Größe 1 läuft die GPU zu 90 Prozent im Leerlauf. Faustregeln für eine 24-GB-GPU mit <code>large-v3-turbo</code>:</p>
+<table>
+<thead><tr><th>Batch-Größe</th><th>VRAM</th><th>RTF</th><th>Durchsatz (h Audio/h)</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>3,2 GB</td><td>0,09</td><td>11</td></tr>
+<tr><td>8</td><td>5,1 GB</td><td>0,035</td><td>29</td></tr>
+<tr><td>16</td><td>7,4 GB</td><td>0,022</td><td>45</td></tr>
+<tr><td>32</td><td>12,0 GB</td><td>0,018</td><td>56</td></tr>
+<tr><td>64</td><td>21,5 GB</td><td>0,016</td><td>63</td></tr>
+</tbody>
+</table>
+<p>Weitere Optimierungen: <strong>Audio-Preprocessing</strong> auf 16 kHz Mono (ffmpeg <code>-ar 16000 -ac 1</code>) reduziert den Decoding-Overhead um 5 bis 10 Prozent. <strong>VAD-Segmentierung</strong> vor dem Batch spart bei Meetings mit vielen Pausen bis zu 40 Prozent. <strong>Beam Size 1</strong> statt 5 halbiert die Decoder-Zeit bei etwa 0,3 Prozentpunkten WER-Verlust — für Massenverarbeitung akzeptabel.</p>
+<p>Für sehr große Archive (10.000+ Stunden) empfiehlt sich eine Queue-Architektur: Redis oder RabbitMQ als Broker, 4 bis 8 Worker-Container mit je eigener GPU-Slice, Ergebnisse in PostgreSQL mit Volltextindex. Ein einzelner RTX-4090-Worker schafft so dauerhaft 40 bis 60 Stunden Audio pro Stunde.</p>
+
+<h2>Wort-Zeitstempel, VAD und Diarisierung</h2>
+<p>Reine Transkription reicht selten. Für Untertitel brauchen Sie Wort-Zeitstempel, für Meeting-Protokolle Speaker-Labels, für Podcasts Kapitelmarken.</p>
+<p><strong>Wort-Alignment</strong> über <code>faster-whisper</code> mit <code>word_timestamps=True</code> ist gut, aber nicht perfekt (±200 ms). Für Broadcast-Qualität nutzen Sie WhisperX mit <code>wav2vec2-large-xlsr-53-german</code> — das Alignment-Modell läuft auf derselben GPU und kostet etwa 15 Prozent zusätzliche Rechenzeit.</p>
+<p><strong>Diarisierung</strong> mit <code>pyannote/speaker-diarization-3.1</code> benötigt einen Hugging-Face-Token und etwa 4 GB VRAM zusätzlich. Die Pipeline läuft in zwei Schritten: erst Diarisierung (wer spricht wann), dann Zuordnung der Whisper-Segmente zu Speakern über maximale zeitliche Überlappung.</p>
+<pre><code>from pyannote.audio import Pipeline
+import torch
+
+dia = Pipeline.from_pretrained(
+    "pyannote/speaker-diarization-3.1",
+    use_auth_token="hf_xxxxxxxxxxxx"
+).to(torch.device("cuda"))
+
+result = dia("meeting.wav", num_speakers=4)
+for turn, _, speaker in result.itertracks(yield_label=True):
+    print(f"{turn.start:7.2f} {turn.end:7.2f} {speaker}")
+</code></pre>
+<p>Für Deutsch erreicht pyannote 3.1 eine Diarisierungs-Fehlerrate (DER) von 12 bis 18 Prozent bei 4 Sprechen und sauberem Audio — bei Telefonqualität steigt sie auf 25 bis 35 Prozent. Rechnen Sie mit 5 bis 8 Prozent der Gesamtlaufzeit für die Diarisierung.</p>
+
+<h2>Kostenvergleich: Self-Hosting vs. Cloud-APIs</h2>
+<p>Die folgende Tabelle vergleicht die realen Kosten bei <strong>1.000 Stunden Audio pro Monat</strong> (Stand Q1 2026, ohne Egress- und Storage-Kosten).</p>
+<table>
+<thead><tr><th>Anbieter / Setup</th><th>Preis pro Stunde Audio</th><th>1.000 h / Monat</th><th>Datenhoheit</th></tr></thead>
+<tbody>
+<tr><td>OpenAI whisper-1 / gpt-4o-transcribe</td><td>0,36 USD</td><td>360 USD</td><td>nein</td></tr>
+<tr><td>Deepgram Nova-3 (Pay-as-you-go)</td><td>0,258 USD</td><td>258 USD</td><td>nein</td></tr>
+<tr><td>AssemblyAI Universal-2</td><td>0,15–0,37 USD</td><td>150–370 USD</td><td>nein</td></tr>
+<tr><td>Google STT v2 (Dynamic Batch)</td><td>0,18 USD</td><td>180 USD</td><td>nein</td></tr>
+<tr><td>Azure Speech (Batch)</td><td>0,36 USD</td><td>360 USD</td><td>nein</td></tr>
+<tr><td>Self-Hosted, Hetzner GEX44 (RTX 4000 Ada)</td><td>~0,026 EUR</td><td>184 EUR flat</td><td>ja</td></tr>
+<tr><td>Self-Hosted, Hetzner AX102 (CPU only)</td><td>~0,10 EUR</td><td>68 EUR flat</td><td>ja</td></tr>
+<tr><td>Self-Hosted, RunPod RTX 4090 (on-demand)</td><td>~0,09 USD</td><td>~90 USD</td><td>ja</td></tr>
+</tbody>
+</table>
+<p>Der Break-even gegenüber OpenAI liegt bei <strong>511 Stunden pro Monat</strong> (184 EUR / 0,36 USD), gegenüber Deepgram bei 713 Stunden. Darunter fahren Sie mit der Cloud günstiger — aber nur, wenn Sie keine DSGVO-Anforderungen haben und mit Rate-Limits leben können.</p>
+<p>Wichtig bei RunPod und Vast.ai: Sie zahlen pro Sekunde Laufzeit. Wenn Sie die GPU nur 6 Stunden am Tag für Batch-Jobs nutzen, kostet ein RTX 4090 bei RunPod etwa 0,44 USD/h × 180 h = 79 USD im Monat — günstiger als jedes dedizierte Angebot. Für 24/7-API-Betrieb ist der dedizierte Server bei Hetzner klar im Vorteil.</p>
+
+<h2>Hosting-Optionen und Preise 2026</h2>
+<p>Für dedizierte GPU-Server ist <strong>Hetzner GEX44</strong> (i7-13700, 64 GB DDR5, RTX 4000 SFF Ada 20 GB, 2× 1 TB NVMe) mit rund <strong>184 EUR/Monat</strong> plus 79 EUR Setup der Referenzpunkt in Europa — deutsche Rechenzentren, DSGVO-konform, unschlagbares Preis-Leistungs-Verhältnis für 20 GB VRAM.</p>
+<p>Wer mehr VRAM braucht (Diarisierung + Batch 32), findet bei <strong>OVHcloud</strong> oder <strong>Scaleway</strong> L40S-Instanzen ab etwa 1,20 EUR/h. <strong>Lambda Labs</strong> bietet A100 40 GB ab 1,29 USD/h, <strong>RunPod</strong> RTX 4090 ab 0,34 USD/h (Community) und <strong>Vast.ai</strong> RTX 3090 ab 0,20 USD/h — letzteres mit stark schwankender Zuverlässigkeit.</p>
+<p>Für CPU-only-Workloads ist <strong>Hetzner AX102</strong> (Ryzen 9 7950X3D, 128 GB ECC, 2× 1,92 TB NVMe) für etwa 68 EUR/Monat die stärkste Option. Alternativ die Cloud-Serie CPX51 (16 vCPU AMD, 32 GB) für 30 EUR/Monat — allerdings ohne dedizierte Kerne und damit mit schlechterer Vorhersagbarkeit.</p>
+<p>Bei allen Anbietern gilt: Prüfen Sie den <strong>Traffic</strong>. 1.000 Stunden Audio in 16 kHz Mono WAV sind etwa 115 GB Upload. Bei Hetzner sind 20 TB inklusive, bei RunPod und Vast.ai zahlen Sie Egress separat.</p>
+
+<h2>Sicherheit, Monitoring und Skalierung</h2>
+<p>Eine Whisper-API ohne Authentifizierung ist ein offenes Tor: Jeder kann Ihre GPU für beliebige Transkriptionen missbrauchen. Mindestanforderungen für den Produktivbetrieb:</p>
+<ul>
+<li><strong>API-Key-Pflicht</strong> (<code>API_KEY</code>-Env bei Speaches) und Rotation alle 90 Tage.</li>
+<li><strong>Reverse Proxy</strong> mit nginx oder Caddy, TLS via Let's Encrypt, Rate-Limit von 60 Requests/Minute pro Key.</li>
+<li><strong>Upload-Limit</strong> von 100 MB pro Datei — verhindert Disk-Fill-Angriffe.</li>
+<li><strong>Container-Isolation</strong> ohne <code>--privileged</code>, read-only Root-Filesystem, <code>no-new-privileges</code>.</li>
+<li><strong>Netzwerk</strong>: API nur im internen Docker-Netz, Exposition ausschließlich über den Proxy.</li>
+</ul>
+<p>Für Monitoring sind drei Metriken entscheidend: <strong>RTF pro Request</strong> (Alarm bei über 0,5), <strong>VRAM-Auslastung</strong> (<code>nvidia-smi dmon -s mu</code>) und <strong>Queue-Tiefe</strong>. Stellen Sie alle drei über den Prometheus-Exporter bereit und bauen Sie Grafana-Dashboards mit p95-Latenz.</p>
+<p>Skalierung erfolgt horizontal über Worker-Replikate hinter einem Load-Balancer, nicht über größere GPUs. Ab etwa 3.000 Stunden Audio pro Monat lohnt ein zweiter GEX44 mit Round-Robin-Verteilung; ab 10.000 Stunden wechseln Sie auf Kubernetes mit GPU-Operator und Node-Pools.</p>
+
+<h2>FAQ</h2>
+<h3>Welches Whisper-Modell ist 2026 die beste Wahl für Deutsch?</h3>
+<p><strong>large-v3-turbo</strong> ist für fast alle Fälle optimal: 6 Prozent WER auf Common Voice Deutsch, RTF 0,02 auf einer RTX 4090 und nur 6 GB VRAM. Nur bei starkem Akzent, Fachvokabular oder Code-Switching lohnt sich <code>large-v3</code> mit etwa 5,5 Prozent WER. Für Echtzeit-Streaming mit minimaler Latenz nehmen Sie <code>distil-large-v3.5</code>.</p>
+<h3>Reicht eine CPU ohne GPU für Whisper?</h3>
+<p>Ja, ab etwa 8 Kernen mit AVX2. <code>whisper.cpp</code> mit <code>large-v3-turbo</code> in <code>q5_0</code> erreicht auf einem Ryzen 9 7950X3D RTF 0,9 — also knapp Echtzeit. Mit <code>small</code> sinkt der RTF auf 0,25. Für Batch-Verarbeitung ist eine GPU aber 15- bis 40-mal schneller und bei über 500 Stunden pro Monat auch günstiger.</p>
+<h3>Wie viel VRAM brauche ich wirklich?</h3>
+<p>Für <code>large-v3-turbo</code> mit Batch-Größe 16 reichen 8 GB. Mit Diarisierung (pyannote 3.1) kommen 4 GB dazu, mit Wort-Alignment (wav2vec2) weitere 1,5 GB. Planen Sie 16 GB für einen komfortablen Produktivbetrieb, 24 GB wenn Sie Batch-Größe 32 oder mehrere Sprachen parallel fahren wollen.</p>
+<h3>Ist Self-Hosting DSGVO-konform?</h3>
+<p>Ja, sofern der Server in der EU steht und Sie einen Auftragsverarbeitungsvertrag mit dem Hoster haben. Hetzner, OVHcloud und Scaleway bieten AVV an. Achten Sie darauf, dass Modelle nicht automatisch von Hugging Face nachgeladen werden, ohne dass Sie die Lizenz geprüft haben — laden Sie Modelle einmalig und betreiben Sie einen lokalen Mirror.</p>
+<h3>Wie hoch ist der Break-even gegenüber Cloud-APIs?</h3>
+<p>Gegenüber OpenAI Whisper (0,36 USD/h) liegt er bei etwa <strong>511 Stunden Audio pro Monat</strong>, gegenüber Deepgram Nova-3 (0,258 USD/h) bei 713 Stunden. Darunter ist die Cloud günstiger, darüber sparen Sie mit einem 184-EUR-GPU-Server schnell 70 bis 90 Prozent der Kosten.</p>
+<h3>Kann ich Whisper für Echtzeit-Transkription nutzen?</h3>
+<p>Bedingt. Whisper ist ein Offline-Modell und arbeitet mit 30-Sekunden-Fenstern. Für echte Echtzeit nutzen Sie <code>distil-large-v3.5</code> mit Chunk-Größe 1 Sekunde und <code>condition_on_previous_text=True</code>, oder Sie wechseln zu spezialisierten Streaming-Modellen wie <strong>NVIDIA Parakeet</strong> oder <strong>Kyutai STT</strong>. Latenzen unter 800 ms sind mit Whisper auf einer RTX 4090 erreichbar.</p>
