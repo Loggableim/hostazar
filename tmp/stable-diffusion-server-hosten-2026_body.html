@@ -1,188 +1,160 @@
-<h2>Warum Stable Diffusion 2026 auf einem eigenen Server läuft</h2>
-<p>Lokale Installationen auf Gaming-Rechnern sind 2026 nur noch für Hobbyisten interessant. Wer Stable Diffusion, Flux oder SD 3.5 produktiv nutzt – für Produktbilder, Marketing-Assets, Game-Texturen oder Batch-Generierung – braucht einen Server, der 24/7 läuft, per API ansprechbar ist und nicht vom Stromverbrauch des Wohnzimmers abhängt.</p>
-<p>Der wirtschaftliche Hebel ist eindeutig: Eine Cloud-GPU wie die RTX 4090 kostet bei RunPod aktuell rund <strong>0,34 bis 0,69 USD pro Stunde</strong>, eine A100 80 GB liegt bei <strong>1,19 bis 1,89 USD/h</strong>. Bei 200 Stunden Nutzung im Monat sind das 68 bis 138 USD – deutlich weniger als ein dedizierter GPU-Server für 180 bis 900 EUR monatlich, wenn die Auslastung niedrig ist. Umgekehrt kippt die Rechnung ab etwa 400 Stunden Volllast pro Monat klar zum dedizierten Blech.</p>
-<p>Dazu kommt der Datenschutz: Wer Kundenbilder, interne Produktrenderings oder personenbezogene Daten verarbeitet, will keinen Prompt über einen fremden Endpunkt schicken. Ein eigener Endpunkt mit HTTPS, API-Key und Logging ist DSGVO-konform dokumentierbar.</p>
-<p>Dieser Guide zeigt die komplette Kette: GPU-Auswahl, Anbietervergleich, Treiber- und CUDA-Setup unter Ubuntu 24.04, Docker mit NVIDIA Container Toolkit, ComfyUI und Automatic1111, VRAM-Management, Tuning, API-Betrieb und Zugriffsschutz.</p>
+<h2>Warum Stable Diffusion auf einem eigenen Server hosten?</h2>
+<p>Bildgenerierung ist 2026 kein Spielzeug mehr, sondern fester Bestandteil von Produkt-Pipelines: Marketing-Teams rendern Varianten, Spiele-Studios erzeugen Concept Art, Shops generieren Produktfotos. Wer dafür auf fertige Web-Dienste setzt, zahlt pro Credit, stößt auf Rate Limits und gibt jeden Prompt aus der Hand. Ein eigener GPU-Server beendet dieses Abhängigkeitsverhältnis.</p>
+<p>Der wirtschaftliche Hebel ist erheblich. Ein kommerzieller Bildgenerator kostet häufig 0,02 bis 0,08 US-Dollar pro Bild. Bei 5.000 Bildern im Monat sind das 100 bis 400 Dollar – für eine Leistung, die auf eigener Hardware marginale Stromkosten verursacht. Ab wenigen hundert Bildern pro Tag amortisiert sich dedizierte Hardware fast immer.</p>
+<p>Hinzu kommt die technische Kontrolle: eigene LoRAs, ControlNet-Stacks, eigene Checkpoints, eigene Upscaler und ein lokaler API-Endpunkt, den du direkt in deine Anwendung einbinden kannst. Keine Modell-Zensur, keine Wasserzeichen, keine ToS-Änderungen von heute auf morgen.</p>
+<p>Dieser Guide führt dich von der GPU-Auswahl über Treiber- und CUDA-Setup bis zu ComfyUI im Docker-Container, API-Betrieb, Monitoring und Kostenoptimierung. Alle Befehle beziehen sich auf Ubuntu 24.04 LTS und NVIDIA-Treiber 570.</p>
 
-<h2>GPU-Auswahl: Die wichtigste Entscheidung</h2>
-<p>VRAM ist bei Bildgenerierung das knappste Gut. Ein SDXL-Modell in FP16 belegt rund 6,5 GB nur für die Gewichte, dazu kommen Text-Encoder, VAE, Latents und Attention-Buffer. In der Praxis gilt: <strong>8 GB</strong> reichen für SD 1.5 und SDXL mit Offloading (langsam), <strong>12–16 GB</strong> sind der Einstieg für SDXL und Flux-schnell, <strong>24 GB</strong> ist der Sweet Spot, <strong>48–80 GB</strong> brauchen Flux-dev in voller Präzision, Video-Modelle und Batch-Größen über 4.</p>
+<h2>Hardware-Anforderungen im Überblick</h2>
+<p>Der limitierende Faktor ist und bleibt der VRAM. Die Rechenleistung bestimmt, wie schnell ein Bild fertig ist – der VRAM bestimmt, ob es überhaupt fertig wird. Läuft ein Modell nicht vollständig in den Speicher, weicht PyTorch auf Shared Memory aus und die Inferenz wird zehn- bis zwanzigmal langsamer.</p>
 <table>
-<thead><tr><th>GPU</th><th>VRAM</th><th>FP16 TFLOPS</th><th>SDXL 1024px it/s</th><th>Mietpreis/h</th></tr></thead>
+<thead><tr><th>Komponente</th><th>Minimum</th><th>Empfohlen</th><th>High-End</th></tr></thead>
 <tbody>
-<tr><td>RTX 3060</td><td>12 GB</td><td>~51</td><td>~3,1</td><td>0,16 USD</td></tr>
-<tr><td>RTX 4070 Ti Super</td><td>16 GB</td><td>~88</td><td>~5,4</td><td>0,24 USD</td></tr>
-<tr><td>RTX 4090</td><td>24 GB</td><td>~165</td><td>~9,8</td><td>0,34 USD</td></tr>
-<tr><td>RTX 5090</td><td>32 GB</td><td>~210</td><td>~13,5</td><td>0,55 USD</td></tr>
-<tr><td>L40S</td><td>48 GB</td><td>~183</td><td>~11,2</td><td>0,86 USD</td></tr>
-<tr><td>A100 SXM</td><td>80 GB</td><td>~312</td><td>~14,0</td><td>1,19 USD</td></tr>
-<tr><td>H100 PCIe</td><td>80 GB</td><td>~756</td><td>~22,0</td><td>2,49 USD</td></tr>
+<tr><td>GPU-VRAM</td><td>8 GB</td><td>16–24 GB</td><td>48 GB+</td></tr>
+<tr><td>System-RAM</td><td>16 GB</td><td>32–64 GB</td><td>128 GB</td></tr>
+<tr><td>CPU</td><td>4 Kerne</td><td>8–12 Kerne</td><td>16+ Kerne</td></tr>
+<tr><td>Storage</td><td>100 GB SATA-SSD</td><td>1 TB NVMe</td><td>4 TB NVMe RAID</td></tr>
+<tr><td>Netzwerk</td><td>100 Mbit/s</td><td>1 Gbit/s</td><td>10 Gbit/s</td></tr>
 </tbody>
 </table>
-<p>Die Werte sind Richtwerte für 30 Steps mit DPM++ 2M Karras. Wichtig: Die RTX 4090 ist pro Dollar oft schneller als eine A100, weil die A100 auf FP64 und NVLink optimiert ist – beides irrelevant für Diffusion. Nur bei sehr großen Batches oder Flux-dev in BF16 spielt die A100 ihre Bandbreite aus.</p>
-<p>Für Einsteiger ist eine <strong>RTX 4090 mit 24 GB</strong> die rationalste Wahl. Wer Flux-dev, SD 3.5 Large oder ControlNet-Stacks parallel fährt, sollte direkt auf 48 GB gehen. Bei Multi-User-Betrieb lohnt sich eine Karte mit MIG-Support oder schlicht zwei Instanzen.</p>
+<p>Zur Orientierung bei den Modellgrößen: SDXL benötigt rund 6,9 GB im FP16-Checkpoint, SD 3.5 Large etwa 16 GB, Flux.1 dev rund 23,8 GB. In FP8-Quantisierung schrumpft Flux.1 dev auf etwa 12 GB – damit läuft es bereits auf einer 16-GB-Karte.</p>
+<p>Für SDXL in 1024×1024 mit ControlNet und zwei aktiven LoRAs solltest du 16 GB VRAM einplanen, komfortabel sind 24 GB. Wer Flux.1 dev oder SD 3.5 Large in voller Präzision fahren will, braucht 24 GB als Untergrenze und ist mit 48 GB deutlich entspannter.</p>
 
-<h2>Server-Anbieter und Preise im Vergleich</h2>
-<p>Der Markt teilt sich in drei Lager: dedizierte GPU-Server mit Monatsvertrag, stundenweise Cloud-GPUs und Colocation mit eigener Hardware.</p>
-<ul>
-<li><strong>Hetzner GEX44</strong> – RTX 4000 SFF Ada mit 20 GB, 16 vCPU, 64 GB RAM, 1 TB NVMe, ca. <strong>184 EUR/Monat</strong> ohne Einrichtung. Preis-Leistung für Dauerbetrieb unschlagbar, aber nur 20 GB VRAM und kein NVLink.</li>
-<li><strong>Hetzner GEX130</strong> – RTX 6000 Ada mit 48 GB, ca. <strong>600 EUR/Monat</strong>. Für Flux-dev und Video.</li>
-<li><strong>RunPod</strong> – Community Cloud ab 0,34 USD/h für RTX 4090, Secure Cloud teurer, aber mit besserer SLA. Per-Sekunde-Abrechnung, ideal für Batch-Jobs.</li>
-<li><strong>Vast.ai</strong> – Marktplatz, oft 30–50 % günstiger als RunPod, dafür schwankende Zuverlässigkeit und Hosts mit Consumer-Internet.</li>
-<li><strong>Lambda Labs</strong> – H100-Instanzen ab 2,49 USD/h, On-Demand und Reserved (1-Jahres-Vertrag ca. 40 % Rabatt).</li>
-<li><strong>OVHcloud / Scaleway</strong> – EU-Rechenzentren, L40S ab ca. 1,10 EUR/h, DSGVO-freundlich mit AVV.</li>
-</ul>
-<p>Faustregel: Unter 150 Stunden Monatslast → stundenweise Cloud. Zwischen 150 und 400 Stunden → Reserved Instance oder Jahresvertrag. Über 400 Stunden → dedizierter Server mit Monatsmiete.</p>
-<p>Achte beim Anbieter auf drei Dinge: <strong>NVMe-Speicher</strong> (Modelle sind 2–25 GB groß, SATA bremst den Kaltstart massiv), <strong>Traffic-Flatrate</strong> (Bild-Downloads summieren sich) und <strong>Snapshot-Support</strong>, damit du den fertig konfigurierten Zustand sichern kannst.</p>
+<h2>GPU-Auswahl 2026: Von RTX 5090 bis H100</h2>
+<p>Der Markt teilt sich in Consumer-Karten mit hohem Preis-Leistungs-Verhältnis und Datacenter-Karten mit ECC-Speicher, Blower-Kühlung und 24/7-Freigabe. Für den Einstieg sind Consumer-Karten klar überlegen.</p>
+<table>
+<thead><tr><th>GPU</th><th>VRAM</th><th>Preis (ca.)</th><th>Einsatz</th></tr></thead>
+<tbody>
+<tr><td>RTX 5080</td><td>16 GB GDDR7</td><td>1.100–1.300 €</td><td>SDXL, Flux FP8</td></tr>
+<tr><td>RTX 4090</td><td>24 GB GDDR6X</td><td>1.800–2.200 €</td><td>Allrounder</td></tr>
+<tr><td>RTX 5090</td><td>32 GB GDDR7</td><td>2.300–2.800 €</td><td>Flux FP16, Video</td></tr>
+<tr><td>RTX 6000 Ada</td><td>48 GB</td><td>7.000–8.000 €</td><td>Multi-Modell parallel</td></tr>
+<tr><td>L40S</td><td>48 GB</td><td>8.000–9.500 €</td><td>Rack-Einbau, 24/7</td></tr>
+<tr><td>A100</td><td>80 GB</td><td>14.000–18.000 €</td><td>Training, LoRA-Finetuning</td></tr>
+<tr><td>H100</td><td>80 GB HBM3</td><td>25.000–30.000 €</td><td>Enterprise, NVLink</td></tr>
+</tbody>
+</table>
+<p>Für 90 Prozent aller Selfhosting-Szenarien ist eine RTX 5090 mit 32 GB die vernünftigste Wahl: Sie stemmt Flux.1 dev in FP16, vier parallele ComfyUI-Workflows und kleinere LoRA-Trainings. Die RTX 4090 bleibt als Gebrauchtkarte der Preis-Leistungs-Sieger.</p>
+<p>Consumer-Karten unterstützen kein NVLink mehr. Multi-GPU bedeutet deshalb, dass jede Karte eigene Workflows abarbeitet – nicht, dass ein Modell über zwei Karten verteilt wird. Für Modell-Parallelität brauchst du Datacenter-Hardware mit NVLink oder PCIe-Bridges.</p>
 
-<h2>Betriebssystem, NVIDIA-Treiber und CUDA installieren</h2>
-<p>Basis ist Ubuntu 24.04 LTS mit HWE-Kernel. Der Kernel muss zur Treiberversion passen – bei zu neuem Kernel bricht die DKMS-Kompilierung ab.</p>
-<pre><code># System aktualisieren
-sudo apt update &amp;&amp; sudo apt full-upgrade -y
-sudo apt install -y build-essential dkms linux-headers-$(uname -r)
+<h2>Eigenbau, Dedicated Server oder Cloud-GPU?</h2>
+<p>Drei Betriebsmodelle stehen zur Wahl, und die Rechnung fällt je nach Auslastung völlig unterschiedlich aus. Ein Eigenbau-System mit RTX 5090 kostet komplett etwa 3.500 bis 4.000 Euro. Dazu kommen bei 600 Watt Systemlast im Dauerbetrieb rund 5.256 kWh pro Jahr – bei 0,30 €/kWh sind das etwa 1.577 Euro Stromkosten.</p>
+<p>Gemietete Dedicated-GPU-Server starten bei rund 180 bis 250 Euro monatlich für Karten der 20-GB-Klasse (etwa Hetzner GEX44 mit RTX 4000 SFF Ada). Cloud-GPU-Instanzen liegen bei RunPod für eine RTX 4090 bei etwa 0,34 bis 0,44 USD pro Stunde, eine A100 80 GB kostet 1,19 bis 1,89 USD/h, eine H100 rund 2,49 bis 3,29 USD/h.</p>
+<table>
+<thead><tr><th>Modell</th><th>Kosten/Monat</th><th>Break-even</th></tr></thead>
+<tbody>
+<tr><td>Eigenbau RTX 5090</td><td>~130 € Strom + 4.000 € Invest</td><td>14–18 Monate</td></tr>
+<tr><td>Dedicated Server 20 GB</td><td>180–250 €</td><td>sofort, kein Capex</td></tr>
+<tr><td>Cloud RTX 4090 (24/7)</td><td>250–320 USD</td><td>sofort, flexibel</td></tr>
+<tr><td>Cloud H100 (24/7)</td><td>1.800–2.400 USD</td><td>nur bei Spitzenlast</td></tr>
+</tbody>
+</table>
+<p>Die Faustregel: Bei dauerhafter Volllast gewinnt der Eigenbau nach etwa anderthalb Jahren. Bei schwankender Last oder kurzen Projekten ist die Cloud günstiger, weil du nur die tatsächliche Nutzungsdauer zahlst. Dedicated Server sind der Kompromiss für alle, die keinen Capex wollen, aber planbare Kosten brauchen.</p>
 
-# NVIDIA-Treiber 570 (Branch für Ada/Blackwell)
-sudo apt install -y nvidia-driver-570-server nvidia-utils-570-server
-
-# Reboot und Verifikation
+<h2>Betriebssystem und NVIDIA-Treiber installieren</h2>
+<p>Ubuntu 24.04 LTS mit Kernel 6.8 oder neuer ist 2026 die sicherste Basis. Für Produktionssysteme nimmst du den Server-Treiberzweig, der auf Stabilität statt auf Gaming-Features optimiert ist.</p>
+<pre><code>sudo apt update &amp;&amp; sudo apt install -y build-essential dkms linux-headers-$(uname -r)
+sudo apt install -y nvidia-driver-570-server-open
 sudo reboot
 nvidia-smi</code></pre>
-<p>Die Ausgabe von <code>nvidia-smi</code> muss die Karte mit korrektem VRAM und <strong>CUDA Version 12.8</strong> oder höher anzeigen. Erscheint stattdessen „No devices were found", fehlt meist der <code>nouveau</code>-Blacklist-Eintrag oder Secure Boot blockiert das signierte Modul.</p>
-<p>Für CUDA selbst brauchst du kein vollständiges Toolkit – PyTorch liefert die Runtime als Wheel mit. Nur wenn du <code>bitsandbytes</code> oder TensorRT selbst kompilierst, ist das Toolkit nötig:</p>
-<pre><code>wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
-sudo dpkg -i cuda-keyring_1.1-1_all.deb
-sudo apt update
-sudo apt install -y cuda-toolkit-12-8
-echo 'export PATH=/usr/local/cuda-12.8/bin:$PATH' &gt;&gt; ~/.bashrc</code></pre>
-<p>Setze zusätzlich <code>nvidia-persistenced</code> als Dienst, damit die GPU nicht zwischen Requests in den Idle-Zustand fällt. Das spart bei Batch-Workloads 200–400 ms pro Kaltstart.</p>
+<p>Die Ausgabe von <code>nvidia-smi</code> muss Treiberversion 570.x und CUDA-Version 12.8 anzeigen. Bei Secure Boot musst du den DKMS-Schlüssel im MOK-Manager enrollen, sonst lädt das Kernelmodul nicht.</p>
+<p>Zwei Feinheiten sparen später Nerven: Aktiviere den Persistence Mode, damit die GPU nicht zwischen Jobs in den Idle-Zustand fällt, und setze ein Power Limit. Eine RTX 5090 mit <code>nvidia-smi -pl 400</code> verliert etwa 5 Prozent Leistung, spart aber rund 30 Prozent Strom.</p>
+<pre><code>sudo nvidia-smi -pm 1
+sudo nvidia-smi -pl 400</code></pre>
 
-<h2>Docker mit GPU-Support einrichten</h2>
-<p>Container sind 2026 der Standard, weil du Treiber-Upgrades und Python-Chaos sauber trennst. Das NVIDIA Container Toolkit bindet die GPU in den Container ein.</p>
-<pre><code>curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
-curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
-  sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-sudo apt update &amp;&amp; sudo apt install -y nvidia-container-toolkit
+<h2>ComfyUI installieren und starten</h2>
+<p>Bei der Wahl der Oberfläche hat sich ComfyUI für Server-Deployments durchgesetzt. Der node-basierte Aufbau ist sperriger als Automatic1111, dafür ist die Pipeline vollständig als JSON serialisierbar – ideal für API-Betrieb und Versionierung. SD.Next und Forge sind gute Alternativen, wenn du eine klassischere UI brauchst.</p>
+<pre><code>sudo apt install -y python3.12-venv git
+git clone https://github.com/comfyanonymous/ComfyUI.git /opt/comfyui
+cd /opt/comfyui
+python3 -m venv venv &amp;&amp; source venv/bin/activate
+pip install --upgrade pip
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+pip install -r requirements.txt</code></pre>
+<p>Für den Dauerbetrieb legst du einen systemd-Service an, der ComfyUI mit <code>--listen 0.0.0.0 --port 8188</code> startet. Achte darauf, dass der Dienst nach einem Absturz automatisch neu startet (<code>Restart=always</code>) und dass die Logs via journald rotieren.</p>
+<p>Modelle gehören nicht ins Git-Verzeichnis. Setze stattdessen einen eigenen Pfad über <code>extra_model_paths.yaml</code> und lege Checkpoints, LoRAs, VAE und ControlNet auf ein separates Volume – das erleichtert Backups und Containerisierung erheblich.</p>
+
+<h2>Containerisierung mit Docker und GPU-Passthrough</h2>
+<p>Docker macht dein Setup reproduzierbar und trennt Laufzeitumgebung von Modellen. Voraussetzung ist das NVIDIA Container Toolkit, das die GPU in Container durchreicht.</p>
+<pre><code>curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+  | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+sudo apt install -y nvidia-container-toolkit
 sudo nvidia-ctk runtime configure --runtime=docker
-sudo systemctl restart docker
-
-# Test
-docker run --rm --gpus all nvidia/cuda:12.8.0-base-ubuntu24.04 nvidia-smi</code></pre>
-<p>Für ComfyUI empfiehlt sich ein eigenes Image mit vorinstallierten Modellen. Ein <code>docker-compose.yml</code> mit Volume-Mounts auf <code>/models</code> und <code>/output</code> hält die 30-GB-Modellsammlung außerhalb des Containers:</p>
+sudo systemctl restart docker</code></pre>
+<p>Ein minimales <code>docker-compose.yml</code> für ComfyUI sieht so aus:</p>
 <pre><code>services:
   comfyui:
     image: comfyui/comfyui:latest-cuda
     runtime: nvidia
-    ports: ["8188:8188"]
+    ports: ["127.0.0.1:8188:8188"]
     volumes:
-      - /srv/ai/models:/opt/ComfyUI/models
-      - /srv/ai/output:/opt/ComfyUI/output
+      - /srv/models:/opt/comfyui/models
+      - /srv/output:/opt/comfyui/output
     environment:
       - NVIDIA_VISIBLE_DEVICES=0
-      - CLI_ARGS=--listen 0.0.0.0 --preview-method none
     deploy:
       resources:
         reservations:
-          devices: [{driver: nvidia, count: 1, capabilities: [gpu]}]</code></pre>
-<p>Wichtig: <code>--preview-method none</code> deaktiviert die Live-Vorschau und spart bei SDXL rund 8 % Zeit. <code>--listen 0.0.0.0</code> nur setzen, wenn ein Reverse Proxy mit Auth davorsteht.</p>
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped</code></pre>
+<p>Beachte, dass der Port nur auf <code>127.0.0.1</code> gebunden ist. ComfyUI hat keine eingebaute Authentifizierung – ein offener Port 8188 im Internet ist eine Einladung. Der Zugriff läuft später über einen Reverse Proxy mit Auth.</p>
 
-<h2>ComfyUI, Automatic1111 und Forge installieren</h2>
-<p>ComfyUI ist 2026 die erste Wahl für Server-Betrieb: node-basiert, skriptbar, mit stabilem API-Endpunkt. Automatic1111 ist bequemer für manuelles Arbeiten, Forge ist der schnellere Fork mit besserem VRAM-Handling.</p>
-<ol>
-<li><strong>Python-Umgebung:</strong> <code>python3.12 -m venv /srv/ai/venv</code>, dann <code>pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128</code>.</li>
-<li><strong>ComfyUI klonen:</strong> <code>git clone https://github.com/comfyanonymous/ComfyUI /srv/ai/ComfyUI</code></li>
-<li><strong>Requirements:</strong> <code>pip install -r requirements.txt</code> – bei Fehlern zuerst <code>xformers</code> und <code>triton</code> separat installieren.</li>
-<li><strong>Custom Nodes:</strong> ComfyUI-Manager nach <code>custom_nodes/</code> klonen, danach IPAdapter, ControlNet Aux und Impact Pack über die UI nachziehen.</li>
-<li><strong>Systemd-Unit:</strong> Dienst mit <code>Restart=always</code>, <code>User=ai</code> und <code>Environment=PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True</code>.</li>
-</ol>
-<p>Der <code>PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True</code>-Schalter ist Pflicht: Er reduziert Fragmentierung und verhindert bei langen Sessions die typischen „CUDA out of memory"-Fehler nach 200+ Bildern.</p>
-<p>Für Flux.1-dev brauchst du zusätzlich <code>--lowvram</code> oder besser <code>--novram</code> nur bei 16-GB-Karten. Auf 24 GB läuft Flux-dev in FP8 ohne Offloading mit etwa 1,8 s/Step bei 1024×1024.</p>
+<h2>Modelle verwalten und Speicher planen</h2>
+<p>Der Speicherbedarf wächst schneller, als man denkt. Ein SDXL-Checkpoint belegt 6,9 GB, Flux.1 dev 23,8 GB, ein LoRA zwischen 50 und 400 MB. Mit 50 Modellen und 100 LoRAs landest du schnell bei 400 bis 600 GB.</p>
+<pre><code>pip install -U "huggingface_hub[cli]"
+hf auth login
+hf download black-forest-labs/FLUX.1-dev \
+  --local-dir /srv/models/checkpoints/flux1-dev</code></pre>
+<p>Für größere Setups empfiehlt sich ein zentrales Modell-Volume, das per NFS oder SMB auf mehrere GPU-Worker gemountet wird. So liegen die Gewichte einmal auf NVMe und alle Instanzen greifen darauf zu. Alternativ betreibst du MinIO als S3-kompatiblen Objektspeicher und lädst Modelle beim Container-Start herunter.</p>
+<p>Versioniere Modelle mit Hash-Prüfsummen. Wenn ein Workflow plötzlich andere Ergebnisse liefert, willst du wissen, ob ein Checkpoint ausgetauscht wurde – nicht raten.</p>
 
-<h2>Modelle, Speicherplatz und VRAM-Management</h2>
-<p>Rechne mit 500 GB NVMe für eine ernsthafte Sammlung. Ein SDXL-Checkpoint sind 6,5 GB, Flux-dev FP16 23 GB, SD 3.5 Large 16 GB, dazu ControlNets (je 1,5–2,5 GB), LoRAs (50–400 MB) und VAE-Dateien.</p>
-<table>
-<thead><tr><th>Modell</th><th>Größe</th><th>Min. VRAM</th><th>Empf. Steps</th></tr></thead>
-<tbody>
-<tr><td>SD 1.5</td><td>2,1 GB</td><td>4 GB</td><td>20–30</td></tr>
-<tr><td>SDXL Base + Refiner</td><td>13 GB</td><td>10 GB</td><td>25 + 15</td></tr>
-<tr><td>SD 3.5 Medium</td><td>9 GB</td><td>12 GB</td><td>28</td></tr>
-<tr><td>SD 3.5 Large</td><td>16 GB</td><td>18 GB</td><td>30</td></tr>
-<tr><td>Flux.1-schnell</td><td>23 GB</td><td>16 GB (FP8)</td><td>4</td></tr>
-<tr><td>Flux.1-dev</td><td>23 GB</td><td>24 GB</td><td>20–28</td></tr>
-</tbody>
-</table>
-<p>VRAM-Management ist Handwerk. Drei Hebel helfen sofort: <strong>FP8-Quantisierung</strong> halbiert den Speicherbedarf bei minimalem Qualitätsverlust, <strong>Sequential CPU Offload</strong> schiebt Text-Encoder bei Bedarf in den RAM, und <strong>Tiled VAE</strong> verhindert Spitzen beim Decodieren großer Bilder.</p>
-<p>Lege Modelle auf ein separates Volume oder einen NFS-Mount, wenn du mehrere Worker betreibst. Ein zentraler Modell-Store mit Symlinks spart bei fünf Instanzen schnell 2 TB.</p>
-
-<h2>Performance-Tuning: von 4 auf 12 Bilder pro Minute</h2>
-<p>Die Standardinstallation verschenkt 40–60 % Leistung. Die wichtigsten Maßnahmen in Reihenfolge des Nutzens:</p>
+<h2>Performance-Tuning: Von xformers bis TensorRT</h2>
+<p>Die Standardinstallation lässt erheblich Leistung liegen. Die wichtigsten Hebel sind Attention-Backends, Kompilierung und Quantisierung.</p>
 <ul>
-<li><strong>xformers oder Flash Attention 2:</strong> 15–30 % schneller bei SDXL, 20 % weniger VRAM. Installation: <code>pip install xformers --index-url https://download.pytorch.org/whl/cu128</code>.</li>
-<li><strong>torch.compile:</strong> Beim ersten Lauf 60–90 s Warmup, danach 20–35 % schneller. In ComfyUI über <code>--compile</code> aktivierbar.</li>
-<li><strong>TensorRT-Engines:</strong> Bis zu 2× schneller als PyTorch, aber 15–25 Minuten Build-Zeit pro Auflösung. Lohnt nur bei festen Workflows.</li>
-<li><strong>Batch-Größe 2–4:</strong> Bessere GPU-Auslastung, aber VRAM-Bedarf steigt linear. Auf 24 GB ist Batch 4 bei 1024px die Grenze.</li>
-<li><strong>DPM++ 2M Karras statt Euler a:</strong> Gleiche Qualität bei 25 statt 30 Steps.</li>
-<li><strong>VAE in FP16 statt FP32:</strong> Spart 1,2 GB und 0,3 s/Bild.</li>
+<li><strong>SageAttention 2</strong> – beschleunigt den Attention-Layer um 20 bis 40 Prozent gegenüber Standard-PyTorch.</li>
+<li><strong>xformers</strong> – bewährter Fallback, spart zusätzlich VRAM durch Memory-Efficient Attention.</li>
+<li><strong>torch.compile</strong> – kompiliert das UNet beim ersten Lauf, danach 15 bis 25 Prozent schneller.</li>
+<li><strong>FP8-Quantisierung</strong> – halbiert den VRAM-Bedarf von Flux.1 dev bei minimalem Qualitätsverlust.</li>
+<li><strong>TensorRT-Engines</strong> – maximaler Durchsatz, aber Bindung an feste Auflösung und Batch-Größe.</li>
 </ul>
-<p>Ein realistisches Vorher-Nachher auf einer RTX 4090 mit SDXL 1024×1024, 25 Steps: Standardinstallation 4,2 s/Bild, mit xformers 3,4 s, mit torch.compile 2,6 s, mit TensorRT 1,9 s. Das sind bei 8 Stunden Betrieb <strong>15.000 statt 6.800 Bilder</strong> pro Tag.</p>
-<p>Vorsicht bei <code>--force-fp16</code>: Auf Ada-Karten mit Treiber 570 kann das bei Flux zu schwarzen Bildern führen. Nutze stattdessen BF16, das nativ unterstützt wird.</p>
+<p>Realistische Benchmark-Werte für SDXL bei 1024×1024 und 30 Steps: eine RTX 4090 liefert mit Standard-PyTorch etwa 4,5 Sekunden pro Bild, mit SageAttention und torch.compile rund 2,8 Sekunden, mit TensorRT etwa 2,2 Sekunden. Eine RTX 5090 liegt jeweils etwa 25 bis 35 Prozent darunter.</p>
+<p>Für Flux.1 dev bei 1024×1024 und 20 Steps braucht eine RTX 4090 in FP8 etwa 12 Sekunden, eine RTX 5090 rund 8 Sekunden. In FP16 verdoppelt sich der VRAM-Bedarf, die Zeit sinkt nur um etwa 10 Prozent – FP8 ist hier fast immer die bessere Wahl.</p>
+<p>Bei VRAM-Knappheit helfen <code>--lowvram</code> und VAE-Tiling. Beides kostet Geschwindigkeit, verhindert aber den Absturz mitten im Batch.</p>
 
-<h2>API-Betrieb, Queue und Multi-GPU-Skalierung</h2>
-<p>Für Produktivbetrieb brauchst du eine Queue. ComfyUI bringt einen HTTP-Endpunkt auf <code>/prompt</code> mit, der einen Workflow als JSON annimmt. Davor gehört ein FastAPI-Wrapper mit Rate Limiting und Job-Tracking.</p>
-<pre><code>from fastapi import FastAPI, HTTPException
-import httpx, uuid
-
-app = FastAPI()
-COMFY = "http://127.0.0.1:8188"
-
-@app.post("/generate")
-async def generate(workflow: dict):
-    client_id = str(uuid.uuid4())
-    payload = {"prompt": workflow, "client_id": client_id}
-    async with httpx.AsyncClient(timeout=300) as c:
-        r = await c.post(f"{COMFY}/prompt", json=payload)
-    if r.status_code != 200:
-        raise HTTPException(400, r.text)
-    return {"job_id": r.json()["prompt_id"]}</code></pre>
-<p>Für Multi-GPU-Betrieb startest du pro Karte eine ComfyUI-Instanz auf eigenem Port (8188, 8189, 8190) und verteilst die Jobs per Round-Robin oder nach freiem VRAM. Bei zwei RTX 4090 verdoppelt sich der Durchsatz fast linear – NVLink bringt bei Diffusion kaum Vorteil, weil die Modelle nicht aufgeteilt werden.</p>
-<p>Ein Redis-basierter Job-Store mit Worker-Heartbeat verhindert, dass Requests an eine abgestürzte Instanz gehen. Timeout auf 300 s setzen, alles darüber ist ein hängender Job und sollte den Worker neu starten.</p>
-
-<h2>Sicherheit, Reverse Proxy und Zugriffsschutz</h2>
-<p>Ein offener ComfyUI-Port ist ein offenes Scheunentor: Jeder kann beliebige Workflows mit Custom Nodes ausführen, die Shell-Befehle ausführen. Mindestens drei Schutzschichten sind Pflicht.</p>
-<ol>
-<li><strong>Firewall:</strong> <code>ufw default deny incoming</code>, nur 22, 80, 443 erlauben. GPU-Ports niemals öffentlich.</li>
-<li><strong>Reverse Proxy mit Auth:</strong> Caddy oder Nginx mit Basic Auth plus API-Key-Header. Caddy ist in fünf Zeilen konfiguriert und holt Let's-Encrypt-Zertifikate automatisch.</li>
-<li><strong>Netzwerk-Isolation:</strong> ComfyUI nur auf <code>127.0.0.1</code> binden, Proxy im selben Docker-Netzwerk.</li>
-</ol>
-<pre><code># Caddyfile
-ai.example.com {
-    basicauth {
-        admin $2a$14$...bcrypt-hash...
-    }
-    reverse_proxy 127.0.0.1:8188 {
-        header_up X-Real-IP {remote_host}
-        transport http { read_timeout 300s }
-    }
+<h2>API-Betrieb und Reverse Proxy</h2>
+<p>ComfyUI bringt eine HTTP-API mit. Du exportierst deinen Workflow als API-JSON und schickst ihn per POST an <code>/prompt</code>. Den Fortschritt verfolgst du über den WebSocket-Endpunkt <code>/ws</code>.</p>
+<pre><code>curl -X POST http://127.0.0.1:8188/prompt \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": { ... }, "client_id": "worker-01"}'</code></pre>
+<p>Für Produktionsbetrieb kapselst du das in einen FastAPI-Wrapper, der eine Job-Queue verwaltet, Ergebnisse in MinIO ablegt und einen sauberen REST-Endpunkt anbietet. So bleibt deine Anwendung unabhängig von ComfyUI-Interna.</p>
+<p>Davor setzt du nginx als Reverse Proxy mit TLS, Bearer-Token-Authentifizierung und Rate Limiting. Ein Cloudflare Tunnel ist die schnellste Variante, wenn du keine öffentliche IP exponieren willst.</p>
+<pre><code>location /api/ {
+    proxy_pass http://127.0.0.1:8188/;
+    proxy_set_header Authorization $http_authorization;
+    proxy_read_timeout 300s;
 }</code></pre>
-<p>Zusätzlich: <code>fail2ban</code> auf den SSH-Port, SSH-Key-only, und ein täglicher Snapshot des Modell-Volumes. Custom Nodes nur aus dem ComfyUI-Manager-Registry installieren – beliebte Angriffsvektoren sind gefälschte GitHub-Repos mit <code>setup.py</code>, das beim Install Reverse Shells öffnet.</p>
-<p>Für Teams lohnt ein vorgeschalteter Identity-Proxy wie Authelia oder Keycloak mit OIDC. Damit bekommst du Nutzerkonten, Quotas und Audit-Logs ohne eigenen Code.</p>
 
-<h2>Monitoring, Kosten und Wirtschaftlichkeit</h2>
-<p>Ohne Monitoring fliegt dir die GPU unbemerkt ins Thermal Throttling. Die drei wichtigsten Metriken: <strong>GPU-Auslastung</strong> (Ziel 85–98 %), <strong>VRAM-Belegung</strong> (Warnung ab 92 %) und <strong>GPU-Temperatur</strong> (Throttling ab 83 °C bei Ada).</p>
-<pre><code># Prometheus-Exporter für NVIDIA
-docker run -d --gpus all --name dcgm-exporter -p 9400:9400 \
-  nvcr.io/nvidia/k8s/dcgm-exporter:3.3.8-3.6.0-ubuntu22.04</code></pre>
-<p>Kostenrechnung für ein konkretes Szenario: 5.000 Bilder pro Tag, SDXL 1024px, 25 Steps. Auf einer RTX 4090 mit 2,6 s/Bild sind das 3,6 Stunden GPU-Zeit täglich. Bei RunPod Secure Cloud (0,69 USD/h) kostet das <strong>2,48 USD pro Tag</strong>, also rund <strong>75 USD im Monat</strong>. Ein Hetzner GEX44 mit 20 GB schafft dasselbe Volumen bei 184 EUR Monatsmiete nur, wenn du die Karte zusätzlich für andere Aufgaben nutzt – sonst ist die Cloud günstiger.</p>
-<p>Der Break-even liegt bei etwa 6.000 Bildern pro Tag bzw. 4,5 Stunden GPU-Last. Darüber ist dedizierte Hardware wirtschaftlicher, darunter die Cloud. Bei Flux-dev mit 8 s/Bild verschiebt sich die Grenze auf rund 1.800 Bilder pro Tag.</p>
-<p>Vergiss die versteckten Kosten nicht: Egress-Traffic (bei 5.000 Bildern à 1,5 MB sind das 7,5 GB pro Tag), Snapshot-Speicher und die Arbeitszeit für Treiber-Updates. Rechne mit 2–4 Stunden Wartung pro Monat.</p>
+<h2>Monitoring, Sicherheit und Updates</h2>
+<p>Für GPU-Metriken nutzt du den DCGM-Exporter, für Systemmetriken den Node-Exporter, beides eingesammelt von Prometheus und visualisiert in Grafana. Die wichtigsten Alarme: GPU-Auslastung unter 10 Prozent über 30 Minuten (Job hängt), VRAM über 95 Prozent (OOM-Gefahr), Temperatur über 85 Grad.</p>
+<pre><code>nvidia-smi dmon -s pucvmet -d 5</code></pre>
+<p>Sicherheit ist bei KI-Servern oft der blinde Fleck. Mindestmaßnahmen: SSH nur mit Key und ohne Root-Login, UFW mit Default-Deny, fail2ban auf Port 22, kein direkter Zugriff auf ComfyUI oder Jupyter. Wenn du mehrere Nutzer hast, trenne sie über Container mit eigenen Volumes.</p>
+<p>Updates fährst du kontrolliert: Treiber und CUDA nur nach vorherigem Snapshot, Modellversionen gepinnt, Container-Images mit festen Tags statt <code>latest</code>. Ein ungeplantes PyTorch-Update kann dir sonst die komplette Pipeline zerlegen.</p>
+
+<h2>Skalierung und Kostenoptimierung</h2>
+<p>Ab etwa 500 Bildern pro Tag lohnt sich der eigene Server fast immer. Skalierung funktioniert am einfachsten horizontal: mehrere GPU-Worker, ein gemeinsamer Queue-Service, ein zentrales Modell-Volume. Jeder Worker zieht Jobs, rendert und schreibt das Ergebnis in den Objektspeicher.</p>
+<p>Für Lastspitzen kombinierst du eigenen Server mit Cloud-Bursting. Ein Autoscaler startet bei Queue-Länge über 50 zusätzliche Spot-Instanzen und beendet sie, wenn die Warteschlange leer ist. Spot-Preise liegen 50 bis 70 Prozent unter On-Demand, das Risiko ist bei zustandslosen Workern überschaubar.</p>
+<p>Weitere Sparhebel: Batch-Generierung statt Einzelanfragen (gleicher Prompt mit variierenden Seeds in einem Lauf), niedrigere Steps mit anschließendem Upscaler, und ein Warm-Model-Cache, der die am häufigsten genutzten Checkpoints im VRAM hält statt sie bei jedem Job neu zu laden.</p>
 
 <h2>FAQ</h2>
-<h3>Wie viel VRAM brauche ich wirklich für Stable Diffusion auf einem Server?</h3>
-<p>Für SD 1.5 reichen 6 GB, für SDXL 12 GB, für Flux.1-schnell 16 GB in FP8 und für Flux.1-dev sowie SD 3.5 Large mindestens 24 GB. Mit ControlNet-Stacks, Batch-Größe über 2 oder Video-Modellen gehen noch einmal 8–16 GB drauf. Wer produktiv arbeitet, sollte nicht unter 24 GB planen – eine RTX 4090 oder L40S ist die vernünftige Untergrenze.</p>
-<h3>Lohnt sich ein dedizierter GPU-Server oder besser stundenweise Cloud-GPU?</h3>
-<p>Unter 150 Stunden GPU-Last pro Monat ist die stundenweise Cloud klar günstiger – bei RunPod kostet eine RTX 4090 rund 0,34 bis 0,69 USD/h. Zwischen 150 und 400 Stunden lohnen Reserved Instances. Ab etwa 400 Stunden Volllast pro Monat, also rund 6.000 SDXL-Bildern pro Tag, ist ein dedizierter Server wie der Hetzner GEX44 für 184 EUR monatlich wirtschaftlicher.</p>
-<h3>Welche CUDA- und Treiberversion brauche ich 2026?</h3>
-<p>Ubuntu 24.04 LTS mit NVIDIA-Treiber 570-server und CUDA 12.8 ist der stabile Stand für Ada- und Blackwell-Karten. PyTorch 2.6 oder neuer mit cu128-Wheels passt dazu. Ältere Treiber unter 550 funktionieren mit RTX 5090 nicht und brechen bei Flash Attention 2 ab.</p>
-<h3>Kann ich Stable Diffusion ohne Docker direkt auf dem Server installieren?</h3>
-<p>Ja, aber es ist wartungsintensiver. Ohne Container musst du Python-Abhängigkeiten, CUDA-Versionen und Custom Nodes manuell konsistent halten – ein einziges <code>pip install</code> kann die Umgebung zerstören. Docker mit NVIDIA Container Toolkit trennt Treiber und Anwendung sauber und erlaubt Rollbacks per Image-Tag in Sekunden.</p>
-<h3>Wie sichere ich einen öffentlich erreichbaren Stable-Diffusion-Server ab?</h3>
-<p>Drei Schichten sind Minimum: Firewall mit <code>ufw default deny incoming</code> und nur Ports 22/80/443 offen, ein Reverse Proxy wie Caddy mit Basic Auth oder OIDC plus API-Key, und die Bindung von ComfyUI ausschließlich an <code>127.0.0.1</code>. Zusätzlich SSH-Key-only, fail2ban und Custom Nodes nur aus der offiziellen ComfyUI-Manager-Registry installieren, weil gefälschte Repos beim Setup Reverse Shells öffnen können.</p>
+<h3>Wie viel VRAM brauche ich für Stable Diffusion auf einem Server?</h3>
+<p>Für SDXL in 1024×1024 reichen 8 GB, komfortabel sind 16 GB. Mit ControlNet und mehreren LoRAs solltest du 24 GB einplanen. Flux.1 dev läuft in FP8 ab 12 GB, in FP16 ab 24 GB. Für parallele Workflows oder LoRA-Training sind 48 GB die realistische Untergrenze.</p>
+<h3>Lohnt sich ein eigener GPU-Server oder ist die Cloud günstiger?</h3>
+<p>Bei dauerhafter Auslastung amortisiert sich ein Eigenbau mit RTX 5090 nach etwa 14 bis 18 Monaten. Bei schwankender Last oder Projektarbeit ist die Cloud günstiger, weil du nur die tatsächliche Laufzeit zahlst. Dedicated-GPU-Server ab etwa 180 Euro monatlich sind der Mittelweg ohne Investitionskosten.</p>
+<h3>Welches Betriebssystem eignet sich am besten?</h3>
+<p>Ubuntu 24.04 LTS mit Kernel 6.8+ und NVIDIA-Treiber 570 ist 2026 die beste Wahl. Debian 12 funktioniert ebenfalls, hat aber ältere Pakete. Von Windows Server raten wir für Produktionsbetrieb ab – Treiber- und Container-Support sind schlechter, und der Overhead ist messbar höher.</p>
+<h3>Wie sichere ich einen öffentlich erreichbaren ComfyUI-Server ab?</h3>
+<p>ComfyUI hat keine eingebaute Authentifizierung. Binde den Port niemals direkt auf 0.0.0.0, sondern nur auf 127.0.0.1 und setze nginx mit TLS und Bearer-Token davor. Ergänzend: UFW mit Default-Deny, SSH nur per Key, fail2ban und ein Cloudflare Tunnel, wenn du keine öffentliche IP exponieren willst.</p>
+<h3>Welche GPU ist 2026 das beste Preis-Leistungs-Verhältnis?</h3>
+<p>Die RTX 5090 mit 32 GB GDDR7 für etwa 2.300 bis 2.800 Euro ist der beste Allrounder – sie stemmt Flux.1 dev in FP16 und mehrere parallele Workflows. Wer sparen will, findet die RTX 4090 mit 24 GB gebraucht ab etwa 1.800 Euro und damit das beste Verhältnis aus Leistung und Preis.</p>

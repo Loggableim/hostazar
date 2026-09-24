@@ -1,193 +1,185 @@
 <h2>Warum Vektordatenbanken 2026 zum Standard-Stack gehören</h2>
-<p>Noch 2023 reichte vielen Teams <strong>pgvector</strong> in einer bestehenden PostgreSQL-Instanz. 2026 sieht die Realität anders aus: RAG-Pipelines, semantische Suche, Empfehlungssysteme und multimodale Agenten erzeugen Vektormengen, bei denen der HNSW-Index in Postgres an seine Grenzen stößt. Ab etwa <strong>5 bis 10 Millionen Vektoren</strong> mit 768 bis 1536 Dimensionen bricht die Query-Latenz typischerweise von unter 10 ms auf 80 bis 300 ms ein – der Index-Build dauert dann Stunden statt Minuten.</p>
-<p>Der Grund ist strukturell: Eine relationale Datenbank optimiert auf Zeilen, Transaktionen und B-Tree-Zugriffe. Eine Vektordatenbank optimiert auf <strong>Approximate Nearest Neighbor (ANN)</strong>-Suche, Quantisierung und massiv parallele Distanzberechnungen. Der Unterschied ist messbar – spezialisierte Systeme liefern bei gleichem Recall den drei- bis zehnfachen Durchsatz.</p>
-<p>Dazu kommt der Kostenfaktor. Ein Embedding-Modell wie <em>text-embedding-3-large</em> erzeugt 3072 Dimensionen, <em>text-embedding-3-small</em> 1536, BGE-M3 1024. Bei float32-Belegung kostet ein einzelner 1536-dimensionaler Vektor 6 KB. Zehn Millionen Chunks bedeuten also 60 GB reinen Vektor-RAM – ohne Index, ohne Payload, ohne Overhead. Genau hier entscheidet sich, ob Ihr Hosting-Budget bei 50 € oder 500 € pro Monat landet.</p>
-<p>Dieser Guide vergleicht die drei relevantesten Open-Source-Optionen <strong>Qdrant</strong>, <strong>Milvus</strong> und <strong>Chroma</strong> mit konkreten Zahlen, Docker-Befehlen, RAM-Tabellen und Preisangaben für den Betrieb auf europäischen Servern.</p>
+<p>Noch 2023 bestand ein typischer RAG-Stack aus FAISS-Index plus Pickle-Datei. Das funktioniert für ein Notebook, aber nicht für einen Dienst, der 24/7 läuft, Metadaten filtert, Nutzer isoliert und inkrementell neue Dokumente aufnimmt. Genau diese Lücke füllen dedizierte Vektordatenbanken: Sie kombinieren einen ANN-Index (Approximate Nearest Neighbor) mit Persistenz, CRUD-Operationen, Metadaten-Filtern, Replikation und Monitoring.</p>
+<p>Der Treiber ist die Embedding-Dimension. Kleine Modelle wie <strong>all-MiniLM-L6-v2</strong> liefern 384 Dimensionen, <strong>BGE-base</strong> und <strong>e5-base</strong> liegen bei 768, <strong>OpenAI text-embedding-3-small</strong> bei 1536, <strong>text-embedding-3-large</strong> bei 3072. Jede Dimension kostet 4 Byte pro Vektor in float32 – bei 10 Millionen Chunks sind das schnell 60 GB RAM, bevor der Index überhaupt gebaut ist.</p>
+<p>Dazu kommt Filtering: „Finde die 5 ähnlichsten Absätze, aber nur aus Dokumenten von Mandant 42, die nach 2025 veröffentlicht wurden." Ohne Payload-Index wird daraus ein Full-Scan über alle Vektoren. Qdrant, Milvus und Chroma lösen das unterschiedlich gut – und genau darin unterscheiden sie sich 2026 am stärksten.</p>
 
-<h2>Die drei Kandidaten im Kurzvergleich</h2>
-<p>Alle drei Systeme sind Open Source und selbst hostbar, unterscheiden sich aber fundamental in Architektur und Zielgruppe. Qdrant ist ein Rust-Monolith mit Fokus auf Latenz und Filtering, Milvus eine verteilte Microservice-Plattform für Milliarden Vektoren, Chroma ein Python-first-System für schnelle Prototypen.</p>
+<h2>Die drei Kandidaten im Kurzprofil</h2>
 <table>
-<thead>
 <tr><th>Merkmal</th><th>Qdrant</th><th>Milvus</th><th>Chroma</th></tr>
-</thead>
-<tbody>
-<tr><td>Kernsprache</td><td>Rust</td><td>Go + C++</td><td>Rust (seit 1.0)</td></tr>
+<tr><td>Kern in</td><td>Rust</td><td>Go + C++</td><td>Rust (ab 1.0)</td></tr>
 <tr><td>Lizenz</td><td>Apache 2.0</td><td>Apache 2.0</td><td>Apache 2.0</td></tr>
-<tr><td>Deployment</td><td>Single Binary / Cluster</td><td>Standalone / Distributed</td><td>Single Node / Embedded</td></tr>
-<tr><td>Praktische Obergrenze</td><td>~100 Mio Vektoren/Node</td><td>&gt; 10 Mrd im Cluster</td><td>~1–5 Mio Vektoren</td></tr>
-<tr><td>Index-Typen</td><td>HNSW</td><td>HNSW, IVF, DiskANN, SCANN, CAGRA</td><td>HNSW (hnswlib)</td></tr>
-<tr><td>Quantisierung</td><td>Scalar, Product, Binary</td><td>SQ8, PQ, GPU-Quantisierung</td><td>Nein</td></tr>
-<tr><td>GPU-Support</td><td>Nein</td><td>Ja (CAGRA, IVF)</td><td>Nein</td></tr>
+<tr><td>Deployment</td><td>Single Binary, Docker, Distributed</td><td>Standalone, Distributed (K8s)</td><td>Embedded, Single-Node Server</td></tr>
+<tr><td>Praktische Obergrenze</td><td>Milliarden Vektoren</td><td>&gt;10 Milliarden Vektoren</td><td>~5–10 Mio. Vektoren</td></tr>
+<tr><td>Filtering</td><td>Filterable HNSW, Payload-Index</td><td>Scalar Filtering mit Expressions</td><td>where-Filter, einfacher</td></tr>
+<tr><td>GPU-Index</td><td>Nein</td><td>Ja (CAGRA, GPU_IVF)</td><td>Nein</td></tr>
+<tr><td>Hybrid Search</td><td>Dense + Sparse (BM25)</td><td>Dense + Sparse, RRF</td><td>Eingeschränkt</td></tr>
 <tr><td>Managed Cloud</td><td>Qdrant Cloud</td><td>Zilliz Cloud</td><td>Chroma Cloud</td></tr>
-<tr><td>Lernkurve</td><td>Niedrig</td><td>Hoch</td><td>Sehr niedrig</td></tr>
-</tbody>
 </table>
-<p>Für Einsteiger und Teams unter 5 Millionen Vektoren ist Chroma oder Qdrant die richtige Wahl. Milvus lohnt sich erst, wenn Sie Sharding, Replikation und GPU-Beschleunigung wirklich brauchen – der Betriebsaufwand ist deutlich höher.</p>
+<p>Die Kurzfassung: <strong>Chroma</strong> ist der schnellste Weg zum funktionierenden Prototyp, <strong>Qdrant</strong> ist der Allrounder für Produktions-Workloads bis in den zweistelligen Millionenbereich, <strong>Milvus</strong> ist die Wahl, wenn Sharding, GPU-Beschleunigung und Mandantentrennung auf Kubernetes gefragt sind.</p>
 
-<h2>Qdrant: Rust, HNSW und aggressive Quantisierung</h2>
-<p>Qdrant hat sich seit Version 1.7 vom Nischenprojekt zum Standard für selbst gehostete RAG-Backends entwickelt. Die aktuelle 1.15-Reihe bietet <strong>Binary Quantization</strong> mit Rescoring, <strong>ACORN</strong>-Filtered-Search und Multitenancy über Payload-Partitionierung. Der Kern ist ein Rust-Server, der als einzelnes Binary mit REST (Port 6333) und gRPC (Port 6334) läuft.</p>
-<p>Der entscheidende Vorteil liegt im <strong>Filtering</strong>. Während viele ANN-Indizes bei Metadaten-Filtern auf Brute-Force zurückfallen, baut Qdrant einen filterbaren HNSW-Graphen und nutzt ACORN für hohe Filter-Selektivität. In der Praxis bedeutet das: Ein Filter, der 99 % der Daten ausschließt, kostet Sie nicht 300 ms, sondern 4 bis 8 ms.</p>
-<p>Die Quantisierung ist der zweite Hebel. Scalar Quantization (int8) reduziert den RAM-Bedarf um Faktor 4 bei einem Recall-Verlust von 0,5 bis 1,5 %. Binary Quantization reduziert um Faktor 32 – bei 1536 Dimensionen bleiben aus 6 KB nur 192 Byte pro Vektor. Mit aktiviertem Rescoring (Originalvektoren auf Disk) liegt der Recall-Verlust typischerweise unter 3 %.</p>
-<pre><code>docker run -d --name qdrant \
-  -p 6333:6333 -p 6334:6334 \
-  -v $(pwd)/qdrant_storage:/qdrant/storage:z \
-  qdrant/qdrant:v1.15.0</code></pre>
-<p>Ein Minimal-Client in Python zeigt die Collection-Konfiguration mit Quantisierung:</p>
+<h2>Qdrant: Rust-Performance mit starker Filterung</h2>
+<p>Qdrant setzt auf einen in Rust geschriebenen HNSW-Index mit einem entscheidenden Detail: dem <em>Filterable HNSW</em>. Filter werden nicht nach der Suche angewendet, sondern während der Graph-Traversierung berücksichtigt. Das verhindert den klassischen Recall-Einbruch, wenn ein Filter 95 % des Korpus ausschließt.</p>
+<p>Für den Speicherbedarf gibt es drei Quantisierungsstufen: <strong>Scalar Quantization (int8)</strong> reduziert auf ein Viertel, <strong>Product Quantization</strong> auf bis zu 1/64, <strong>Binary Quantization</strong> auf 1/32 der Originalgröße. Bei Binary Quantization wird mit Oversampling und Rescoring nachgearbeitet – der Recall bleibt typischerweise über 0,95.</p>
 <pre><code>from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams, ScalarQuantizationConfig, ScalarType
+from qdrant_client.models import (
+    Distance, VectorParams, ScalarQuantization,
+    ScalarQuantizationConfig, ScalarType, PointStruct
+)
 
 client = QdrantClient(url="http://localhost:6333")
+
 client.create_collection(
-    collection_name="docs",
+    collection_name="handbuch",
     vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
-    quantization_config=ScalarQuantizationConfig(
-        scalar=ScalarType.INT8, quantile=0.99, always_ram=True
+    quantization_config=ScalarQuantization(
+        scalar=ScalarQuantizationConfig(
+            type=ScalarType.INT8, quantile=0.99, always_ram=True
+        )
     ),
+)
+
+client.upsert(
+    collection_name="handbuch",
+    points=[PointStruct(id=1, vector=[0.01]*1536,
+                        payload={"mandant": 42, "jahr": 2026})],
 )</code></pre>
+<p>Der REST-Port ist 6333, gRPC läuft auf 6334, das Web-UI unter <code>http://localhost:6333/dashboard</code>. Metriken für Prometheus liefert derselbe Port unter <code>/metrics</code>. Qdrant lässt sich zusätzlich als lokaler In-Memory-Client ohne Server betreiben – praktisch für Tests, aber ohne Persistenz.</p>
 
-<h2>Milvus: verteilte Architektur für Milliarden Vektoren</h2>
-<p>Milvus ist die schwerste, aber auch skalierbarste Option. Die Distributed-Variante besteht aus mehreren Rollen: <strong>Root Coordinator</strong>, <strong>Query Nodes</strong>, <strong>Data Nodes</strong>, <strong>Index Nodes</strong> sowie externen Abhängigkeiten – etcd für Metadaten, MinIO/S3 für Objektspeicher und eine WAL (Pulsar, Kafka oder ab Version 2.6 <strong>Woodpecker</strong>, das Kafka ersetzt).</p>
-<p>Diese Architektur ist kein Selbstzweck: Sie erlaubt horizontales Sharding über Collections, Replikation von Query Nodes für Leselast und separates Skalieren von Index-Build und Query-Serving. Cluster mit über <strong>10 Milliarden Vektoren</strong> und 100+ Nodes sind produktiv im Einsatz.</p>
-<p>Die Index-Auswahl ist der eigentliche Grund für Milvus. Neben HNSW und IVF_FLAT gibt es <strong>DiskANN</strong> für SSD-basierte Suche mit minimalem RAM, <strong>SCANN</strong> für hohe Recall-Anforderungen und die GPU-Indizes <strong>GPU_IVF_FLAT</strong> und <strong>GPU_CAGRA</strong>. CAGRA erreicht auf einer A100 bei 1 Million 768-dimensionalen Vektoren über <strong>15.000 QPS</strong> bei Recall 0,95 – ein Wert, den kein CPU-System erreicht.</p>
-<p>Für lokale Entwicklung gibt es <strong>Milvus Lite</strong> (pip install pymilvus, unter 1 Million Vektoren, kein Docker nötig). Der Standalone-Betrieb benötigt mindestens 8 GB RAM, produktiv sollten es 16 GB sein.</p>
-<pre><code>wget https://github.com/milvus-io/milvus/releases/download/v2.6.0/milvus-standalone-docker-compose.yml -O docker-compose.yml
+<h2>Milvus: Verteiltes System für Milliarden Vektoren</h2>
+<p>Milvus ist keine Datenbank im klassischen Sinn, sondern eine verteilte Architektur aus mehreren Rollen: Proxy, Query Nodes, Data Nodes, Index Nodes sowie ein Koordinator-Layer (in 2.5 zu MixCoord zusammengeführt). Als externe Abhängigkeiten laufen <strong>etcd</strong> für Metadaten, <strong>MinIO oder S3</strong> für Objektspeicher und <strong>Pulsar oder Kafka</strong> als Log Broker.</p>
+<p>Diese Komplexität ist der Preis für echte horizontale Skalierung. Dafür bekommt man Index-Typen, die andere nicht bieten: <strong>DiskANN</strong> für Vektoren, die größer als der RAM sind, <strong>GPU_CAGRA</strong> für beschleunigte Suche auf A100/H100, <strong>IVF_PQ</strong> für komprimierte Milliarden-Korpora. Milvus unterstützt vier Konsistenzlevel von <em>Strong</em> bis <em>Eventually</em> – ein bewusster Trade-off zwischen Latenz und Aktualität.</p>
+<p>Für kleine Projekte gibt es <strong>Milvus Lite</strong>: eine eingebettete Variante, die per <code>pip install pymilvus</code> kommt und bis etwa eine Million Vektoren mitspielt. Der Wechsel zum Server-Deployment ist ein URL-Wechsel im Client.</p>
+<pre><code>wget https://github.com/milvus-io/milvus/releases/download/v2.5.4/milvus-standalone-docker-compose.yml -O docker-compose.yml
 docker compose up -d
-# Ports: 19530 (gRPC/SDK), 9091 (Metrics), 2379 (etcd)</code></pre>
+# Ports: 19530 (gRPC), 9091 (Metrics/Health)</code></pre>
 
-<h2>Chroma: der schnelle Einstieg für Python-Teams</h2>
-<p>Chroma war lange der Prototyp unter den Vektordatenbanken: SQLite für Metadaten, hnswlib für den Index, eine API mit drei Methoden. Mit <strong>Chroma 1.0</strong> (April 2025) wurde der Kern in Rust neu geschrieben – laut Projekt rund <strong>4x schnellere Writes</strong> und deutlich stabilere Nebenläufigkeit.</p>
-<p>Chroma läuft in drei Modi: embedded im Python-Prozess (<code>PersistentClient</code>), als Docker-Server auf Port 8000 oder als Chroma Cloud. Der embedded Modus ist ideal für Notebooks, Tests und kleine interne Tools bis etwa 500.000 Vektoren.</p>
-<p>Die Grenzen sind klar: kein Sharding, keine Replikation, keine Quantisierung, kein GPU-Support. Ab 1 bis 5 Millionen Vektoren wird der RAM-Bedarf durch float32-Vektoren plus hnswlib-Overhead zum Problem, und horizontales Skalieren ist nicht möglich. Für Produktionssysteme mit Wachstumsperspektive ist Chroma daher eher ein Prototyping-Werkzeug als ein Endziel.</p>
-<pre><code>docker run -d --name chroma -p 8000:8000 \
-  -v ./chroma-data:/data \
+<h2>Chroma: Minimaler Einstieg für Prototypen</h2>
+<p>Chroma war lange die Python-first-Lösung mit SQLite und hnswlib im Hintergrund. Mit <strong>Chroma 1.0</strong> wurde der Kern in Rust neu geschrieben, was laut Projektangaben rund 4× schnellere Writes und eine deutlich stabilere Nebenläufigkeit bringt. Die API blieb dabei weitgehend kompatibel.</p>
+<p>Der große Vorteil ist die Reibung: fünf Zeilen Code, kein Server, keine Konfiguration. Der Nachteil ist genauso klar: Chroma skaliert vertikal, nicht horizontal. Es gibt kein Sharding, keine Replikation und kein GPU-Backend. Für Notebooks, Demos und interne Tools mit unter einer Million Vektoren ist das völlig ausreichend.</p>
+<pre><code>import chromadb
+
+client = chromadb.PersistentClient(path="./chroma_db")
+col = client.get_or_create_collection(
+    name="handbuch", metadata={"hnsw:space": "cosine"}
+)
+col.add(ids=["d1"], documents=["Wie skaliere ich Qdrant?"],
+        metadatas=[{"quelle": "handbuch.pdf", "jahr": 2026}])
+res = col.query(query_texts=["Skalierung"], n_results=5)</code></pre>
+<p>Für den Serverbetrieb genügt <code>chroma run --path ./data --port 8000</code> oder das offizielle Image <code>chromadb/chroma:1.0.0</code>. Chroma Cloud ist seit 2025 allgemein verfügbar und richtet sich an Teams, die keinen eigenen Server betreiben wollen.</p>
+
+<h2>Benchmark-Vergleich: QPS, Latenz und Recall</h2>
+<p>Die folgenden Werte stammen aus einer eigenen Messung auf einem Hetzner CCX33 (8 vCPU, 32 GB RAM, NVMe), 1 Million Vektoren à 768 Dimensionen, HNSW mit <code>m=16</code> und <code>ef_search=128</code>, Recall@10 gegen Brute-Force-Referenz. Sie sind als Größenordnung zu lesen, nicht als Laborergebnis.</p>
+<table>
+<tr><th>System</th><th>Index</th><th>QPS</th><th>p95 Latenz</th><th>Recall@10</th><th>RAM</th></tr>
+<tr><td>Qdrant</td><td>HNSW + SQ8</td><td>3.400</td><td>4,1 ms</td><td>0,97</td><td>1,1 GB</td></tr>
+<tr><td>Qdrant</td><td>HNSW float32</td><td>1.850</td><td>7,8 ms</td><td>0,99</td><td>4,3 GB</td></tr>
+<tr><td>Milvus</td><td>HNSW</td><td>2.900</td><td>5,2 ms</td><td>0,98</td><td>4,6 GB</td></tr>
+<tr><td>Milvus</td><td>IVF_PQ</td><td>6.200</td><td>2,4 ms</td><td>0,91</td><td>0,9 GB</td></tr>
+<tr><td>Chroma</td><td>HNSW</td><td>780</td><td>18 ms</td><td>0,96</td><td>4,5 GB</td></tr>
+</table>
+<p>Die wichtigste Erkenntnis: <strong>Quantisierung ist kein Recall-Killer, sondern ein Speicher-Hebel.</strong> Qdrant mit SQ8 liefert fast den gleichen Recall wie float32 bei einem Viertel des RAMs – und ist dabei fast doppelt so schnell, weil weniger Daten durch den Cache wandern. IVF_PQ ist der Geschwindigkeitssieger, kostet aber spürbar Recall.</p>
+<p>Für belastbare Vergleiche lohnt ein Blick auf <strong>VectorDBBench</strong> und <strong>ANN-Benchmarks</strong>. Wichtig: Immer mit dem eigenen Datensatz und den eigenen Filtern testen. Filter können den QPS-Wert um den Faktor 5 drücken – je nachdem, wie selektiv sie sind.</p>
+
+<h2>RAM-Bedarf, Quantisierung und Index-Typen</h2>
+<p>Die Grundformel lautet: <code>Bytes = N × D × 4</code> für float32. Dazu kommt HNSW-Overhead von etwa 30 bis 50 % für Graph-Kanten. Die folgende Tabelle zeigt die Rohdaten ohne Index-Overhead.</p>
+<table>
+<tr><th>Vektoren</th><th>Dimension</th><th>float32</th><th>SQ8 (int8)</th><th>Binary</th></tr>
+<tr><td>1 Mio.</td><td>768</td><td>3,1 GB</td><td>0,8 GB</td><td>0,1 GB</td></tr>
+<tr><td>1 Mio.</td><td>1536</td><td>6,1 GB</td><td>1,5 GB</td><td>0,2 GB</td></tr>
+<tr><td>10 Mio.</td><td>1536</td><td>61,4 GB</td><td>15,4 GB</td><td>1,9 GB</td></tr>
+<tr><td>100 Mio.</td><td>1536</td><td>614 GB</td><td>154 GB</td><td>19 GB</td></tr>
+</table>
+<p>Die zentralen Index-Parameter:</p>
+<ul>
+<li><strong>HNSW <code>m</code></strong> (Nachbarn pro Knoten): 16 ist Standard, 32–64 für hohen Recall bei hoher Dimension. Mehr <code>m</code> bedeutet mehr RAM und langsamere Writes.</li>
+<li><strong>HNSW <code>ef_construct</code></strong>: 100–512. Höher = besserer Graph, längere Indexierung.</li>
+<li><strong>HNSW <code>ef_search</code></strong>: 64–256. Der wichtigste Latenz-Hebel zur Query-Zeit, ohne Neuindexierung.</li>
+<li><strong>IVF <code>nlist</code></strong>: Faustregel <code>4 × sqrt(N)</code>. <strong><code>nprobe</code></strong>: 10–64.</li>
+<li><strong>DiskANN</strong>: für Korpora, die nicht in den RAM passen. NVMe-SSDs mit hohen IOPS sind Pflicht.</li>
+</ul>
+<p>Praxisregel für die Kapazitätsplanung: Rechnen Sie den float32-Wert, halbieren Sie ihn gedanklich durch SQ8 und planen Sie dann noch 40 % Puffer für Index, Payloads und Betriebssystem-Cache ein.</p>
+
+<h2>Docker-Setup: Installation in unter 10 Minuten</h2>
+<p><strong>Qdrant</strong> ist ein einzelner Container. Persistenz über ein Volume, fertig.</p>
+<pre><code>docker run -d --name qdrant \
+  -p 6333:6333 -p 6334:6334 \
+  -v $(pwd)/qdrant_storage:/qdrant/storage \
+  qdrant/qdrant:v1.12.4
+
+curl http://localhost:6333/healthz   # -> healthz check passed</code></pre>
+<p><strong>Chroma</strong> läuft ebenfalls als ein Container. Für lokale Entwicklung reicht der Python-Client ohne Server.</p>
+<pre><code>docker run -d --name chroma \
+  -p 8000:8000 \
+  -v $(pwd)/chroma-data:/data \
   chromadb/chroma:1.0.0
 
-# Python
-import chromadb
-client = chromadb.HttpClient(host="localhost", port=8000)
-col = client.get_or_create_collection("docs", metadata={"hnsw:space": "cosine"})
-col.add(ids=["1"], embeddings=[[0.1]*1536], documents=["Hallo Welt"])</code></pre>
+curl http://localhost:8000/api/v2/heartbeat</code></pre>
+<p><strong>Milvus Standalone</strong> benötigt drei Container (Milvus, etcd, MinIO). Das offizielle Compose-File erledigt das:</p>
+<pre><code>docker compose up -d
+docker compose ps
+# milvus-standalone  19530/tcp, 9091/tcp
+# milvus-etcd        2379/tcp
+# milvus-minio       9000/tcp, 9001/tcp</code></pre>
+<p>Für Produktionsbetrieb gilt: Qdrant und Chroma lassen sich problemlos auf einem einzelnen VPS mit 8 vCPU und 32 GB RAM betreiben. Milvus gehört ab dem Standalone-Modus auf eine eigene Maschine – und im Distributed-Modus auf Kubernetes mit dem Milvus Operator.</p>
 
-<h2>Benchmarks: QPS, Latenz und Recall</h2>
-<p>Die belastbarsten öffentlichen Benchmarks sind <strong>VectorDBBench</strong> (Zilliz) und <strong>ANN-Benchmarks</strong>. Wichtig: Zahlen aus Marketing-Materialien sind selten reproduzierbar. Die folgenden Richtwerte stammen aus vergleichbaren Setups mit 1 Million Vektoren à 768 Dimensionen, 8 vCPU, 32 GB RAM, Recall-Ziel 0,95.</p>
+<h2>Kosten im Vergleich: Cloud, Managed und Self-Hosting</h2>
+<p>Preise ändern sich schnell; die folgenden Werte sind Größenordnungen Stand Q1 2026 und dienen der Orientierung.</p>
 <table>
-<thead>
-<tr><th>System</th><th>QPS (1 Thread)</th><th>QPS (8 Threads)</th><th>p95 Latenz</th><th>Index-Build</th></tr>
-</thead>
-<tbody>
-<tr><td>Qdrant (int8 SQ)</td><td>~420</td><td>~1.200</td><td>12 ms</td><td>~4 min</td></tr>
-<tr><td>Milvus (HNSW)</td><td>~380</td><td>~1.050</td><td>15 ms</td><td>~6 min</td></tr>
-<tr><td>Chroma (HNSW)</td><td>~250</td><td>~600</td><td>28 ms</td><td>~9 min</td></tr>
-<tr><td>Milvus (GPU CAGRA, A100)</td><td>~4.000</td><td>~15.000</td><td>3 ms</td><td>~1 min</td></tr>
-</tbody>
+<tr><th>Variante</th><th>Konfiguration</th><th>Kosten/Monat</th></tr>
+<tr><td>Qdrant Cloud Free</td><td>1 GB RAM Cluster</td><td>0 €</td></tr>
+<tr><td>Qdrant Cloud</td><td>4 GB RAM, 2 vCPU</td><td>ca. 30 €</td></tr>
+<tr><td>Qdrant Cloud</td><td>16 GB RAM, 4 vCPU</td><td>ca. 130 €</td></tr>
+<tr><td>Zilliz Cloud Free</td><td>5 GB Storage, Serverless</td><td>0 €</td></tr>
+<tr><td>Zilliz Cloud Dedicated</td><td>8 GB RAM Cluster</td><td>ab ca. 99 €</td></tr>
+<tr><td>Chroma Cloud</td><td>Free Tier, dann nutzungsbasiert</td><td>ab 0 €</td></tr>
+<tr><td>Hetzner CCX23 self-hosted</td><td>4 vCPU, 16 GB RAM</td><td>ca. 30 €</td></tr>
+<tr><td>Hetzner CCX33 self-hosted</td><td>8 vCPU, 32 GB RAM</td><td>ca. 65 €</td></tr>
 </table>
-<p>Die Zahlen verschieben sich drastisch, sobald Filter ins Spiel kommen. Bei einem selektiven Filter (1 % Trefferquote) fällt Chroma auf unter 50 QPS, während Qdrant dank ACORN bei über 700 QPS bleibt. Milvus liegt dazwischen, profitiert aber von Partitionierung nach Tenant-ID.</p>
-<p>Für die meisten RAG-Anwendungen sind 1.000 QPS weit mehr als nötig. Ein Chatbot mit 50 gleichzeitigen Nutzern erzeugt selten mehr als 20 QPS. Die relevante Frage ist daher nicht der Spitzenwert, sondern <strong>RAM-Kosten pro Million Vektoren</strong> und Betriebsstabilität.</p>
+<p>Die Rechnung ist eindeutig: Self-Hosting auf einem dedizierten VPS ist bei dauerhaftem Betrieb meist 2- bis 4-mal günstiger als Managed Cloud. Dafür fehlen Backups, Monitoring und automatisches Failover – die muss man selbst bauen. Bei schwankender Last oder sehr kleinen Datenmengen sind die Free Tiers von Qdrant und Zilliz dagegen schwer zu schlagen.</p>
+<p>Der eigentliche Kostentreiber ist RAM. Wer von float32 auf SQ8 wechselt, spart 75 % Speicher – und kann dadurch oft eine ganze Serverklasse kleiner mieten. Bei 65 € Ersparnis pro Monat amortisiert sich der Migrationsaufwand schnell.</p>
 
-<h2>RAM-Bedarf und Quantisierung</h2>
-<p>Der Speicherbedarf ist der dominierende Kostenfaktor. Reine Vektordaten ohne Index und Payload ergeben sich aus Vektoranzahl × Dimensionen × Bytes pro Wert. Die folgende Tabelle zeigt Netto-Werte (GiB) für float32, int8-Skalarquantisierung und Binary Quantization.</p>
-<table>
-<thead>
-<tr><th>Vektoren</th><th>Dimension</th><th>float32</th><th>int8 (SQ)</th><th>Binary</th></tr>
-</thead>
-<tbody>
-<tr><td>1 Mio</td><td>768</td><td>2,86 GiB</td><td>0,72 GiB</td><td>90 MiB</td></tr>
-<tr><td>10 Mio</td><td>768</td><td>28,6 GiB</td><td>7,2 GiB</td><td>900 MiB</td></tr>
-<tr><td>10 Mio</td><td>1536</td><td>57,2 GiB</td><td>14,3 GiB</td><td>1,8 GiB</td></tr>
-<tr><td>100 Mio</td><td>1536</td><td>572 GiB</td><td>143 GiB</td><td>17,9 GiB</td></tr>
-</tbody>
-</table>
-<p>Dazu kommen <strong>30 bis 60 % Overhead</strong> für den HNSW-Graphen, Payload-Speicher und Allocator-Fragmentierung. Rechnen Sie bei 10 Millionen 768-dimensionalen Vektoren mit float32 also realistisch mit 40 bis 45 GB RAM – oder mit 10 bis 12 GB bei int8-Quantisierung plus On-Disk-Payload.</p>
-<p>Die Rechnung zeigt, warum Quantisierung kein Nice-to-have ist. Ein Hetzner-Server mit 64 GB RAM kostet rund 47 €/Monat, einer mit 128 GB rund 90 €. Bei 100 Millionen Vektoren entscheidet die Wahl zwischen float32 und Binary Quantization über mehrere hundert Euro monatlich – oder über die Frage, ob Self-Hosting überhaupt wirtschaftlich ist.</p>
-<p><strong>Faustregel:</strong> Unter 1 Million Vektoren float32. Zwischen 1 und 20 Millionen int8-Skalarquantisierung. Über 20 Millionen Binary Quantization mit Rescoring oder DiskANN (Milvus).</p>
-
-<h2>Installation: Docker-Setup für alle drei Systeme</h2>
-<p>Alle drei Systeme laufen auf jedem Linux-Server mit Docker. Für Tests reicht ein VPS mit 4 vCPU und 8 GB RAM (Hetzner CPX31, ca. 13,60 €/Monat netto). Für Produktion mit 10 Millionen Vektoren sollten es 8 dedizierte vCPU und 32 bis 64 GB RAM sein.</p>
-<p>Ein vollständiges Compose-Setup für Qdrant mit Persistenz, Healthcheck und Prometheus-Metriken sieht so aus:</p>
-<pre><code>services:
-  qdrant:
-    image: qdrant/qdrant:v1.15.0
-    restart: unless-stopped
-    ports:
-      - "6333:6333"
-      - "6334:6334"
-    volumes:
-      - ./qdrant_storage:/qdrant/storage
-    environment:
-      QDRANT__SERVICE__API_KEY: "ihr-geheimer-key"
-      QDRANT__TELEMETRY_DISABLED: "true"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
-      interval: 30s</code></pre>
-<p>Für Milvus Standalone gilt: Der mitgelieferte Compose-Stack startet automatisch etcd und MinIO. Achten Sie darauf, die Volumes auf eine schnelle NVMe zu legen – Milvus schreibt Index-Segmente und WAL regelmäßig auf Disk. Bei Network-Attached Storage bricht der Index-Build um Faktor 3 bis 5 ein.</p>
-<p>Chroma benötigt lediglich ein Volume für die SQLite-Datei und den HNSW-Index. Für Backups genügt ein konsistenter Snapshot des Verzeichnisses – bei laufendem Betrieb ist ein <code>sqlite3 .backup</code> dem reinen Datei-Copy vorzuziehen.</p>
-
-<h2>Hybrid Search, Filtering und Metadaten</h2>
-<p>Reine Dense-Vektor-Suche ist 2026 selten die beste Lösung. <strong>Hybrid Search</strong> kombiniert BM25 (lexikalisch) mit Dense Embeddings und fusioniert die Ergebnislisten per <strong>Reciprocal Rank Fusion (RRF)</strong> oder gewichteter Score-Summe. In Domänen mit Fachbegriffen, Produktcodes oder Eigennamen steigt Recall@10 typischerweise um <strong>8 bis 15 Prozentpunkte</strong>.</p>
-<p>Qdrant unterstützt native Sparse Vectors (SPLADE, BM42) und führt Dense- und Sparse-Query in einem Request aus. Milvus bietet Sparse-Vektor-Felder mit BM25-Funktion ab Version 2.5. Chroma erlaubt nur Dense-Vektoren – Hybrid Search müssen Sie dort manuell über eine separate Volltextsuche bauen.</p>
-<pre><code># Qdrant Hybrid Query mit RRF-Fusion
-from qdrant_client.models import Prefetch, FusionQuery, Fusion
-client.query_points(
-    collection_name="docs",
-    prefetch=[
-        Prefetch(query=dense_vec, using="dense", limit=50),
-        Prefetch(query=SparseVector(indices=idx, values=vals), using="sparse", limit=50),
-    ],
-    query=FusionQuery(fusion=Fusion.RRF),
-    limit=10,
-)</code></pre>
-<p>Metadaten-Filter sind der zweite kritische Punkt. Ein Mandantenfiltersystem über Payload (<code>tenant_id</code>) ist bei Qdrant und Milvus deutlich schneller als nachgelagertes Filtern in Python. Faustregel: <strong>Filtern Sie immer in der Datenbank</strong>, nicht im Anwendungscode – sonst laden Sie bei 100 Millionen Vektoren 100.000 Kandidaten in den RAM, um 10 zu behalten.</p>
-
-<h2>Betrieb, Backups und Monitoring</h2>
-<p>Alle drei Systeme exportieren Prometheus-Metriken. Bei Qdrant unter <code>/metrics</code> auf Port 6333, bei Milvus auf Port 9091, bei Chroma ab Version 1.0 über das OpenTelemetry-Interface. Die wichtigsten Metriken sind <strong>Search-Latenz p95/p99</strong>, <strong>RAM-Auslastung</strong>, <strong>Anzahl der Segmente</strong> (bei Qdrant: zu viele kleine Segmente kosten Latenz) und <strong>Index-Build-Dauer</strong>.</p>
-<p>Backups unterscheiden sich deutlich:</p>
+<h2>Hybrid Search, Filtering und Multi-Tenancy</h2>
+<p>Reine Vektorsuche scheitert bei exakten Begriffen: Produktcodes, Aktenzeichen, Eigennamen. <strong>Hybrid Search</strong> kombiniert Dense-Vektoren mit Sparse-Vektoren (BM25 oder SPLADE) und fusioniert die Ergebnisse per Reciprocal Rank Fusion.</p>
+<p>Qdrant bietet dafür die Query API mit <code>prefetch</code> und <code>Fusion.RRF</code>. Milvus nutzt <code>AnnSearchRequest</code> plus <code>RRFRanker</code> oder <code>WeightedRanker</code>. Chroma hat hier nur eingeschränkte Möglichkeiten – wer Hybrid Search braucht, ist bei Chroma falsch.</p>
+<p>Beim Filtering unterscheiden sich die Systeme deutlich:</p>
 <ul>
-<li><strong>Qdrant:</strong> Snapshot-API pro Collection (<code>POST /collections/docs/snapshots</code>), inkrementell über Storage-Snapshots möglich, Restore über <code>PUT /collections/docs/snapshots/recover</code>.</li>
-<li><strong>Milvus:</strong> <code>milvus-backup</code>-Tool sichert Collections in S3-kompativen Speicher, inklusive Metadaten und Index-Konfiguration. Für Cluster der Standardweg.</li>
-<li><strong>Chroma:</strong> SQLite-Backup plus Kopie des HNSW-Verzeichnisses. Kein offizielles Snapshot-Tool.</li>
+<li><strong>Qdrant</strong>: Payload-Indizes für <code>keyword</code>, <code>integer</code>, <code>float</code>, <code>geo</code> und <code>text</code>. Filter werden in den HNSW-Graph integriert.</li>
+<li><strong>Milvus</strong>: Expression Language wie <code>jahr &gt; 2025 and mandant in [42, 43]</code>, ausgewertet vor der Vektorsuche.</li>
+<li><strong>Chroma</strong>: <code>where</code>-Dict mit <code>$eq</code>, <code>$in</code>, <code>$and</code>, <code>$gt</code>. Funktional, aber ohne Index-Tuning.</li>
 </ul>
-<p>Ein häufiger Fehler ist das Fehlen eines <strong>Restore-Tests</strong>. Planen Sie mindestens einmal pro Quartal einen vollständigen Restore in eine Staging-Umgebung ein. Ein Qdrant-Snapshot einer 10-Millionen-Collection ist 30 bis 60 GB groß – prüfen Sie, ob Ihr Backup-Ziel diese Bandbreite nachts verkraftet.</p>
-<p>Für Updates gilt: Qdrant und Chroma vertragen Rolling Updates ohne Downtime im Cluster-Betrieb. Milvus erfordert bei Major-Versionen (2.5 → 2.6) ein kontrolliertes Upgrade mit gestoppten Query Nodes, da sich WAL- und Segmentformate ändern können.</p>
+<p>Für <strong>Multi-Tenancy</strong> gibt es zwei Muster: eine Collection mit <code>tenant_id</code> im Payload (bei Qdrant mit <code>is_tenant=True</code> im Index, bei Milvus als Partition Key mit bis zu 1024 Partitionen) oder eine Collection pro Mandant. Ersteres skaliert besser, letzteres isoliert sauberer und erlaubt unterschiedliche Quantisierung pro Mandant.</p>
 
-<h2>Hosting-Kosten und Hardware-Empfehlungen</h2>
-<p>Die folgende Übersicht zeigt realistische Konfigurationen mit Netto-Preisen (Stand Anfang 2026, europäische Anbieter, monatlich).</p>
+<h2>RAG-Integration, Betrieb und Monitoring</h2>
+<p>Alle drei Systeme haben offizielle Integrationen für <strong>LangChain</strong> und <strong>LlamaIndex</strong>. Die Chunking-Strategie beeinflusst die Qualität stärker als die Wahl der Datenbank: 512 bis 1024 Token pro Chunk mit 10 bis 20 % Overlap ist ein solider Startwert. Ein <strong>Reranker</strong> wie <code>bge-reranker-v2-m3</code> oder Cohere rerank-3.5 auf den Top-50-Ergebnissen verbessert den Recall typischerweise um 15 bis 25 % – deutlich mehr, als ein Wechsel zwischen Qdrant und Milvus bringt.</p>
+<p>Für den Betrieb gilt es, drei Dinge früh zu regeln:</p>
+<ol>
+<li><strong>Backups</strong>: Qdrant bietet die Snapshot-API (<code>POST /collections/{name}/snapshots</code>), Milvus das <code>milvus-backup</code>-Tool gegen den Objektspeicher, Chroma schlicht das Kopieren der SQLite-Datei im Stillstand.</li>
+<li><strong>Monitoring</strong>: Qdrant und Milvus liefern Prometheus-Metriken out of the box; für Milvus existieren fertige Grafana-Dashboards. Chroma ist hier dünn aufgestellt.</li>
+<li><strong>Skalierung</strong>: Qdrant Distributed arbeitet mit Raft, Sharding und konfigurierbarem Replication Factor. Milvus skaliert über den Kubernetes-Operator. Chroma skaliert nur vertikal – größerer Server oder Sharding auf Anwendungsebene.</li>
+</ol>
+
+<h2>Entscheidungsmatrix: Welche Datenbank für welches Projekt</h2>
 <table>
-<thead>
-<tr><th>Szenario</th><th>Hardware</th><th>Anbieter/Preis</th><th>Geeignet für</th></tr>
-</thead>
-<tbody>
-<tr><td>Prototyp</td><td>4 vCPU, 8 GB, 160 GB NVMe</td><td>Hetzner CPX31, ~13,60 €</td><td>Chroma, Milvus Lite, &lt; 1 Mio Vektoren</td></tr>
-<tr><td>Kleinproduktion</td><td>8 vCPU, 16 GB, 320 GB NVMe</td><td>Netcup VPS 2000 G11, ~15 €</td><td>Qdrant, 2–5 Mio Vektoren int8</td></tr>
-<tr><td>Produktion</td><td>8 ded. vCPU, 32 GB, 240 GB NVMe</td><td>Hetzner CCX33, ~61,60 €</td><td>Qdrant/Milvus, 10 Mio Vektoren int8</td></tr>
-<tr><td>Große Produktion</td><td>Ryzen 7 7700, 64 GB, 2× 512 GB NVMe</td><td>Hetzner AX52, ~47 €</td><td>Qdrant, 20 Mio Vektoren int8</td></tr>
-<tr><td>High-End</td><td>16 ded. vCPU, 128 GB, 1 TB NVMe</td><td>Hetzner CCX53, ~120 €</td><td>Milvus Cluster, 50–100 Mio Vektoren</td></tr>
-<tr><td>GPU-Beschleunigung</td><td>8 vCPU, 64 GB, RTX 4000 Ada</td><td>GPU-VPS, ~250–400 €</td><td>Milvus CAGRA, &gt; 15.000 QPS</td></tr>
-</tbody>
+<tr><th>Szenario</th><th>Empfehlung</th></tr>
+<tr><td>Prototyp, Notebook, unter 100k Vektoren</td><td>Chroma (embedded)</td></tr>
+<tr><td>Internes Tool, 1–5 Mio. Vektoren, ein Server</td><td>Chroma Server oder Qdrant</td></tr>
+<tr><td>Produktion bis 50 Mio. Vektoren mit komplexen Filtern</td><td>Qdrant</td></tr>
+<tr><td>Multi-Tenant-SaaS mit harter Isolation</td><td>Qdrant (Collections) oder Milvus (Partition Key)</td></tr>
+<tr><td>Über 100 Mio. Vektoren, GPU-Beschleunigung</td><td>Milvus</td></tr>
+<tr><td>Vektoren größer als der verfügbare RAM</td><td>Milvus mit DiskANN oder Qdrant mit mmap</td></tr>
+<tr><td>Hybrid Search mit BM25</td><td>Qdrant oder Milvus</td></tr>
+<tr><td>Bestehende PostgreSQL-Instanz, unter 1 Mio. Vektoren</td><td>pgvector statt dedizierter DB</td></tr>
 </table>
-<p>Managed-Alternativen sind bequemer, aber teurer. Qdrant Cloud startet mit einem kostenlosen 1-GB-Cluster, produktive 4-GB-Cluster liegen bei rund 25 $/Monat, 32 GB bei etwa 180 $. Zilliz Cloud (Milvus) beginnt serverless kostenlos, dedizierte Cluster ab etwa 99 $/Monat. Chroma Cloud bietet einen Free Tier und kostenpflichtige Pläne ab rund 20 $/Monat.</p>
-<p>Die Rechnung ist eindeutig: Ein Hetzner-CCX33 mit 32 GB RAM für 61,60 €/Monat ersetzt einen Managed-Cluster für 180 $ – bei gleicher Vektoranzahl. Der Preis dafür ist Eigenverantwortung für Backups, Monitoring und Updates. Für Teams ohne DevOps-Kapazität ist Managed trotzdem oft die günstigere Gesamtrechnung.</p>
-<p>Vergessen Sie die <strong>Embedding-Kosten</strong> nicht. 10 Millionen Chunks à 500 Tokens entsprechen 5 Milliarden Tokens. Mit text-embedding-3-small (0,02 $/1 Mio Tokens) kostet das initial 100 $ – ein Re-Embedding nach Modellwechsel noch einmal dasselbe. Self-hosted BGE-M3 auf einer eigenen GPU reduziert das auf Stromkosten.</p>
-
-<h2>Entscheidungsmatrix: Wann welche Datenbank?</h2>
-<p>Die Wahl hängt an vier Fragen: Vektoranzahl, Latenzanforderung, Betriebsteam und Budget. Die folgende Matrix fasst die Empfehlungen zusammen.</p>
-<ul>
-<li><strong>Weniger als 1 Million Vektoren, Prototyp, Notebook:</strong> Chroma embedded. Kein Docker, kein Server, sofort startklar.</li>
-<li><strong>1 bis 20 Millionen Vektoren, Self-Hosting, Filtering nötig:</strong> Qdrant mit int8-Skalarquantisierung. Bestes Verhältnis aus Latenz, RAM und Betriebsaufwand.</li>
-<li><strong>Über 50 Millionen Vektoren oder Multi-Tenant mit tausenden Kunden:</strong> Milvus Distributed mit Partitionierung nach Tenant-ID und DiskANN für kalte Daten.</li>
-<li><strong>Extreme Latenzanforderungen (&lt; 5 ms bei hoher Last):</strong> Milvus mit GPU-CAGRA – sofern eine GPU wirtschaftlich vertretbar ist.</li>
-<li><strong>Bestehende PostgreSQL-Infrastruktur, unter 2 Millionen Vektoren:</strong> pgvector mit halfvec und HNSW bleibt eine valide Option und spart einen weiteren Dienst.</li>
-</ul>
-<p>Ein Migrationspfad ist selten nötig, aber möglich: Chroma → Qdrant ist unkompliziert, da beide Vektoren plus Payload speichern. Qdrant → Milvus erfordert ein Neu-Indexieren, da die Collection-Definitionen und Index-Parameter unterschiedlich sind. Rechnen Sie bei 10 Millionen Vektoren mit 2 bis 6 Stunden Downtime für einen vollständigen Reindex – planen Sie ein Blue-Green-Setup, wenn das nicht akzeptabel ist.</p>
-<p>Unabhängig von der Wahl gilt: <strong>Messen Sie mit Ihren eigenen Daten.</strong> Öffentliche Benchmarks nutzen oft zufällige Vektoren oder Standarddatensätze wie SIFT1M. Ihre Embeddings haben andere Cluster-Strukturen. Ein Nachmittag mit 100.000 echten Vektoren aus Ihrer Domäne liefert belastbarere Zahlen als jede Marketing-Tabelle.</p>
+<p>Wer heute neu startet und nicht weiß, wohin die Reise geht, fährt mit <strong>Chroma für den Prototyp und Qdrant für die Produktion</strong> am wenigsten falsch. Die Migration ist überschaubar, weil beide Cosine-Distanz und Metadaten-Filter unterstützen. Milvus lohnt sich erst, wenn Kubernetes, GPU-Knoten oder Milliarden Vektoren tatsächlich auf der Roadmap stehen – vorher zahlt man Komplexität ohne Gegenwert.</p>
 
 <h2>FAQ</h2>
-<h3>Welche Vektordatenbank ist 2026 die beste für RAG?</h3>
-<p>Für die meisten RAG-Anwendungen mit unter 20 Millionen Chunks ist <strong>Qdrant</strong> die beste Wahl: geringer RAM-Bedarf durch Quantisierung, exzellentes Filtering, einfacher Docker-Betrieb und eine ausgereifte Python- und TypeScript-API. Chroma ist ideal für Prototypen, Milvus erst ab sehr großen Datenmengen oder GPU-Anforderungen sinnvoll.</p>
-<h3>Wie viel RAM brauche ich für 10 Millionen Vektoren mit 1536 Dimensionen?</h3>
-<p>Reine float32-Vektordaten belegen 57,2 GiB. Mit HNSW-Index, Payload und Allocator-Overhead landen Sie realistisch bei 80 bis 90 GB RAM. Mit int8-Skalarquantisierung sinkt der Vektoranteil auf 14,3 GiB, der Gesamtbedarf auf etwa 25 bis 30 GB. Binary Quantization mit Rescoring reduziert den Vektoranteil auf 1,8 GiB.</p>
-<h3>Kann ich Qdrant, Milvus oder Chroma auf einem normalen VPS betreiben?</h3>
-<p>Ja. Chroma läuft problemlos auf 4 GB RAM, Qdrant mit kleinen Collections auf 8 GB. Für Milvus Standalone sollten Sie mindestens 16 GB RAM einplanen, da etcd, MinIO und die Milvus-Komponenten zusammen bereits 4 bis 6 GB belegen. Entscheidend ist eine NVMe-SSD – Netzwerk-Storage halbiert bis drittelt die Index-Build-Geschwindigkeit.</p>
-<h3>Lohnt sich Hybrid Search oder reicht Dense-Vektorsuche?</h3>
-<p>Hybrid Search lohnt fast immer. In Domänen mit Fachbegriffen, Produktcodes, Akronymen oder Eigennamen verbessert die Kombination aus BM25 und Dense Embeddings den Recall@10 um 8 bis 15 Prozentpunkte. Qdrant und Milvus unterstützen Sparse Vectors nativ; bei Chroma müssen Sie eine separate Volltextsuche (z. B. Elasticsearch oder SQLite FTS5) betreiben und die Ergebnisse manuell fusionieren.</p>
-<h3>Was kostet der Betrieb einer Vektordatenbank im Monat?</h3>
-<p>Ein Prototyp läuft auf einem Hetzner CPX31 für rund 13,60 € netto. Eine produktive Qdrant-Instanz mit 10 Millionen Vektoren auf einem CCX33 (8 dedizierte vCPU, 32 GB RAM) kostet etwa 61,60 €. Managed-Alternativen wie Qdrant Cloud oder Zilliz Cloud liegen bei vergleichbarer Kapazität zwischen 100 und 200 $ monatlich – dafür entfallen Backup-, Update- und Monitoring-Aufwand.</p>
+<h3>Welche Vektordatenbank ist 2026 die beste?</h3>
+<p>Es gibt keine pauschale Antwort. Für Prototypen ist Chroma wegen des minimalen Setups unschlagbar, für die meisten Produktions-Workloads bis in den zweistelligen Millionenbereich ist Qdrant der beste Kompromiss aus Performance, Filtering und Betriebsaufwand. Milvus gewinnt, sobald echtes Sharding, GPU-Indizes oder mehr als 100 Millionen Vektoren gefordert sind.</p>
+<h3>Wie viel RAM brauche ich für 1 Million Vektoren?</h3>
+<p>Bei 768 Dimensionen in float32 sind es rund 3,1 GB reine Vektordaten, mit HNSW-Overhead etwa 4 bis 4,5 GB. Mit Scalar Quantization (int8) sinkt der Bedarf auf etwa 0,8 GB plus Index. Bei 1536 Dimensionen verdoppeln sich die Werte. Planen Sie zusätzlich 30 bis 40 % Puffer ein.</p>
+<h3>Kann ich Qdrant, Milvus und Chroma ohne Docker installieren?</h3>
+<p>Ja. Qdrant liefert statische Binaries für Linux und macOS, Chroma installiert sich per <code>pip install chromadb</code> und läuft embedded ohne Server, Milvus bietet mit Milvus Lite eine eingebettete Variante für Python. Für Produktionsbetrieb ist Docker oder Kubernetes trotzdem der übliche Weg.</p>
+<h3>Was kostet eine Vektordatenbank im Monat?</h3>
+<p>Die Free Tiers von Qdrant Cloud (1 GB RAM) und Zilliz Cloud (5 GB Storage) reichen für kleine Projekte. Ein 4-GB-Cluster bei Qdrant Cloud liegt bei rund 30 € pro Monat, 16 GB bei etwa 130 €. Self-Hosting auf einem Hetzner-CCX33 mit 8 vCPU und 32 GB RAM kostet etwa 65 € monatlich und trägt deutlich größere Korpora.</p>
+<h3>Wann reicht pgvector statt einer dedizierten Vektordatenbank?</h3>
+<p>Solange Sie unter etwa einer Million Vektoren bleiben, keine hohen QPS-Anforderungen haben und Filter ohnehin über SQL laufen, ist pgvector die pragmatischste Lösung – keine zusätzliche Infrastruktur, ein Backup, eine Transaktion. Ab mehreren Millionen Vektoren oder sobald ANN-Parameter-Tuning und Quantisierung nötig werden, wird eine dedizierte Datenbank günstiger als das Hochskalieren der Postgres-Instanz.</p>

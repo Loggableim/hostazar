@@ -1,0 +1,234 @@
+<h2>Warum Quantisierung 2026 der Standardfall ist</h2>
+
+<p>Noch 2023 war ein 70B-Modell in FP16 ein Luxusproblem: 140 GB VRAM, also zwei A100-80GB oder vier RTX 4090. 2026 ist das anders. Wer heute ein Llama-3.3-70B, Qwen3-32B oder Mistral-Large lokal betreibt, lädt in der Regel eine 4-Bit-Variante mit 20 bis 45 GB – und bekommt dafür rund 95 bis 98 % der Originalqualität.</p>
+
+<p>Quantisierung ist damit kein Kompromiss mehr, sondern der Default. Der Grund ist banal: Speicherbandbreite ist der Flaschenhals bei der Token-Generierung. Ein Modell mit halbierter Gewichtsgröße läuft auf derselben GPU fast doppelt so schnell, weil pro Token weniger Bytes durch den HBM müssen.</p>
+
+<p>Dieser Guide zeigt dir, wie GGUF, GPTQ und AWQ technisch funktionieren, welches Format du für welchen Stack nimmst, wie du den Qualitätsverlust messbar prüfst und welche Server-Hardware 2026 dafür sinnvoll ist.</p>
+
+<h2>Grundlagen: Bits, Gruppen und Skalen</h2>
+
+<p>Ein Sprachmodell besteht aus Milliarden von Gewichten, die im Training als FP16 oder BF16 vorliegen – je 16 Bit. Quantisierung bildet diese Werte auf weniger Bits ab, meist 4 oder 8. Der einfachste Weg ist <strong>absmax-Quantisierung</strong>: Man nimmt den betragsmäßig größten Wert einer Gruppe, teilt ihn durch den maximal darstellbaren Integer und speichert den Skalierungsfaktor.</p>
+
+<p>Entscheidend ist die <strong>Gruppengröße</strong> (group size). Statt ein ganzes Layer mit einem Skalenfaktor zu versehen, teilt man es in Blöcke von 32, 64 oder 128 Gewichten. Kleinere Gruppen = bessere Qualität, mehr Overhead. Bei 4 Bit und group_size 128 kostet der Skalenfaktor 16 Bit pro 128 Gewichte, also zusätzliche 0,125 Bit pro Gewicht – praktisch vernachlässigbar.</p>
+
+<p>Die effektive Bitbreite eines <em>Q4_K_M</em>-Modells liegt deshalb nicht bei 4,0, sondern bei etwa 4,85 Bit pro Gewicht. Das erklärt, warum eine 7B-Q4-Datei nicht 3,5 GB groß ist, sondern rund 4,4 GB.</p>
+
+<ul>
+  <li><strong>FP16/BF16</strong> – 16 Bit, Referenzqualität, 2 Byte pro Gewicht</li>
+  <li><strong>INT8 / Q8_0</strong> – 8 Bit, praktisch verlustfrei, halber Speicher</li>
+  <li><strong>INT4</strong> – 4 Bit, der Sweet Spot für Consumer-Hardware</li>
+  <li><strong>INT2/INT3</strong> – nur mit i-quants oder neuen Verfahren brauchbar</li>
+</ul>
+
+<h2>GGUF – das universelle Format für llama.cpp</h2>
+
+<p>GGUF (GPT-Generated Unified Format) ist das Containerformat von llama.cpp und hat die alten GGML-Dateien 2023 abgelöst. Es ist ein Single-File-Format: Gewichte, Tokenizer, Chat-Template und Metadaten stecken in einer Datei. Das macht es zum De-facto-Standard für lokale Inferenz auf CPU, Apple Silicon und gemischten CPU/GPU-Setups.</p>
+
+<p>GGUF kennt die größte Auswahl an Quantisierungsstufen. Die K-Quants (Q2_K bis Q6_K) nutzen eine Mischung aus verschiedenen Bitbreiten pro Block – Aufmerksamkeits- und Feed-Forward-Gewichte werden unterschiedlich stark komprimiert. Die i-quants (IQ1_S bis IQ4_XS) verwenden Gitterquantisierung und sind bei sehr niedrigen Bitbreiten deutlich besser als K-Quants.</p>
+
+<table>
+  <thead>
+    <tr><th>GGUF-Typ</th><th>Eff. Bit/Gewicht</th><th>7B-Größe</th><th>70B-Größe</th><th>Empfehlung</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Q8_0</td><td>8,50</td><td>7,2 GB</td><td>71 GB</td><td>Wenn VRAM reichlich da ist</td></tr>
+    <tr><td>Q6_K</td><td>6,56</td><td>5,5 GB</td><td>55 GB</td><td>Nahezu verlustfrei</td></tr>
+    <tr><td>Q5_K_M</td><td>5,69</td><td>4,8 GB</td><td>48 GB</td><td>Guter Allrounder</td></tr>
+    <tr><td>Q4_K_M</td><td>4,85</td><td>4,4 GB</td><td>42,5 GB</td><td>Standard-Empfehlung</td></tr>
+    <tr><td>IQ4_XS</td><td>4,25</td><td>3,8 GB</td><td>38 GB</td><td>Etwas kleiner, ähnliche Qualität</td></tr>
+    <tr><td>Q3_K_M</td><td>3,91</td><td>3,5 GB</td><td>32,5 GB</td><td>Nur bei knappem VRAM</td></tr>
+    <tr><td>Q2_K</td><td>2,96</td><td>2,8 GB</td><td>26,5 GB</td><td>Spürbare Qualitätsverluste</td></tr>
+  </tbody>
+</table>
+
+<p>Faustregel 2026: <strong>Q4_K_M ist der beste Kompromiss</strong>. Unter Q4 wird der Qualitätsabfall bei Reasoning- und Coding-Aufgaben deutlich sichtbar, oberhalb von Q5 zahlst du viel Speicher für wenig Gewinn.</p>
+
+<h2>GPTQ – der GPU-Klassiker mit ExLlama-Kernels</h2>
+
+<p>GPTQ (Generative Pre-trained Transformer Quantization) stammt aus einer Paper-Veröffentlichung von 2022 und war das erste Verfahren, das 4-Bit-Quantisierung für LLMs praxistauglich machte. Der Ansatz ist <strong>layerweise und fehlerkorrigierend</strong>: Für jedes Layer wird die Quantisierung so gewählt, dass der Ausgabefehler minimiert wird – man nutzt die Hessische Matrix der Eingangsaktivierungen (aus einem Kalibrierdatensatz), um zu entscheiden, welche Gewichte wie stark gerundet werden dürfen.</p>
+
+<p>Wichtige Parameter beim Erstellen eines GPTQ-Modells:</p>
+
+<ul>
+  <li><strong>bits</strong> – 3, 4 oder 8 (4 ist Standard)</li>
+  <li><strong>group_size</strong> – 32, 64, 128 (128 ist Standard, 32 kostet ~10 % mehr Speicher für bessere Qualität)</li>
+  <li><strong>desc_act / act-order</strong> – sortiert Spalten nach Aktivierungsstärke, kostet etwas Speed, bringt Qualität</li>
+  <li><strong>damp_percent</strong> – Dämpfung der Hessischen Matrix, 0,01 ist ein guter Default</li>
+</ul>
+
+<p>Der Vorteil von GPTQ liegt in der Inferenz-Geschwindigkeit. Mit den ExLlamaV2-Kernels erreicht ein 4-Bit-GPTQ-Modell auf einer RTX 4090 oft 100+ Tokens/s bei einem 7B-Modell – deutlich mehr als llama.cpp mit denselben Gewichten. Nachteil: GPTQ ist GPU-only, die Dateien sind nicht portabel auf CPU-Setups und die Qualität bei 3 Bit ist schlechter als bei GGUF-i-quants.</p>
+
+<h2>AWQ – aktivierungsbewusst und schnell</h2>
+
+<p>AWQ (Activation-aware Weight Quantization) kam 2023 von MIT und ist heute das bevorzugte Format für vLLM-Produktionsdeployments. Die Kernidee: Nicht alle Gewichte sind gleich wichtig. Etwa 1 % der Kanäle trägt überproportional viel zur Ausgabe bei – AWQ identifiziert diese über die Aktivierungsverteilung und schützt sie, indem es die Gewichte vor der Quantisierung per Skalierung umverteilt.</p>
+
+<p>Der praktische Unterschied zu GPTQ: AWQ braucht keine Rückpropagierung und keinen Gradienten, ist damit schneller zu erzeugen und robuster gegenüber Overfitting auf den Kalibrierdatensatz. In Benchmarks liegt AWQ bei 4 Bit meist 0,1 bis 0,3 Perplexity-Punkte vor GPTQ, bei ähnlicher Geschwindigkeit.</p>
+
+<pre><code># AWQ-Modell mit vLLM servieren
+vllm serve Qwen/Qwen2.5-7B-Instruct-AWQ \
+  --quantization awq \
+  --dtype float16 \
+  --max-model-len 16384 \
+  --gpu-memory-utilization 0.92 \
+  --port 8000
+</code></pre>
+
+<p>Nachteil von AWQ: Es gibt praktisch nur 4-Bit-Varianten. Wer 3 Bit oder 6 Bit braucht, ist bei GGUF oder EXL3 besser aufgehoben. Zudem ist die Formatunterstützung außerhalb von vLLM, TGI und SGLang dünn.</p>
+
+<h2>Direkter Vergleich: GGUF vs. GPTQ vs. AWQ</h2>
+
+<table>
+  <thead>
+    <tr><th>Kriterium</th><th>GGUF</th><th>GPTQ</th><th>AWQ</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Primäre Engine</td><td>llama.cpp, Ollama, LM Studio</td><td>ExLlamaV2, vLLM, TGI</td><td>vLLM, SGLang, TGI</td></tr>
+    <tr><td>Hardware</td><td>CPU, Metal, CUDA, ROCm</td><td>CUDA, ROCm</td><td>CUDA, ROCm</td></tr>
+    <tr><td>Bitbreiten</td><td>2–8 Bit, viele Varianten</td><td>3, 4, 8 Bit</td><td>4 Bit</td></tr>
+    <tr><td>Single-File</td><td>Ja</td><td>Nein (Ordner)</td><td>Nein (Ordner)</td></tr>
+    <tr><td>Batching-Qualität</td><td>Mittel</td><td>Gut</td><td>Sehr gut</td></tr>
+    <tr><td>Tokens/s (7B, RTX 4090)</td><td>~95</td><td>~135</td><td>~140</td></tr>
+    <tr><td>Qualität @ 4 Bit</td><td>Sehr gut (Q4_K_M)</td><td>Gut</td><td>Sehr gut</td></tr>
+  </tbody>
+</table>
+
+<p>Kurzfassung: <strong>Einzelplatz und Mac → GGUF. GPU-Server mit vLLM → AWQ. Bestehende GPTQ-Pipeline oder ExLlama-Setup → GPTQ.</strong> Für Multi-User-Inferenz mit hohem Durchsatz ist AWQ in vLLM 2026 die klarste Wahl.</p>
+
+<h2>Qualitätsverlust messen: Perplexity, KL-Divergenz, Benchmarks</h2>
+
+<p>Perplexity allein sagt wenig aus. Ein Modell kann auf WikiText-103 eine Perplexity von 6,1 statt 5,9 haben und trotzdem bei Mathematik-Aufgaben 15 % schlechter abschneiden. Prüfe deshalb immer drei Ebenen:</p>
+
+<ol>
+  <li><strong>Perplexity</strong> auf einem sauberen Korpus (WikiText-103, C4) – schnelle Sanity-Prüfung</li>
+  <li><strong>KL-Divergenz</strong> gegen das FP16-Modell über 1000+ Prompt-Tokens – sensitiver als Perplexity</li>
+  <li><strong>Aufgaben-Benchmarks</strong> – MMLU, HumanEval, GSM8K mit identischen Seeds</li>
+</ol>
+
+<p>Typische Werte für Llama-3.1-8B auf WikiText-103:</p>
+
+<table>
+  <thead>
+    <tr><th>Format</th><th>Perplexity</th><th>MMLU</th><th>HumanEval</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>FP16 (Referenz)</td><td>5,90</td><td>68,4 %</td><td>72,6 %</td></tr>
+    <tr><td>Q8_0</td><td>5,91</td><td>68,3 %</td><td>72,6 %</td></tr>
+    <tr><td>Q6_K</td><td>5,94</td><td>68,1 %</td><td>71,9 %</td></tr>
+    <tr><td>Q5_K_M</td><td>5,98</td><td>67,8 %</td><td>71,3 %</td></tr>
+    <tr><td>Q4_K_M</td><td>6,07</td><td>67,1 %</td><td>69,5 %</td></tr>
+    <tr><td>Q3_K_M</td><td>6,38</td><td>64,9 %</td><td>63,1 %</td></tr>
+    <tr><td>Q2_K</td><td>7,61</td><td>58,2 %</td><td>49,4 %</td></tr>
+  </tbody>
+</table>
+
+<p>Die Zahlen zeigen klar: Bis Q4_K_M sind die Verluste im Rauschen. Ab Q3 bricht vor allem Code-Generierung ein – HumanEval fällt von 69,5 % auf 63,1 %. Bei Q2 ist das Modell für ernsthafte Arbeit unbrauchbar.</p>
+
+<h2>Praxis: Modelle selbst quantisieren</h2>
+
+<p>Für GGUF brauchst du llama.cpp mit CUDA- oder Metal-Backend. Der Ablauf ist immer gleich: FP16-GGUF erzeugen, dann quantisieren.</p>
+
+<pre><code># 1. llama.cpp bauen
+git clone https://github.com/ggml-org/llama.cpp
+cd llama.cpp && cmake -B build -DGGML_CUDA=ON && cmake --build build -j
+
+# 2. HuggingFace-Modell nach FP16-GGUF konvertieren
+python convert_hf_to_gguf.py ./meta-llama-3.1-8b --outfile model-f16.gguf --outtype f16
+
+# 3. Nach Q4_K_M quantisieren
+./build/bin/llama-quantize model-f16.gguf model-Q4_K_M.gguf Q4_K_M
+
+# 4. Mit vollem GPU-Offload testen
+./build/bin/llama-cli -m model-Q4_K_M.gguf \
+  -p "Erkläre Quantisierung in drei Sätzen." \
+  -n 256 -ngl 99 -c 8192 --temp 0.7
+</code></pre>
+
+<p>Für AWQ und GPTQ nutzt du am einfachsten <strong>AutoAWQ</strong> bzw. <strong>llm-compressor</strong> von vLLM. Ein 7B-Modell ist auf einer RTX 4090 in 8 bis 15 Minuten quantisiert, ein 70B-Modell braucht auf einer A100-80GB etwa 45 bis 90 Minuten.</p>
+
+<pre><code># AWQ-Quantisierung mit llm-compressor
+python -m llmcompressor.transformers \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --scheme W4A16 \
+  --output-dir ./llama-8b-awq \
+  --calibration-dataset ultrachat_200k \
+  --num-calibration-samples 512
+</code></pre>
+
+<p>Wichtig: Kalibrierdaten müssen zur Zielaufgabe passen. Wer ein Modell für deutschen Support quantisiert, sollte deutsche Kalibriertexte nutzen – englische Kalibrierung kostet bei mehrsprachigen Modellen messbar Qualität.</p>
+
+<h2>VRAM- und Hardware-Planung mit konkreten Zahlen</h2>
+
+<p>Die Formel für den Bedarf lautet: <strong>Modellgröße + KV-Cache + Overhead (1–2 GB)</strong>. Der KV-Cache skaliert linear mit Kontextlänge, Batch-Größe und Layer-Anzahl.</p>
+
+<pre><code>KV-Cache (GB) = 2 × Layer × KV-Heads × Head-Dim × Seq-Len × Batch × Bytes
+# Llama-3.1-8B, 8192 Kontext, Batch 1, FP16:
+# 2 × 32 × 8 × 128 × 8192 × 1 × 2 Byte ≈ 1,07 GB
+</code></pre>
+
+<table>
+  <thead>
+    <tr><th>Modell</th><th>Q4_K_M</th><th>Q5_K_M</th><th>Q8_0</th><th>Passende GPU</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Llama 3.2 3B</td><td>2,0 GB</td><td>2,3 GB</td><td>3,4 GB</td><td>RTX 3060 12 GB</td></tr>
+    <tr><td>Qwen3 8B</td><td>4,7 GB</td><td>5,4 GB</td><td>8,1 GB</td><td>RTX 4060 Ti 16 GB</td></tr>
+    <tr><td>Mistral Small 24B</td><td>14,3 GB</td><td>16,5 GB</td><td>24,5 GB</td><td>RTX 4090 24 GB</td></tr>
+    <tr><td>Qwen3 32B</td><td>19,8 GB</td><td>22,7 GB</td><td>34,0 GB</td><td>RTX 5090 32 GB</td></tr>
+    <tr><td>Llama 3.3 70B</td><td>42,5 GB</td><td>48,0 GB</td><td>71,0 GB</td><td>2× RTX 5090 / A100 80 GB</td></tr>
+    <tr><td>DeepSeek-R1 671B</td><td>~380 GB</td><td>—</td><td>—</td><td>8× H100 80 GB</td></tr>
+  </tbody>
+</table>
+
+<p>Für den Heimgebrauch ist eine 24-GB-Karte 2026 der Sweet Spot: Sie trägt 32B-Modelle in Q4 mit 8K-Kontext. Wer 70B will, kommt um 48 GB VRAM nicht herum – zwei RTX 5090 oder eine gebrauchte A100-80GB.</p>
+
+<h2>Neue Formate 2026: MXFP4, NVFP4, EXL3 und BitNet</h2>
+
+<p>Die Quantisierungslandschaft hat sich 2025/2026 deutlich bewegt. Die wichtigsten Neuerungen:</p>
+
+<ul>
+  <li><strong>MXFP4</strong> – Microsclaing-Format aus dem OCP-Standard, 4 Bit mit gemeinsamem Exponenten pro 32er-Block. Von NVIDIA Blackwell nativ unterstützt.</li>
+  <li><strong>NVFP4</strong> – NVIDIAs Variante mit FP8-Skalen pro 16er-Block, in TensorRT-LLM und vLLM ab Version 0.9 verfügbar. Praktisch verlustfrei bei 4 Bit für viele Modelle.</li>
+  <li><strong>EXL3</strong> – ExLlamaV3 mit Trellis-Quantisierung, erreicht bei 3 Bit die Qualität von klassischem 4-Bit. Sehr gut für 70B auf 2× 24 GB.</li>
+  <li><strong>BitNet b1.58</strong> – ternäre Gewichte (−1, 0, +1), nur mit von Grund auf trainierten Modellen nutzbar, nicht nachträglich anwendbar.</li>
+</ul>
+
+<p>Für die Praxis heißt das: Auf Blackwell-GPUs (B200, RTX 5090) lohnt sich NVFP4, weil die Tensor Cores es nativ beschleunigen. Auf Ampere und Ada bleibt Q4_K_M oder AWQ die beste Wahl.</p>
+
+<h2>Hosting: Welcher Server für welches Format</h2>
+
+<p>Wer Quantisierung produktiv nutzt, braucht passende Hardware. Die folgende Übersicht zeigt typische Optionen mit Preisen (Stand Anfang 2026, monatlich bei Jahresvertrag):</p>
+
+<table>
+  <thead>
+    <tr><th>Setup</th><th>GPU / VRAM</th><th>Geeignet für</th><th>Preis</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Hetzner GEX44</td><td>RTX 4000 SFF Ada, 20 GB</td><td>8B–24B in Q4/Q5, GGUF + vLLM</td><td>~184 €</td></tr>
+    <tr><td>Hetzner GEX130</td><td>RTX 6000 Ada, 48 GB</td><td>32B Q5, 70B Q3</td><td>~720 €</td></tr>
+    <tr><td>OVH Advance-2</td><td>2× RTX 5000 Ada, 64 GB</td><td>70B Q4 mit 16K Kontext</td><td>~1.100 €</td></tr>
+    <tr><td>RunPod RTX 4090</td><td>24 GB, stündlich</td><td>Tests, Batch-Jobs</td><td>0,34–0,69 $/h</td></tr>
+    <tr><td>RunPod A100 80 GB</td><td>80 GB, stündlich</td><td>70B Q8, 120B Q4</td><td>1,19–1,89 $/h</td></tr>
+  </tbody>
+</table>
+
+<p>Für den Dauerbetrieb ist ein dedizierter Server meist günstiger als Stundenpreise: Eine RTX 4090 für 400 €/Monat entspricht 730 Stunden bei 0,55 $/h. Für Experimente und unregelmäßige Last ist die stündliche Miete klar im Vorteil.</p>
+
+<p>CPU-seitig gilt: GGUF mit <code>-ngl 99</code> schiebt alle Layer auf die GPU. Bei zu wenig VRAM lässt du die letzten Layer auf der CPU und verlierst sofort 60–80 % Geschwindigkeit. Besser: kleineres Modell oder niedrigere Quantisierung, aber alles auf der GPU.</p>
+
+<h2>FAQ</h2>
+
+<h3>Was ist besser: GGUF oder AWQ?</h3>
+<p>Das hängt vom Stack ab. GGUF ist portabler, läuft auf CPU, Mac und GPU und ist ideal für Einzelplatz-Setups mit llama.cpp, Ollama oder LM Studio. AWQ ist schneller bei Multi-User-Batching und die richtige Wahl für vLLM oder SGLang auf Servern. Qualitativ liegen Q4_K_M und AWQ 4-Bit sehr nah beieinander.</p>
+
+<h3>Wie viel Qualität verliere ich bei 4-Bit-Quantisierung?</h3>
+<p>Bei Q4_K_M oder AWQ 4-Bit verlierst du typischerweise 1 bis 2 Prozentpunkte auf MMLU und 2 bis 3 Punkte auf HumanEval. In der Praxis ist das selten spürbar. Ab 3 Bit wird es kritisch, ab 2 Bit bricht die Code-Generierung um 20 Punkte ein.</p>
+
+<h3>Reicht eine 24-GB-GPU für ein 70B-Modell?</h3>
+<p>Nein, nicht vollständig. Ein 70B-Modell braucht in Q4_K_M etwa 42,5 GB plus KV-Cache. Mit 24 GB musst du Layer auf die CPU auslagern, was die Geschwindigkeit auf 3 bis 6 Tokens/s drückt. Für flüssiges Arbeiten brauchst du mindestens 48 GB VRAM.</p>
+
+<h3>Kann ich ein quantisiertes Modell nachträglich weiter trainieren?</h3>
+<p>Nur eingeschränkt. LoRA-Adapter lassen sich auf quantisierte Basismodelle aufsetzen (QLoRA-Prinzip), das Training selbst läuft aber immer in höherer Präzision. Vollständiges Fine-Tuning eines 4-Bit-Modells ist nicht sinnvoll – quantisiere erst nach dem Training.</p>
+
+<h3>Welche Quantisierung für deutsche Sprachmodelle?</h3>
+<p>Für mehrsprachige Modelle gilt dieselbe Faustregel, aber achte auf die Kalibrierdaten. Bei AWQ und GPTQ sollte der Kalibriersatz deutschen Text enthalten, sonst verliert das Modell bei deutschen Aufgaben überproportional. GGUF-Q4_K_M ist hier robuster, weil keine Kalibrierung nötig ist.</p>
