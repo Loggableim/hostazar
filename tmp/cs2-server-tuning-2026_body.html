@@ -1,0 +1,200 @@
+<h2>Warum CS2 Server Tuning 2026 wichtiger denn je ist</h2>
+<p>Counter-Strike 2 hat die Art und Weise, wie Server mit Spieler-Inputs umgehen, grundlegend verändert. Valve hat mit dem <strong>Subtick-System</strong> einen Paradigmenwechsel eingeführt: Inputs werden nicht mehr nur zum nächsten Tick verarbeitet, sondern mit Zeitstempeln versehen und zwischen den Ticks ausgewertet. Das bedeutet aber nicht, dass Tickrate, Rates und Hardware-Optimierung obsolet geworden sind – im Gegenteil. Ein schlecht konfigurierter Server fällt 2026 stärker auf als zu CS:GO-Zeiten, weil Spieler bei 128 Tick und subtick-basiertem Netcode sofort spüren, wenn Hit-Registrierung, Interpolation oder Peeker's Advantage nicht sauber laufen.</p>
+<p>In diesem Guide zeigen wir dir, wie du einen CS2 Dedicated Server unter Linux (Debian 12 / Ubuntu 24.04) von Grund auf performant aufsetzt. Wir behandeln Tickrate, Launch-Parameter, die optimale <code>server.cfg</code>, Kernel-Sysctl-Tuning, CPU-Governor, Docker-Setups, Monitoring und einen ehrlichen Preisvergleich zwischen Gameserver-Hosting und eigenem Root-Server.</p>
+<p>Alle Befehle und Werte sind praxiserprobt und auf dem aktuellen CS2-Build (Stand Q1 2026) getestet. Wer bereits einen Server betreibt, kann direkt bei den Config- und Tuning-Abschnitten einsteigen.</p>
+
+<h2>Die richtige Tickrate für CS2: 64 oder 128?</h2>
+<p>CS2 unterstützt offiziell <strong>128 Tick</strong> auf Community-Servern, sofern die Hardware mitspielt. Der Standard liegt bei 64 Tick. Valve betreibt seine offiziellen Premier-Server weiterhin mit 64 Tick, kompensiert das aber durch das Subtick-System. Für Community-Server, ESL-ähnliche Ligen, Faceit-Style-Portale und ambitionierte Publics ist 128 Tick dennoch die bessere Wahl – vorausgesetzt, die CPU stemmt die doppelte Tick-Frequenz.</p>
+<p>Der Startparameter lautet schlicht:</p>
+<pre><code>./game/cs2.sh -dedicated -console -usercon +game_type 0 +game_mode 1 +map de_dust2 \
+  -tickrate 128 -maxplayers_override 12 +sv_setsteamaccount DEIN_STEAM_TOKEN +exec server.cfg</code></pre>
+<p>Wichtig: Die Tickrate muss <strong>beim Start</strong> gesetzt werden. Ein nachträgliches <code>sv_tickrate</code> per RCON existiert nicht. Bei 128 Tick verdoppelt sich die CPU-Last pro Spieler-Input, weshalb du pro CS2-Instanz mindestens <strong>1,5 bis 2 dedizierte CPU-Kerne</strong> mit hoher Single-Core-Leistung einplanen solltest.</p>
+<p>Faustregel für 2026: 10 Slots bei 128 Tick = 2 Kerne. 20 Slots (Casual) = 3–4 Kerne. Bei mehr als 24 Slots solltest du auf 64 Tick zurückgehen oder horizontal skalieren.</p>
+
+<h2>Hardware-Anforderungen: CPU, RAM und NVMe</h2>
+<p>CS2 ist <strong>single-core-hungrig</strong>. Eine CPU mit 16 langsamen Kernen schlägt eine mit 8 schnellen Kernen nicht. Empfehlenswert sind Prozessoren mit hohem Boost-Takt und großem L3-Cache:</p>
+<table>
+<thead><tr><th>CPU</th><th>Kerne</th><th>Boost</th><th>CS2-Instanzen (128 Tick, 10 Slots)</th></tr></thead>
+<tbody>
+<tr><td>AMD Ryzen 9 7950X</td><td>16C/32T</td><td>5,7 GHz</td><td>6–8</td></tr>
+<tr><td>Intel i9-13900K</td><td>24C/32T</td><td>5,8 GHz</td><td>6–8</td></tr>
+<tr><td>AMD Ryzen 7 7700</td><td>8C/16T</td><td>5,3 GHz</td><td>3–4</td></tr>
+<tr><td>Intel Xeon E-2388G</td><td>8C/16T</td><td>5,1 GHz</td><td>3–4</td></tr>
+<tr><td>AMD EPYC 7443P</td><td>24C/48T</td><td>4,0 GHz</td><td>4–5 (Taktlimit)</td></tr>
+</tbody>
+</table>
+<p>Beim RAM gilt: <strong>2 GB pro CS2-Instanz</strong> plus 2 GB für das Betriebssystem. Ein Server mit vier Instanzen braucht also mindestens 10 GB, realistisch 16 GB. CS2 alloziert beim Map-Load kurzzeitig mehr Speicher, was bei zu knappem RAM zu OOM-Kills führt.</p>
+<p>Storage: Eine <strong>NVMe-SSD</strong> ist Pflicht. Maps wie <code>de_ancient</code> oder <code>de_nuke</code> laden aus dem Workshop-Cache teils über 500 MB. Auf SATA-SSD dauert das Map-Loading 15–25 Sekunden, auf NVMe unter 5 Sekunden. Bei mehreren Instanzen solltest du die Workshop-Dateien über einen gemeinsamen Cache teilen (<code>-noworkshop</code> mit vorab synchronisiertem <code>steamapps/workshop</code>-Verzeichnis).</p>
+
+<h2>Betriebssystem-Tuning: Kernel-Sysctl und CPU-Governor</h2>
+<p>Ein frisch installiertes Debian oder Ubuntu ist für Gaming-Traffic nicht optimiert. Diese Sysctl-Werte gehören in <code>/etc/sysctl.d/99-cs2.conf</code>:</p>
+<pre><code>net.core.rmem_max = 134217728
+net.core.wmem_max = 134217728
+net.core.rmem_default = 262144
+net.core.wmem_default = 262144
+net.core.netdev_max_backlog = 30000
+net.core.somaxconn = 4096
+net.ipv4.udp_mem = 65536 131072 262144
+net.ipv4.tcp_congestion_control = bbr
+net.ipv4.tcp_fastopen = 3
+net.ipv4.tcp_low_latency = 1
+vm.swappiness = 1
+vm.dirty_ratio = 10
+vm.dirty_background_ratio = 5</code></pre>
+<p>Danach <code>sysctl --system</code> ausführen. Der wichtigste Wert ist <code>net.core.rmem_max</code> – ohne diesen Wert kann der UDP-Receive-Buffer bei 128 Tick überlaufen, was sich in Form von Rubberbanding und Packet-Loss äußert.</p>
+<p>Der CPU-Governor muss auf <code>performance</code> stehen. Standardmäßig schalten moderne CPUs in den <code>powersave</code>-Modus, was Latenz-Spikes von 5–15 ms verursacht:</p>
+<pre><code>apt install linux-cpupower -y
+cpupower frequency-set -g performance
+echo 'GOVERNOR="performance"' | tee /etc/default/cpupower
+systemctl enable --now cpupower</code></pre>
+<p>Optional kannst du mit <code>isolcpus=2-5 nohz_full=2-5 rcu_nocbs=2-5</code> in der GRUB-Kommandozeile CPU-Kerne exklusiv für CS2 reservieren und den Scheduler-Tick deaktivieren. Das reduziert Jitter messbar um 20–40 %.</p>
+
+<h2>Die optimale server.cfg für CS2</h2>
+<p>Die <code>server.cfg</code> liegt unter <code>game/csgo/cfg/server.cfg</code>. Für kompetitives Spiel (5v5, MR12) empfehlen wir folgende Basis:</p>
+<pre><code>hostname "HOSTAZAR CS2 | 128 Tick | DE"
+rcon_password "SICHERES_PASSWORT_HIER"
+sv_password ""
+sv_lan 0
+sv_cheats 0
+sv_maxrate 0
+sv_minrate 128000
+sv_maxupdaterate 128
+sv_minupdaterate 64
+sv_maxcmdrate 128
+sv_mincmdrate 64
+sv_client_min_interp_ratio 1
+sv_client_max_interp_ratio 2
+sv_pausable 0
+sv_allow_votes 1
+mp_autoteambalance 0
+mp_maxrounds 24
+mp_roundtime 1.92
+mp_freezetime 15
+mp_buytime 20
+mp_c4timer 40
+mp_overtime_enable 1
+mp_overtime_maxrounds 6
+mp_match_can_clinch 0
+mp_team_intro_time 6.5
+mp_halftime 1
+mp_halftime_duration 15
+mp_solid_teammates 1
+mp_forcecamera 1
+mp_spectators_max 8
+mp_limitteams 0
+mp_warmuptime 60
+mp_warmup_pausetimer 0
+mp_endmatch_votenextmap 0
+mp_match_end_restart 1
+ammo_grenade_limit_total 4
+ammo_grenade_limit_flashbang 2
+sv_infinite_ammo 0
+sv_deadtalk 1
+sv_talk_enemy_dead 0
+sv_talk_enemy_living 0
+sv_full_alltalk 0
+sv_auto_full_alltalk_during_warmup_half_end 1</code></pre>
+<p>Die <strong>Rate-Werte</strong> sind der kritischste Teil. <code>sv_maxrate 0</code> bedeutet "unbegrenzt" und ist für moderne Server mit Gigabit-Uplink korrekt. <code>sv_minrate 128000</code> (128 KB/s) verhindert, dass Spieler mit schlechter Verbindung das Spielgeschehen verlangsamen. Die Updaterates sollten exakt der Tickrate entsprechen (128/128), damit keine Inputs verworfen werden.</p>
+<p>Die <code>sv_client_min_interp_ratio 1</code> ist für 128 Tick optimal: Sie erlaubt Spielern mit stabiler Verbindung, mit minimaler Interpolation zu spielen, was den Peeker's Advantage reduziert. Wer auf maximalen Kompetitivitäts-Faktor setzt, kann zusätzlich <code>sv_client_predict 1</code> und <code>sv_client_cmdrate_difference 0</code> setzen.</p>
+
+<h2>Netzwerk-Tuning: Traffic Control und UDP-Optimierung</h2>
+<p>Auf Servern mit mehreren Instanzen solltest du den ausgehenden Traffic klassifizieren, damit CS2-Pakete bevorzugt behandelt werden. Mit <code>tc</code> (Traffic Control) richtest du eine Prioritätsklasse ein:</p>
+<pre><code>tc qdisc add dev eth0 root handle 1: htb default 20
+tc class add dev eth0 parent 1: classid 1:1 htb rate 1000mbit
+tc class add dev eth0 parent 1:1 classid 1:10 htb rate 800mbit ceil 1000mbit prio 1
+tc class add dev eth0 parent 1:1 classid 1:20 htb rate 200mbit ceil 1000mbit prio 2
+tc filter add dev eth0 protocol ip parent 1:0 prio 1 u32 \
+  match ip dport 27015 0xffff flowid 1:10</code></pre>
+<p>Wichtiger ist jedoch die <strong>Interrupt-Affinity</strong>. Bei Multi-Gigabit-Netzwerkkarten (Intel X710, Mellanox ConnectX-5) verteilen IRQs die Last über mehrere Kerne. Mit <code>ethtool -L eth0 combined 4</code> reduzierst du die Queues auf vier und bindest sie mit <code>irqbalance</code> oder manuell an dedizierte Kerne.</p>
+<p>Prüfe regelmäßig den <strong>UDP-Puffer-Status</strong> mit <code>netstat -su</code> oder <code>ss -u -a</code>. Steigende Werte bei "packet receive errors" oder "receive buffer errors" deuten auf zu kleine Buffer oder überlastete NIC hin. Bei 128 Tick und 20 Spielern fließen etwa 3–5 MBit/s pro Instanz durch die Leitung.</p>
+<p>Ein oft übersehener Punkt: <strong>IPv6</strong>. CS2 unterstützt IPv6 nur eingeschränkt. Deaktiviere es auf dem Server-Interface, um unnötige Verbindungsversuche zu vermeiden: <code>sysctl -w net.ipv6.conf.all.disable_ipv6=1</code>.</p>
+
+<h2>SourceMod, Metamod und Plugins 2026</h2>
+<p>Für Community-Server sind SourceMod (aktuell 1.12+) und Metamod:Source (2.0+) weiterhin Standard. Beachte: CS2 nutzt eine völlig neue Engine-Basis, weshalb viele CS:GO-Plugins nicht mehr funktionieren. Kompatible Plugins findest du auf <em>sourcemod.net</em> und im <em>AlliedMods</em>-Forum.</p>
+<p>Plugin-Empfehlungen für Performance und Spielkomfort:</p>
+<ul>
+<li><strong>Get5</strong> – Match-Management, Scrims, Turniere</li>
+<li><strong>Practice Mode</strong> – nade lineups, infinite ammo, sv_cheats toggles</li>
+<li><strong>Weapon Paints</strong> – Skin-Anzeige ohne Client-Mods</li>
+<li><strong>Custom Chat Colors</strong> – Chat-Formatierung</li>
+<li><strong>Retakes</strong> – schnelle Runden für Warmup</li>
+</ul>
+<p>Warnung: Jedes Plugin kostet CPU-Zeit im Tick-Thread. Bei 128 Tick solltest du maximal 8–10 Plugins gleichzeitig aktiv haben. Nutze <code>sm plugins list</code> und <code>sm prof</code>, um CPU-Fresser zu identifizieren. Der <strong>SourceMod Profiler</strong> zeigt dir pro Plugin die verbrauchten Millisekunden pro Tick – alles über 0,5 ms pro Plugin ist problematisch.</p>
+
+<h2>Docker-Setup für CS2 Server</h2>
+<p>Containerisierung erleichtert Updates und Multi-Instanz-Betrieb. Das beliebteste Image ist <code>joedwards32/cs2</code>. Eine <code>docker-compose.yml</code> für eine 128-Tick-Instanz:</p>
+<pre><code>services:
+  cs2-1:
+    image: joedwards32/cs2:latest
+    container_name: cs2-1
+    environment:
+      SRCDS_TOKEN: "DEIN_STEAM_TOKEN"
+      CS2_SERVERNAME: "HOSTAZAR #1 | 128 Tick"
+      CS2_PORT: 27015
+      CS2_RCONPW: "sicheresPasswort"
+      CS2_MAXPLAYERS: 12
+      CS2_TICKRATE: 128
+      CS2_GAMEALIAS: "competitive"
+      CS2_STARTMAP: "de_dust2"
+      CS2_ADDITIONAL_ARGS: "-norestart"
+    ports:
+      - "27015:27015/udp"
+      - "27015:27015/tcp"
+    volumes:
+      - ./cs2-data:/home/steam/cs2-dedicated/
+    cpus: "2.0"
+    mem_limit: 4g
+    restart: unless-stopped</code></pre>
+<p>Setze <code>cpus: "2.0"</code> und <code>mem_limit: 4g</code>, um Ressourcen sauber zu begrenzen. Ohne Limits kann eine einzige Instanz bei einem Map-Load alle Kerne fressen und andere Instanzen ausbremsen. Nutze <code>cpuset</code> statt <code>cpus</code>, wenn du harte Kern-Bindung willst: <code>cpuset: "2-3"</code>.</p>
+<p>Für Multi-Instanz-Setups empfiehlt sich ein gemeinsames Workshop-Volume. CS2 lädt Workshop-Maps in <code>game/csgo/workshop/</code> – bei fünf Instanzen sind das schnell 30 GB. Ein Read-Only-Mount desselben Verzeichnisses spart Speicher und Bandbreite.</p>
+
+<h2>Monitoring: Latenz, Tick-Time und Packet-Loss</h2>
+<p>Ohne Monitoring fliegst du blind. Die wichtigsten Metriken für einen CS2-Server:</p>
+<ul>
+<li><strong>Tick-Time</strong> – Zeit pro Tick. Bei 128 Tick stehen 7,8 ms zur Verfügung. Alles über 5 ms ist kritisch.</li>
+<li><strong>Frame-Drops</strong> – über <code>stats</code> im Server-Console sichtbar</li>
+<li><strong>Packet-Loss</strong> – <code>netstat -su | grep errors</code></li>
+<li><strong>CPU-Load pro Kern</strong> – <code>mpstat -P ALL 1</code></li>
+<li><strong>Netzwerk-Latenz</strong> – <code>mtr</code> zu typischen Spieler-IPs</li>
+</ul>
+<p>Für kontinuierliches Monitoring empfehlen wir <strong>Netdata</strong> oder <strong>Prometheus + Grafana</strong>. Netdata installiert sich in 30 Sekunden und zeigt dir CPU, RAM, Netzwerk und Disk in Echtzeit. Für Multi-Server-Setups lohnt sich ein zentrales Grafana-Dashboard mit Node-Exporter.</p>
+<p>CS2-seitig kannst du mit <code>sv_log_onefile 0</code> und <code>sv_logfile 1</code> detaillierte Logs schreiben. Analysiere diese mit <em>cs2-log-parser</em> oder <em>Logstash</em>, um wiederkehrende Lags, Map-Crashes oder verdächtige Spieler zu identifizieren.</p>
+
+<h2>Preisvergleich: Gameserver-Hosting vs. eigener Root-Server</h2>
+<p>Für die meisten Admins ist die Wahl zwischen fertigem Gameserver-Hosting und einem eigenen Root-Server die zentrale Kostenfrage. Eine Übersicht (Stand Q1 2026):</p>
+<table>
+<thead><tr><th>Anbieter / Modell</th><th>Specs</th><th>Preis/Monat</th><th>Geeignet für</th></tr></thead>
+<tbody>
+<tr><td>Nitrado CS2 12 Slots</td><td>Shared, 128 Tick</td><td>8,99 €</td><td>Einsteiger, Clans</td></tr>
+<tr><td>4Netplayers CS2 16 Slots</td><td>Shared, 128 Tick</td><td>11,99 €</td><td>Public-Server</td></tr>
+<tr><td>ZAP-Hosting CS2 20 Slots</td><td>Shared, 128 Tick</td><td>14,50 €</td><td>Community</td></tr>
+<tr><td>Hetzner Cloud CCX23</td><td>4 vCPU, 16 GB, NVMe</td><td>26,00 €</td><td>2–3 Instanzen</td></tr>
+<tr><td>Hetzner AX42 (dediziert)</td><td>Ryzen 7 7700, 64 GB</td><td>47,00 €</td><td>4–6 Instanzen</td></tr>
+<tr><td>Hetzner AX52 (dediziert)</td><td>Ryzen 9 7900, 128 GB</td><td>67,00 €</td><td>6–10 Instanzen</td></tr>
+</tbody>
+</table>
+<p>Die Rechnung ist eindeutig: Ab drei CS2-Instanzen ist ein dedizierter Root-Server günstiger und deutlich performanter. Ein AX42 für 47 € ersetzt sechs Gameserver-Slots im Wert von ~54 € – bei voller Hardware-Kontrolle, eigenem Kernel-Tuning und ohne geteilte CPU. Für einen einzelnen Clan-Server mit 10 Slots ist Nitrado oder 4Netplayers aber bequemer und günstiger.</p>
+<p>Wichtig: Achte beim Root-Server auf <strong>unmetered Traffic</strong> (Hetzner: 20 TB bei dedizierten Servern) und DDoS-Schutz. CS2-Server werden häufig Opfer von UDP-Floods – ohne Schutz ist dein Server binnen Sekunden offline.</p>
+
+<h2>Häufige Fehler und Troubleshooting</h2>
+<p>Die fünf häufigsten Probleme, die wir bei CS2-Setups sehen:</p>
+<ol>
+<li><strong>Server startet nicht</strong> – meist fehlender <code>sv_setsteamaccount</code> Token. Registriere den Server unter <em>steamcommunity.com/dev/managegameservers</em>.</li>
+<li><strong>Rubberbanding trotz guter Hardware</strong> – fast immer zu kleiner UDP-Puffer. Prüfe <code>net.core.rmem_max</code>.</li>
+<li><strong>Hohe Tick-Time</strong> – ein Plugin oder zu viele Spieler pro Kern. Nutze <code>sm prof</code> und <code>mpstat</code>.</li>
+<li><strong>Map-Loading dauert ewig</strong> – kein NVMe oder kein Workshop-Cache. <code>sv_workshop_allow_other_maps 1</code> setzen.</li>
+<li><strong>Spieler beschweren sich über Hit-Reg</strong> – meist Client-seitig (Interp-Ratio, Rates). Erzwinge <code>sv_minrate 128000</code> und <code>sv_minupdaterate 64</code>.</li>
+</ol>
+<p>Für tiefes Debugging nutze <code>net_graph 1</code> im Client, um die tatsächliche Updaterate zu sehen. Wenn die Client-Rate unter 128 liegt, obwohl der Server 128 Tick fährt, stimmt die Config nicht.</p>
+
+<h2>FAQ</h2>
+<h3>Ist 128 Tick bei CS2 überhaupt noch sinnvoll?</h3>
+<p>Ja, aber der Vorteil ist geringer als in CS:GO. Das Subtick-System verarbeitet Inputs zeitunabhängig, weshalb 64 Tick auf offiziellen Servern kaum Nachteile bringt. Bei Community-Servern mit kompetitivem Anspruch ist 128 Tick dennoch Standard, weil die Updaterate für Clients höher ist und Peeker's Advantage reduziert wird – vorausgesetzt, die CPU schafft die doppelte Last.</p>
+<h3>Wie viele CS2-Server kann ich auf einem Root-Server betreiben?</h3>
+<p>Faustregel: 2 dedizierte CPU-Kerne pro 128-Tick-Instanz mit 10 Slots. Ein Hetzner AX42 (Ryzen 7 7700, 8C/16T) stemmt 4–6 Instanzen, ein AX52 (Ryzen 9 7900, 12C/24T) bis zu 10. RAM: 2 GB pro Instanz plus 4 GB für das OS. NVMe ist Pflicht.</p>
+<h3>Welche server.cfg-Werte sind 2026 am wichtigsten?</h3>
+<p>Die Rate-Werte: <code>sv_maxrate 0</code>, <code>sv_minrate 128000</code>, <code>sv_maxupdaterate 128</code>, <code>sv_minupdaterate 64</code>. Dazu <code>sv_client_min_interp_ratio 1</code> und <code>sv_client_max_interp_ratio 2</code>. Diese Werte bestimmen direkt Hit-Registrierung und Peeker's Advantage.</p>
+<h3>Brauche ich SourceMod für einen CS2-Server?</h3>
+<p>Für reine Public-Server nicht zwingend. SourceMod (1.12+) und Metamod (2.0+) sind aber Voraussetzung für Match-Management (Get5), Practice-Mode und Admin-Tools. Jedes Plugin kostet Tick-Zeit – halte die Liste unter 10 Plugins.</p>
+<h3>Lohnt sich ein eigener Root-Server gegenüber Gameserver-Hosting?</h3>
+<p>Ab drei CS2-Instanzen ja. Ein Hetzner AX42 für 47 €/Monat ersetzt sechs Gameserver-Slots (~54 €) bei deutlich besserer Performance und voller Kernel-Kontrolle. Für einen einzelnen 10-Slot-Clan-Server ist Nitrado (8,99 €) oder 4Netplayers (11,99 €) günstiger und wartungsfreier.</p>

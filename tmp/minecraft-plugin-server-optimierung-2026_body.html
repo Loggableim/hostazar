@@ -1,0 +1,215 @@
+<h2>Warum Plugin-Server 2026 mehr Leistung brauchen als je zuvor</h2>
+<p>Ein Vanilla-Server läuft heute auf fast jeder Hardware. Ein <strong>Plugin-Server</strong> mit 40 bis 120 aktiven Spielern, WorldEdit, LuckPerms, Citizens, MythicMobs, Vault, Economy- und Shop-Plugins ist ein völlig anderes Kaliber. Jedes Plugin hängt sich in den Tick-Loop, jedes Event feuert bei jedem Chunk-Load, und jeder falsch konfigurierte Scheduler-Task kostet dich TPS.</p>
+<p>Die Realität 2026: Minecraft 1.21.x mit Paper 1.21.4+ ist deutlich effizienter als noch 1.16, aber die Plugin-Landschaft ist gleichzeitig komplexer geworden. Moderne Plugins nutzen DataComponents, Adventure-APIs und PacketEvents – das kostet mehr CPU pro Event, nicht weniger.</p>
+<p>Dieser Guide zeigt dir konkret, welche Werte du in <code>paper-global.yml</code>, <code>paper-world-defaults.yml</code>, <code>spigot.yml</code> und <code>bukkit.yml</code> setzen musst, welche JVM-Flags 2026 noch Sinn ergeben und wo du mit 8 GB RAM noch 60 Spieler sauber hostest – und wo du auf 16 GB aufrüsten musst.</p>
+
+<h2>Paper vs. Spigot vs. Purpur vs. Folia – der richtige Fork</h2>
+<p><strong>Spigot</strong> ist 2026 praktisch tot als Server-Software. Es ist der Referenz-Fork für die Bukkit-API, aber die Performance-Patches von Paper sind seit Jahren überlegen. Wer heute Spigot produktiv einsetzt, verschenkt 30 bis 50 % Tick-Performance.</p>
+<p><strong>Paper</strong> ist der Standard. Es bietet Async-Chunk-Loading, optimierte Entity-Tracking-Ranges, Redstone-Implementierungen (Alternate Current, EigenCraft), Anti-Xray und ein umfangreiches Config-System. Für 95 % aller Plugin-Server ist Paper die richtige Wahl.</p>
+<p><strong>Purpur</strong> ist ein Paper-Fork mit zusätzlichen Gameplay-Features (konfigurierbare Mob-AI, anpassbare Villager-Trades, Ridable-Mobs). Performance-seitig identisch zu Paper, plus einige Extra-Optimierungen. Wenn du Purpur-Features nicht brauchst, bleib bei Paper – weniger Angriffsfläche für Update-Bugs.</p>
+<p><strong>Folia</strong> ist Papers regionisierter Multi-Threading-Fork. Es kann auf 16-Kern-CPUs enorme Spielerzahlen stemmen, aber die Plugin-Kompatibilität ist 2026 immer noch eingeschränkt. Plugins müssen explizit Folia-kompatibel sein (Schedule-API, keine globalen Bukkit-API-Calls). Für ein normales Plugin-Setup ist Folia zu riskant.</p>
+<table>
+<tr><th>Fork</th><th>Performance</th><th>Plugin-Kompatibilität</th><th>Empfehlung</th></tr>
+<tr><td>Spigot</td><td>Basis</td><td>100 %</td><td>Nein</td></tr>
+<tr><td>Paper</td><td>+35–50 %</td><td>~99 %</td><td>Standard</td></tr>
+<tr><td>Purpur</td><td>+35–50 %</td><td>~98 %</td><td>Bei Bedarf</td></tr>
+<tr><td>Folia</td><td>+200 % (Multi-Core)</td><td>~40 %</td><td>Nur Spezialfälle</td></tr>
+</table>
+
+<h2>Hardware: RAM, CPU und NVMe richtig dimensionieren</h2>
+<p>Die Faustregel „1 GB RAM pro 10 Spieler" ist 2026 überholt. Entscheidend ist die <strong>Plugin-Last</strong>, nicht die Spielerzahl. Ein Skyblock-Server mit 30 Spielern und 200 geladenen Chunks braucht mehr RAM als ein Minigame-Netzwerk mit 80 Spielern auf 8 kleinen Arenen.</p>
+<p>Realistische Richtwerte für Paper 1.21.x mit 15–25 Plugins:</p>
+<ul>
+<li><strong>4 GB RAM</strong> – bis 15 Spieler, kleine SMP, 6–8 View Distance</li>
+<li><strong>8 GB RAM</strong> – 20–45 Spieler, Standardserver, 8 View Distance</li>
+<li><strong>12 GB RAM</strong> – 45–75 Spieler, mit MythicMobs/Citizens, 8–10 View Distance</li>
+<li><strong>16 GB RAM</strong> – 75–120 Spieler oder große Skyblock-/RPG-Welten</li>
+<li><strong>32 GB+</strong> – Netzwerke mit Velocity-Proxy und mehreren Backend-Servern</li>
+</ul>
+<p>Bei der CPU zählt <strong>Single-Core-Leistung</strong>. Minecrafts Haupt-Tick-Loop ist single-threaded. Ein Ryzen 9 7950X (5,7 GHz Boost) schlägt einen 32-Kern-Xeon mit 2,4 GHz in jeder Minecraft-Metrik. Achte auf CPUs mit hohem Boost-Takt und großem L3-Cache (X3D-Modelle sind ideal, weil Chunk-Daten und Entity-Listen im Cache bleiben).</p>
+<p>Storage: <strong>NVMe ist Pflicht</strong>. Chunk-Loading und Welt-Saves sind I/O-intensiv. Eine SATA-SSD liefert ~550 MB/s, eine NVMe Gen4 ~7.000 MB/s. Bei 100 gleichzeitigen Chunk-Loads merkst du das sofort in den Tick-Zeiten. Shared-Hosting auf HDD oder SATA-SSD ist 2026 ein No-Go für Plugin-Server.</p>
+
+<h2>JVM-Tuning: Aikar-Flags und Garbage Collector</h2>
+<p>Die <strong>Aikar-Flags</strong> sind seit Jahren der De-facto-Standard für Minecraft-Server. Sie konfigurieren den G1GC so, dass GC-Pausen unter 200 ms bleiben und keine langen Stop-the-World-Phasen entstehen.</p>
+<pre><code>java -Xms10G -Xmx10G -XX:+UseG1GC -XX:+ParallelRefProcEnabled \
+  -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions \
+  -XX:+DisableExplicitGC -XX:+AlwaysPreTouch \
+  -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 \
+  -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 \
+  -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 \
+  -XX:InitiatingHeapOccupancyPercent=15 \
+  -XX:G1MixedGCLiveThresholdPercent=90 \
+  -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 \
+  -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 \
+  -Dusing.aikars.flags=https://mcflags.emc.gs -Daikars.new.flags=true \
+  -jar paper.jar nogui</code></pre>
+<p>Wichtig: <strong>-Xms und -Xmx immer gleich setzen</strong>. Sonst muss die JVM den Heap zur Laufzeit vergrößern, was zu Page-Faults und Rucklern führt. <code>-XX:+AlwaysPreTouch</code> reserviert den Speicher sofort beim Start – der Server braucht 10–20 Sekunden länger zum Booten, läuft danach aber deutlich stabiler.</p>
+<p>Für Server mit mehr als 16 GB Heap kann ZGC (<code>-XX:+UseZGC -XX:+ZGenerational</code>) in Java 21+ interessant sein: Pausenzeiten unter 1 ms, aber höherer CPU-Overhead. Bei unter 16 GB Heap bleibt G1GC mit Aikar-Flags die bessere Wahl.</p>
+<p>Setze außerdem <code>-Dfile.encoding=UTF-8</code> und <code>-Djava.net.preferIPv4Stack=true</code>, um Encoding-Probleme mit Plugin-Nachrichten und IPv6-DNS-Latenzen zu vermeiden.</p>
+
+<h2>Paper-Konfiguration: paper-global.yml und paper-world-defaults.yml</h2>
+<p>Seit Paper 1.19 sind die Configs aufgeteilt. Die wichtigsten Optimierungen findest du in <code>config/paper-world-defaults.yml</code>:</p>
+<pre><code>chunks:
+  max-auto-save-chunks-per-tick: 24
+  entity-per-chunk-save-limit:
+    experience_orb: 32
+    item: 32
+    arrow: 32
+entities:
+  spawning:
+    mob-spawn-range: 6
+    despawn-ranges:
+      monster:
+        hard: 96
+        soft: 32
+    per-player-mob-spawns: true
+  behavior:
+    max-entity-collisions: 2
+    disable-chest-cat-detection: true
+collisions:
+  enable-player-collisions: false
+misc:
+  redstone-implementation: ALTERNATE_CURRENT</code></pre>
+<p><strong>mob-spawn-range: 6</strong> statt der Standard-8 reduziert die Anzahl gleichzeitig geladener Mobs um etwa 40 %. <strong>max-entity-collisions: 2</strong> verhindert, dass 50 Kühe in einem Stall die Tick-Zeit auffressen. <strong>per-player-mob-spawns: true</strong> sorgt dafür, dass jeder Spieler seine eigene Mob-Kappe hat – wichtig für Server mit ungleich verteilten Spielern.</p>
+<p><strong>redstone-implementation: ALTERNATE_CURRENT</strong> (oder <code>EIGENCRAFT</code> in Paper 1.21.4+) beschleunigt Redstone-Berechnungen um bis zu 50 % bei identischem Verhalten. Bei sehr komplexen Redstone-Maschinen kann <code>VANILLA</code> nötig sein, aber für 99 % der Server ist Alternate Current korrekt.</p>
+<p>In <code>paper-global.yml</code> lohnt sich <code>chunk-loading.auto-config-send-distance: true</code> und <code>chunk-loading.target-player-chunk-send-rate: 50.0</code>, damit der Chunk-Versand nicht den Tick-Loop blockiert.</p>
+
+<h2>Spigot.yml und bukkit.yml: die wichtigsten Werte</h2>
+<p>Auch wenn Paper viele Spigot-Werte überschreibt, bleiben einige Einstellungen relevant. In <code>spigot.yml</code>:</p>
+<pre><code>world-settings:
+  default:
+    view-distance: 8
+    simulation-distance: 6
+    entity-activation-range:
+      animals: 24
+      monsters: 28
+      misc: 8
+      water: 8
+    merge-radius:
+      item: 4.0
+      exp: 6.0
+    item-despawn-rate: 3000
+    ticks-per:
+      hopper-transfer: 8
+      hopper-check: 8</code></pre>
+<p><strong>entity-activation-range</strong> ist der größte Performance-Hebel überhaupt. Standard sind 32 Blöcke für Monster. Bei 28 statt 32 sinkt die Zahl aktiv tickender Entities um rund 25 %. <strong>merge-radius</strong> für Items auf 4.0 sorgt dafür, dass gedroppte Items verschmelzen – bei Farmen mit hunderten Drops essenziell.</p>
+<p>In <code>bukkit.yml</code> setzt du:</p>
+<pre><code>spawn-limits:
+  monsters: 50
+  animals: 8
+  water-animals: 4
+  ambient: 4
+chunk-gc:
+  period-in-ticks: 400
+ticks-per:
+  animal-spawns: 400
+  monster-spawns: 1
+  autosave: 6000</code></pre>
+<p><strong>chunk-gc.period-in-ticks: 400</strong> (20 Sekunden) entlädt ungenutzte Chunks aggressiver. Bei Servern mit vielen AFK-Spielern in entfernten Regionen spart das mehrere GB RAM. <strong>autosave: 6000</strong> (5 Minuten) reduziert die Save-Lags gegenüber dem Standard von 900 Ticks deutlich.</p>
+
+<h2>Chunk-Pre-Generation mit Chunky</h2>
+<p>Nichts killt TPS so zuverlässig wie Spieler, die in ungenerierte Gebiete rennen. Jeder neue Chunk muss generiert, dekoriert und an alle Spieler in Reichweite gesendet werden. Bei einer 10k×10k-Welt sind das 100 Millionen Chunks – unmöglich live zu stemmen.</p>
+<p>Nutze <strong>Chunky</strong> (Paper-Plugin) oder <code>/chunky</code> als Konsolen-Befehl:</p>
+<pre><code>chunky radius 5000
+chunky shape square
+chunky center 0 0
+chunky spawn
+chunky start
+chunky progress</code></pre>
+<p>Rechne mit <strong>30–60 Minuten pro 1.000 Chunks</strong> auf einer NVMe, abhängig von CPU und Weltgenerator. Eine 5.000er-Radius-Welt (10k×10k) bedeutet 100.000 Chunks – also 50 bis 100 Stunden Pre-Generation. Das klingt viel, aber danach läuft der Server dauerhaft lagfrei, weil keine Live-Generierung mehr stattfindet.</p>
+<p>Setze <code>chunky.continue-on-restart: true</code> in der Config, damit die Generierung nach einem Neustart weiterläuft. Während der Pre-Gen solltest du den Server nicht öffentlich betreiben – die CPU ist voll ausgelastet.</p>
+
+<h2>Plugins analysieren mit Spark und Timings</h2>
+<p>Bevor du blind an Configs drehst: <strong>messe</strong>. <strong>Spark</strong> ist 2026 der Standard-Profiler und ersetzt das alte Timings-System.</p>
+<pre><code>/spark profiler start --timeout 60
+/spark profiler stop
+/spark tps
+/spark health</code></pre>
+<p>Der Report zeigt dir die Top-Verbraucher im Tick-Loop. Typische Befunde auf Plugin-Servern:</p>
+<ul>
+<li><strong>Entity-Ticking</strong> – zu viele Mobs, siehe mob-spawn-range</li>
+<li><strong>Block-Entity-Ticking</strong> – Hunderte Hoppers, Öfen, Trichter</li>
+<li><strong>Plugin-Scheduler-Tasks</strong> – Plugins, die jeden Tick die ganze Welt iterieren</li>
+<li><strong>Chunk-Generierung</strong> – siehe Chunky</li>
+<li><strong>Netzwerk/Chunk-Send</strong> – zu hohe View Distance</li>
+</ul>
+<p>Wenn ein einzelnes Plugin mehr als 15 % der Tick-Zeit frisst, ist es entweder falsch konfiguriert oder du brauchst eine Alternative. Bekannte Kandidaten: alte Anti-Cheat-Versionen, unoptimierte Shop-Plugins mit Datenbank-Queries im Tick-Loop und Custom-Mob-Plugins ohne Async-Spawning.</p>
+<p>Nutze außerdem <code>/spark healthreport</code> für einen Überblick über TPS, MSPT (Milliseconds per Tick) und Speicherverbrauch. Zielwert: <strong>MSPT unter 40 ms</strong> bei 20 TPS. Über 50 ms fängt es an zu ruckeln.</p>
+
+<h2>Datenbanken: MySQL, MariaDB und Redis</h2>
+<p>Sobald du LuckPerms, ein Economy-Plugin und ein Statistik-Plugin laufen hast, ist die Standard-H2/SQLite-Datei ein Flaschenhals. Jede Query blockiert den Tick, wenn sie synchron läuft.</p>
+<p>Wechsle auf <strong>MariaDB 11.x</strong> oder <strong>MySQL 8.4</strong> auf demselben Host oder einem zweiten Server. Konfiguration für einen dedizierten Datenbank-Server:</p>
+<pre><code>innodb_buffer_pool_size = 2G
+innodb_flush_log_at_trx_commit = 2
+innodb_log_file_size = 512M
+max_connections = 200
+query_cache_type = 0</code></pre>
+<p><strong>innodb_flush_log_at_trx_commit = 2</strong> opfert maximal 1 Sekunde Daten bei einem Crash, bringt aber 3- bis 5-fach schnellere Writes. Für LuckPerms und Economy-Daten völlig akzeptabel.</p>
+<p>Für Session-Daten, Leaderboards oder Cache-Layer lohnt sich <strong>Redis 7.x</strong>. Plugins wie Plan, LiteBans oder Custom-Skripte können darüber asynchron schreiben, ohne den Tick-Loop zu berühren. Redis läuft mit 256 MB RAM bereits flüssig.</p>
+
+<h2>Hosting-Preise und Anbietervergleich 2026</h2>
+<p>Ein 8-GB-Paper-Server auf Ryzen 9 7950X kostet 2026 zwischen <strong>12 und 20 €/Monat</strong> bei deutschen Anbietern (Nitrado, Zap-Hosting, HostUnlimited, Hetzner-Cloud). 16 GB liegen bei <strong>25 bis 35 €</strong>. Wichtig: Nicht nur RAM vergleichen, sondern CPU-Modell und Storage-Typ.</p>
+<table>
+<tr><th>Paket</th><th>RAM</th><th>CPU</th><th>Storage</th><th>Preis/Monat</th></tr>
+<tr><td>Einsteiger</td><td>4 GB</td><td>Ryzen 5 3600</td><td>SATA-SSD</td><td>6–9 €</td></tr>
+<tr><td>Standard</td><td>8 GB</td><td>Ryzen 9 7950X</td><td>NVMe</td><td>12–20 €</td></tr>
+<tr><td>Pro</td><td>16 GB</td><td>Ryzen 9 7950X3D</td><td>NVMe Gen4</td><td>25–35 €</td></tr>
+<tr><td>Dedicated</td><td>64 GB</td><td>Ryzen 9 9950X</td><td>2× NVMe</td><td>70–110 €</td></tr>
+</table>
+<p>Achte auf <strong>DDoS-Schutz</strong> (Layer 4 und 7), <strong>unmetred Traffic</strong> und <strong>Backup-Optionen</strong>. Ein Anbieter ohne automatische Backups ist für einen Community-Server mit 50+ Spielern unverantwortlich.</p>
+<p>Für Netzwerke mit mehreren Servern (Lobby, Survival, Skyblock, Minigames) lohnt sich ein <strong>Velocity-Proxy</strong> auf einem kleinen VPS (2 GB RAM, ~5 €/Monat). Velocity ist deutlich performanter als BungeeCord und unterstützt moderne Forwarding-Modi.</p>
+
+<h2>Monitoring und Langzeit-Stabilität</h2>
+<p>Ein optimierter Server bleibt nicht automatisch optimiert. Welten wachsen, Spieler bauen mehr Redstone, Plugins werden geupdated. Richte daher Monitoring ein:</p>
+<ul>
+<li><strong>Spark</strong> für Ad-hoc-Analysen</li>
+<li><strong>Plan</strong> für TPS-Historie, Spielerzahlen und Performance-Graphen</li>
+<li><strong>Prometheus + Grafana</strong> mit dem Paper-Exporter für MSPT, RAM, CPU</li>
+<li><strong>systemd</strong> mit <code>Restart=on-failure</code> und <code>MemoryMax</code></li>
+</ul>
+<p>Ein systemd-Service für den Server sieht so aus:</p>
+<pre><code>[Unit]
+Description=Minecraft Paper Server
+After=network.target
+
+[Service]
+User=minecraft
+WorkingDirectory=/opt/minecraft
+ExecStart=/usr/bin/java @aikar-flags.txt -jar paper.jar nogui
+Restart=on-failure
+RestartSec=10
+MemoryMax=12G
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<p>Lege die JVM-Flags in eine separate Datei <code>aikar-flags.txt</code> (eine Zeile pro Argument), dann bleibt der Service-Eintrag übersichtlich und du kannst Flags ändern, ohne die Unit anzufassen.</p>
+<p>Plane außerdem <strong>wöchentliche Neustarts</strong> – nicht wegen Memory-Leaks in Paper, sondern wegen Plugins. Viele ältere Plugins leaken über Tage hinweg Listener oder Scheduler-Tasks. Ein Neustart um 4:00 Uhr morgens mit <code>Restart=always</code> und einem <code>/say</code>-Countdown ist Standardpraxis.</p>
+
+<h2>Checkliste: die 12 wichtigsten Optimierungen</h2>
+<ol>
+<li>Paper statt Spigot verwenden</li>
+<li>Aikar-Flags mit -Xms = -Xmx setzen</li>
+<li>mob-spawn-range auf 6 reduzieren</li>
+<li>max-entity-collisions auf 2 setzen</li>
+<li>entity-activation-range auf 24/28/8 senken</li>
+<li>merge-radius für Items auf 4.0 erhöhen</li>
+<li>redstone-implementation auf ALTERNATE_CURRENT</li>
+<li>view-distance auf 8, simulation-distance auf 6</li>
+<li>Welt mit Chunky pre-generieren</li>
+<li>MariaDB statt SQLite für Plugin-Daten</li>
+<li>Spark-Profiling monatlich durchführen</li>
+<li>NVMe-Storage und Single-Core-starke CPU nutzen</li>
+</ol>
+<p>Mit diesen zwölf Maßnahmen holst du aus einem 8-GB-Server problemlos 40 bis 60 stabile Spieler bei 20 TPS heraus. Ohne sie kämpfst du schon bei 20 Spielern mit TPS-Einbrüchen.</p>
+
+<h2>FAQ</h2>
+<h3>Wie viel RAM braucht ein Minecraft Plugin-Server 2026 wirklich?</h3>
+<p>Für 20–45 Spieler mit 15–25 Plugins reichen 8 GB Heap. Entscheidend ist nicht die Spielerzahl, sondern die Zahl geladener Chunks und aktiver Entities. Bei großen Skyblock- oder RPG-Welten mit vielen Custom-Mobs solltest du auf 12–16 GB gehen. Setze -Xms und -Xmx immer identisch.</p>
+<h3>Bringen Aikar-Flags 2026 noch etwas?</h3>
+<p>Ja. Die Flags sind für G1GC in Java 21 weiterhin optimal und reduzieren GC-Pausen auf unter 200 ms. Bei Heaps über 16 GB kann ZGC mit <code>-XX:+UseZGC -XX:+ZGenerational</code> bessere Pausenzeiten liefern, kostet aber mehr CPU. Für die meisten Server bleiben Aikar-Flags die erste Wahl.</p>
+<h3>Ist Folia 2026 eine Alternative zu Paper?</h3>
+<p>Nur für Spezialfälle. Folia skaliert über mehrere Kerne, aber die Plugin-Kompatibilität liegt bei etwa 40 %. Die meisten Economy-, Shop- und Region-Plugins funktionieren nicht. Für klassische Plugin-Server bleibt Paper die sichere Wahl.</p>
+<h3>Wie lange dauert die Chunk-Pre-Generation mit Chunky?</h3>
+<p>Rechne mit 30–60 Minuten pro 1.000 Chunks auf NVMe. Eine 10k×10k-Welt (100.000 Chunks) braucht 50–100 Stunden. Das ist einmaliger Aufwand, danach läuft der Server dauerhaft ohne Live-Chunk-Generierung und damit deutlich stabiler.</p>
+<h3>Warum ruckelt mein Server trotz 20 TPS?</h3>
+<p>TPS sagt nur, ob der Server die 50-ms-Ticks einhält. Ruckler entstehen oft durch hohe MSPT-Spitzen (Chunk-Sends, Autosave, GC) oder Netzwerk-Latenz. Prüfe mit <code>/spark healthreport</code> die MSPT-Verteilung und reduziere view-distance sowie autosave-Frequenz. Auch Client-seitige Render-Distanz spielt eine Rolle.</p>
