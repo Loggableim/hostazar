@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Palworld Server Update &amp; Wipe-Management 2026 | hostazar.com</title>
+  <meta name="description" content="Palworld Server Update 2026: SteamCMD-Updates, Backups, Wipe-Management und Save-Migration Schritt für Schritt erklärt – inklusive Skripten und Checkliste.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hostazar.com/artikel/palworld-server-update-2026.html">
+  <link rel="stylesheet" href="/css/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hostazar.com/artikel/palworld-server-update-2026.html">
+  <meta property="og:title" content="Palworld Server Update &amp; Wipe-Management 2026 | hostazar.com">
+  <meta property="og:description" content="Palworld Server Update 2026: SteamCMD-Updates, Backups, Wipe-Management und Save-Migration Schritt für Schritt erklärt – inklusive Skripten und Checkliste.">
+  <meta property="og:image" content="https://hostazar.com/images/palworld-server-update-2026.webp">
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:site_name" content="Hostazar &mdash; VPS &amp; DevOps Portal">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Palworld Server Update &amp; Wipe-Management 2026 | hostazar.com">
+  <meta name="twitter:description" content="Palworld Server Update 2026: SteamCMD-Updates, Backups, Wipe-Management und Save-Migration Schritt für Schritt erklärt – inklusive Skripten und Checkliste.">
+  <meta name="twitter:image" content="https://hostazar.com/images/palworld-server-update-2026.webp">
+  <script data-hz-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/css/consent-banner.css">
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Palworld Server Update & Wipe-Management 2026 | hostazar.com",
+  "url": "https://hostazar.com/artikel/palworld-server-update-2026.html",
+  "description": "Palworld Server Update 2026: SteamCMD-Updates, Backups, Wipe-Management und Save-Migration Schritt für Schritt erklärt – inklusive Skripten und Checkliste.",
+  "inLanguage": "de",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "hostazar.com",
+    "url": "https://hostazar.com"
+  },
+  "datePublished": "2026-09-26",
+  "dateModified": "2026-09-26",
+  "image": "https://hostazar.com/images/palworld-server-update-2026.webp",
+  "author": {
+    "@type": "Organization",
+    "name": "hostazar.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "hostazar.com"
+  },
+  "wordCount": 1814
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Startseite",
+      "item": "https://hostazar.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Palworld Server Update & Wipe-Management 2026",
+      "item": "https://hostazar.com/artikel/palworld-server-update-2026.html"
+    }
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Wie oft muss ich meinen Palworld-Server 2026 updaten?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pocketpair veröffentlicht kleinere Patches oft wöchentlich, größere Content-Updates alle 6–12 Wochen. Da Clients automatisch patchen, ist ein stündlicher Update-Check per systemd-Timer oder Docker-Auto-Update die sicherste Variante. Plane für den Neustart 2–3 Minuten Downtime ein."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Verliere ich bei einem Update meine Welt?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nein, wenn du vorher ein Backup ziehst. Palworld-Saves sind in der Regel abwärtskompatibel innerhalb der Early-Access- und 1.x-Reihe. Kritisch wird es nur, wenn du den Server downgradest oder ein Save mit neuerer Version auf einen älteren Server kopierst. Genau deshalb gehört ein Tarball-Backup vor jedes Update."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Was ist der Unterschied zwischen Full Wipe und Map Wipe?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ein Full Wipe löscht das komplette Save-Verzeichnis inklusive aller Spielerdateien – alles beginnt bei null. Ein Map Wipe löscht nur Level.sav und LevelMeta.sav, sodass Spieler-Level und Inventar theoretisch erhalten bleiben. In der Praxis musst du bei einem Map Wipe die Spielerdateien nachbearbeiten, sonst crasht der Server beim Laden wegen ungültiger Objektreferenzen."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Wie ziehe ich meinen Palworld-Save auf einen anderen Hoster um?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Server stoppen, Save-Verzeichnis als Tarball sichern, auf dem Zielserver dieselbe Palworld-Version installieren, Ordner nach Pal/Saved/SaveGames/0/ kopieren und den DedicatedServerName in GameUserSettings.ini auf die SaveID setzen. Ändert sich die Server-GUID, brauchst du zusätzlich palworld-host-save-fix, sonst verlieren Spieler ihre Charakterzuordnung."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Kann ich RCON für automatische Wipes nutzen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nur eingeschränkt. RCON unterstützt in Palworld lediglich Broadcast, Save, ShowPlayers, KickPlayer, BanPlayer, UnBanPlayer, Info und DoExit. Für echte Wipe-Aktionen musst du auf Dateisystemebene arbeiten oder einen Save-Editor wie palworld-save-tools einsetzen. RCON eignet sich hervorragend für die Ankündigung und den sauberen Shutdown davor."
+      }
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">hosta<span>zar</span></a>
+    <button class="nav-toggle" aria-label="Men&#252; &#246;ffnen">&#9776;</button>
+    <ul class="nav-links">
+      <li><a href="/">Startseite</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">🎮 Gaming</a>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#4CAF50">&#9670;</span> A-Z</h4>
+            <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">
+              <img src="/images/7-days-to-die-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
+              <img src="/images/ark-survival-ascended-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">
+              <img src="/images/conan-exiles-server-hosten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Conan Exiles Server mieten – Setup &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">
+              <img src="/images/cs2-server-mieten-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</span>
+            </a>
+            <a href="/artikel/dayz-server-mieten-2026.html" class="mega-item">
+              <img src="/images/dayz-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+            </a>
+            <a href="/artikel/enshrouded-server-hosting-2026.html" class="mega-item">
+              <img src="/images/enshrouded-server-hosting-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Enshrouded Server – Hosting-Guide &amp; Setup für Koop 2026</span>
+            </a>
+            <a href="/artikel/farming-simulator-25-server-mieten-2026.html" class="mega-item">
+              <img src="/images/farming-simulator-25-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Farming Simulator 25 Server mieten – Multiplayer-Guide 2026</span>
+            </a>
+            <a href="/artikel/grounded-server-hosting.html" class="mega-item">
+              <img src="/images/grounded-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Grounded Server hosten – Kosten, Setup &amp; Anbieter 2026</span>
+            </a>
+            <a href="/artikel/icarus-server-hosting.html" class="mega-item">
+              <img src="/images/icarus-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Icarus Server hosten – Dedicated Server für Koop 2026</span>
+            </a>
+            <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
+              <img src="/images/minecraft-server-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Server mieten oder selbst hosten? Der ultimative Vergleich 2026</span>
+            </a>
+            <a href="/artikel/nightingale-server-hosting.html" class="mega-item">
+              <img src="/images/nightingale-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nightingale Server hosten – Realm-Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
+              <img src="/images/palworld-server-hosting-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Palworld Server mieten oder selbst hosten? Der komplette Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/project-zomboid-server-hosting-2026.html" class="mega-item">
+              <img src="/images/project-zomboid-server-hosting-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Project Zomboid Server – Hosting &amp; Setup für Multiplayer 2026</span>
+            </a>
+            <a href="/artikel/rust-server-mieten-guide-2026.html" class="mega-item">
+              <img src="/images/rust-server-mieten-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Rust Server mieten – Kosten, Setup, Mods &amp; Anbieter 2026</span>
+            </a>
+            <a href="/artikel/satisfactory-server-mieten-oder-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/satisfactory-server-mieten-oder-selbst-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Satisfactory Server mieten oder selbst hosten? Der Guide 2026</span>
+            </a>
+            <a href="/artikel/scum-server-mieten.html" class="mega-item">
+              <img src="/images/scum-server-mieten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">SCUM Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+            </a>
+            <a href="/artikel/smalland-server-hosting.html" class="mega-item">
+              <img src="/images/smalland-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Smalland Server mieten – Guide für den Koop-Server 2026</span>
+            </a>
+            <a href="/artikel/sons-of-the-forest-server.html" class="mega-item">
+              <img src="/images/sons-of-the-forest-server.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Sons of the Forest Server hosten – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/space-engineers-server.html" class="mega-item">
+              <img src="/images/space-engineers-server.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Space Engineers Server mieten oder selbst hosten 2026</span>
+            </a>
+            <a href="/artikel/terraria-server-hosten-2026.html" class="mega-item">
+              <img src="/images/terraria-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Terraria Server hosten – Komplettanleitung für Multiplayer 2026</span>
+            </a>
+            <a href="/artikel/the-forest-server-hosting.html" class="mega-item">
+              <img src="/images/the-forest-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">The Forest Server hosten – Koop-Guide 2026</span>
+            </a>
+            <a href="/artikel/v-rising-server-mieten-2026.html" class="mega-item">
+              <img src="/images/v-rising-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">V Rising Server mieten oder selbst hosten? Guide 2026</span>
+            </a>
+            <a href="/artikel/factorio-server-hosting-2026.html" class="mega-item">
+              <img src="/images/factorio-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Factorio Server mieten oder selbst hosten? Der komplette Dedicated Server Guide 2026</span>
+            </a>
+          </div>
+          <div class="mega-column">
+            <h4><span style="color:#4CAF50">&#9670;</span> Neueste</h4>
+            <a href="/artikel/minecraft-server-mods-plugins-guide-2026.html" class="mega-item">
+              <img src="/images/minecraft-server-mods-plugins-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Server mit Mods und Plugins – Der ultimative Modding-Guide 2026</span>
+            </a>
+            <a href="/artikel/phasmophobia-server-mieten-2026.html" class="mega-item">
+              <img src="/images/phasmophobia-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Phasmophobia Server mieten 2026 – Geisterjagd Multiplayer Setup</span>
+            </a>
+            <a href="/artikel/baldurs-gate-3-server-mieten-2026.html" class="mega-item">
+              <img src="/images/baldurs-gate-3-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Baldurs Gate 3 Server mieten 2026 – D&amp;D Multiplayer &amp; Coop Setup</span>
+            </a>
+            <a href="/artikel/pubg-server-mieten-2026.html" class="mega-item">
+              <img src="/images/pubg-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">PUBG Server mieten 2026 – Preise, Slots &amp; Anbieter im Vergleich</span>
+            </a>
+            <a href="/artikel/lethal-company-server-mieten-2026.html" class="mega-item">
+              <img src="/images/lethal-company-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Lethal Company Server mieten – Multiplayer Setup Guide 2026</span>
+            </a>
+            <a href="/artikel/helldivers-2-server-hosten-2026.html" class="mega-item">
+              <img src="/images/helldivers-2-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Helldivers 2 Server hosten – Kooperative Missions-Pläne 2026</span>
+            </a>
+            <a href="/artikel/deep-rock-galactic-server-mieten-2026.html" class="mega-item">
+              <img src="/images/deep-rock-galactic-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Deep Rock Galactic Server mieten – 4-Spieler Koop Guide 2026</span>
+            </a>
+            <a href="/artikel/phasmophobia-server-hosten-2026.html" class="mega-item">
+              <img src="/images/phasmophobia-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Phasmophobia Server hosten – Geisterjagd Multiplayer 2026</span>
+            </a>
+            <a href="/artikel/escape-from-tarkov-server-hosten-2026.html" class="mega-item">
+              <img src="/images/escape-from-tarkov-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Escape from Tarkov Server hosten 2026 – Dedicated Server Setup &amp; Anleitung</span>
+            </a>
+            <a href="/artikel/beste-gaming-monitore-2026.html" class="mega-item">
+              <img src="/images/beste-gaming-monitore-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Beste Gaming-Monitore 2026 – 144Hz, 240Hz und OLED im Vergleich</span>
+            </a>
+            <a href="/artikel/gaming-pc-selbst-bauen-2026.html" class="mega-item">
+              <img src="/images/gaming-pc-selbst-bauen-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gaming-PC selbst bauen 2026 – Komponenten-Guide für jedes Budget</span>
+            </a>
+            <a href="/artikel/steam-deck-vs-asus-rog-ally-vs-lenovo-legion-go-2026.html" class="mega-item">
+              <img src="/images/steam-deck-vs-asus-rog-ally-vs-lenovo-legion-go-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Steam Deck vs Asus ROG Ally vs Lenovo Legion Go – Handheld-Vergleich 2026</span>
+            </a>
+            <a href="/artikel/ddos-schutz-gameserver-2026.html" class="mega-item">
+              <img src="/images/ddos-schutz-gameserver-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DDoS-Schutz für Gameserver – Anbieter &amp; Konfiguration 2026</span>
+            </a>
+            <a href="/artikel/minecraft-bedrock-vs-java-server-2026.html" class="mega-item">
+              <img src="/images/minecraft-bedrock-vs-java-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Bedrock vs. Java Server – Unterschiede &amp; Hosting 2026</span>
+            </a>
+            <a href="/artikel/raft-server-mieten-2026.html" class="mega-item">
+              <img src="/images/raft-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Raft Server mieten – Dedicated Server Guide &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/palworld-server-mods-guide-2026.html" class="mega-item">
+              <img src="/images/palworld-server-mods-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Palworld Mods &amp; Dedicated Server Guide 2026 – BepInEx, server.ini, Admin-Tools</span>
+            </a>
+            <a href="/artikel/pterodactyl-panel-installieren-2026.html" class="mega-item">
+              <img src="/images/pterodactyl-panel-installieren-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Pterodactyl Panel installieren – Gameserver-Management auf VPS 2026</span>
+            </a>
+            <a href="/artikel/dont-starve-together-server-hosten-2026.html" class="mega-item">
+              <img src="/images/dont-starve-together-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Don&#39;t Starve Together Server hosten – Dedicated Server Setup &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/fivem-server-mieten-2026.html" class="mega-item">
+              <img src="/images/fivem-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">FiveM (GTA V) Server mieten – Roleplay-Server Hosting Guide 2026</span>
+            </a>
+            <a href="/artikel/gaming-pc-finanzieren.html" class="mega-item">
+              <img src="/images/gaming-pc-finanzieren.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gaming-PC finanzieren – ETF-Entnahme oder Ratenkredit?</span>
+            </a>
+            <a href="/artikel/valheim-server-vps-mieten-2026.html" class="mega-item">
+              <img src="/images/valheim-server-vps-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026</span>
+            </a>
+            <a href="/artikel/gameserver-mieten-guide.html" class="mega-item">
+              <img src="/images/gameserver-mieten-guide.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gameserver mieten 2025 – Der ultimative Guide</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/gaming/">Alle Gaming-Artikel</a></div>
+        </div></div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">🌐 Webhosting</a>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#2196F3">&#9670;</span> A-Z</h4>
+            <a href="/artikel/lamp-stack-vs-lemp-stack-vergleich-2026.html" class="mega-item">
+              <img src="/images/lamp-stack-vs-lemp-stack-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LAMP Stack vs LEMP Stack – Der große Vergleich für dein Webprojekt 2026</span>
+            </a>
+            <a href="/artikel/nginx-vs-apache-webserver-vergleich-2026.html" class="mega-item">
+              <img src="/images/nginx-vs-apache-webserver-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nginx vs. Apache 2026 – Webserver im Vergleich</span>
+            </a>
+            <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="mega-item">
+              <img src="/images/cloud-hosting-vs-shared-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloud Hosting vs. Shared Hosting – Vergleich 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-tunnel-einrichten.html" class="mega-item">
+              <img src="/images/cloudflare-tunnel-einrichten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</span>
+            </a>
+            <a href="/artikel/docker-wordpress-hosten.html" class="mega-item">
+              <img src="/images/docker-wordpress-hosten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WordPress mit Docker hosten – Modernes Setup 2026</span>
+            </a>
+            <a href="/artikel/domain-kaufen-einrichten-2026.html" class="mega-item">
+              <img src="/images/domain-kaufen-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Domain kaufen und einrichten – Schritt-für-Schritt 2026</span>
+            </a>
+            <a href="/artikel/email-server-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/email-server-selbst-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</span>
+            </a>
+            <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html" class="mega-item">
+              <img src="/images/hetzner-cloud-vs-dediziert-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Hetzner Cloud vs. Dedizierter Server – Vergleich 2026</span>
+            </a>
+            <a href="/artikel/mysql-mariadb-optimierung.html" class="mega-item">
+              <img src="/images/mysql-mariadb-optimierung.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">MySQL &amp; MariaDB optimieren – Performance-Guide 2026</span>
+            </a>
+            <a href="/artikel/netcup-vps-erfahrungen-2026.html" class="mega-item">
+              <img src="/images/netcup-vps-erfahrungen-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Netcup VPS Erfahrungen 2026 – Test, Preise &amp; Bewertung</span>
+            </a>
+            <a href="/artikel/nextcloud-server-einrichten.html" class="mega-item">
+              <img src="/images/nextcloud-server-einrichten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nextcloud Server einrichten – Cloud-Speicher selbst hosten 2026</span>
+            </a>
+            <a href="/artikel/plesk-vs-cpanel-vergleich.html" class="mega-item">
+              <img src="/images/plesk-vs-cpanel-vergleich.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Plesk vs. cPanel – Der große Hosting-Panel-Vergleich 2026</span>
+            </a>
+          </div>
+          <div class="mega-column">
+            <h4><span style="color:#2196F3">&#9670;</span> Neueste</h4>
+            <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
+              <img src="/images/ssl-zertifikat-lets-encrypt-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">SSL-Zertifikat mit Let&#39;s Encrypt einrichten – Anleitung 2026</span>
+            </a>
+            <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
+              <img src="/images/webhosting-anbieter-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Die 5 besten Webhosting-Anbieter 2026 im Vergleich</span>
+            </a>
+            <a href="/artikel/webseite-sicherheit-2026.html" class="mega-item">
+              <img src="/images/webseite-sicherheit-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webseite sichern – Security-Checkliste für deine Website 2026</span>
+            </a>
+            <a href="/artikel/website-online-bringen-guide-2026.html" class="mega-item">
+              <img src="/images/website-online-bringen-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webseite online bringen – Der Komplettguide von A bis Z 2026</span>
+            </a>
+            <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
+              <img src="/images/wordpress-hosting-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WordPress Hosting Vergleich 2026 – Die besten Anbieter</span>
+            </a>
+            <a href="/artikel/caddy-web-server-einrichten-2026.html" class="mega-item">
+              <img src="/images/caddy-web-server-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Caddy Web Server einrichten – Moderner Reverse Proxy mit Auto-HTTPS 2026</span>
+            </a>
+            <a href="/artikel/hostinger-review-2026.html" class="mega-item">
+              <img src="/images/hostinger-review-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Hostinger Review 2026 – Webhosting im Test: Preise, Performance &amp; Eignung</span>
+            </a>
+            <a href="/artikel/cloud-vs-dedicated-server-2026.html" class="mega-item">
+              <img src="/images/cloud-vs-dedicated-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloud vs Dedicated Server 2026 – Kosten, Performance &amp; Use Cases</span>
+            </a>
+            <a href="/artikel/webhosting-sicherheit-ddos-schutz-waf-2026.html" class="mega-item">
+              <img src="/images/webhosting-sicherheit-ddos-schutz-waf-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webhosting-Sicherheit: DDoS-Schutz und WAF – Der Guide 2026</span>
+            </a>
+            <a href="/artikel/managed-wordpress-hosting-vergleich-2026.html" class="mega-item">
+              <img src="/images/managed-wordpress-hosting-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Managed WordPress Hosting im Vergleich 2026 – Die besten Anbieter</span>
+            </a>
+            <a href="/artikel/hugo-astro-static-site-vergleich-2026.html" class="mega-item">
+              <img src="/images/hugo-astro-static-site-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Hugo vs. Astro – Static Site Generator Hosting Vergleich 2026</span>
+            </a>
+            <a href="/artikel/webhosting-vserver-vergleich.html" class="mega-item">
+              <img src="/images/webhosting-vserver-vergleich.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webhosting vs. VServer – Was passt zu dir?</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/webhosting/">Alle Webhosting-Artikel</a></div>
+        </div></div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/">⚙️ DevOps</a>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#FF9800">&#9670;</span> A-Z</h4>
+            <a href="/artikel/docker-container-security-best-practices-2026.html" class="mega-item">
+              <img src="/images/docker-container-security-best-practices-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker Container Security – Best Practices und Absicherung für Docker-Container 2026</span>
+            </a>
+            <a href="/artikel/openvpn-server-vps-einrichten-2026.html" class="mega-item">
+              <img src="/images/openvpn-server-vps-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">OpenVPN Server auf VPS einrichten – Schritt-für-Schritt-Anleitung 2026</span>
+            </a>
+            <a href="/artikel/postgresql-vs-mysql-vergleich-2026.html" class="mega-item">
+              <img src="/images/postgresql-vs-mysql-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">PostgreSQL vs. MySQL 2026 – Datenbank-Hosting im Vergleich</span>
+            </a>
+            <a href="/artikel/raspberry-pi-homelab-server-2026.html" class="mega-item">
+              <img src="/images/raspberry-pi-homelab-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Raspberry Pi Homelab 2026 – Heimserver basteln</span>
+            </a>
+            <a href="/artikel/remote-work-tirol.html" class="mega-item">
+              <img src="/images/remote-work-tirol.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Remote Work in den Alpen: Mein Coworking-Setup in Tirol</span>
+            </a>
+            <a href="/artikel/ansible-automation-guide.html" class="mega-item">
+              <img src="/images/ansible-automation-guide.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</span>
+            </a>
+            <a href="/artikel/backup-strategien-vps-server-2026.html" class="mega-item">
+              <img src="/images/backup-strategien-vps-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Backup-Strategien für VPS und Server – Der Guide 2026</span>
+            </a>
+            <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="mega-item">
+              <img src="/images/docker-vs-podman-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</span>
+            </a>
+            <a href="/artikel/elk-stack-log-management.html" class="mega-item">
+              <img src="/images/elk-stack-log-management.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</span>
+            </a>
+            <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="mega-item">
+              <img src="/images/github-actions-ci-cd-pipeline-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</span>
+            </a>
+            <a href="/artikel/gitops-argocd-einrichten.html" class="mega-item">
+              <img src="/images/gitops-argocd-einrichten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</span>
+            </a>
+            <a href="/artikel/k3s-kubernetes-vps-2026.html" class="mega-item">
+              <img src="/images/k3s-kubernetes-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/linux-server-harden.html" class="mega-item">
+              <img src="/images/linux-server-harden.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Linux Server härten – Security-Baseline 2026</span>
+            </a>
+            <a href="/artikel/n8n-automation-server.html" class="mega-item">
+              <img src="/images/n8n-automation-server.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">n8n Automation Server hosten – Workflow-Automatisierung 2026</span>
+            </a>
+            <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" class="mega-item">
+              <img src="/images/nginx-reverse-proxy-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nginx Reverse Proxy konfigurieren – Einsteiger-Guide 2026</span>
+            </a>
+            <a href="/artikel/postgresql-vps-optimierung.html" class="mega-item">
+              <img src="/images/postgresql-vps-optimierung.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">PostgreSQL auf dem VPS optimieren – Tuning-Guide 2026</span>
+            </a>
+            <a href="/artikel/prometheus-grafana-monitoring-2026.html" class="mega-item">
+              <img src="/images/prometheus-grafana-monitoring-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Server Monitoring mit Prometheus &amp; Grafana – Setup 2026</span>
+            </a>
+            <a href="/artikel/terraform-infrastructure-as-code-2026.html" class="mega-item">
+              <img src="/images/terraform-infrastructure-as-code-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Terraform Infrastructure as Code – Einführung &amp; Beispiele 2026</span>
+            </a>
+            <a href="/artikel/traefik-reverse-proxy.html" class="mega-item">
+              <img src="/images/traefik-reverse-proxy.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Traefik Reverse Proxy einrichten – Moderner Docker-Proxy 2026</span>
+            </a>
+            <a href="/artikel/wireguard-vpn-server.html" class="mega-item">
+              <img src="/images/wireguard-vpn-server.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WireGuard VPN Server einrichten – Schnell &amp; Sicher 2026</span>
+            </a>
+            <a href="/artikel/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.html" class="mega-item">
+              <img src="/images/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">OpenRouter API vs. eigene GPU – Kostenvergleich 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-pages-vercel-netlify-vergleich-2026.html" class="mega-item">
+              <img src="/images/cloudflare-pages-vercel-netlify-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare Pages vs Vercel vs Netlify – Static Hosting Vergleich 2026</span>
+            </a>
+            <a href="/artikel/gaestebeitrag-finanz-junkie-server-kosten-investor-guide.html" class="mega-item">
+              <img src="/images/server-kosten-investor-guide.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Server mieten oder kaufen: Die versteckten Kosten der Digitalisierung – Ein Investor-Guide | Gastbeitrag</span>
+            </a>
+            <a href="/artikel/gitlab-ci-cd-pipeline-guide-2026.html" class="mega-item">
+              <img src="/images/gitlab-ci-cd-pipeline-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitLab CI/CD Pipeline einrichten – Schritt-für-Schritt Guide 2026</span>
+            </a>
+            <a href="/artikel/minio-object-storage-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/minio-object-storage-selbst-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">MinIO Object Storage selbst hosten 2026 – S3-kompatibel auf dem VPS</span>
+            </a>
+            <a href="/artikel/proxmox-heimserver-einrichten-2026.html" class="mega-item">
+              <img src="/images/proxmox-heimserver-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Proxmox Heimserver einrichten 2026 – Virtualisierung zuhause Schritt für Schritt</span>
+            </a>
+            <a href="/artikel/vps-mieten-vergleich-2026.html" class="mega-item">
+              <img src="/images/vps-mieten-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS mieten 2026: Die besten Anbieter, Preise &amp; Tipps für Entwickler</span>
+            </a>
+          </div>
+          <div class="mega-column">
+            <h4><span style="color:#FF9800">&#9670;</span> Neueste</h4>
+            <a href="/artikel/istio-service-mesh-2026.html" class="mega-item">
+              <img src="/images/istio-service-mesh-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Istio Service Mesh 2026 – Setup, Traffic Management &amp; mTLS auf Kubernetes</span>
+            </a>
+            <a href="/artikel/quantisierte-modelle-gguf-awq-gptq-exl2-bitsandbytes-2026.html" class="mega-item">
+              <img src="/images/quantisierte-modelle-gguf-awq-gptq-exl2-bitsandbytes-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Quantisierte Modelle: GGUF, AWQ, GPTQ, EXL2, Bitsandbytes – Was ist besser? 2026</span>
+            </a>
+            <a href="/artikel/text-generation-webui-oobabooga-einrichten-2026.html" class="mega-item">
+              <img src="/images/text-generation-webui-oobabooga-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Text Generation WebUI (oobabooga) einrichten – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/dedizierter-server-vs-vps-2026.html" class="mega-item">
+              <img src="/images/dedizierter-server-vs-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Dedizierter Server vs. VPS – Der große Vergleich 2026</span>
+            </a>
+            <a href="/artikel/helm-charts-kubernetes-guide-2026.html" class="mega-item">
+              <img src="/images/helm-charts-kubernetes-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Helm Charts – Kubernetes Package Manager Einführung &amp; Praxis 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-waf-einrichten-2026.html" class="mega-item">
+              <img src="/images/cloudflare-waf-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare WAF einrichten – DDoS-Schutz &amp; Bot-Filter 2026</span>
+            </a>
+            <a href="/artikel/discord-bot-vps-hosten-2026.html" class="mega-item">
+              <img src="/images/discord-bot-vps-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Discord Bot auf VPS hosten – Komplettanleitung 2026</span>
+            </a>
+            <a href="/artikel/jitsi-meet-server-vps-2026.html" class="mega-item">
+              <img src="/images/jitsi-meet-server-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Jitsi Meet Server selbst hosten – Videokonferenzen auf VPS 2026</span>
+            </a>
+            <a href="/artikel/plausible-analytics-vps-2026.html" class="mega-item">
+              <img src="/images/plausible-analytics-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Plausible Analytics – Selbstgehostetes Web-Analytics auf VPS 2026</span>
+            </a>
+            <a href="/artikel/portainer-docker-management-vps-2026.html" class="mega-item">
+              <img src="/images/portainer-docker-management-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Portainer – Docker Management UI auf VPS einrichten 2026</span>
+            </a>
+            <a href="/artikel/ghost-cms-hosting-vps-2026.html" class="mega-item">
+              <img src="/images/ghost-cms-hosting-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ghost CMS Hosting auf VPS 2026 – Blog-Software installieren &amp; betreiben</span>
+            </a>
+            <a href="/artikel/grafana-loki-log-aggregation-vps-2026.html" class="mega-item">
+              <img src="/images/grafana-loki-log-aggregation-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Grafana Loki Log-Aggregation auf VPS 2026 – Installations-Guide</span>
+            </a>
+            <a href="/artikel/lemp-stack-vps-einrichten-2026.html" class="mega-item">
+              <img src="/images/lemp-stack-vps-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LEMP Stack auf VPS einrichten 2026 – Anleitung &amp; Setup</span>
+            </a>
+            <a href="/artikel/redis-cache-vps-einrichten-2026.html" class="mega-item">
+              <img src="/images/uptime-kuma-monitoring-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Redis Cache auf VPS einrichten und optimieren 2026</span>
+            </a>
+            <a href="/artikel/teamspeak-server-mieten-2026.html" class="mega-item">
+              <img src="/images/teamspeak-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">TeamSpeak 3 Server mieten 2026 – Sprachserver für Gamer</span>
+            </a>
+            <a href="/artikel/uptime-kuma-monitoring-einrichten-2026.html" class="mega-item">
+              <img src="/images/uptime-kuma-monitoring-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Uptime Kuma einrichten – Status Pages &amp; Server-Monitoring 2026</span>
+            </a>
+            <a href="/artikel/vaultwarden-passwort-manager-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/vaultwarden-passwort-manager-selbst-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Vaultwarden Passwort-Manager selbst hosten – Sicherer als die Cloud 2026</span>
+            </a>
+            <a href="/artikel/contabo-vps-erfahrungen-2026.html" class="mega-item">
+              <img src="/images/contabo-vps-erfahrungen-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Contabo VPS Erfahrungen 2026 – Test, Preise &amp; Setup-Guide</span>
+            </a>
+            <a href="/artikel/free-llm-benchmark-2026.html" class="mega-item">
+              <img src="/images/free-llm-benchmark-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Free LLMs 2026 – Der ultimative Benchmark: 20 Modelle, 5 Kategorien, 100 Tests</span>
+            </a>
+            <a href="/artikel/gitea-git-server-vps-2026.html" class="mega-item">
+              <img src="/images/gitea-git-server-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gitea – Selfhosted Git-Server auf VPS installieren &amp; betreiben 2026</span>
+            </a>
+            <a href="/artikel/jenkins-ci-cd-pipeline-vps-2026.html" class="mega-item">
+              <img src="/images/jenkins-ci-cd-pipeline-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Jenkins CI/CD Pipeline auf dem VPS – Automatisierte Builds &amp; Deployments 2026</span>
+            </a>
+            <a href="/artikel/vps-anbieter-vergleich-2026.html" class="mega-item">
+              <img src="/images/vps-anbieter-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS-Anbieter Vergleich 2026 – Hetzner, Netcup, Contabo, IONOS im Test</span>
+            </a>
+            <a href="/artikel/webseite-geschwindigkeit-optimieren-2026.html" class="mega-item">
+              <img src="/images/webseite-geschwindigkeit-optimieren-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Website-Geschwindigkeit optimieren – PageSpeed-Guide 2026</span>
+            </a>
+            <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">
+              <img src="/images/docker-compose-vps-guide.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben</span>
+            </a>
+            <a href="/artikel/vps-absichern-2026.html" class="mega-item">
+              <img src="/images/vps-absichern-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</span>
+            </a>
+            <a href="/artikel/devops-tools-2024.html" class="mega-item">
+              <img src="/images/devops-tools-2024.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DevOps-Tools 2024 – Die 10 wichtigsten Tools im Überblick</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/devops/">Alle DevOps-Artikel</a></div>
+        </div></div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/ki-llm/">🤖 KI &amp; LLM</a>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#9C27B0">&#9670;</span> A-Z</h4>
+            <a href="/artikel/llm-lokal-hosten-2026.html" class="mega-item">
+              <img src="/images/llm-lokal-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</span>
+            </a>
+            <a href="/artikel/llama-cpp-cpu-vs-gpu-performance-2026.html" class="mega-item">
+              <img src="/images/llama-cpp-cpu-vs-gpu-performance-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">llama.cpp Performance 2026: CPU vs GPU – Tokens/s, BLAS-Backends &amp; Hardware-Vergleich</span>
+            </a>
+            <a href="/artikel/comfyui-auf-gpu-hosten.html" class="mega-item">
+              <img src="/images/comfyui-auf-gpu-hosten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">ComfyUI auf GPU hosten – Bild-KI Workflows 2026 mit Flux, SDXL &amp; SD3</span>
+            </a>
+            <a href="/artikel/ki-server-sicherheit-llm-api-absichern-2026.html" class="mega-item">
+              <img src="/images/ki-server-sicherheit-llm-api-absichern-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">KI-Server-Sicherheit: LLM API absichern, Rate-Limiting &amp; Monitoring 2026</span>
+            </a>
+            <a href="/artikel/ollama-llm-server-vps-2026.html" class="mega-item">
+              <img src="/images/ollama-llm-server-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ollama LLM Server auf VPS hosten 2026 – Lokale KI-Modelle selbst betreiben</span>
+            </a>
+            <a href="/artikel/runpod-serverless-vs-dedicated-gpu-2026.html" class="mega-item">
+              <img src="/images/runpod-serverless-vs-dedicated-gpu-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">RunPod Serverless vs Dedicated GPU 2026 – Was lohnt sich?</span>
+            </a>
+            <a href="/artikel/vast-ai-gpu-mieten-2026.html" class="mega-item">
+              <img src="/images/vast-ai-gpu-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Vast.ai GPU mieten 2026 – Erfahrungen, Kosten &amp; Tipps</span>
+            </a>
+            <a href="/artikel/ai-agent-frameworks-2026.html" class="mega-item">
+              <img src="/images/ai-agent-frameworks-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">AI Agent Frameworks 2026 – Langchain, CrewAI, AutoGen &amp; OpenHands im Vergleich</span>
+            </a>
+            <a href="/artikel/mistral-modelle-lokal-hosten-2026.html" class="mega-item">
+              <img src="/images/mistral-modelle-lokal-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Mistral Large &amp; Mixtral 8x22B lokal hosten – MoE-Modelle selbst betreiben 2026</span>
+            </a>
+            <a href="/artikel/cloud-gpu-kosten-vergleich-2026.html" class="mega-item">
+              <img src="/images/cloud-gpu-kosten-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloud GPU Kosten 2026 – Alle Anbieter im Preisvergleich (A100, H100, RTX 4090)</span>
+            </a>
+            <a href="/artikel/cuda-rocam-vulkan-lokale-llm-gpu-backend-vergleich-2026.html" class="mega-item">
+              <img src="/images/cuda-rocam-vulkan-lokale-llm-gpu-backend-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">CUDA, ROCm, Vulkan – Was brauchst du für lokale LLMs? GPU-Backend-Vergleich 2026</span>
+            </a>
+            <a href="/artikel/deepseek-r1-v3-lokal-hosten-2026.html" class="mega-item">
+              <img src="/images/deepseek-r1-v3-lokal-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DeepSeek R1 / V3 lokal hosten 2026 – Hardware, Quantisierung &amp; Setup-Guide</span>
+            </a>
+            <a href="/artikel/docker-llm-inference-container.html" class="mega-item">
+              <img src="/images/docker-llm-inference-container.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker-Container für LLM-Inference – Best Practices 2026</span>
+            </a>
+            <a href="/artikel/gpu-fuer-ki-modelle-mieten-2026.html" class="mega-item">
+              <img src="/images/gpu-fuer-ki-modelle-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GPU für KI-Modelle mieten 2026 – A100, H100, RTX 4090 im Vergleich</span>
+            </a>
+          </div>
+          <div class="mega-column">
+            <h4><span style="color:#9C27B0">&#9670;</span> Neueste</h4>
+            <a href="/artikel/gpu-ram-manager-2026.html" class="mega-item">
+              <img src="/images/gpu-ram-manager-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GPU-RAM-Manager 2026 – Welches LLM passt auf deine GPU? VRAM-Rechner &amp; Entscheidungsmatrix</span>
+            </a>
+            <a href="/artikel/llama-3-3-4-lokal-hosten-2026.html" class="mega-item">
+              <img src="/images/llama-3-3-4-lokal-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Llama 3.3 &amp; Llama 4 lokal hosten – Setup, Quantisierung &amp; Performance 2026</span>
+            </a>
+            <a href="/artikel/llm-fine-tuning-runpod-vastai-2026.html" class="mega-item">
+              <img src="/images/llm-fine-tuning-runpod-vastai-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LLM Fine-Tuning auf gemieteten GPUs 2026 – LoRA, QLoRA &amp; Full-Tuning auf RunPod &amp; Vast.ai</span>
+            </a>
+            <a href="/artikel/llm-frontends-vergleich-2026.html" class="mega-item">
+              <img src="/images/llm-frontends-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LLM-Frontends 2026 lokal hosten: Open WebUI, Jan, LobeChat, AnythingLLM, Big-AGI im Vergleich</span>
+            </a>
+            <a href="/artikel/nvidia-jetson-ki-am-edge-llm-embedded-2026.html" class="mega-item">
+              <img src="/images/nvidia-jetson-ki-am-edge-llm-embedded-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">NVIDIA Jetson für KI am Edge 2026 – LLMs auf embedded Hardware</span>
+            </a>
+            <a href="/artikel/ollama-vs-vllm-vs-lm-studio-2026.html" class="mega-item">
+              <img src="/images/ollama-vs-vllm-vs-lm-studio-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ollama vs vLLM vs LM Studio – LLM-Server-Software 2026 im Vergleich</span>
+            </a>
+            <a href="/artikel/open-webui-ollama-betreiben-2026.html" class="mega-item">
+              <img src="/images/open-webui-ollama-betreiben-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Open WebUI mit Ollama betreiben – Der bessere ChatGPT-Klon 2026</span>
+            </a>
+            <a href="/artikel/tabbyapi-aphrodite-sglang-llm-server-2026.html" class="mega-item">
+              <img src="/images/tabbyapi-aphrodite-sglang-llm-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">TabbyAPI, Aphrodite &amp; SGLang – Neue LLM-Server 2026 im Vergleich</span>
+            </a>
+            <a href="/artikel/vllm-auf-eigener-gpu-aufsetzen.html" class="mega-item">
+              <img src="/images/vllm-auf-eigener-gpu-aufsetzen.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention</span>
+            </a>
+            <a href="/artikel/vllm-multi-model-server-2026.html" class="mega-item">
+              <img src="/images/vllm-multi-model-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">KI-Server mit mehreren Modellen gleichzeitig betreiben – vLLM + Open WebUI 2026</span>
+            </a>
+            <a href="/artikel/ki-im-devops-einsatz-2026.html" class="mega-item">
+              <img src="/images/ki-im-devops-einsatz-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">KI im DevOps-Einsatz 2026 – Automatisierung, Monitoring &amp; LLM-Integration</span>
+            </a>
+            <a href="/artikel/llm-sicherheit-prompt-injection-schutz-2026.html" class="mega-item">
+              <img src="/images/llm-sicherheit-prompt-injection-schutz-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LLM-Sicherheit und Prompt-Injection – Schutzmaßnahmen 2026</span>
+            </a>
+            <a href="/artikel/ki-gestuetzte-code-reviews-praxis-2026.html" class="mega-item">
+              <img src="/images/ki-gestuetzte-code-reviews-praxis-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">KI-gestützte Code-Reviews in der Praxis – Tools &amp; Workflows 2026</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/ki-llm/">Alle KI &amp; LLM-Artikel</a></div>
+        </div></div>
+      </li>
+      <li><a href="/about.html">&#220;ber</a></li>
+    </ul>
+  </div>
+</nav>
+<main class="article-page">
+  <div class="container">
+    <div class="article-meta-top">
+      <span class="card-tag gaming">Gaming</span>
+      <span>6 Min Lesezeit</span>
+    </div>
+    <h1>Palworld Server Update &amp; Wipe-Management 2026</h1>
+<h2>Warum Update- und Wipe-Management 2026 kritisch ist</h2>
+<p>Palworld nutzt ein striktes Versions-Matching zwischen Client und Dedicated Server. Schiebt Steam auf der Client-Seite ein Update aus, können Spieler mit alter Serverversion nicht mehr joinen – sie sehen lediglich „Incompatible Version" im Serverbrowser. Umgekehrt gilt: Wenn du den Server updatest, aber die Save-Kompatibilität nicht prüfst, riskierst du korrupte <code>Level.sav</code>-Dateien.</p>
+<p>Dazu kommt der Faktor Zeit. Große Content-Updates erscheinen häufig zwischen 02:00 und 06:00 UTC. Ohne Automatisierung stehst du nachts am Terminal oder dein Server läuft tagelang veraltet. Mit einem sauberen Update-Skript plus systemd-Timer oder Docker-Auto-Update erledigt sich das.</p>
+<p>Wipes sind das zweite große Thema. Nach Map-Änderungen, Pal-Refactors oder wenn die Wirtschaft auf dem Server durch Exploits zerstört wurde, hilft oft nur ein kontrollierter Reset. Der Unterschied zwischen einem professionellen Wipe und einem Datenverlust ist meist nur die Vorbereitung: Ankündigung, Backup, selektive Löschung statt <code>rm -rf</code>.</p>
+
+<h2>Versionsschema und Build-IDs verstehen</h2>
+<p>Der Palworld Dedicated Server läuft über SteamCMD mit der <strong>App-ID 2394010</strong> und ist kostenlos (anonymous login). Auf der Client-Seite ist es App-ID 1623730. Beide müssen auf demselben <em>buildid</em> stehen.</p>
+<p>Die aktuelle Build-ID deines Servers liest du so aus:</p>
+<pre><code>steamcmd +login anonymous +app_info_print 2394010 | grep -m1 buildid</code></pre>
+<p>Pocketpair pflegt mehrere Branches. Der <code>public</code>-Branch ist der stabile Standard. Für Tests gibt es zeitweise Beta-Branches, die du mit <code>-beta</code> in SteamCMD aktivierst:</p>
+<pre><code>steamcmd +force_install_dir /opt/palworld/server \
+  +login anonymous \
+  +app_update 2394010 -beta preview validate \
+  +quit</code></pre>
+<p>Für Produktionsserver gilt: <strong>niemals</strong> ungeprüft auf einen Preview-Branch wechseln. Setze stattdessen auf ein Staging-System, das du vor dem Live-Rollout testest.</p>
+
+<h2>Backup-Strategie vor jedem Update</h2>
+<p>Die 3-2-1-Regel gilt auch hier: drei Kopien, zwei Medien, eine extern. Ein Palworld-Save besteht aus mehreren Dateien und wächst mit der Spielzeit. Bei 32 Spielern und ausgebauten Basen liegt <code>Level.sav</code> schnell bei 40–90 MB, das komplette Save-Verzeichnis bei 150–400 MB.</p>
+<p>Ein einfaches, zuverlässiges Backup-Skript:</p>
+<pre><code>#!/bin/bash
+set -euo pipefail
+SAVE_DIR=/opt/palworld/server/Pal/Saved/SaveGames/0
+STAMP=$(date +%Y%m%d-%H%M)
+tar czf /backup/palworld-$STAMP.tar.gz -C "$SAVE_DIR" .
+find /backup -name 'palworld-*.tar.gz' -mtime +14 -delete
+echo "Backup fertig: /backup/palworld-$STAMP.tar.gz"</code></pre>
+<p>Wichtig: Vor dem Tarball immer <code>Save</code> per RCON auslösen oder den Server stoppen. Ein Backup aus dem laufenden Betrieb kann inkonsistente <code>Players/</code>-Dateien enthalten, weil Palworld asynchron in 30-Sekunden-Intervallen speichert (<code>AutoSaveSpan=30.0</code>).</p>
+<p>Für maximale Sicherheit lädst du das Archiv zusätzlich per <code>rclone</code> oder <code>restic</code> in einen S3-Bucket oder zu einem zweiten Hoster. Speicher kostet 2026 bei den meisten Anbietern 0,005–0,02 € pro GB und Monat – bei 400 MB Savegröße also praktisch nichts.</p>
+
+<h2>SteamCMD-Update Schritt für Schritt</h2>
+<p>Der manuelle Update-Ablauf für einen nativ installierten Server sieht so aus:</p>
+<ol>
+<li>Spieler per RCON warnen: <code>Broadcast Server-Update in 5 Minuten</code></li>
+<li><code>Save</code> per RCON auslösen, dann <code>DoExit</code> senden</li>
+<li>Warten, bis der Prozess wirklich beendet ist (<code>systemctl status palworld</code>)</li>
+<li>Backup-Skript ausführen</li>
+<li>SteamCMD-Update laufen lassen</li>
+<li>Server starten und Logs auf Fehler prüfen</li>
+</ol>
+<p>Der Update-Befehl selbst:</p>
+<pre><code>steamcmd +force_install_dir /opt/palworld/server \
+  +login anonymous \
+  +app_update 2394010 validate \
+  +quit</code></pre>
+<p><code>validate</code> prüft alle Dateien gegen die Steam-Manifeste und repariert beschädigte Binaries. Der Download liegt je nach Update bei 1–5 GB; auf NVMe dauert das 30–90 Sekunden, auf SATA-SSD 2–4 Minuten.</p>
+<p>Danach prüfst du die neue Build-ID und startest über systemd:</p>
+<pre><code>systemctl start palworld
+journalctl -u palworld -f --since "2 min ago"</code></pre>
+
+<h2>Updates automatisieren mit systemd und Cron</h2>
+<p>Ein Update-Skript, das nur bei tatsächlicher Änderung neu startet, spart dir unnötige Downtime:</p>
+<pre><code>#!/bin/bash
+set -euo pipefail
+APP=2394010
+DIR=/opt/palworld/server
+BEFORE=$(steamcmd +login anonymous +app_info_print $APP | grep -m1 buildid | tr -d ' "')
+steamcmd +force_install_dir $DIR +login anonymous +app_update $APP validate +quit
+AFTER=$(steamcmd +login anonymous +app_info_print $APP | grep -m1 buildid | tr -d ' "')
+if [ "$BEFORE" != "$AFTER" ]; then
+  echo "Update erkannt: $BEFORE -> $AFTER"
+  exit 10
+fi
+exit 0</code></pre>
+<p>In der systemd-Unit nutzt du <code>ExecStartPre</code> mit diesem Skript. Der Exit-Code 10 signalisiert ein Update, woraufhin du per <code>OnFailure</code> oder einem Wrapper einen Neustart und eine Discord-Benachrichtigung auslöst.</p>
+<p>Alternativ ein systemd-Timer, der stündlich prüft:</p>
+<pre><code>[Unit]
+Description=Palworld Update Check
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+
+[Install]
+WantedBy=timers.target</code></pre>
+<p>Für die Benachrichtigung reicht ein <code>curl</code>-POST auf einen Discord-Webhook. So weiß dein Team sofort, wenn ein neuer Build live ist, ohne dass jemand Logs durchwühlen muss.</p>
+
+<h2>Docker-Setup und Container-Updates</h2>
+<p>Der Großteil der gemieteten Palworld-Server läuft 2026 in Docker. Das verbreitetste Image ist <code>thijsvanloef/palworld-server-docker</code>. Eine typische Compose-Datei:</p>
+<pre><code>services:
+  palworld:
+    image: thijsvanloef/palworld-server-docker:latest
+    restart: unless-stopped
+    ports:
+      - "8211:8211/udp"
+      - "27015:27015/udp"
+      - "25575:25575/tcp"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - PORT=8211
+      - PLAYERS=16
+      - SERVER_NAME=Hostazar Palworld
+      - SERVER_PASSWORD=geheim123
+      - ADMIN_PASSWORD=admin123
+      - RCON_ENABLED=true
+      - RCON_PORT=25575
+      - AUTO_UPDATE_ENABLED=true
+      - AUTO_UPDATE_CRON_EXPRESSION=0 4 * * *
+      - BACKUP_ENABLED=true
+      - BACKUP_CRON_EXPRESSION=0 */6 * * *
+    volumes:
+      - ./palworld:/palworld/</code></pre>
+<p>Der Container prüft per Cron selbst auf neue Steam-Builds und startet bei Bedarf neu. Wichtig ist das Volume-Mapping: Nur wenn <code>./palworld</code> auf dem Host liegt, überlebt dein Save ein <code>docker compose down</code> oder einen Image-Wechsel.</p>
+<p>Update-Zyklus im Container-Betrieb:</p>
+<pre><code>docker compose pull
+docker compose up -d
+docker compose logs -f palworld</code></pre>
+<p>Der <code>latest</code>-Tag ist bequem, aber nicht reproduzierbar. Für Produktionsserver pinne die Version, z. B. <code>:v0.30.0</code>, und aktualisiere bewusst nach Test.</p>
+
+<h2>Palworld-Save-Struktur verstehen</h2>
+<p>Bevor du irgendetwas löschst, musst du wissen, was wo liegt. Unter Linux:</p>
+<pre><code>Pal/Saved/SaveGames/0/&lt;32-Zeichen-SaveID&gt;/
+├── Level.sav
+├── LevelMeta.sav
+├── WorldOption.sav
+├── GlobalPalStorage.sav
+└── Players/
+    ├── 00000000000000000000000000000001.sav
+    └── 00000000000000000000000000000002.sav</code></pre>
+<p><strong>Level.sav</strong> enthält die komplette Welt: Basen, Container, Pals in der Welt, Item-Drops. <strong>LevelMeta.sav</strong> speichert Metadaten wie Spielerliste und Zeitstempel. <strong>Players/</strong> enthält pro Spieler eine Datei mit Inventar, Statuen-Upgrades und Pal-Team. <strong>WorldOption.sav</strong> enthält Welt-spezifische Settings.</p>
+<p>Die <code>&lt;SaveID&gt;</code> muss exakt dem <code>DedicatedServerName</code>-Eintrag in <code>Pal/Saved/Config/LinuxServer/GameUserSettings.ini</code> entsprechen. Stimmen die nicht überein, startet der Server mit einer leeren Welt – ein Klassiker nach Migrationen.</p>
+
+<h2>Wipe-Arten im Vergleich</h2>
+<table>
+<tr><th>Wipe-Typ</th><th>Was wird gelöscht</th><th>Einsatz</th><th>Aufwand</th></tr>
+<tr><td>Full Wipe</td><td>Komplettes Save-Verzeichnis</td><td>Neue Season, Map-Reset</td><td>5 Minuten</td></tr>
+<tr><td>Map Wipe</td><td><code>Level.sav</code> + <code>LevelMeta.sav</code></td><td>Basis-Reset, Spieler bleiben</td><td>10 Minuten</td></tr>
+<tr><td>Player Wipe</td><td>Inhalte von <code>Players/</code></td><td>Exploit-Reset einzelner Accounts</td><td>5 Minuten</td></tr>
+<tr><td>Selective Wipe</td><td>Einzelne Basen/Gilden via Save-Editor</td><td>Griefing-Fälle</td><td>1–3 Stunden</td></tr>
+</table>
+<p>Ein Full Wipe ist trivial: Server stoppen, Backup ziehen, Save-Verzeichnis umbenennen statt löschen, Server starten. Palworld generiert automatisch eine neue Welt mit neuer SaveID.</p>
+<p>Ein Map Wipe ohne Spielerverlust ist heikler, weil <code>Players/</code> auf Objekte in <code>Level.sav</code> referenziert. Entfernst du die Welt, aber behältst die Spielerdateien, kann der Server beim Laden crashen. Sauberer Weg: Spielerdateien mit <code>palworld-save-tools</code> bearbeiten und Referenzen auf gelöschte Basen entfernen – oder die Spieler vorher ausloggen lassen und Inventar manuell über die JSON-Konvertierung zurücksetzen.</p>
+
+<h2>Migration: Save auf neuen Server oder Hoster umziehen</h2>
+<p>Ein Serverumzug ist der häufigste Grund für Datenverlust. Der Ablauf:</p>
+<ol>
+<li>Alten Server stoppen, Save-Verzeichnis als Tarball sichern</li>
+<li>Auf dem Zielserver identische Palworld-Version installieren</li>
+<li>SaveID-Ordner nach <code>Pal/Saved/SaveGames/0/</code> kopieren</li>
+<li><code>DedicatedServerName</code> in <code>GameUserSettings.ini</code> auf die SaveID setzen</li>
+<li>Rechte prüfen: <code>chown -R palworld:palworld Pal/Saved</code></li>
+<li>Server starten, Log auf <code>Loaded world</code> prüfen</li>
+</ol>
+<p>Wechselt der Hosting-Anbieter, ändert sich häufig die SteamID/GUID des Server-Accounts. Dann hilft <code>palworld-host-save-fix</code>:</p>
+<pre><code>python palworld-host-save-fix.py \
+  --save-path /opt/palworld/server/Pal/Saved/SaveGames/0/&lt;SaveID&gt; \
+  --old-guid &lt;ALTER_GUID&gt; \
+  --new-guid &lt;NEUER_GUID&gt;</code></pre>
+<p>Das Skript schreibt die GUID in <code>Level.sav</code> und allen Spielerdateien um. Ohne diesen Schritt landen alle Spieler als „Unknown" auf einem neuen Charakter-Level – ihre Pals und Basen sind dann zwar noch da, aber nicht mehr zugeordnet.</p>
+
+<h2>Rollback und Downgrade nach fehlerhaftem Update</h2>
+<p>Manchmal bricht ein Update das Gameplay oder den Serverstart. Ein Downgrade ist über SteamCMD möglich, aber aufwendig: Du brauchst die Manifest-ID der Vorversion und lädst sie über <code>download_depot</code>:</p>
+<pre><code>steamcmd +login anonymous \
+  +download_depot 2394010 2394011 &lt;MANIFEST_ID&gt;</code></pre>
+<p>Der Depot-Download landet in <code>~/.steam/steamcmd/steamapps/content/app_2394010/</code> und muss manuell ins Serververzeichnis kopiert werden. Wichtiger Hinweis: <strong>Ein Downgrade des Servers ohne Downgrade der Clients funktioniert nicht</strong> – Steam aktualisiert Clients automatisch. Ein Rollback ist daher nur sinnvoll, wenn du gleichzeitig den Server offline nimmst und auf einen Fix wartest.</p>
+<p>Die deutlich pragmatischere Strategie: Vor jedem Update ein Vollbackup, dann im Fehlerfall auf den letzten kompatiblen Stand zurück. Plane dafür 15–30 Minuten Downtime ein.</p>
+
+<h2>Kommunikation und RCON-Tools</h2>
+<p>Ein Wipe ohne Ankündigung kostet dich die halbe Spielerbasis. Nutze RCON für Broadcasts im Spiel:</p>
+<pre><code>rcon-cli --host 127.0.0.1 --port 25575 --password admin123 \
+  "Broadcast Server-Wipe am Samstag 20:00 CET - Details im Discord"
+
+rcon-cli --host 127.0.0.1 --port 25575 --password admin123 "Save"
+rcon-cli --host 127.0.0.1 --port 25575 --password admin123 "ShowPlayers"
+rcon-cli --host 127.0.0.1 --port 25575 --password admin123 "DoExit"</code></pre>
+<p>Verfügbare RCON-Befehle in Palworld sind überschaubar: <code>Broadcast</code>, <code>Save</code>, <code>ShowPlayers</code>, <code>KickPlayer</code>, <code>BanPlayer</code>, <code>UnBanPlayer</code>, <code>Info</code>, <code>DoExit</code>. Für alles andere brauchst du Dateizugriff oder Save-Editoren.</p>
+<p>Ergänze RCON um einen Discord-Bot oder Webhook, der Update-Status, Spielerzahlen und Backup-Erfolge postet. Das reduziert Support-Anfragen drastisch, weil Spieler selbst sehen, wann der Server wieder online ist.</p>
+
+<h2>Checkliste für Update- und Wipe-Tage</h2>
+<p>Diese Reihenfolge hat sich in der Praxis bewährt:</p>
+<ul>
+<li><strong>T-24h:</strong> Update oder Wipe im Discord ankündigen, Datum und Uhrzeit nennen</li>
+<li><strong>T-1h:</strong> Backup manuell ziehen und Off-Site kopieren</li>
+<li><strong>T-15min:</strong> RCON-Broadcast, Spieler zum Ausloggen auffordern</li>
+<li><strong>T-5min:</strong> <code>Save</code> senden, dann <code>DoExit</code></li>
+<li><strong>T-0:</strong> Prozess gestoppt, Update oder Wipe durchführen</li>
+<li><strong>T+5min:</strong> Server starten, Logs prüfen, Test-Join mit Admin-Account</li>
+<li><strong>T+15min:</strong> Freigabe im Discord, Monitoring beobachten</li>
+</ul>
+<p>Für das Monitoring reichen <code>htop</code>, <code>docker stats</code> und ein Blick in die Server-Logs. Achte auf RAM-Auslastung: Palworld leakt historisch bei langen Uptimes. Ein wöchentlicher geplanter Neustart um 05:00 UTC ist 2026 weiterhin eine gute Idee.</p>
+
+<h2>Hardware- und Hosting-Empfehlungen 2026</h2>
+<table>
+<tr><th>Spieler</th><th>RAM</th><th>CPU</th><th>Preis/Monat</th></tr>
+<tr><td>4–8</td><td>8 GB</td><td>2 vCores</td><td>7–12 €</td></tr>
+<tr><td>8–16</td><td>12–16 GB</td><td>4 vCores</td><td>14–22 €</td></tr>
+<tr><td>16–32</td><td>24–32 GB</td><td>6 vCores</td><td>25–40 €</td></tr>
+<tr><td>32+ (modded)</td><td>32–64 GB</td><td>8 vCores</td><td>45–70 €</td></tr>
+</table>
+<p>NVMe-Speicher ist Pflicht. Save-Writes sind bei 30-Sekunden-Intervallen häufig, und auf langsamen SATA-SSDs siehst du regelmäßig Lags beim Autosave. Achte außerdem auf unbegrenzten Traffic – ein 32-Slot-Server zieht bei aktivem Spiel leicht 500 GB bis 1 TB pro Monat.</p>
+
+<h2>FAQ</h2>
+<h3>Wie oft muss ich meinen Palworld-Server 2026 updaten?</h3>
+<p>Pocketpair veröffentlicht kleinere Patches oft wöchentlich, größere Content-Updates alle 6–12 Wochen. Da Clients automatisch patchen, ist ein stündlicher Update-Check per systemd-Timer oder Docker-Auto-Update die sicherste Variante. Plane für den Neustart 2–3 Minuten Downtime ein.</p>
+
+<h3>Verliere ich bei einem Update meine Welt?</h3>
+<p>Nein, wenn du vorher ein Backup ziehst. Palworld-Saves sind in der Regel abwärtskompatibel innerhalb der Early-Access- und 1.x-Reihe. Kritisch wird es nur, wenn du den Server downgradest oder ein Save mit neuerer Version auf einen älteren Server kopierst. Genau deshalb gehört ein Tarball-Backup vor jedes Update.</p>
+
+<h3>Was ist der Unterschied zwischen Full Wipe und Map Wipe?</h3>
+<p>Ein Full Wipe löscht das komplette Save-Verzeichnis inklusive aller Spielerdateien – alles beginnt bei null. Ein Map Wipe löscht nur <code>Level.sav</code> und <code>LevelMeta.sav</code>, sodass Spieler-Level und Inventar theoretisch erhalten bleiben. In der Praxis musst du bei einem Map Wipe die Spielerdateien nachbearbeiten, sonst crasht der Server beim Laden wegen ungültiger Objektreferenzen.</p>
+
+<h3>Wie ziehe ich meinen Palworld-Save auf einen anderen Hoster um?</h3>
+<p>Server stoppen, Save-Verzeichnis als Tarball sichern, auf dem Zielserver dieselbe Palworld-Version installieren, Ordner nach <code>Pal/Saved/SaveGames/0/</code> kopieren und den <code>DedicatedServerName</code> in <code>GameUserSettings.ini</code> auf die SaveID setzen. Ändert sich die Server-GUID, brauchst du zusätzlich <code>palworld-host-save-fix</code>, sonst verlieren Spieler ihre Charakterzuordnung.</p>
+
+<h3>Kann ich RCON für automatische Wipes nutzen?</h3>
+<p>Nur eingeschränkt. RCON unterstützt in Palworld lediglich <code>Broadcast</code>, <code>Save</code>, <code>ShowPlayers</code>, <code>KickPlayer</code>, <code>BanPlayer</code>, <code>UnBanPlayer</code>, <code>Info</code> und <code>DoExit</code>. Für echte Wipe-Aktionen musst du auf Dateisystemebene arbeiten oder einen Save-Editor wie <code>palworld-save-tools</code> einsetzen. RCON eignet sich hervorragend für die Ankündigung und den sauberen Shutdown davor.</p>
+
+<section class="related-section">
+  <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>
+  <div class="related-grid">
+    <article class="blog-card">
+  <a href="/artikel/minecraft-plugin-server-optimierung-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/minecraft-plugin-server-optimierung-2026.webp" alt="Minecraft Plugin-Server optimieren 2026 – Paper &amp; Spigot Tuning" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag gaming" style="background:#4CAF5022;color:#4CAF50">Gaming</span>
+      <span>25. September 2026</span>
+      <span>7 Min</span>
+    </div>
+    <h3><a href="/artikel/minecraft-plugin-server-optimierung-2026.html">Minecraft Plugin-Server optimieren 2026 – Paper &amp; Spigot Tuning</a></h3>
+    <p class="card-excerpt">Minecraft Plugin-Server optimieren 2026: Paper &amp; Spigot Tuning mit Aikar-Flags, Spark-Profiling, Chunk-Pregen und konkreten Werten für stabile 20 TPS.</p>
+    <div class="card-footer">
+      <a href="/artikel/minecraft-plugin-server-optimierung-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/cs2-server-tuning-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/cs2-server-tuning-2026.webp" alt="CS2 Server Tuning 2026 – Tickrate, Config &amp; Performance" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag gaming" style="background:#4CAF5022;color:#4CAF50">Gaming</span>
+      <span>25. September 2026</span>
+      <span>7 Min</span>
+    </div>
+    <h3><a href="/artikel/cs2-server-tuning-2026.html">CS2 Server Tuning 2026 – Tickrate, Config &amp; Performance</a></h3>
+    <p class="card-excerpt">CS2 Server Tuning 2026: Tickrate 128, optimale server.cfg, Linux-Kernel-Tuning und Rate-Einstellungen für maximale Performance und niedrige Latenz.</p>
+    <div class="card-footer">
+      <a href="/artikel/cs2-server-tuning-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/valheim-mods-server-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/valheim-mods-server-2026.webp" alt="Valheim Mods auf dem Server installieren 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag gaming" style="background:#4CAF5022;color:#4CAF50">Gaming</span>
+      <span>25. September 2026</span>
+      <span>8 Min</span>
+    </div>
+    <h3><a href="/artikel/valheim-mods-server-2026.html">Valheim Mods auf dem Server installieren 2026</a></h3>
+    <p class="card-excerpt">Valheim Mods auf dem Server installieren 2026: BepInEx, Jotunn &amp; ServerSync Schritt für Schritt erklärt – mit Befehlen, Preisen und Troubleshooting.</p>
+    <div class="card-footer">
+      <a href="/artikel/valheim-mods-server-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/minecraft-server-performance-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/minecraft-server-performance-2026.webp" alt="Minecraft Server Performance optimieren – Guide 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag gaming" style="background:#4CAF5022;color:#4CAF50">Gaming</span>
+      <span>22. June 2026</span>
+      <span>13 Min</span>
+    </div>
+    <h3><a href="/artikel/minecraft-server-performance-2026.html">Minecraft Server Performance optimieren – Guide 2026</a></h3>
+    <p class="card-excerpt">Im Jahr 2026 betreiben weltweit über 4,2 Millionen aktive Minecraft-Server Spieler-Communities, und die durchschnittliche erwartete Antwortzeit (Tick-Time) lieg</p>
+    <div class="card-footer">
+      <a href="/artikel/minecraft-server-performance-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/enshrouded-dedicated-server-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/enshrouded-dedicated-server-2026.webp" alt="Enshrouded Dedicated Server – Setup &amp; Hosting 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag gaming" style="background:#4CAF5022;color:#4CAF50">Gaming</span>
+      <span>20. June 2026</span>
+      <span>14 Min</span>
+    </div>
+    <h3><a href="/artikel/enshrouded-dedicated-server-2026.html">Enshrouded Dedicated Server – Setup &amp; Hosting 2026</a></h3>
+    <p class="card-excerpt">Enshrouded ist ein Survival-Crafting-Spiel des Frankfurter Studios Keen Games, das seit dem Early-Access-Start im Januar 2024 eine wachsende Community auf Steam</p>
+    <div class="card-footer">
+      <a href="/artikel/enshrouded-dedicated-server-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/gameserver-ddos-schutz-cloudflare-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/gameserver-ddos-schutz-cloudflare-2026.webp" alt="Gameserver DDoS-Schutz mit Cloudflare – Setup 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag gaming" style="background:#4CAF5022;color:#4CAF50">Gaming</span>
+      <span>20. June 2026</span>
+      <span>13 Min</span>
+    </div>
+    <h3><a href="/artikel/gameserver-ddos-schutz-cloudflare-2026.html">Gameserver DDoS-Schutz mit Cloudflare – Setup 2026</a></h3>
+    <p class="card-excerpt">Im Jahr 2025 haben DDoS-Angriffe auf Gameserver ein neues Rekordniveau erreicht. Laut dem aktuellen State-of-the-Internet-Report von Akamai lag die durchschnitt</p>
+    <div class="card-footer">
+      <a href="/artikel/gameserver-ddos-schutz-cloudflare-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+  </div>
+</section>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>hostazar.com</h4>
+        <p style="color:var(--text-muted);font-size:.85rem;max-width:300px">
+          Unabh&#228;ngige Hosting-Reviews, Gameserver-Guides und DevOps-Tutorials. Transparent, recherchiert und praxisnah, finanziert durch Affiliate-Links und Anzeigen.
+        </p>
+      </div>
+      <div class="footer-links-columns"><h5>Gaming</h5>
+        <a href="/artikel/7-days-to-die-server-hosten-2026.html">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</a>
+        <a href="/artikel/ark-survival-ascended-server-hosten-2026.html">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2026</a>
+        <a href="/artikel/conan-exiles-server-hosten.html">Conan Exiles Server mieten – Setup &amp; Kosten 2026</a>
+        <a href="/artikel/cs2-server-mieten-guide-2026.html">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</a>
+        <a href="/artikel/dayz-server-mieten-2026.html">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</a>
+        <a href="/gaming/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>Webhosting</h5>
+        <a href="/artikel/lamp-stack-vs-lemp-stack-vergleich-2026.html">LAMP Stack vs LEMP Stack – Der große Vergleich für dein Webprojekt 2026</a>
+        <a href="/artikel/nginx-vs-apache-webserver-vergleich-2026.html">Nginx vs. Apache 2026 – Webserver im Vergleich</a>
+        <a href="/artikel/cloud-hosting-vs-shared-hosting.html">Cloud Hosting vs. Shared Hosting – Vergleich 2026</a>
+        <a href="/artikel/cloudflare-tunnel-einrichten.html">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</a>
+        <a href="/artikel/docker-wordpress-hosten.html">WordPress mit Docker hosten – Modernes Setup 2026</a>
+        <a href="/webhosting/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>DevOps</h5>
+        <a href="/artikel/docker-container-security-best-practices-2026.html">Docker Container Security – Best Practices und Absicherung für Docker-Container 2026</a>
+        <a href="/artikel/openvpn-server-vps-einrichten-2026.html">OpenVPN Server auf VPS einrichten – Schritt-für-Schritt-Anleitung 2026</a>
+        <a href="/artikel/postgresql-vs-mysql-vergleich-2026.html">PostgreSQL vs. MySQL 2026 – Datenbank-Hosting im Vergleich</a>
+        <a href="/artikel/raspberry-pi-homelab-server-2026.html">Raspberry Pi Homelab 2026 – Heimserver basteln</a>
+        <a href="/artikel/remote-work-tirol.html">Remote Work in den Alpen: Mein Coworking-Setup in Tirol</a>
+        <a href="/devops/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>KI &amp; LLM</h5>
+        <a href="/artikel/llm-lokal-hosten-2026.html">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</a>
+        <a href="/artikel/llama-cpp-cpu-vs-gpu-performance-2026.html">llama.cpp Performance 2026: CPU vs GPU – Tokens/s, BLAS-Backends &amp; Hardware-Vergleich</a>
+        <a href="/artikel/comfyui-auf-gpu-hosten.html">ComfyUI auf GPU hosten – Bild-KI Workflows 2026 mit Flux, SDXL &amp; SD3</a>
+        <a href="/artikel/ki-server-sicherheit-llm-api-absichern-2026.html">KI-Server-Sicherheit: LLM API absichern, Rate-Limiting &amp; Monitoring 2026</a>
+        <a href="/artikel/ollama-llm-server-vps-2026.html">Ollama LLM Server auf VPS hosten 2026 – Lokale KI-Modelle selbst betreiben</a>
+        <a href="/ki-llm/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 hostazar.com</span>
+      <span>
+        <a href="/impressum.html">Impressum</a> &middot;
+        <a href="/datenschutz.html">Datenschutz</a> <a href="/datenschutz.html">Datenschutz</a>middot;
+        <a href="#" onclick="window.hzReopenBanner();return false;">Cookie-Einstellungen</a>
+      </span>
+    </div>
+    <div class="affiliate-note">
+      * Affiliate-Links: Wir erhalten ggf. eine Provision beim Kauf. Das kostet dich keinen Cent mehr.
+    </div>
+  </div>
+</footer>
+<script src="/data/script.js" defer></script>
+<script src="/js/consent-manager.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'gaming',
+        excludeSlug: 'palworld-server-update-2026',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/gaming/', label: 'Gaming' },
+        { label: 'Palworld Server Update &amp; Wipe-Management 2026' }
+      ]
+    });
+  }
+});
+</script>
+</body>
+</html>

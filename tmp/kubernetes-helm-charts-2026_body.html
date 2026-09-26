@@ -1,0 +1,212 @@
+<h2>Was sind Helm Charts – und warum 2026 noch relevant?</h2>
+<p>Helm ist der Paketmanager für Kubernetes und seit 2020 ein „Graduated Project" der CNCF. Statt für jede Anwendung dutzende einzelne YAML-Manifeste manuell zu pflegen, bündelt ein Chart alle Ressourcen – Deployment, Service, Ingress, ConfigMap, ServiceAccount – in einer versionierten, parametrisierbaren Einheit. 2026 ist das wichtiger denn je: Ein durchschnittliches Production-Deployment einer Web-App umfasst heute 8 bis 15 Kubernetes-Objekte, die alle konsistent aktualisiert, gerollt und zurückgerollt werden müssen.</p>
+<p>Der praktische Nutzen zeigt sich sofort: <strong>Ein einziger Befehl</strong> installiert eine komplette Anwendung inklusive aller Abhängigkeiten. <code>helm install ingress-nginx ingress-nginx/ingress-nginx</code> ersetzt rund 900 Zeilen YAML. Helm merkt sich jedes Release, sodass du mit <code>helm rollback</code> innerhalb von Sekunden auf den vorherigen Stand zurückgehst – ohne manuelles Zusammenkopieren alter Manifeste.</p>
+<p>Artifact Hub listet Anfang 2026 über <strong>16.000 öffentliche Charts</strong>. Für Standardkomponenten wie cert-manager, Prometheus oder PostgreSQL schreibt kaum noch jemand eigene Manifeste. Die aktuelle Helm-Version ist 3.17 (Long-Term-Support-Zweig), während Helm 4.x seit Ende 2025 als stabile Major-Version verfügbar ist und unter anderem serverseitiges Apply und verbessertes OCI-Handling mitbringt.</p>
+<p>Wer heute ein Kubernetes-Cluster betreibt und noch rohe YAML-Dateien mit <code>kubectl apply -f</code> ausrollt, verliert Zeit und Übersicht. Dieser Guide zeigt dir den kompletten Einstieg – von der Installation bis zum GitOps-Workflow mit ArgoCD.</p>
+
+<h2>Helm installieren: Setup unter Ubuntu 24.04 und macOS</h2>
+<p>Die Installation dauert unter zwei Minuten. Auf Debian/Ubuntu 24.04 LTS nutzt du das offizielle APT-Repository, damit du später mit <code>apt upgrade</code> aktualisieren kannst:</p>
+<pre><code>curl -fsSL https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg &gt; /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+sudo apt update &amp;&amp; sudo apt install helm -y</code></pre>
+<p>Alternativ geht das offizielle Skript, das immer die neueste Version zieht:</p>
+<pre><code>curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+helm version --short
+# v3.17.3+g4b5f4e1</code></pre>
+<p>Prüfe danach, dass dein <code>kubectl</code>-Kontext auf das richtige Cluster zeigt. Helm nutzt exakt dieselbe kubeconfig wie kubectl – ein häufiger Anfängerfehler ist das versehentliche Deployen in ein falsches Cluster:</p>
+<pre><code>kubectl config current-context
+kubectl get nodes
+helm env | grep KUBECONFIG</code></pre>
+<p>Für produktives Arbeiten lohnt sich die Shell-Autovervollständigung. Bei Bash: <code>helm completion bash | sudo tee /etc/bash_completion.d/helm</code>. Bei Zsh: <code>helm completion zsh &gt; "${fpath[1]}/_helm"</code>. Damit sparst du bei langen Release-Namen und Chart-Repositories viel Tipparbeit.</p>
+
+<h2>Die Anatomie eines Helm Charts</h2>
+<p>Ein Chart ist im Kern ein Verzeichnis mit einer festen Struktur. <code>helm create myapp</code> erzeugt dir ein vollständiges Skelett mit Best Practices, das du direkt als Vorlage nutzen kannst:</p>
+<table>
+<thead><tr><th>Pfad</th><th>Zweck</th></tr></thead>
+<tbody>
+<tr><td><code>Chart.yaml</code></td><td>Metadaten: Name, Version, appVersion, Dependencies</td></tr>
+<tr><td><code>values.yaml</code></td><td>Standardwerte, die Nutzer überschreiben können</td></tr>
+<tr><td><code>templates/</code></td><td>Go-Templates, die zu Kubernetes-Manifesten rendern</td></tr>
+<tr><td><code>templates/NOTES.txt</code></td><td>Ausgabe nach erfolgreicher Installation</td></tr>
+<tr><td><code>charts/</code></td><td>Eingebettete Subcharts (Abhängigkeiten)</td></tr>
+<tr><td><code>.helmignore</code></td><td>Dateien, die nicht ins Paket gehören (wie .gitignore)</td></tr>
+</tbody>
+</table>
+<p>Die Templates sind Go-Templates mit den zusätzlichen <strong>Sprig-Funktionen</strong>. Das bedeutet: Bedingungen (<code>if</code>), Schleifen (<code>range</code>), String-Manipulation und Defaults sind möglich. Ein typisches Muster sieht so aus:</p>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "myapp.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"</code></pre>
+<p>Wichtig zu verstehen: <code>.Values</code> greift auf values.yaml zu, <code>.Chart</code> auf die Chart.yaml, und <code>.Release</code> enthält Laufzeitinfos wie <code>.Release.Name</code> oder <code>.Release.Namespace</code>. Diese Trennung macht Charts wiederverwendbar – dasselbe Chart läuft in Dev, Staging und Prod mit unterschiedlichen Werten.</p>
+
+<h2>Erstes Chart installieren und inspizieren</h2>
+<p>Bevor du irgendetwas in den Cluster schreibst, renderst du das Ergebnis lokal. Das ist der wichtigste Debug-Befehl überhaupt:</p>
+<pre><code>helm create myapp
+helm template myapp ./myapp --namespace demo
+helm template myapp ./myapp --namespace demo --debug</code></pre>
+<p><code>helm template</code> verbindet sich nicht mit dem Cluster (außer bei <code>lookup</code>-Funktionen) und zeigt dir das fertige YAML. So findest du Template-Fehler, bevor sie im Cluster landen. Anschließend installierst du mit einem Dry-Run, der serverseitig validiert:</p>
+<pre><code>helm install myapp ./myapp --namespace demo --create-namespace --dry-run=server</code></pre>
+<p>Wenn alles passt, folgt die echte Installation. Nutze <code>--wait</code>, damit Helm auf die Readiness der Pods wartet, und <code>--timeout</code>, damit der Befehl nicht ewig hängt:</p>
+<pre><code>helm install myapp ./myapp --namespace demo --create-namespace --wait --timeout 5m
+helm list -n demo
+helm status myapp -n demo
+helm get manifest myapp -n demo</code></pre>
+<p>Mit <code>helm get manifest</code> siehst du exakt, was Helm ins Cluster geschrieben hat – inklusive aller gerenderten Werte. Das ist Gold wert, wenn ein Deployment unerwartet aussieht.</p>
+
+<h2>Values überschreiben: Dev, Staging und Prod sauber trennen</h2>
+<p>Das Herzstück der Wiederverwendbarkeit sind Values-Overrides. Helm wendet sie in einer festen Prioritätsreihenfolge an – von niedrig nach hoch:</p>
+<ol>
+<li><code>values.yaml</code> im Chart (Standardwerte)</li>
+<li>Values eines Parent-Charts (bei Subcharts)</li>
+<li>Dateien via <code>-f myvalues.yaml</code> (mehrere möglich, spätere gewinnen)</li>
+<li>Einzelwerte via <code>--set key=value</code></li>
+</ol>
+<p>In der Praxis legst du pro Umgebung eine Datei an:</p>
+<pre><code># values-prod.yaml
+replicaCount: 6
+image:
+  repository: registry.hostazar.com/myapp
+  tag: "2.4.1"
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: "2"
+    memory: 2Gi
+ingress:
+  enabled: true
+  hosts:
+    - host: app.example.com</code></pre>
+<p>Deployment für Prod: <code>helm upgrade --install myapp ./myapp -n prod -f values-prod.yaml --wait --atomic</code>. Das Flag <code>--atomic</code> ist entscheidend: Schlägt das Upgrade fehl, rollt Helm automatisch auf die vorherige Revision zurück. Ohne dieses Flag bleibt ein halbfertiges Deployment stehen.</p>
+<p>Für kleine Änderungen eignet sich <code>--set</code>, etwa <code>--set image.tag=2.4.2</code>. Achte aber auf die Fallstricke: Punkte erzeugen verschachtelte Keys, Kommas trennen mehrere Werte. Bei Sonderzeichen nutze <code>--set-string</code> oder besser gleich eine Values-Datei. Für automatisierte Pipelines ist <code>-f</code> immer die robustere Wahl.</p>
+
+<h2>Repositories und die wichtigsten Charts 2026</h2>
+<p>Öffentliche Charts beziehst du über Repositories. Die drei wichtigsten für den Einstieg:</p>
+<pre><code>helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo add jetstack https://charts.jetstack.io
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update</code></pre>
+<table>
+<thead><tr><th>Chart</th><th>Zweck</th><th>Typische Version 2026</th></tr></thead>
+<tbody>
+<tr><td><code>ingress-nginx</code></td><td>HTTP/HTTPS-Ingress-Controller</td><td>4.12.x</td></tr>
+<tr><td><code>cert-manager</code></td><td>Automatische Let's-Encrypt-Zertifikate</td><td>1.17.x</td></tr>
+<tr><td><code>kube-prometheus-stack</code></td><td>Monitoring mit Prometheus + Grafana</td><td>68.x</td></tr>
+<tr><td><code>external-secrets</code></td><td>Secrets aus Vault/AWS SM synchronisieren</td><td>0.14.x</td></tr>
+</tbody>
+</table>
+<p>Ein produktionsreifes cert-manager-Setup sieht so aus:</p>
+<pre><code>helm install cert-manager jetstack/cert-manager \
+  --namespace cert-manager --create-namespace \
+  --version v1.17.2 \
+  --set crds.enabled=true \
+  --wait</code></pre>
+<p>Wichtig: <strong>Pinne immer die Chart-Version</strong> mit <code>--version</code>. Ohne diese Angabe zieht Helm die neueste Version, was in CI/CD-Pipelines zu unerwarteten Breaking Changes führt. Bei <code>kube-prometheus-stack</code> ändern sich zwischen Major-Versionen regelmäßig Label-Schemata – ein ungeplanter Sprung kann deine Alerting-Regeln lahmlegen.</p>
+
+<h2>GitOps mit ArgoCD und Flux</h2>
+<p>2026 ist der deklarative GitOps-Ansatz Standard. Statt Helm manuell in der Pipeline auszuführen, speicherst du die Chart-Referenz plus Values im Git-Repository, und ein Controller synchronisiert den Cluster. ArgoCD rendert Helm-Charts serverseitig über eine <code>Application</code>-Ressource:</p>
+<pre><code>apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: myapp-prod
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/hostazar/k8s-manifests
+    targetRevision: main
+    path: charts/myapp
+    helm:
+      valueFiles:
+        - values-prod.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true</code></pre>
+<p>Der Vorteil: <code>selfHeal: true</code> erkennt manuelle Änderungen im Cluster und macht sie rückgängig. Dein Git-Repository ist damit die einzige Wahrheit. ArgoCD zeigt dir in der UI den Diff zwischen Soll- und Ist-Zustand.</p>
+<p>Flux geht einen ähnlichen Weg, arbeitet aber mit <code>HelmRelease</code>-Custom-Resources und ist stärker CLI-orientiert. Beide Systeme unterstützen Helm-Charts nativ, inklusive <code>helm template</code>-Rendering und Drift-Detection. Für Teams, die gerade erst starten, ist ArgoCD wegen der grafischen Oberfläche der schnellere Einstieg.</p>
+
+<h2>Secrets sicher verwalten</h2>
+<p>Ein häufiger Anfängerfehler: Klartext-Passwörter in <code>values.yaml</code> und dann ins Git pushen. Nutze stattdessen einen der drei etablierten Wege:</p>
+<ul>
+<li><strong>helm-secrets + SOPS:</strong> Verschlüsselt Values-Dateien mit age oder GPG. Aufruf: <code>helm secrets upgrade --install myapp ./myapp -f secrets.yaml</code>. Die Datei bleibt verschlüsselt im Git.</li>
+<li><strong>Sealed Secrets:</strong> Der Controller entschlüsselt <code>SealedSecret</code>-Objekte im Cluster. Ideal, wenn du keine externe Key-Verwaltung willst.</li>
+<li><strong>External Secrets Operator:</strong> Synchronisiert Secrets aus HashiCorp Vault, AWS Secrets Manager oder Azure Key Vault. Beste Wahl für Multi-Cloud-Setups.</li>
+</ul>
+<p>Für den Einstieg ist SOPS mit age-Keys am einfachsten. Ein Schlüsselpaar erzeugst du in Sekunden: <code>age-keygen -o key.txt</code>. Den öffentlichen Key trägst du in <code>.sops.yaml</code> ein, danach verschlüsselt SOPS automatisch nur die als <code>secret</code> markierten Werte. Wichtig: Den privaten Key niemals ins Repository – der gehört in einen CI-Secret-Store oder in den Cluster als Kubernetes-Secret.</p>
+
+<h2>Linting, Testing und CI-Integration</h2>
+<p>Vor jedem Commit gehört ein Lint-Durchlauf. <code>helm lint ./myapp</code> prüft Chart.yaml, Template-Syntax und Values-Konsistenz. Für tiefere Validierung gegen echte Kubernetes-Schemas nutzt du <code>kubeconform</code>:</p>
+<pre><code>helm template myapp ./myapp | kubeconform -strict -summary
+helm unittest ./myapp
+helm dependency update ./myapp</code></pre>
+<p>Das Plugin <code>helm-unittest</code> erlaubt echte Unit-Tests auf gerenderte Manifeste. Du prüfst damit zum Beispiel, dass bei <code>ingress.enabled: false</code> wirklich kein Ingress-Objekt entsteht. In einer GitHub-Actions-Pipeline sieht der Ablauf typischerweise so aus:</p>
+<pre><code>- name: Helm Lint
+  run: helm lint ./charts/myapp
+- name: Render &amp; Validate
+  run: helm template myapp ./charts/myapp | kubeconform -strict
+- name: Package
+  run: helm package ./charts/myapp --destination ./dist</code></pre>
+<p>Für Chart-Tests über mehrere Kubernetes-Versionen hinweg ist <code>chart-testing</code> (ct) das Werkzeug der Wahl. Es erstellt temporäre Kind-Cluster und installiert dein Chart real. Das dauert in CI etwa 3 bis 5 Minuten, fängt aber Fehler ab, die reines Template-Rendering nicht sieht – etwa fehlende RBAC-Rechte oder nicht existierende StorageClasses.</p>
+
+<h2>Upgrades, Rollbacks und Hooks</h2>
+<p>Helm speichert jede Revision als Kubernetes-Secret im Namespace. Standardmäßig werden 10 Revisionen aufbewahrt, konfigurierbar über <code>--history-max</code>. Ein Upgrade mit vollem Sicherheitsnetz:</p>
+<pre><code>helm upgrade myapp ./myapp -n prod -f values-prod.yaml \
+  --atomic --wait --timeout 10m --history-max 20</code></pre>
+<p>Bei Problemen hilft die Historie:</p>
+<pre><code>helm history myapp -n prod
+helm rollback myapp 3 -n prod --wait
+helm get values myapp -n prod --revision 3</code></pre>
+<p>Hooks erlauben dir, Aktionen an Lebenszyklus-Events zu binden. Ein <code>pre-upgrade</code>-Hook führt beispielsweise eine Datenbankmigration aus, bevor die neuen Pods starten. Wichtig: Hooks brauchen <code>helm.sh/hook-delete-policy</code>, sonst bleiben die Job-Objekte liegen und blockieren spätere Läufe. Typische Policies sind <code>before-hook-creation</code> und <code>hook-succeeded</code>.</p>
+<p>Ein Detail, das viele übersehen: <code>helm upgrade</code> führt ein Drei-Wege-Merge durch (altes Manifest, neues Manifest, Live-Zustand). Das verhindert, dass Helm manuell gesetzte Felder wie <code>replicas</code> durch einen HPA überschreibt. Genau deshalb ist Helm bei Rolling Updates deutlich robuster als reines <code>kubectl apply</code>.</p>
+
+<h2>Kosten und Hosting-Optionen für Kubernetes 2026</h2>
+<p>Helm selbst ist kostenlos (Apache-2.0). Die Kosten entstehen durch das Cluster. Ein Vergleich typischer Optionen:</p>
+<table>
+<thead><tr><th>Anbieter</th><th>Modell</th><th>Kosten/Monat</th></tr></thead>
+<tbody>
+<tr><td>Hetzner Cloud + k3s</td><td>Self-managed, 3× CX22</td><td>ca. 12 €</td></tr>
+<tr><td>DigitalOcean DOKS</td><td>Managed, 3 Nodes (2 vCPU/4 GB)</td><td>ca. 72 $</td></tr>
+<tr><td>Hetzner + Managed k8s</td><td>Control Plane gratis, Worker ab 4 €</td><td>ab 12 €</td></tr>
+<tr><td>AWS EKS</td><td>Control Plane 0,10 $/h + Nodes</td><td>ab 73 $ + Compute</td></tr>
+<tr><td>Google GKE Autopilot</td><td>Pay-per-Pod</td><td>ab 30 $</td></tr>
+</tbody>
+</table>
+<p>Für Einsteiger und kleine Teams ist ein selbstgebautes k3s-Cluster auf drei Hetzner-CX22-Instanzen die günstigste Variante. k3s bringt einen funktionierenden Ingress-Controller (Traefik) und Local-Path-Provisioner mit, sodass Helm-Charts sofort laufen. Für Produktion mit SLA ist ein Managed-Angebot wie DOKS oder GKE sinnvoller – dort kümmert sich der Anbieter um Control-Plane-Upgrades und etcd-Backups.</p>
+<p>Rechne zusätzlich mit Kosten für Container-Registry (GitHub Container Registry ist für öffentliche Images gratis, privat ab 0,25 $/GB), Load-Balancer (bei Hetzner ca. 6 €/Monat) und Backups. Ein realistisches Produktions-Setup mit Monitoring, Ingress, cert-manager und 3 Nodes liegt 2026 bei etwa 40 bis 90 € monatlich.</p>
+
+<h2>Best Practices für Helm im Jahr 2026</h2>
+<p>Nach einigen Jahren Helm-Erfahrung haben sich klare Regeln etabliert, die dir viel Schmerz ersparen:</p>
+<ul>
+<li><strong>Versionen pinnen:</strong> Immer <code>--version</code> bei fremden Charts und <code>appVersion</code> sauber pflegen.</li>
+<li><strong>OCI-Registries nutzen:</strong> Helm 4 unterstützt OCI nativ. <code>helm push myapp-1.0.0.tgz oci://registry.hostazar.com/charts</code> ersetzt klassische Chart-Repositories.</li>
+<li><strong>Library Charts:</strong> Gemeinsame Templates (Labels, Probes) in ein Library-Chart auslagern statt zu kopieren.</li>
+<li><strong>Keine Logik in values.yaml:</strong> Templates gehören in <code>templates/</code>, nicht als mehrzeilige Strings in Values.</li>
+<li><strong>Ressourcenlimits immer setzen:</strong> Ohne <code>requests</code> und <code>limits</code> killt der Scheduler deine Pods unter Last.</li>
+<li><strong>NOTES.txt pflegen:</strong> Ein kurzer Hinweis nach der Installation spart dem Team Support-Anfragen.</li>
+</ul>
+<p>Ein weiterer Tipp: Halte Charts klein und fokussiert. Ein „Monster-Chart", das Datenbank, App und Monitoring in einem installiert, wird schnell unwartbar. Besser ist die Komposition über Subcharts oder – in GitOps-Setups – mehrere unabhängige Releases, die du getrennt versionieren kannst.</p>
+<p>Und schließlich: Dokumentiere deine Values. Eine kommentierte <code>values.yaml</code> mit Beispielwerten ist für Nutzer wertvoller als jede externe Doku. Tools wie <code>helm-docs</code> generieren daraus automatisch eine Markdown-Referenz für dein Repository.</p>
+
+<h2>FAQ</h2>
+<h3>Was ist der Unterschied zwischen Helm und kubectl?</h3>
+<p><code>kubectl</code> wendet einzelne Manifeste an und kennt keinen Revisionsverlauf. Helm bündelt mehrere Ressourcen zu einem Release, speichert jede Revision und ermöglicht Rollbacks mit einem Befehl. Für einzelne Debug-Objekte bleibt kubectl sinnvoll, für Anwendungs-Deployments ist Helm die bessere Wahl.</p>
+<h3>Kann ich Helm Charts ohne Internetzugang nutzen?</h3>
+<p>Ja. Lade die Charts mit <code>helm pull</code> herunter und hoste sie in einer eigenen OCI-Registry oder einem internen ChartMuseum. In Air-Gapped-Umgebungen ist das der Standardweg. Denke daran, auch die Container-Images in eine interne Registry zu spiegeln.</p>
+<h3>Wie gehe ich mit Breaking Changes bei fremden Charts um?</h3>
+<p>Lies vor jedem Major-Upgrade die Release Notes und teste in einer Staging-Umgebung. Nutze <code>helm diff upgrade</code> (Plugin), um vorab zu sehen, welche Ressourcen sich ändern. So erkennst du kritische Änderungen wie gelöschte CRDs oder umbenannte Labels.</p>
+<h3>Helm 3 oder Helm 4 – was soll ich 2026 verwenden?</h3>
+<p>Für neue Projekte ist Helm 4 die richtige Wahl: serverseitiges Apply, bessere OCI-Unterstützung und schnellere Installationen. Bestehende Setups auf Helm 3.17 laufen weiterhin stabil und können schrittweise migrieren, da die Chart-Syntax kompatibel bleibt.</p>
+<h3>Wie viele Revisionen sollte ich aufbewahren?</h3>
+<p>Für Produktion sind 20 bis 30 Revisionen ein guter Wert – das deckt mehrere Wochen Deployment-Historie ab. Jede Revision liegt als Secret im Namespace und belegt nur wenige Kilobyte. Bei sehr häufigen Deployments (mehr als 20 pro Tag) reduziere auf 10, um die etcd-Last gering zu halten.</p>

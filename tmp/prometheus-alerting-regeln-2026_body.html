@@ -1,0 +1,284 @@
+<h2>Warum Alerting-Regeln 2026 anders gebaut werden</h2>
+
+<p>Zwischen 2019 und 2022 war Alerting in vielen Teams ein Sammelbecken für Schwellenwerte: CPU über 80 %, RAM über 90 %, irgendein HTTP-Statuscode ungleich 200. Das Ergebnis waren Alert-Fatigue, schlafende Bereitschaftsdienste und ein Monitoring, dem niemand mehr vertraute. 2026 hat sich der Konsens durchgesetzt: <strong>Alerts müssen Symptome beschreiben, nicht Ursachen.</strong> Ein Nutzer interessiert sich nicht für die CPU-Last eines Nodes, sondern dafür, ob seine Anfrage in unter 300 ms beantwortet wird.</p>
+
+<p>Dieser Guide zeigt dir, wie du Prometheus-Alerting-Regeln baust, die tatsächlich handlungsrelevant sind. Wir gehen von Prometheus 3.x aus (aktuell 3.5 im Frühjahr 2026), dem Prometheus Operator 0.80+, Alertmanager 0.28+ und einer Umgebung mit mindestens 50 Targets. Alle Beispiele sind copy-paste-fähig und laufen gegen einen Standard-Node-Exporter plus kube-state-metrics.</p>
+
+<p>Die zentrale Verschiebung: Statt <em>Threshold-Alerting</em> auf Einzelmetriken nutzen moderne Setups <strong>SLO-basiertes Alerting</strong> mit Multi-Window-Multi-Burn-Rate, ergänzt durch eine kleine Zahl technischer Grundwächter (Node down, Certificate expiry, Disk full). Faustregel für 2026: maximal 15 aktive Alert-Regeln pro Service. Wer 80 hat, hat keine Priorisierung.</p>
+
+<p>Der Aufwand lohnt sich messbar. Teams, die von 120 auf 12 Regeln konsolidiert haben, berichten in Postmortems von 60–80 % weniger Page-Nachrichten pro Woche bei gleichzeitig <em>höherer</em> Erkennungsrate echter Incidents. Das ist der eigentliche Gewinn: Signal-to-Noise.</p>
+
+<h2>Die Anatomie einer Prometheus-Rule-Datei</h2>
+
+<p>Alerting-Regeln liegen in YAML-Dateien, die Prometheus über <code>rule_files</code> lädt oder die der Prometheus Operator aus <code>PrometheusRule</code>-CRDs generiert. Eine Regel hat immer dieselbe Struktur: <code>alert</code>, <code>expr</code>, <code>for</code>, <code>labels</code>, <code>annotations</code>. Fehlt <code>for</code>, feuert der Alert sofort – das ist in 90 % der Fälle ein Fehler.</p>
+
+<pre><code>groups:
+  - name: api-slo.rules
+    interval: 30s
+    rules:
+      - alert: ApiHighErrorRate
+        expr: |
+          sum(rate(http_requests_total{job="api",code=~"5.."}[5m]))
+          /
+          sum(rate(http_requests_total{job="api"}[5m])) > 0.05
+        for: 10m
+        keep_firing_for: 5m
+        labels:
+          severity: critical
+          team: platform
+          slo: availability
+        annotations:
+          summary: "API-Fehlerrate bei {{ $value | humanizePercentage }}"
+          description: "Seit 10 Minuten über 5 % 5xx auf {{ $labels.job }}."
+          runbook_url: "https://wiki.example.com/runbooks/api-5xx"</code></pre>
+
+<p>Das Feld <code>interval</code> auf Gruppenebene steuert, wie oft die Regel ausgewertet wird. Standard ist das globale <code>evaluation_interval</code> (meist 15s oder 30s). Für SLO-Regeln mit langen Lookback-Fenstern kannst du auf 60s erhöhen und sparst damit bei 500 Regeln rund 40 % CPU-Last auf dem Prometheus-Server.</p>
+
+<p><code>keep_firing_for</code> ist seit Prometheus 2.42 stabil und 2026 Standard: Der Alert bleibt nach Wegfall der Bedingung noch für die angegebene Dauer aktiv. Das verhindert das nervige An-Aus-Flackern bei Metriken, die um einen Schwellenwert pendeln – ohne dass du <code>for</code> künstlich hochsetzen musst.</p>
+
+<p>Wichtig für die Wartbarkeit: Gruppiere Regeln nach Domäne (<code>api-slo.rules</code>, <code>node-basics.rules</code>, <code>kubernetes.rules</code>) und halte eine Datei unter 200 Zeilen. Bei Git-Merges mit 2000-Zeilen-Dateien verliert man garantiert den Überblick.</p>
+
+<h2>PromQL-Muster, die du wirklich brauchst</h2>
+
+<p>Die meisten produktiven Alerts lassen sich auf sechs PromQL-Muster zurückführen. Wer diese beherrscht, braucht kein weiteres Framework.</p>
+
+<ul>
+  <li><strong>Rate-basierte Fehlerquote:</strong> <code>sum(rate(metric_total{status="error"}[5m])) / sum(rate(metric_total[5m]))</code> – immer als Verhältnis, nie als absolute Zahl.</li>
+  <li><strong>Latenz-Perzentil:</strong> <code>histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))</code>. Achtung: <code>by (le, ...)</code> ist Pflicht, sonst rechnet <code>histogram_quantile</code> Unsinn.</li>
+  <li><strong>Sättigung:</strong> <code>1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)</code> mit Filter auf echte Mountpoints.</li>
+  <li><strong>Abwesenheit:</strong> <code>up == 0</code> oder besser <code>absent_over_time(up{job="api"}[10m])</code> für „Metrik verschwunden".</li>
+  <li><strong>Vorhersage:</strong> <code>predict_linear(node_filesystem_avail_bytes[6h], 4*3600) < 0</code> – Disk voll in 4 Stunden.</li>
+  <li><strong>Vergleich mit Vortag:</strong> <code>rate(x[5m]) / rate(x[5m] offset 1d) > 3</code> für Anomalien.</li>
+</ul>
+
+<p>Ein häufiger Fehler: <code>rate()</code> über ein Fenster, das kürzer als 2× das Scrape-Intervall ist. Bei 30s-Scrape brauchst du mindestens <code>[1m]</code>, besser <code>[5m]</code>. Sonst produziert Prometheus Lücken und dein Alert flappt.</p>
+
+<p>Für Sättigungs-Alerts gilt: Nutze <strong>immer</strong> <code>predict_linear</code> statt eines fixen Prozent-Schwellwerts. „Disk 85 % voll" ist kein Incident, wenn die Disk seit drei Monaten bei 85 % liegt. „Disk voll in 4 Stunden" ist einer.</p>
+
+<pre><code>- alert: DiskWillFillIn4Hours
+  expr: |
+    predict_linear(node_filesystem_avail_bytes{
+      fstype!~"tmpfs|overlay", mountpoint!~"/run/.*"
+    }[6h], 4 * 3600) < 0
+  for: 15m
+  labels:
+    severity: warning
+  annotations:
+    summary: "Disk {{ $labels.device }} auf {{ $labels.instance }} voll in <4h"</code></pre>
+
+<h2>for-Dauern richtig wählen</h2>
+
+<p>Die <code>for</code>-Dauer ist der wichtigste Hebel gegen Alert-Fatigue – und der, den Teams am häufigsten falsch setzen. Sie sollte mindestens so lang sein wie die typische Dauer eines harmlosen Spikes, aber kürzer als dein SLO-Budget es erlaubt.</p>
+
+<table>
+  <thead>
+    <tr><th>Alert-Typ</th><th>Empfohlenes <code>for</code></th><th>Begründung</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Node down / up == 0</td><td>2m</td><td>Schnelle Erkennung, selten False Positives</td></tr>
+    <tr><td>5xx-Rate &gt; 5 %</td><td>10m</td><td>Deployments brauchen ~5 min zum Einpendeln</td></tr>
+    <tr><td>p99-Latenz &gt; SLO</td><td>15m</td><td>Cache-Warmup, GC-Pausen</td></tr>
+    <tr><td>Disk voll in 4h</td><td>30m</td><td>Vorhersage ist verrauscht</td></tr>
+    <tr><td>Zertifikat läuft ab</td><td>1h</td><td>Reaktion hat Tage Zeit</td></tr>
+    <tr><td>Queue-Backlog</td><td>20m</td><td>Batch-Jobs erzeugen kurze Spitzen</td></tr>
+  </tbody>
+</table>
+
+<p>Ein oft übersehener Punkt: <code>for</code> zählt ab dem Zeitpunkt, an dem die Bedingung <em>durchgehend</em> wahr war. Ein einzelner Ausreißer-Scrape setzt den Timer zurück. Deshalb ist <code>for</code> allein kein Schutz gegen Rauschen – dafür brauchst du stabile PromQL-Ausdrücke mit ausreichend langen Rate-Fenstern.</p>
+
+<p>Kombiniere beides: <code>rate(...[5m])</code> glättet das Signal, <code>for: 10m</code> filtert kurze echte Incidents aus, <code>keep_firing_for: 5m</code> verhindert Flapping beim Recovery. Diese Dreier-Kombination deckt 80 % aller Fälle ab.</p>
+
+<h2>Recording Rules als Fundament</h2>
+
+<p>Alerting-Regeln sollten niemals komplexe PromQL direkt ausführen. Der Grund: Bei 200 Regeln mit je 30s-Intervall und 5-Minuten-Rate-Fenstern rechnet Prometheus dieselben Aggregationen dutzendfach. Recording Rules berechnen sie einmal und speichern das Ergebnis als neue Zeitreihe.</p>
+
+<pre><code>groups:
+  - name: slo-recording.rules
+    interval: 30s
+    rules:
+      - record: job:http_requests:rate5m
+        expr: sum by (job) (rate(http_requests_total[5m]))
+      - record: job:http_errors:rate5m
+        expr: sum by (job) (rate(http_requests_total{code=~"5.."}[5m]))
+      - record: job:http_error_ratio:rate5m
+        expr: job:http_errors:rate5m / job:http_requests:rate5m</code></pre>
+
+<p>Die Namenskonvention <code>level:metric:operation</code> ist 2026 De-facto-Standard (ursprünglich von Google SRE geprägt). <code>job:http_error_ratio:rate5m</code> liest sich als „auf Job-Ebene, Metrik http_error_ratio, Operation rate über 5 Minuten". Das macht Dashboards und Alerts sofort verständlich.</p>
+
+<p>Der Performance-Effekt ist erheblich. In einem Setup mit 1,2 Mio. aktiven Series sank die Prometheus-CPU-Last nach Einführung von Recording Rules für alle SLO-Berechnungen um 35 %, und die Abfragezeit im Grafana-Dashboard fiel von 2,4 s auf 180 ms. Der Preis: zusätzliche Series im TSDB. Rechne mit 5–15 % mehr Series – bei 1,2 Mio. also 60.000–180.000 zusätzliche Zeitreihen.</p>
+
+<p>Für die Speicherplanung: Prometheus braucht grob 1,5–2 Bytes pro Sample. Bei 1,4 Mio. Series und 30s-Scrape sind das rund 4 GB pro Tag, mit 15 Tagen Retention also ~60 GB. Auf einem Hetzner CPX31 (4 vCPU, 8 GB RAM, 160 GB NVMe, ca. 15,60 €/Monat) passt das komfortabel.</p>
+
+<h2>SLO-Alerting mit Multi-Window-Multi-Burn-Rate</h2>
+
+<p>Das wichtigste Alerting-Muster 2026 ist Multi-Window-Multi-Burn-Rate (MWMBR). Statt „Fehlerrate über 1 %" alarmierst du auf den <strong>Verbrauch deines Fehlerbudgets</strong>. Ein 99,9 %-SLO erlaubt 43,2 Minuten Ausfall pro Monat. Ein Burn-Rate-Alert feuert, wenn du dieses Budget ungewöhnlich schnell aufbrauchst.</p>
+
+<p>Die Mathematik: Burn Rate 1 = Budget wird exakt über den SLO-Zeitraum verbraucht. Burn Rate 14,4 = Budget ist in 2 Tagen weg (bei 30-Tage-Fenster). Die klassische Tabelle:</p>
+
+<table>
+  <thead>
+    <tr><th>Severity</th><th>Long Window</th><th>Short Window</th><th>Burn Rate</th><th>Budget verbraucht</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>critical (page)</td><td>1h</td><td>5m</td><td>14,4</td><td>2 % in 1h</td></tr>
+    <tr><td>critical (page)</td><td>6h</td><td>30m</td><td>6</td><td>5 % in 6h</td></tr>
+    <tr><td>warning (ticket)</td><td>1d</td><td>2h</td><td>3</td><td>10 % in 1d</td></tr>
+    <tr><td>warning (ticket)</td><td>3d</td><td>6h</td><td>1</td><td>10 % in 3d</td></tr>
+  </tbody>
+</table>
+
+<p>Der Trick: Beide Fenster müssen gleichzeitig die Burn Rate überschreiten. Das lange Fenster verhindert Fehlalarme bei kurzen Spitzen, das kurze Fenster sorgt für schnelle Reaktion und schnelles Zurücksetzen. Ohne das kurze Fenster bleibt ein Alert nach Recovery noch eine Stunde aktiv.</p>
+
+<pre><code>- alert: SLOAvailabilityBurnRateCritical
+  expr: |
+    (
+      job:slo_availability:error_ratio_rate1h{job="api"} > (14.4 * 0.001)
+      and
+      job:slo_availability:error_ratio_rate5m{job="api"} > (14.4 * 0.001)
+    )
+  for: 2m
+  labels:
+    severity: critical
+    slo: availability
+    team: platform
+  annotations:
+    summary: "API verbrennt Fehlerbudget 14,4x schneller als erlaubt"
+    description: "2 % des 30-Tage-Budgets in der letzten Stunde verbraucht."</code></pre>
+
+<p>Für die Recording Rules brauchst du je SLO vier Zeitreihen (1h, 5m, 6h, 30m) plus die langen Fenster für Tickets. Das sind bei 20 Services etwa 200 zusätzliche Series – vernachlässigbar. Der Gewinn: Dein Pager bleibt still, solange du innerhalb des Budgets bist, auch wenn die Fehlerrate kurzzeitig über einem willkürlichen Schwellwert liegt.</p>
+
+<h2>Labels, Annotations und Alert-Qualität</h2>
+
+<p>Ein Alert ohne Kontext ist eine Zumutung für den Bereitschaftsdienst um 3 Uhr nachts. Die Annotations sollten in 10 Sekunden beantworten: Was ist kaputt, wie schlimm, was ist der erste Schritt?</p>
+
+<ul>
+  <li><strong>summary</strong> – ein Satz, mit <code>{{ $value | humanizePercentage }}</code> statt roher Zahl.</li>
+  <li><strong>description</strong> – zwei Sätze: Ausmaß und betroffene Entität via <code>{{ $labels.instance }}</code>.</li>
+  <li><strong>runbook_url</strong> – Pflicht. Ein Alert ohne Runbook ist ein Bug.</li>
+  <li><strong>dashboard_url</strong> – Deep-Link ins Grafana mit vorausgewähltem Zeitraum.</li>
+</ul>
+
+<p>Bei Labels gilt: <strong>sparsam sein</strong>. Jedes Label wird zu einem Routing-Kriterium und zu einem Gruppierungsschlüssel im Alertmanager. Zu viele Labels führen zu Alert-Stürmen, weil nichts mehr gruppiert wird. Bewährte Minimalmenge: <code>severity</code>, <code>team</code>, <code>service</code> oder <code>job</code>, optional <code>slo</code>. Finger weg von <code>instance</code> als Routing-Label – das erzeugt bei 100 Nodes 100 separate Alerts.</p>
+
+<p>Ein Anti-Pattern, das 2026 immer noch häufig ist: <code>severity: warning</code> für alles, was nicht sofort weh tut. Besser ist eine Dreiteilung: <code>critical</code> (weckt jemanden auf), <code>warning</code> (Ticket am nächsten Morgen), <code>info</code> (nur Dashboard/Slack, kein Routing). Ohne diese Disziplin wird dein <code>#alerts</code>-Kanal zur Rauschquelle und die Leute muten ihn – was schlimmer ist als kein Alerting.</p>
+
+<h2>Alertmanager: Routing, Grouping, Inhibition</h2>
+
+<p>Der Alertmanager entscheidet, wer wann wie oft benachrichtigt wird. Drei Konzepte sind entscheidend.</p>
+
+<p><strong>Grouping</strong> fasst Alerts mit gleichen Labels zu einer Nachricht zusammen. Typische Konfiguration: <code>group_by: [alertname, cluster, service]</code> mit <code>group_wait: 30s</code>, <code>group_interval: 5m</code>, <code>repeat_interval: 4h</code>. Ein <code>repeat_interval</code> von 15 Minuten – in vielen Alt-Setups Standard – ist Folter für den Bereitschaftsdienst.</p>
+
+<p><strong>Routing</strong> verteilt Alerts anhand von Labels auf Receiver. Ein Routing-Baum mit drei Ebenen (severity → team → service) reicht fast immer. Nutze <code>continue: false</code> explizit, damit klar ist, dass der erste Match gewinnt.</p>
+
+<p><strong>Inhibition</strong> unterdrückt abhängige Alerts. Wenn ein Node down ist, brauchst du nicht zusätzlich 40 Pod-NotReady-Alerts. Eine Inhibitionsregel mit <code>equal: [node, cluster]</code> und <code>source_matchers: [alertname="NodeDown"]</code> erledigt das.</p>
+
+<pre><code>inhibit_rules:
+  - source_matchers: [severity="critical"]
+    target_matchers: [severity=~"warning|info"]
+    equal: [alertname, cluster, service]
+  - source_matchers: [alertname="NodeDown"]
+    target_matchers: [alertname=~"KubePodNotReady|TargetDown"]
+    equal: [node, cluster]</code></pre>
+
+<p>Für die Zustellung: E-Mail hat 2026 in den meisten Teams ausgedient. Slack oder Mattermost für <code>warning</code>, PagerDuty oder Opsgenie für <code>critical</code>. PagerDuty kostet ab 21 $ pro Nutzer/Monat (Professional), Opsgenie ab 9 $ – bei 8 Bereitschaftlern sind das 72–168 $ monatlich. Open-Source-Alternativen wie Grafana OnCall (self-hosted auf einem 4-€-VPS) sind für kleinere Teams völlig ausreichend.</p>
+
+<h2>Tests mit promtool und CI/CD</h2>
+
+<p>Alerting-Regeln sind Code und gehören getestet. <code>promtool</code> liefert zwei Werkzeuge: Syntaxprüfung und Unit-Tests mit simulierten Zeitreihen.</p>
+
+<pre><code># Syntax + Semantik prüfen
+promtool check rules /etc/prometheus/rules/*.yaml
+
+# Unit-Tests ausführen
+promtool test rules tests/api-slo_test.yaml</code></pre>
+
+<p>Ein Unit-Test definiert Eingabe-Series, einen Zeitverlauf und die erwarteten Alerts. Damit kannst du reproduzieren: „Fehlerrate steigt für 12 Minuten auf 8 % → <code>ApiHighErrorRate</code> feuert nach 10 Minuten."</p>
+
+<pre><code>rule_files:
+  - ../rules/api-slo.yaml
+evaluation_interval: 1m
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'http_requests_total{job="api",code="200"}'
+        values: '0+600x20'
+      - series: 'http_requests_total{job="api",code="500"}'
+        values: '0+60x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: ApiHighErrorRate
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              team: platform
+            exp_annotations:
+              summary: "API-Fehlerrate bei 9.09%"</code></pre>
+
+<p>Der Test läuft in unter 200 ms und gehört in jede CI-Pipeline. Ein GitHub-Actions-Workflow mit <code>promtool check rules</code> plus <code>promtool test rules</code> kostet nichts und fängt Tippfehler, falsche Label-Matcher und kaputte PromQL ab, bevor sie den Produktiv-Prometheus erreichen.</p>
+
+<p>Ergänzend lohnt sich <code>pint</code> (Prometheus Linter von Cloudflare) für Stilprüfungen: Es erkennt zu kurze <code>for</code>-Dauern, fehlende <code>severity</code>-Labels, unnötig teure PromQL-Konstrukte und Alert-Namen, die nicht der Konvention <code>PascalCase</code> folgen. In einem Testlauf über 340 Regeln fand pint typischerweise 20–40 Verbesserungen.</p>
+
+<h2>Deployment: GitOps mit dem Prometheus Operator</h2>
+
+<p>Regeln gehören ins Git, nicht per SSH auf den Server. Der Prometheus Operator liest <code>PrometheusRule</code>-CRDs und lädt sie automatisch neu – ohne <code>reload</code>-Endpoint und ohne SIGHUP.</p>
+
+<pre><code>apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: api-slo
+  namespace: monitoring
+  labels:
+    prometheus: k8s
+    role: alert-rules
+spec:
+  groups:
+    - name: api-slo.rules
+      interval: 30s
+      rules:
+        - alert: ApiHighErrorRate
+          expr: job:http_error_ratio:rate5m{job="api"} > 0.05
+          for: 10m
+          labels:
+            severity: critical</code></pre>
+
+<p>Wichtig: Das Label <code>prometheus: k8s</code> muss zum <code>ruleSelector</code> deiner <code>Prometheus</code>-Instanz passen, sonst wird die Regel ignoriert – ein Klassiker unter den Debugging-Sessions. Prüfe nach dem Deployment mit <code>kubectl -n monitoring get prometheusrule</code> und im Prometheus-UI unter <em>Status → Rules</em>, ob die Regel wirklich geladen wurde.</p>
+
+<p>Für Argo CD oder Flux ergänzt du einen Sync-Hook, der nach dem Rollout <code>promtool check rules</code> gegen den generierten ConfigMap-Inhalt ausführt. So kann eine fehlerhafte Regel nie in den Cluster gelangen. Bei Flux reicht ein <code>postBuild.substitute</code>-Block, um Umgebungsvariablen wie Cluster-Namen in die Regeln zu injizieren – damit lässt sich dieselbe Regelbasis für Staging und Produktion nutzen.</p>
+
+<h2>Kosten, Skalierung und Hosting-Empfehlungen</h2>
+
+<p>Für die Dimensionierung gilt eine einfache Formel: <strong>RAM in GB ≈ aktive Series / 300.000</strong>. Bei 1,2 Mio. Series brauchst du also mindestens 4 GB nur für den TSDB-Head, plus 30 % Puffer für Queries und Recording Rules. In der Praxis: 8 GB für 1 Mio. Series, 16 GB für 2 Mio., 32 GB für 4 Mio.</p>
+
+<table>
+  <thead>
+    <tr><th>Setup</th><th>Series</th><th>Hardware</th><th>Kosten/Monat</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Homelab / Dev</td><td>50k</td><td>Hetzner CX22 (2 vCPU, 4 GB)</td><td>3,79 €</td></tr>
+    <tr><td>Kleines Startup</td><td>300k</td><td>Hetzner CPX31 (4 vCPU, 8 GB)</td><td>15,60 €</td></tr>
+    <tr><td>Mittelstand</td><td>1,5 Mio.</td><td>Hetzner CCX23 (4 ded. vCPU, 16 GB)</td><td>26,90 €</td></tr>
+    <tr><td>Enterprise HA</td><td>5 Mio.</td><td>2× CCX33 + Thanos S3</td><td>~130 € + 15 € Storage</td></tr>
+    <tr><td>Managed</td><td>1,5 Mio.</td><td>Grafana Cloud Pro</td><td>~290 €</td></tr>
+  </tbody>
+</table>
+
+<p>Der Kostenunterschied ist deutlich: Self-hosted Prometheus auf Hetzner kostet bei 1,5 Mio. Series rund 27 € plus Arbeitszeit, Grafana Cloud Pro liegt bei etwa 8 $ pro 1.000 Series über dem Free-Tier (10.000 Series gratis). Bei 1,5 Mio. Series sind das schnell 290 € monatlich. Dafür entfällt Betriebsaufwand – bei einem Team ohne dedizierte SRE-Kapazität ist das oft die bessere Rechnung.</p>
+
+<p>Für hohe Verfügbarkeit: Zwei Prometheus-Instanzen mit identischer Config, beide scrapen dieselben Targets, Alertmanager im Cluster-Modus mit <code>--cluster.peer</code>. Deduplizierung passiert automatisch. Thanos oder Mimir obendrauf für langfristige Speicherung und globale Query-Sicht – S3-kompatibler Object Storage bei Hetzner kostet 5,99 €/TB/Monat, bei Backblaze B2 6 $/TB.</p>
+
+<h2>FAQ</h2>
+
+<h3>Wie viele Alert-Regeln sollte ein Team haben?</h3>
+<p>Als Orientierung: 10–15 Regeln pro Service, davon höchstens 3 mit <code>severity: critical</code>. Ein Team mit 20 Services landet also bei 200–300 Regeln, von denen nur 40–60 jemals pagieren. Wenn mehr als 10 % deiner Alerts pro Woche außerhalb der Geschäftszeiten feuern, ist dein Setup zu empfindlich.</p>
+
+<h3>Warum feuert mein Alert nicht, obwohl die Metrik den Schwellwert überschreitet?</h3>
+<p>Prüfe in dieser Reihenfolge: (1) Ist die Regel geladen? <em>Status → Rules</em> im Prometheus-UI. (2) Passt der <code>ruleSelector</code> des Operators zum Label der PrometheusRule? (3) Ist die Bedingung durchgehend für die <code>for</code>-Dauer wahr – ein einzelner Ausreißer setzt den Timer zurück. (4) Ist die Metrik überhaupt vorhanden? <code>count(metric_name)</code> im Query-Browser.</p>
+
+<h3>Sollte ich <code>for</code> oder <code>keep_firing_for</code> verwenden?</h3>
+<p>Beides, für unterschiedliche Zwecke. <code>for</code> verzögert das Auslösen und filtert kurze Spitzen. <code>keep_firing_for</code> verzögert das Zurücksetzen und verhindert Flapping beim Recovery. Die Kombination <code>for: 10m</code> plus <code>keep_firing_for: 5m</code> ist ein guter Standard für die meisten Service-Alerts.</p>
+
+<h3>Was kostet Prometheus-Alerting im Vergleich zu Datadog oder New Relic?</h3>
+<p>Self-hosted Prometheus auf einem 16-GB-Hetzner-Server kostet rund 27 €/Monat unabhängig von der Series-Zahl. Datadog berechnet 15 $ pro Host/Monat plus 5 $ pro 100 Custom Metrics – bei 50 Hosts und 500 Custom Metrics sind das schnell 1.000 € monatlich. Grafana Cloud Pro liegt bei etwa 290 € für 1,5 Mio. Series. Die Rechnung kippt zugunsten Managed erst, wenn du keine Zeit für Betrieb hast.</p>
+
+<h3>Wie teste ich Alerting-Regeln ohne Produktionsdaten?</h3>
+<p>Mit <code>promtool test rules</code> und synthetischen Zeitreihen im YAML-Format. Definiere Eingabe-Series mit <code>values: '0+600x20'</code> (Startwert, Inkrement, Anzahl Schritte), setze einen <code>eval_time</code> und prüfe mit <code>exp_alerts</code>, welche Alerts mit welchen Labels feuern. Der Test läuft offline, deterministisch und in Millisekunden – ideal für die CI-Pipeline.</p>

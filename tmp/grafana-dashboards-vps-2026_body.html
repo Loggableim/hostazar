@@ -1,0 +1,241 @@
+<h2>Warum Grafana 2026 der Standard für VPS-Monitoring ist</h2>
+<p>Wer 2026 einen VPS betreibt – ob für Gameserver, Webhosting, CI-Runner oder eine LLM-Inferenz-API – braucht mehr als <code>htop</code> und ein gelegentliches <code>df -h</code>. Ausfälle kündigen sich fast immer vorher an: Die Load steigt schleichend, der freie RAM sinkt, die Disk füllt sich mit Logs. Grafana macht diese Trends sichtbar, bevor der Server kippt.</p>
+<p>Der entscheidende Vorteil gegenüber klassischen Tools wie Munin oder Cacti ist die Kombination aus Metriken, Logs und Traces in einer Oberfläche. Du siehst in einem Dashboard, dass die CPU bei 92 % hängt – und klickst direkt in die Loki-Logs des betroffenen Zeitraums, ohne den Server zu wechseln.</p>
+<p>Dazu kommt die Alerting-Engine: Grafana 12.x kann Regeln zentral verwalten, Schwellwerte über mehrere Panels hinweg auswerten und Benachrichtigungen per Telegram, Slack, E-Mail oder Webhook verschicken. Ein <code>node_load1</code> über 8 für zehn Minuten löst dann eine Nachricht aus, bevor Nutzer etwas merken.</p>
+<p>Der Kostenpunkt ist überschaubar. Ein Monitoring-Stack für 10 bis 20 VPS läuft problemlos auf einem 4-GB-VPS für 3,79 € bis 6,80 € im Monat (Hetzner CX22/CX32). Wer keine eigene Infrastruktur will, nutzt Grafana Cloud mit 10.000 Metrik-Serien, 50 GB Logs und 3 Nutzern im kostenlosen Tier.</p>
+
+<h2>Der Stack: Prometheus, Node Exporter, Loki und Grafana</h2>
+<p>Das Standard-Setup 2026 besteht aus vier Komponenten. <strong>Prometheus 3.x</strong> ist die Time-Series-Datenbank und zieht im Pull-Verfahren alle 15 Sekunden Metriken von den Zielen. <strong>Node Exporter 1.8+</strong> läuft auf jedem überwachten Host und stellt Systemmetriken unter <code>:9100/metrics</code> bereit.</p>
+<p><strong>Grafana 12.x</strong> ist die Visualisierungsschicht und fragt Prometheus über PromQL ab. <strong>Loki 3.x</strong> sammelt Logs und indiziert nur Labels statt des Volltexts – dadurch ist der Speicherbedarf rund 10- bis 20-mal geringer als bei Elasticsearch.</p>
+<p>Seit der Einstellung von Promtail (End-of-Life im Februar 2026) ist <strong>Grafana Alloy</strong> der offizielle Sammel-Agent. Alloy ist ein einzelnes Binary, das Prometheus-Scraping, Log-Weiterleitung und OpenTelemetry-Empfang in einer River-Konfiguration vereint.</p>
+<p>Für Container-Umgebungen kommt zusätzlich <strong>cAdvisor</strong> dazu, der pro Container CPU, RAM und Netzwerk-Traffic liefert. Wer Kubernetes betreibt, nimmt stattdessen <code>kube-state-metrics</code> und den Prometheus-Operator.</p>
+<table>
+<tr><th>Komponente</th><th>Version 2026</th><th>RAM-Bedarf</th><th>Aufgabe</th></tr>
+<tr><td>Prometheus</td><td>3.2.x</td><td>600 MB – 1 GB</td><td>Metriken speichern &amp; abfragen</td></tr>
+<tr><td>Grafana</td><td>12.1.x</td><td>200 – 350 MB</td><td>Dashboards &amp; Alerting</td></tr>
+<tr><td>Loki</td><td>3.4.x</td><td>300 – 600 MB</td><td>Log-Aggregation</td></tr>
+<tr><td>Node Exporter</td><td>1.9.x</td><td>15 – 30 MB</td><td>Host-Metriken</td></tr>
+<tr><td>cAdvisor</td><td>0.52.x</td><td>80 – 150 MB</td><td>Container-Metriken</td></tr>
+</table>
+
+<h2>VPS vorbereiten und Docker installieren</h2>
+<p>Als Monitoring-Host reicht ein separater VPS, damit ein ausfallender Zielserver nicht die Überwachung mitreißt. Empfehlenswert sind mindestens 2 vCPU, 4 GB RAM und 40 GB SSD. Bei mehr als 30 überwachten Hosts oder langer Log-Retention sollten es 8 GB RAM und 80 GB NVMe sein.</p>
+<p>Zuerst das System aktualisieren und Docker über das offizielle Repository installieren:</p>
+<pre><code>apt update &amp;&amp; apt upgrade -y
+apt install -y ca-certificates curl gnupg ufw
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+https://download.docker.com/linux/debian $(. /etc/os-release &amp;&amp; echo $VERSION_CODENAME) stable" \
+&gt; /etc/apt/sources.list.d/docker.list
+apt update
+apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin</code></pre>
+<p>Danach die Firewall konfigurieren. Nur SSH und der Reverse Proxy dürfen von außen erreichbar sein – Prometheus (9090), Grafana (3000) und Loki (3100) bleiben auf <code>127.0.0.1</code> gebunden.</p>
+<pre><code>ufw default deny incoming
+ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw enable</code></pre>
+<p>Lege außerdem ein Verzeichnis <code>/opt/monitoring</code> an und setze die VM-Swappiness herunter, damit Prometheus nicht in den Swap schreibt: <code>sysctl -w vm.swappiness=10</code> und den Wert in <code>/etc/sysctl.d/99-monitoring.conf</code> persistieren.</p>
+
+<h2>Docker-Compose-Stack: Prometheus und Grafana</h2>
+<p>Die folgende <code>docker-compose.yml</code> startet Prometheus, Grafana und Loki in einem Netzwerk. Wichtig sind die Retention-Grenzen, damit die Disk nicht vollläuft:</p>
+<pre><code>services:
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./rules:/etc/prometheus/rules:ro
+      - prom-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=30d'
+      - '--storage.tsdb.retention.size=8GB'
+      - '--web.enable-lifecycle'
+    ports: ["127.0.0.1:9090:9090"]
+
+  grafana:
+    image: grafana/grafana:12.1.0
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_ADMIN_PW}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: https://grafana.example.com
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports: ["127.0.0.1:3000:3000"]
+
+  loki:
+    image: grafana/loki:3.4.2
+    restart: unless-stopped
+    command: -config.file=/etc/loki/loki.yml
+    volumes:
+      - ./loki.yml:/etc/loki/loki.yml:ro
+      - loki-data:/loki
+    ports: ["127.0.0.1:3100:3100"]
+
+volumes:
+  prom-data:
+  grafana-data:
+  loki-data:</code></pre>
+<p>Die Passwörter gehören in eine <code>.env</code>-Datei mit Dateirechten <code>chmod 600</code>. Starten lässt sich der Stack mit <code>docker compose up -d</code>, Logs prüfst du mit <code>docker compose logs -f prometheus</code>.</p>
+<p>Für die Loki-Konfiguration reicht ein minimales Filesystem-Setup mit <code>retention_period: 336h</code> (14 Tage) und dem <code>tsdb</code>-Index. Ein vollständiges Beispiel liegt in der Loki-Dokumentation.</p>
+
+<h2>Node Exporter und cAdvisor einbinden</h2>
+<p>Auf jedem zu überwachenden VPS installierst du den Node Exporter als systemd-Service. Das ist ressourcenschonender als ein Container mit <code>--pid=host</code> und läuft auch nach einem Docker-Neustart zuverlässig:</p>
+<pre><code>NE_VER=1.9.1
+wget https://github.com/prometheus/node_exporter/releases/download/v$NE_VER/node_exporter-$NE_VER.linux-amd64.tar.gz
+tar xzf node_exporter-$NE_VER.linux-amd64.tar.gz
+mv node_exporter-$NE_VER.linux-amd64/node_exporter /usr/local/bin/
+useradd --no-create-home --shell /bin/false node_exporter</code></pre>
+<p>Die Unit-Datei <code>/etc/systemd/system/node_exporter.service</code> enthält den Dienst mit den wichtigsten Collectors:</p>
+<pre><code>[Unit]
+Description=Node Exporter
+After=network.target
+
+[Service]
+User=node_exporter
+ExecStart=/usr/local/bin/node_exporter \
+  --collector.systemd \
+  --collector.processes \
+  --collector.filesystem.mount-points-exclude="^/(sys|proc|dev|run)($|/)"
+Restart=always
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<p>Danach <code>systemctl daemon-reload &amp;&amp; systemctl enable --now node_exporter</code>. Der Exporter lauscht auf Port 9100. Dieser Port darf <strong>nicht</strong> öffentlich erreichbar sein – erlaube ihn nur für die IP des Monitoring-Servers per <code>ufw allow from 10.0.0.5 to any port 9100</code>.</p>
+<p>Für Container-Metriken startest du cAdvisor auf dem Zielhost mit <code>--volume=/:/rootfs:ro --volume=/var/run:/var/run:ro --volume=/sys:/sys:ro --privileged</code>. Alternativ nutzt du den Docker-Daemon-Metriken-Endpunkt, wenn du keinen privilegierten Container willst.</p>
+
+<h2>Die wichtigsten Metriken und ihre PromQL-Abfragen</h2>
+<p>Ein gutes VPS-Dashboard braucht nicht 80 Panels, sondern die richtigen 12. Diese PromQL-Abfragen haben sich in der Praxis bewährt und laufen auf jedem Node Exporter ab Version 1.5:</p>
+<pre><code># CPU-Auslastung in Prozent
+100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+
+# RAM-Auslastung in Prozent
+(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+
+# Disk-Auslastung Root-Partition
+100 - ((node_filesystem_avail_bytes{mountpoint="/",fstype!~"tmpfs|overlay"}
+  * 100) / node_filesystem_size_bytes{mountpoint="/",fstype!~"tmpfs|overlay"})
+
+# Load Average 1 Minute
+node_load1
+
+# Netzwerk-Durchsatz eingehend (Bytes/s)
+rate(node_network_receive_bytes_total{device!~"lo|veth.*"}[5m])
+
+# I/O-Wait in Prozent
+rate(node_cpu_seconds_total{mode="iowait"}[5m]) * 100</code></pre>
+<p>Achte auf die <code>rate()</code>-Fenster: 5 Minuten sind ein guter Kompromiss zwischen Glättung und Reaktionszeit. Für Alerting-Regeln nimmst du längere Fenster wie <code>[10m]</code>, um Flapping zu vermeiden.</p>
+<p>Zusätzlich lohnt sich <code>node_systemd_unit_state{state="failed"}</code>, um abgestürzte Dienste zu erkennen, sowie <code>node_filesystem_avail_bytes</code> mit einem absoluten Schwellwert – 5 GB frei ist kritischer als 85 % belegt, wenn die Partition 500 GB groß ist.</p>
+<p>Für TLS-Zertifikate, die bald ablaufen, nutzt du den Blackbox Exporter mit dem <code>probe_ssl_earliest_cert_expiry</code>-Metric. Ein Alert bei weniger als 14 Tagen Restlaufzeit hat schon viele Lets-Encrypt-Ausfälle verhindert.</p>
+
+<h2>Dashboards: Fertige Vorlagen vs. eigene Panels</h2>
+<p>Grafana hat einen öffentlichen Dashboard-Katalog mit über 8.000 Vorlagen. Die wichtigsten IDs für VPS-Monitoring:</p>
+<table>
+<tr><th>Dashboard-ID</th><th>Name</th><th>Einsatzzweck</th></tr>
+<tr><td>1860</td><td>Node Exporter Full</td><td>Der Klassiker, 100+ Panels pro Host</td></tr>
+<tr><td>12486</td><td>Node Exporter Full (modern)</td><td>Aktualisierte Variante mit Heatmaps</td></tr>
+<tr><td>14282</td><td>cAdvisor / Docker</td><td>Container-CPU, RAM, Netzwerk</td></tr>
+<tr><td>13639</td><td>Loki &amp; Promtail</td><td>Log-Rate, Fehler pro Service</td></tr>
+<tr><td>9578</td><td>Alertmanager</td><td>Übersicht aktiver Alarme</td></tr>
+<tr><td>3662</td><td>Prometheus 2.0 Overview</td><td>Selbstmonitoring des Scrapers</td></tr>
+</table>
+<p>Importieren geht per UI unter <em>Dashboards → New → Import</em> mit der ID, oder deklarativ als JSON-Datei im Provisioning-Ordner <code>/etc/grafana/provisioning/dashboards</code>. Der deklarative Weg ist Pflicht, wenn du den Stack reproduzierbar aufsetzen willst.</p>
+<p>Für den Alltag empfehle ich ein eigenes, schlankes Dashboard mit maximal 15 Panels: CPU, RAM, Disk pro Mountpoint, Netzwerk, Load, I/O-Wait, Uptime, Systemd-Failures. Das lädt in unter einer Sekunde, während Node Exporter Full bei 20 Hosts schnell 4 bis 6 Sekunden braucht.</p>
+<p>Nutze Variablen mit <code>label_values(instance)</code>, damit du oben im Dashboard per Dropdown zwischen Hosts wechseln kannst. Vergiss nicht, <code>refresh: 30s</code> und einen Standard-Zeitraum von „last 6 hours" zu setzen – kürzere Fenster erzeugen bei jedem Laden unnötige Last.</p>
+
+<h2>Alerting: Regeln, Alertmanager und Benachrichtigungen</h2>
+<p>Seit Grafana 9 laufen Alarme in der Unified Alerting Engine. Du definierst Regeln direkt in Grafana oder als YAML-Datei im Provisioning. Letzteres ist versionierbar und gehört ins Git-Repository.</p>
+<pre><code>groups:
+  - name: vps-alerts
+    interval: 30s
+    rules:
+      - alert: HighCpuLoad
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) &gt; 90
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "CPU &gt; 90% auf {{ $labels.instance }}"
+
+      - alert: DiskAlmostFull
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / 1024^3) &lt; 5
+        for: 15m
+        labels: { severity: critical }
+
+      - alert: HostDown
+        expr: up{job="node"} == 0
+        for: 2m
+        labels: { severity: critical }</code></pre>
+<p>Das <code>for</code>-Feld ist entscheidend: Ohne es feuert jeder kurze Spike einen Alarm. Bei CPU reichen 10 Minuten, bei <code>HostDown</code> sind 2 Minuten angemessen, weil ein echter Ausfall sofort relevant ist.</p>
+<p>Für Benachrichtigungen nutzt du Contact Points. Telegram ist für Privatprojekte am schnellsten eingerichtet: Bot über @BotFather anlegen, Token und Chat-ID im Contact Point eintragen, fertig. Für Teams lohnt sich ein Alertmanager mit Gruppierung, damit bei einem Netzwerkausfall nicht 20 Alarme gleichzeitig eintreffen.</p>
+<p>Ein bewährtes Muster sind zwei Eskalationsstufen: <em>warning</em> geht in einen Slack-Kanal, <em>critical</em> zusätzlich per Telegram und E-Mail. So bleibt der Kanal ruhig, ohne dass echte Notfälle untergehen.</p>
+
+<h2>Logs mit Loki und Grafana Alloy</h2>
+<p>Metriken zeigen das <em>Was</em>, Logs das <em>Warum</em>. Loki sammelt Logs von allen Hosts und macht sie in Grafana durchsuchbar. Auf jedem Zielserver installierst du Grafana Alloy per Paket-Repository:</p>
+<pre><code>apt install -y gpg
+mkdir -p /etc/apt/keyrings/
+wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor &gt; /etc/apt/keyrings/grafana.gpg
+echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" \
+  &gt; /etc/apt/sources.list.d/grafana.list
+apt update &amp;&amp; apt install -y alloy</code></pre>
+<p>Die Alloy-Konfiguration in <code>/etc/alloy/config.alloy</code> liest Journald und Nginx-Logs und schickt sie an Loki:</p>
+<pre><code>loki.source.journal "system" {
+  forward_to = [loki.write.central.receiver]
+  labels     = { host = "web-01", job = "systemd" }
+}
+
+loki.source.file "nginx" {
+  targets    = [{ __path__ = "/var/log/nginx/*.log" }]
+  forward_to = [loki.write.central.receiver]
+}
+
+loki.write "central" {
+  endpoint { url = "http://10.0.0.5:3100/loki/api/v1/push" }
+}</code></pre>
+<p>Wichtig ist Label-Disziplin: Jedes eindeutige Label erzeugt einen eigenen Stream und kostet Speicher. Nutze <code>host</code>, <code>job</code> und <code>level</code> – aber niemals Request-IDs oder User-IDs als Label. Diese gehören in den Log-Text und werden per Filterabfrage gesucht.</p>
+<p>In Grafana verknüpfst du dann Metrik- und Log-Panel über eine Data-Link-Variable: Klickst du im CPU-Panel auf einen Spike, öffnet sich automatisch die Loki-Abfrage für genau diesen Host und Zeitraum.</p>
+
+<h2>Ressourcenbedarf, Retention und Kosten</h2>
+<p>Die Faustregel für Prometheus: pro aktivem Host fallen mit Node Exporter rund 1.200 Zeitreihen an. Bei 10 Hosts sind das 12.000 Serien, bei einem 15-Sekunden-Scrape-Intervall etwa 800 Samples pro Sekunde. Das entspricht ungefähr 2 bis 4 GB komprimierter Daten pro Monat.</p>
+<table>
+<tr><th>Anzahl Hosts</th><th>RAM gesamt</th><th>Disk / 30 Tage</th><th>Empfohlener VPS</th><th>Preis/Monat</th></tr>
+<tr><td>1 – 5</td><td>1,5 GB</td><td>2 GB</td><td>2 vCPU / 4 GB</td><td>3,79 €</td></tr>
+<tr><td>10 – 20</td><td>2,5 GB</td><td>6 GB</td><td>4 vCPU / 8 GB</td><td>6,80 €</td></tr>
+<tr><td>50 – 100</td><td>6 GB</td><td>25 GB</td><td>8 vCPU / 16 GB</td><td>15,00 €</td></tr>
+</table>
+<p>Loki ist deutlich speicherhungriger als Prometheus: Rechne mit 0,5 bis 1 GB pro Tag und Host bei normalem Log-Aufkommen. Eine 14-Tage-Retention mit <code>retention_period: 336h</code> und Kompression im <code>tsdb</code>-Format reduziert das um 60 bis 70 %.</p>
+<p>Alternative: Grafana Cloud im Free Tier mit 10.000 Metrik-Serien, 50 GB Logs, 14 Tagen Retention und 3 Nutzern. Für kleine Setups völlig ausreichend, aber darüber hinaus kostet es ab 29 $ pro Monat plus nutzungsbasierte Gebühren.</p>
+<p>Wer 25 € monatlich für Managed-Monitoring sparen will, fährt mit einem eigenen 8-GB-VPS deutlich günstiger – vorausgesetzt, du rechnest die eigene Arbeitszeit nicht mit ein.</p>
+
+<h2>Sicherheit, Alternativen und Ausblick 2026</h2>
+<p>Grafana darf niemals ungeschützt im Internet stehen. Setze einen Reverse Proxy wie Caddy davor, der TLS automatisch per ACME bezieht:</p>
+<pre><code>grafana.example.com {
+    reverse_proxy 127.0.0.1:3000
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+    }
+}</code></pre>
+<p>Zusätzlich: <code>GF_USERS_ALLOW_SIGN_UP=false</code>, starke Admin-Passwörter, 2FA über TOTP aktivieren und Rollen nach Least-Privilege vergeben. Für Teams lohnt sich OAuth über GitHub oder Keycloak statt lokaler Nutzerverwaltung.</p>
+<p>Als Alternativen haben sich <strong>VictoriaMetrics</strong> (sparsamer als Prometheus, PromQL-kompatibel, ideal ab 100 Hosts), <strong>Netdata</strong> (Sofort-Setup ohne Konfiguration, aber begrenztes Alerting) und <strong>Uptime Kuma</strong> (reines Blackbox-Monitoring) etabliert. Für reine Erreichbarkeitsprüfungen ist Uptime Kuma in 10 Minuten aufgesetzt und schlägt Grafana in der Einfachheit.</p>
+<p>Der Trend 2026 geht klar zu OpenTelemetry als einheitlichem Protokoll. Grafana Alloy unterstützt OTLP nativ, sodass du Metriken, Logs und Traces mit einem Agenten einsammeln kannst. Wer heute neu aufsetzt, sollte Alloy statt Promtail und Node-Exporter-Kombination planen – das spart langfristig Migrationsaufwand.</p>
+
+<h2>FAQ</h2>
+<h3>Wie viel RAM braucht Grafana mit Prometheus auf einem VPS?</h3>
+<p>Für 1 bis 5 überwachte Hosts reichen 1,5 GB RAM, für 10 bis 20 Hosts solltest du 2,5 GB einplanen. Prometheus belegt dabei den größten Anteil (600 MB bis 1 GB), Grafana rund 300 MB und Loki 300 bis 600 MB. Ein VPS mit 4 GB RAM und 2 vCPU für 3,79 € im Monat ist ein solider Einstieg.</p>
+
+<h3>Kann ich Grafana ohne Prometheus betreiben?</h3>
+<p>Ja. Grafana unterstützt über 150 Datenquellen, darunter InfluxDB, VictoriaMetrics, Elasticsearch, MySQL und CloudWatch. Wenn du bereits InfluxDB für IoT-Daten nutzt, kannst du Grafana direkt daran anbinden. Prometheus ist nur dann die erste Wahl, wenn du viele Hosts mit Standard-Hostmetriken überwachst, weil Node Exporter und die fertigen Dashboards perfekt zusammenspielen.</p>
+
+<h3>Welche Dashboard-ID ist die beste für Node Exporter?</h3>
+<p>Dashboard 1860 („Node Exporter Full") ist der Klassiker mit über 100 Panels und funktioniert mit allen Node-Exporter-Versionen ab 1.0. Die modernere Variante 12486 bietet Heatmaps und bessere Perzentil-Visualisierungen. Für den täglichen Gebrauch empfehle ich, eines der beiden zu importieren und daraus ein eigenes, auf 15 Panels reduziertes Dashboard abzuleiten.</p>
+
+<h3>Wie sichere ich Grafana im Internet ab?</h3>
+<p>Binde Grafana ausschließlich an 127.0.0.1, setze einen Reverse Proxy mit TLS davor und aktiviere <code>GF_USERS_ALLOW_SIGN_UP=false</code>. Ergänze HSTS-Header, aktiviere 2FA über TOTP und vergebe Rollen nach Least-Privilege. Wenn möglich, beschränke den Zugriff zusätzlich per VPN oder IP-Allowlist im Reverse Proxy – das eliminiert die meisten Angriffsflächen.</p>
+
+<h3>Lohnt sich Grafana Cloud oder ein eigener Monitoring-VPS?</h3>
+<p>Bis 10.000 Metrik-Serien und 50 GB Logs ist Grafana Cloud kostenlos und wartungsfrei – ideal für kleine Projekte. Ab etwa 20 Hosts oder langen Retention-Zeiten wird der eigene VPS günstiger: Ein 8-GB-Server für 6,80 € im Monat ersetzt schnell 29 $ plus nutzungsbasierte Kosten. Der eigene Stack kostet dafür Einrichtungs- und Wartungszeit.</p>
