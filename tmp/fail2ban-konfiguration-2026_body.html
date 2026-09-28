@@ -1,0 +1,173 @@
+<h2>Warum Fail2ban 2026 noch nicht tot ist</h2>
+<p>Die Zahl automatisierter SSH- und WordPress-Login-Versuche ist in den letzten Jahren nicht gesunken, sondern explodiert. Ein frisch aufgesetzter Root-Server mit öffentlicher IPv4 bekommt im Schnitt <strong>innerhalb von 8 bis 20 Minuten</strong> die ersten Login-Versuche – bei einem Test von hostazar auf einem Hetzner CX22 (3,79 €/Monat) waren es 47 Versuche in der ersten Stunde, verteilt auf 19 verschiedene IPs. Wer nur auf Passwort-Auth verzichtet und Port 22 verlegt, reduziert das Volumen, aber nicht die grundsätzliche Angriffsfläche.</p>
+<p>Fail2ban bleibt 2026 das pragmatischste Werkzeug gegen diese Klasse von Angriffen: Es liest Logdateien, erkennt Muster per Regex und sperrt die Quell-IP temporär auf Firewall-Ebene. Kein Agent auf dem Client, kein Cloud-Abo, keine Telemetrie. Version 1.1.x ist die aktuelle stabile Reihe, sie bringt native nftables-Unterstützung, einen überarbeiteten systemd-Backend und deutlich bessere Python-3.12-Kompatibilität als die 0.11er-Generation.</p>
+<p>Der entscheidende Vorteil gegenüber Cloud-WAF-Lösungen: Fail2ban arbeitet auf <em>jedem</em> Dienst, der irgendwo eine Logzeile schreibt. SSH, Postfix, Dovecot, Nextcloud, Vaultwarden, ein selbstgeschriebenes Python-Backend – wenn es loggt, kann Fail2ban es bannen. Genau das macht es für Selfhoster und kleine Agenturen weiterhin attraktiv.</p>
+<p>Die Grenzen sollte man kennen: Fail2ban ist reaktiv, nicht präventiv. Es schützt nicht vor Zero-Day-Exploits, nicht vor langsamen verteilten Angriffen (Low-and-Slow über hunderte IPs) und nicht vor Angriffen, die aus dem eigenen Rechenzentrum kommen. Es ist ein Baustein, kein Ersatz für Key-Auth, Updates und ein restriktives Firewall-Konzept.</p>
+
+<h2>Installation: Debian, Ubuntu, RHEL und Docker</h2>
+<p>Auf Debian 12/13 und Ubuntu 24.04/26.04 ist Fail2ban in den Repos und in wenigen Sekunden installiert. Wichtig: Der Dienst startet beim ersten Boot <strong>ohne aktive Jails</strong>, weil die mitgelieferten Filter zwar vorhanden, aber standardmäßig deaktiviert sind. Ohne eigene Konfiguration passiert also exakt nichts.</p>
+<pre><code>apt update &amp;&amp; apt install -y fail2ban
+systemctl enable --now fail2ban
+fail2ban-client status</code></pre>
+<p>Auf RHEL, Rocky Linux 9/10 und AlmaLinux liegt Fail2ban im EPEL-Repository. Dort ist zusätzlich zu beachten, dass firewalld als Ban-Backend genutzt wird, sofern es läuft – der Standard-<code>banaction</code> ist dort <code>firewallcmd-ipset</code>.</p>
+<pre><code>dnf install -y epel-release
+dnf install -y fail2ban fail2ban-firewalld
+systemctl enable --now fail2ban</code></pre>
+<p>In Containern oder minimalen Images ohne systemd-Journal kann der Backend-Wechsel nötig sein. Läuft der Dienst in einem Docker-Container, braucht er Zugriff auf die Host-Logs und – je nach Ban-Action – <code>NET_ADMIN</code> oder Zugriff auf den Docker-Socket. Sauberer ist es, Fail2ban auf dem Host laufen zu lassen und die Container-Logs per Volume einzubinden.</p>
+<p>Für die Prüfung, ob überhaupt gebannt wird, reicht ein Blick in <code>/var/log/fail2ban.log</code>. Erscheint dort nach einem Testlogin keine Zeile mit <code>Ban</code>, ist die Jail nicht aktiv oder der Logpfad stimmt nicht.</p>
+
+<h2>jail.local statt jail.conf – die Grundstruktur</h2>
+<p>Die mitgelieferte <code>/etc/fail2ban/jail.conf</code> wird bei jedem Paketupdate überschrieben. Eigene Konfiguration gehört deshalb <strong>immer</strong> in <code>/etc/fail2ban/jail.local</code> oder besser in eine der Dateien unter <code>/etc/fail2ban/jail.d/</code>. Fail2ban liest <code>jail.conf</code> zuerst, dann <code>jail.d/*.conf</code> alphabetisch, dann <code>jail.local</code> – spätere Dateien überschreiben frühere Werte.</p>
+<p>Eine praxistaugliche Basis für einen Webserver sieht so aus:</p>
+<pre><code>[DEFAULT]
+bantime   = 1h
+findtime  = 10m
+maxretry  = 5
+ignoreip  = 127.0.0.1/8 ::1 203.0.113.42
+backend   = systemd
+banaction = nftables-multiport
+banaction_allports = nftables-allports
+
+[sshd]
+enabled  = true
+port     = ssh
+maxretry = 3
+bantime  = 24h
+
+[nginx-http-auth]
+enabled = true
+
+[nginx-botsearch]
+enabled  = true
+maxretry = 2</code></pre>
+<p>Wichtig ist die Trennung zwischen <code>banaction</code> (bannt nur die Ports der Jail) und <code>banaction_allports</code> (bannt die IP komplett). Für SSH will man fast immer <code>allports</code>, weil ein Angreifer sonst einfach auf einen anderen Dienst derselben IP ausweicht. Für Web-Jails reicht das Port-Banning, um legitime Nutzer nicht komplett auszusperren.</p>
+<p>Nach jeder Änderung prüft man die Syntax mit <code>fail2ban-client -t</code> und lädt dann per <code>systemctl reload fail2ban</code> neu. Ein voller Restart ist nur nötig, wenn Filterdateien geändert wurden – und selbst dann reicht meist ein Reload.</p>
+
+<h2>Die wichtigsten Jails: sshd, nginx, Postfix, Dovecot</h2>
+<p>Die <code>sshd</code>-Jail ist Pflicht. Sie erkennt fehlgeschlagene Passwort-Auth, ungültige Benutzernamen und – je nach Filtervariante – auch <code>Connection closed by authenticating user</code>-Muster. Wer Key-Auth nutzt, kann <code>mode = aggressive</code> setzen, was zusätzlich Verbindungsabbrüche ohne Auth-Versuch zählt. Das fängt Portscanner früh ab, produziert aber gelegentlich False Positives bei Monitoring-Systemen.</p>
+<p>Für nginx sind drei Jails relevant: <code>nginx-http-auth</code> (HTTP-Basic-Auth-Fehler), <code>nginx-botsearch</code> (Requests auf <code>/.env</code>, <code>/wp-login.php</code>, <code>/phpmyadmin</code>) und <code>nginx-limit-req</code>, das auf die <code>limit_req</code>-Logzeilen reagiert. Die Botsearch-Jail ist mit <code>maxretry = 2</code> und <code>bantime = 1w</code> sehr effektiv – Scanner probieren selten mehr als zwei Pfade pro IP.</p>
+<p>Mailserver-Betreiber brauchen <code>postfix-sasl</code> (SASL-Auth-Fehler), <code>postfix</code> (Reject-Muster) und <code>dovecot</code>. Gerade bei Postfix ist Vorsicht geboten: Zu aggressive Filter bannen legitime Mailserver, die sich vertippen. Hier empfiehlt sich <code>maxretry = 5</code> und eine großzügige <code>ignoreip</code>-Liste mit den IPs der eigenen Relay-Partner.</p>
+<p>Ein Überblick über sinnvolle Startwerte:</p>
+<table>
+<tr><th>Jail</th><th>maxretry</th><th>findtime</th><th>bantime</th></tr>
+<tr><td>sshd</td><td>3</td><td>10m</td><td>24h</td></tr>
+<tr><td>nginx-http-auth</td><td>5</td><td>10m</td><td>1h</td></tr>
+<tr><td>nginx-botsearch</td><td>2</td><td>10m</td><td>1w</td></tr>
+<tr><td>postfix-sasl</td><td>5</td><td>30m</td><td>12h</td></tr>
+<tr><td>dovecot</td><td>5</td><td>30m</td><td>12h</td></tr>
+<tr><td>recidive</td><td>3</td><td>1d</td><td>1w</td></tr>
+</table>
+
+<h2>Filter und Regex richtig schreiben</h2>
+<p>Ein Filter besteht aus <code>failregex</code>, optional <code>ignoreregex</code> und einer <code>datepattern</code>-Definition. Der wichtigste Debug-Befehl ist <code>fail2ban-regex</code>, mit dem man einen Filter gegen eine echte Logdatei testet, ohne die Jail zu aktivieren.</p>
+<pre><code>fail2ban-regex /var/log/nginx/access.log /etc/fail2ban/filter.d/nginx-botsearch.conf
+fail2ban-regex --print-all-matched /var/log/auth.log sshd</code></pre>
+<p>Für einen eigenen Dienst legt man <code>/etc/fail2ban/filter.d/meinapp.conf</code> an. Entscheidend ist, dass die IP in einer benannten Gruppe <code>(?P&lt;host&gt;...)</code> steht – Fail2ban braucht genau diesen Gruppennamen, um die IP zu extrahieren.</p>
+<pre><code>[Definition]
+failregex = ^.*Login failed for user .* from &lt;HOST&gt;.*$
+ignoreregex = ^.*from 10\.0\.0\.\d+.*$</code></pre>
+<p>Der Klassiker unter den Fehlern: Der Filter matcht, aber die IP wird nicht erkannt, weil <code>&lt;HOST&gt;</code> fehlt oder die Regex gierig über mehrere Zeilen läuft. Zweiter Klassiker: Logrotation. Wird die Logdatei rotiert, ohne dass Fail2ban per <code>pyinotify</code> oder systemd-Backend folgt, verliert die Jail die Verbindung und bannt nichts mehr. Der <code>systemd</code>-Backend umgeht dieses Problem komplett, weil er direkt am Journal liest.</p>
+<p>Bei mehrzeiligen Logeinträgen (Java-Stacks, Python-Tracebacks) hilft <code>maxlines = 5</code> im Jail, damit Fail2ban mehrere Zeilen als einen Treffer wertet. Ohne diese Option matcht nur die erste Zeile.</p>
+
+<h2>Ban-Actions: nftables, iptables, firewalld, Cloudflare</h2>
+<p>Der Standard-<code>banaction</code> hängt vom System ab. Auf Debian und Ubuntu ist es historisch <code>iptables-multiport</code>, auf RHEL <code>firewallcmd-ipset</code>. Seit Kernel 5.x und nftables als Default-Backend ist <code>nftables-multiport</code> die bessere Wahl: weniger Overhead, sauberere Regeln, kein iptables-nft-Übersetzungs-Layer.</p>
+<pre><code>banaction = nftables-multiport
+banaction_allports = nftables-allports
+chain = f2b</code></pre>
+<p>Läuft der Server hinter Cloudflare, bringt ein lokales IP-Ban wenig – der Traffic kommt von Cloudflare-IPs, und die echte Besucher-IP steht nur im Header <code>CF-Connecting-IP</code>. Hier nutzt man die mitgelieferte <code>cloudflare-token</code>-Action, die die IP per API in eine Cloudflare-Firewall-Regel einträgt.</p>
+<pre><code>[Definition]
+actionban = curl -s -X POST "https://api.cloudflare.com/client/v4/user/firewall/access_rules/rules" \
+  -H "X-Auth-Email: &lt;email&gt;" -H "X-Auth-Key: &lt;apikey&gt;" \
+  -H "Content-Type: application/json" \
+  --data '{"mode":"block","configuration":{"target":"ip","value":"&lt;ip&gt;"},"notes":"fail2ban"}'</code></pre>
+<p>Für nginx hinter Cloudflare muss zusätzlich <code>real_ip_header CF-Connecting-IP</code> gesetzt und die <code>set_real_ip_from</code>-Liste gepflegt werden – sonst steht in jedem Logeintrag die Cloudflare-IP und Fail2ban sperrt im schlimmsten Fall den halben Edge. Cloudflare Pro kostet 20 US-Dollar pro Monat und Zone, die kostenlose Variante reicht für Fail2ban-Integration völlig aus.</p>
+<p>Eine weitere Option ist <code>ipset</code>: Statt für jede gebannte IP eine eigene Firewall-Regel anzulegen, landen alle in einem Hash-Set mit einer einzigen Regel. Bei mehr als 500 gleichzeitigen Bans ist das der Unterschied zwischen einer 200-Zeilen- und einer 200.000-Zeilen-Regelkette.</p>
+
+<h2>bantime, findtime, maxretry: konkrete Werte für 2026</h2>
+<p>Die drei Parameter bestimmen die Härte der Sperre. <code>findtime</code> ist das Zeitfenster, in dem <code>maxretry</code> Fehlversuche auftreten müssen, <code>bantime</code> die Sperrdauer. Wer <code>bantime = 1h</code> setzt, verliert gegen einen Angreifer, der ohnehin nur alle 61 Minuten einen Versuch macht.</p>
+<p>Bewährt hat sich eine Staffelung: kurze Sperren für legitime Fehler (Web-Login), lange Sperren für Scanner (Botsearch, SSH). Für SSH sind 24 Stunden ein guter Kompromiss – lang genug, um Skripte zu nerven, kurz genug, um einen ausgesperrten Mitarbeiter nicht tagelang zu blockieren.</p>
+<table>
+<tr><th>Szenario</th><th>maxretry</th><th>findtime</th><th>bantime</th></tr>
+<tr><td>SSH öffentlich, Key-Auth</td><td>3</td><td>10m</td><td>24h</td></tr>
+<tr><td>SSH öffentlich, Passwort-Auth</td><td>2</td><td>5m</td><td>1w</td></tr>
+<tr><td>Web-Login (Kunden)</td><td>5</td><td>15m</td><td>30m</td></tr>
+<tr><td>API-Endpoint</td><td>20</td><td>1m</td><td>10m</td></tr>
+<tr><td>Mailserver SASL</td><td>5</td><td>30m</td><td>12h</td></tr>
+</table>
+<p>Seit Fail2ban 0.11 gibt es <code>bantime.increment = true</code>. Damit verdoppelt sich die Sperrdauer bei jedem weiteren Ban derselben IP, ausgehend von <code>bantime</code>, begrenzt durch <code>bantime.maxtime</code>. Das ist 2026 der Standard für öffentlich erreichbare SSH-Ports.</p>
+<pre><code>bantime = 1h
+bantime.increment = true
+bantime.factor = 2
+bantime.maxtime = 5w</code></pre>
+<p>Wichtig: <code>bantime.increment</code> arbeitet mit einer Datenbank unter <code>/var/lib/fail2ban/fail2ban.sqlite3</code>. Wird diese Datei gelöscht oder liegt sie auf einem tmpfs, ist die Historie weg und die Sperren starten wieder bei einer Stunde.</p>
+
+<h2>Whitelist und ignoreip – die häufigsten Selbstaussperrungen</h2>
+<p>Der häufigste Supportfall bei Fail2ban ist der Admin, der sich selbst aussperrt. Ursache ist fast immer eine fehlende <code>ignoreip</code>-Zeile oder eine Jail, die auf den falschen Port hört. Vor dem Aktivieren einer neuen Jail gehört die eigene IP, die IP des Monitoring-Servers und die IP des Backup-Systems in die Whitelist.</p>
+<p><code>ignoreip</code> akzeptiert einzelne IPs, CIDR-Ranges und – seit 0.10 – auch DNS-Hostnamen, sofern <code>ignorecommand</code> nicht gesetzt ist. Hostnamen sind praktisch für dynamische IPs, bergen aber das Risiko, dass ein kompromittierter DNS-Eintrag die Whitelist öffnet.</p>
+<pre><code>ignoreip = 127.0.0.1/8 ::1 \
+           10.0.0.0/8 \
+           192.168.0.0/16 \
+           203.0.113.42 \
+           monitoring.hostazar.com</code></pre>
+<p>Für Cloudflare-Setups ist es sinnvoll, die offiziellen Cloudflare-Ranges nicht zu whitelisten, sondern über <code>real_ip</code> die echte Client-IP zu ermitteln. Sonst bannt man bei einem Angriff über Cloudflare im Zweifel den Edge-Knoten und legt damit die eigene Seite für einen ganzen Kontinent lahm.</p>
+<p>Ein Sicherheitsnetz: Fail2ban kann per <code>action</code> eine E-Mail oder einen Webhook bei jedem Ban auslösen. Ein Slack- oder ntfy-Webhook kostet nichts und zeigt sofort, wenn etwas schiefgeht.</p>
+
+<h2>Monitoring mit fail2ban-client und Logs</h2>
+<p>Der wichtigste Befehl im Alltag ist <code>fail2ban-client status</code>, das alle aktiven Jails auflistet. Mit <code>fail2ban-client status sshd</code> bekommt man die aktuell gebannten IPs, die Gesamtzahl und die Ban-Historie.</p>
+<pre><code>fail2ban-client status
+fail2ban-client status sshd
+fail2ban-client get sshd banip
+fail2ban-client get sshd bantime
+fail2ban-client set sshd unbanip 198.51.100.7</code></pre>
+<p>Für Monitoring eignet sich <code>fail2ban-client status &lt;jail&gt; --with-failed</code> in Kombination mit einem Prometheus-Exporter wie <code>fail2ban_exporter</code>. Grafana-Dashboards zeigen dann Ban-Rate pro Stunde, Top-10-ASN und die Verteilung über Jails. In der Praxis sieht man dabei sofort, ob eine Regel zu aggressiv greift.</p>
+<p>Das Log unter <code>/var/log/fail2ban.log</code> sollte per logrotate mit <code>copytruncate</code> oder besser per <code>systemd</code>-Backend verwaltet werden. Bei <code>create</code>-Rotation ohne Neustart verliert Fail2ban die Datei. Wer auf Nummer sicher gehen will, nutzt <code>pyinotify</code> als Backend – das erkennt Rotation und folgt dem neuen Inode automatisch.</p>
+<p>Ein nützlicher Trick für die Fehlersuche: <code>fail2ban-client -d</code> gibt die komplette, zusammengeführte Konfiguration aus, inklusive aller geerbten DEFAULT-Werte. Damit findet man in Sekunden, welche Datei einen Wert überschreibt.</p>
+
+<h2>Recidive-Jail und permanente Bans</h2>
+<p>Die <code>recidive</code>-Jail ist die Eskalationsstufe: Sie liest das Fail2ban-Log selbst und bannt IPs, die in einem längeren Zeitraum mehrfach aufgefallen sind. Damit fängt man Angreifer ab, die nach Ablauf der Sperre wiederkommen.</p>
+<pre><code>[recidive]
+enabled  = true
+logpath  = /var/log/fail2ban.log
+banaction = nftables-allports
+bantime  = 4w
+findtime = 1d
+maxretry = 3</code></pre>
+<p>Kombiniert mit <code>bantime.increment</code> ergibt das eine effektive Sperre von mehreren Wochen bis Monaten für hartnäckige Angreifer. Wer ganz radikal sein will, setzt <code>bantime = -1</code> – das bedeutet in Fail2ban permanente Sperre. Davon ist bei SSH auf Produktionssystemen abzuraten, weil ein Tippfehler des eigenen Teams dann dauerhaft ausgesperrt bleibt.</p>
+<p>Für permanente Bans empfiehlt sich stattdessen ein zweistufiges Vorgehen: Recidive mit 4 Wochen Sperre und ein monatlicher Cronjob, der die Ban-Liste exportiert und in eine dauerhafte Firewall-Blockliste überführt. So behält man die Kontrolle und kann einzelne IPs gezielt wieder freigeben.</p>
+<p>Wichtig für IPv6: Viele Angriffe laufen inzwischen über IPv6-Präfixe. Fail2ban bannt standardmäßig nur die exakte Adresse, nicht das /64-Präfix. Wer das ändern will, braucht eine eigene Action mit <code>ipset</code> und <code>timeout</code> sowie einer Regel, die das gesamte Präfix blockt.</p>
+
+<h2>Fail2ban in Docker und mit IPv6</h2>
+<p>Im Container ist Fail2ban ein Sonderfall. Der Dienst braucht Zugriff auf die Logdateien <em>und</em> auf die Firewall des Hosts. Läuft er im Container mit <code>network_mode: host</code> und <code>cap_add: NET_ADMIN</code>, funktioniert das – sauberer ist aber der Betrieb auf dem Host mit eingebundenen Container-Logs.</p>
+<pre><code># docker-compose.yml (Auszug)
+services:
+  fail2ban:
+    image: crazymax/fail2ban:latest
+    network_mode: host
+    cap_add: [NET_ADMIN, NET_RAW]
+    volumes:
+      - /var/log:/var/log:ro
+      - ./data:/data
+    environment:
+      - F2B_LOG_TARGET=STDOUT
+      - F2B_DB_PURGE_AGE=30d</code></pre>
+<p>Bei Docker mit eigenem Bridge-Netzwerk sieht Fail2ban im Log nur die Container-IP, nicht die echte Client-IP. Abhilfe schafft <code>userland-proxy: false</code> in der <code>daemon.json</code> plus <code>iptables</code>-Regeln für die Docker-Chain, oder ein Reverse-Proxy (Traefik, nginx) auf dem Host, der die echte IP per <code>X-Forwarded-For</code> weitergibt.</p>
+<p>IPv6 braucht in der Jail die korrekte Portangabe. Wird <code>port = ssh</code> genutzt, löst Fail2ban den Dienstnamen über <code>/etc/services</code> auf und bannt beide Protokollfamilien. Bei expliziten Ports wie <code>port = 2222</code> sollte man <code>protocol = tcp</code> setzen, sonst entstehen doppelte Regeln.</p>
+<p>Ein letzter Punkt: Fail2ban und Docker-Container, die selbst Ports veröffentlichen, können sich gegenseitig aussperren. Wer Fail2ban auf dem Host nutzt, sollte die Docker-Chain in der nftables-Konfiguration korrekt einbinden – sonst greifen die Bans nicht für Container-Ports.</p>
+
+<h2>Performance, Grenzen und Alternativen</h2>
+<p>Fail2ban ist in Python geschrieben und skaliert gut bis etwa 20.000 Logzeilen pro Sekunde. Darüber – etwa bei einem stark frequentierten API-Server mit 500 Requests/s – wird die Regex-Auswertung zum Flaschenhals. Ab diesem Punkt hilft es, Jails auf bestimmte Logdateien zu beschränken und <code>maxlines</code> niedrig zu halten.</p>
+<p>Der speicherseitige Fußabdruck ist gering: Der Dienst belegt typischerweise 40 bis 90 MB RAM, die SQLite-Datenbank wächst mit etwa 1 MB pro 10.000 Bans. Auf einem VPS mit 2 GB RAM (Netcup VPS 1000 G11, ca. 5,50 €/Monat) ist das vernachlässigbar.</p>
+<p>Die wichtigste Grenze: Fail2ban erkennt nur, was im Log steht. Ein Angriff, der keine Fehlermeldung produziert – etwa ein erfolgreicher Login mit gestohlenen Credentials – wird nicht gebannt. Genau hier setzen Alternativen an: <strong>CrowdSec</strong> arbeitet mit einer Community-Signaturdatenbank und erkennt Verhaltensmuster über mehrere Systeme hinweg. Die Grundversion ist kostenlos, die Console für zentrale Verwaltung startet bei 0 € für bis zu drei Instanzen.</p>
+<p>Ein pragmatischer Stack für 2026: SSH nur mit Key-Auth und <code>AllowUsers</code>, Fail2ban mit sshd-, nginx- und recidive-Jail, nftables als Ban-Backend, CrowdSec optional als zweite Ebene für Web-Traffic, plus ein Monitoring-Webhook. Damit sind die allermeisten automatisierten Angriffe abgewehrt, ohne dass man legitime Nutzer verliert.</p>
+
+<h2>FAQ</h2>
+<h3>Wie teste ich, ob eine Fail2ban-Jail wirklich funktioniert?</h3>
+<p>Am schnellsten mit einem bewusst fehlgeschlagenen Login von einer anderen IP und anschließendem Blick in <code>/var/log/fail2ban.log</code>. Alternativ testet man den Filter isoliert mit <code>fail2ban-regex /var/log/auth.log sshd</code> – die Ausgabe zeigt, wie viele Zeilen matchen und welche IPs extrahiert wurden. Erscheint dort kein Match, liegt es fast immer an einem falschen <code>logpath</code> oder am Backend.</p>
+<h3>Welche bantime ist 2026 für SSH sinnvoll?</h3>
+<p>Für öffentlich erreichbares SSH mit Key-Auth sind 24 Stunden ein guter Standard, kombiniert mit <code>bantime.increment = true</code> und <code>bantime.maxtime = 5w</code>. Wer Passwort-Auth erlaubt, sollte <code>maxretry = 2</code> und <code>bantime = 1w</code> setzen. Permanente Sperren (<code>bantime = -1</code>) sind nur mit einer gepflegten Whitelist empfehlenswert.</p>
+<h3>Warum bannt Fail2ban meine IP nicht, obwohl die Jail aktiv ist?</h3>
+<p>Drei häufige Ursachen: Die IP steht in <code>ignoreip</code>, der Ban-Backend passt nicht zur Firewall (etwa <code>iptables</code>-Action bei reinem nftables-System), oder die Jail liest die falsche Logdatei. Prüfen lässt sich das mit <code>fail2ban-client -d</code> für die effektive Konfiguration und <code>fail2ban-client status &lt;jail&gt;</code> für den aktuellen Zustand.</p>
+<h3>Kann ich Fail2ban und CrowdSec parallel betreiben?</h3>
+<p>Ja, das ist gängige Praxis. CrowdSec übernimmt typischerweise die Web-Ebene mit Community-Signaturen, Fail2ban die klassischen Dienste wie SSH, Postfix und Dovecot. Wichtig ist, dass beide nicht dieselben Logdateien mit widersprüchlichen Regeln auswerten und dass die Ban-Listen nicht gegenseitig IPs freigeben. Ein gemeinsames nftables-Set als Ziel für beide ist die sauberste Lösung.</p>
+<h3>Was kostet Fail2ban und brauche ich zusätzliche Dienste?</h3>
+<p>Fail2ban selbst ist kostenlos und Open Source. Zusätzliche Kosten entstehen nur durch optionale Komponenten: Cloudflare Pro für erweiterte WAF-Regeln ab 20 US-Dollar pro Monat, CrowdSec Console ab 0 € für kleine Setups, oder ein Monitoring-Webhook wie ntfy, der kostenlos nutzbar ist. Der Server selbst – ein Hetzner CX22 für 3,79 €/Monat reicht für die meisten Setups – ist der einzige echte Posten.</p>

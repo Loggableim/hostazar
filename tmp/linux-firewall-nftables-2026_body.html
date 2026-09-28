@@ -1,0 +1,223 @@
+<h2>Warum nftables 2026 der Standard ist</h2>
+<p>Seit Kernel 5.13 ist nftables der offizielle Nachfolger von iptables, und spätestens 2026 gibt es kaum noch einen Grund, auf das alte Framework zu setzen. Debian 13, Ubuntu 24.04 LTS, RHEL 10 und AlmaLinux 10 liefern nftables als Default-Firewall-Backend aus. Der Kernel-Merge von <strong>xtables-nft</strong> bedeutet: selbst wenn du noch <code>iptables</code>-Befehle absetzt, werden sie intern in nftables-Regeln übersetzt.</p>
+<p>Die Vorteile sind messbar. Ein Regelwerk mit 5.000 einzelnen IP-Blocks in iptables benötigt bei linearem Matching rund 1,2 ms pro Paket. Mit nftables-Sets und Hash-Lookup sinkt das auf unter 80 µs – also den Faktor 15. Bei einem Gameserver mit 2.000 gleichzeitigen UDP-Paketen pro Sekunde ist das der Unterschied zwischen 12 % und 0,8 % CPU-Last nur für die Firewall.</p>
+<p>Dazu kommt die atomare Regel-Anwendung: <code>nft -f ruleset.nft</code> lädt das komplette Regelwerk in einer einzigen Transaktion. Kein Zwischenzustand, in dem Pakete durchfallen. Für DevOps-Workflows mit Ansible oder Terraform ist das ein enormer Vorteil gegenüber dem zeilenweisen <code>iptables -A</code>.</p>
+<p>In diesem Guide baust du ein produktives Setup auf, das auf einem 5-Euro-VPS genauso läuft wie auf einem dedizierten 64-Core-Server bei Hetzner für 180 Euro im Monat.</p>
+
+<h2>Installation und Kernel-Voraussetzungen</h2>
+<p>Prüfe zuerst deine Kernel-Version. nftables benötigt mindestens Kernel 3.13, produktiv empfehlen wir aber 5.15 LTS oder neuer. Auf einem aktuellen Debian 13 oder Ubuntu 24.04 ist alles dabei.</p>
+<pre><code>uname -r
+# 6.8.0-45-generic
+
+apt update &amp;&amp; apt install -y nftables
+systemctl enable --now nftables
+
+nft --version
+# nftables v1.0.9 (Old Doc Yak #3)</code></pre>
+<p>Auf RHEL/AlmaLinux heißt das Paket ebenfalls <code>nftables</code>, allerdings ist dort <code>firewalld</code> als Frontend vorinstalliert. Wenn du direkt mit nftables arbeiten willst, deaktiviere firewalld:</p>
+<pre><code>dnf install -y nftables
+systemctl disable --now firewalld
+systemctl enable --now nftables</code></pre>
+<p>Prüfe, ob andere Firewall-Tools stören: <code>ufw</code>, <code>firewalld</code> oder alte <code>iptables</code>-Skripte können parallel Regeln setzen. Ein <code>nft list ruleset</code> auf einem frischen System sollte leer oder nur Docker-Ketten enthalten.</p>
+
+<h2>Die nftables-Architektur verstehen: Tables, Chains, Rules</h2>
+<p>nftables organisiert alles hierarchisch. Eine <strong>Table</strong> ist ein Namespace, der einer Address Family zugeordnet ist: <code>ip</code> (IPv4), <code>ip6</code> (IPv6), <code>inet</code> (beide), <code>arp</code>, <code>bridge</code> oder <code>netdev</code>. Für die meisten Setups nimmst du <code>inet</code>, damit eine einzige Regel beide Protokolle abdeckt.</p>
+<p>Innerhalb einer Table liegen <strong>Chains</strong>. Es gibt drei Typen: <code>filter</code> für normales Paketfiltering, <code>nat</code> für Source- und Destination-NAT, und <code>route</code> für Routing-Entscheidungen. Zusätzlich unterscheidet man <strong>Base Chains</strong> (mit Hook an <code>input</code>, <code>forward</code>, <code>output</code>, <code>prerouting</code>, <code>postrouting</code>) und <strong>Regular Chains</strong> (ohne Hook, nur per <code>jump</code> erreichbar).</p>
+<p>Jede Chain hat eine <strong>Priority</strong>. Negative Zahlen laufen früher. Die Standardwerte sind: <code>raw = -300</code>, <code>mangle = -150</code>, <code>dstnat = -100</code>, <code>filter = 0</code>, <code>srcnat = 100</code>. Wenn du mehrere Chains am selben Hook hast, bestimmt die Priority die Reihenfolge.</p>
+<p>Regeln selbst bestehen aus Match-Ausdrücken und einer Verdict-Anweisung: <code>accept</code>, <code>drop</code>, <code>reject</code>, <code>jump</code>, <code>goto</code> oder <code>return</code>. Wichtig: <code>drop</code> verwirft lautlos, <code>reject</code> sendet eine ICMP-Nachricht zurück. Für öffentlich erreichbare Ports ist <code>drop</code> die bessere Wahl, weil es Scannern keine Information liefert.</p>
+
+<h2>Ein minimales, sicheres Basis-Regelwerk</h2>
+<p>Das folgende Regelwerk ist ein solider Startpunkt für einen Webserver oder Gameserver. Es erlaubt etablierte Verbindungen, SSH, HTTP, HTTPS und ICMP – alles andere wird verworfen.</p>
+<pre><code>#!/usr/sbin/nft -f
+
+flush ruleset
+
+table inet filter {
+    chain input {
+        type filter hook input priority 0; policy drop;
+
+        iif lo accept
+        ct state established,related accept
+        ct state invalid drop
+
+        ip protocol icmp accept
+        ip6 nexthdr icmpv6 accept
+
+        tcp dport { 22, 80, 443 } ct state new accept
+
+        # Rate-Limit SSH-Bruteforce
+        tcp dport 22 ct state new limit rate 4/minute burst 6 packets accept
+
+        log prefix "nft-drop: " level warn
+    }
+
+    chain forward {
+        type filter hook forward priority 0; policy drop;
+    }
+
+    chain output {
+        type filter hook output priority 0; policy accept;
+    }
+}</code></pre>
+<p>Speichere das als <code>/etc/nftables.conf</code> und lade es mit <code>nft -f /etc/nftables.conf</code>. Die <code>ct state</code>-Regeln sind entscheidend: ohne sie müsstest du für jede ausgehende Verbindung eine Rückrichtung explizit erlauben.</p>
+<p>Die <code>limit rate 4/minute</code>-Regel ist ein einfacher Schutz gegen SSH-Bruteforce. Sie erlaubt nur vier neue Verbindungen pro Minute pro Quell-IP. Für einen Fail2ban-Ersatz reicht das in vielen Fällen aus, ohne zusätzlichen Daemon.</p>
+<p>Achte darauf, dass die Policy auf <code>drop</code> steht – nicht auf <code>accept</code>. Eine Firewall, die standardmäßig alles erlaubt, ist keine Firewall.</p>
+
+<h2>Sets: tausende IPs in einer Regel</h2>
+<p>Sets sind der größte Performance-Gewinn von nftables. Statt 500 einzelne <code>ip saddr</code>-Regeln zu schreiben, packst du alle Adressen in ein Set mit O(1)-Lookup.</p>
+<pre><code>table inet filter {
+    set blacklist {
+        type ipv4_addr
+        flags interval
+        elements = { 10.0.0.0/8, 172.16.0.0/12,
+                     192.168.0.0/16, 203.0.113.42 }
+    }
+
+    set ssh_ratelimit {
+        type ipv4_addr
+        flags dynamic, timeout
+        timeout 1h
+    }
+
+    chain input {
+        type filter hook input priority 0; policy drop;
+
+        ip saddr @blacklist drop
+        tcp dport 22 ct state new \
+            add @ssh_ratelimit { ip saddr limit rate 5/minute } accept
+    }
+}</code></pre>
+<p>Das <code>blacklist</code>-Set mit <code>flags interval</code> erlaubt CIDR-Bereiche. Das <code>ssh_ratelimit</code>-Set ist dynamisch: jede IP, die mehr als fünf Verbindungen pro Minute aufbaut, landet für eine Stunde im Set und wird geblockt. Das ersetzt Fail2ban in vielen Szenarien komplett.</p>
+<p>Du kannst Sets auch zur Laufzeit füllen, etwa aus einem Threat-Feed:</p>
+<pre><code>nft add element inet filter blacklist { 198.51.100.0/24 }
+nft list set inet filter blacklist</code></pre>
+<p>Bei 100.000 Einträgen im Set bleibt der Lookup konstant bei rund 60 ns – unabhängig von der Set-Größe. Genau hier liegt der Vorteil gegenüber iptables-Ketten.</p>
+
+<h2>Maps: Port-Forwarding ohne Regel-Chaos</h2>
+<p>Maps sind wie Sets, nur mit einem Wert pro Schlüssel. Ideal für Port-Forwarding oder DNAT auf mehrere Backend-Server.</p>
+<pre><code>table ip nat {
+    map portfwd {
+        type inet_service : ipv4_addr . inet_service
+        elements = {
+            8080 : 10.0.0.10 . 80,
+            8443 : 10.0.0.11 . 443,
+            25565 : 10.0.0.20 . 25565
+        }
+    }
+
+    chain prerouting {
+        type nat hook prerouting priority dstnat; policy accept;
+        dnat to tcp dport map @portfwd
+    }
+}</code></pre>
+<p>Damit leitest du Port 8080 auf einen internen Webserver, 8443 auf einen zweiten und 25565 auf einen Minecraft-Server um – alles in einer einzigen Regel. Bei iptables bräuchtest du drei separate DNAT-Regeln plus drei Forward-Regeln.</p>
+<p>Vergiss bei DNAT nicht die Forward-Chain. Ohne eine Regel wie <code>ct state established,related accept</code> in der Forward-Chain wird das weitergeleitete Paket verworfen.</p>
+
+<h2>NAT, Routing und IPv6</h2>
+<p>Für einen Router oder VPN-Gateway brauchst du Masquerading. Das ist Source-NAT mit automatischer Adresswahl:</p>
+<pre><code>table ip nat {
+    chain postrouting {
+        type nat hook postrouting priority srcnat; policy accept;
+        oifname "eth0" masquerade
+    }
+}</code></pre>
+<p>Wichtig: Aktiviere IP-Forwarding im Kernel, sonst greift die Forward-Chain nie.</p>
+<pre><code>sysctl -w net.ipv4.ip_forward=1
+echo "net.ipv4.ip_forward=1" &gt;&gt; /etc/sysctl.d/99-forward.conf</code></pre>
+<p>Für IPv6 gilt dasselbe mit <code>net.ipv6.conf.all.forwarding=1</code>. Achte darauf, dass deine <code>inet</code>-Table beide Protokolle abdeckt. Ein häufiger Fehler: IPv4 ist dicht, IPv6 steht offen. Prüfe mit <code>nft list ruleset</code>, ob wirklich beide Familien Regeln haben.</p>
+<p>Bei einem WireGuard-Setup auf einem 4-Euro-VPS reicht Masquerading plus eine Forward-Regel für <code>wg0</code>. Der Durchsatz liegt auf einem Hetzner CX22 (2 vCPU, 4 GB RAM) bei rund 850 Mbit/s – die Firewall ist dabei nicht der Flaschenhals.</p>
+
+<h2>Docker und Container-Integration</h2>
+<p>Docker setzt seit Version 28 standardmäßig auf nftables statt iptables. Das ist gut, bringt aber eine Falle: Docker erstellt eigene Tables (<code>ip nat</code>, <code>ip filter</code>) und hängt sich in die Forward-Chain. Wenn deine eigene Forward-Policy <code>drop</code> ist, bricht der Container-Traffic zusammen.</p>
+<p>Die saubere Lösung ist eine eigene Base Chain mit niedrigerer Priority, die Docker-Traffic explizit akzeptiert:</p>
+<pre><code>table inet filter {
+    chain forward {
+        type filter hook forward priority 0; policy drop;
+        ct state established,related accept
+        iifname "docker0" accept
+        oifname "docker0" accept
+        iifname "br-*" accept
+        oifname "br-*" accept
+    }
+}</code></pre>
+<p>Alternativ kannst du Dockers iptables-Manipulation komplett abschalten, wenn du kein Port-Mapping brauchst: <code>{"iptables": false}</code> in <code>/etc/docker/daemon.json</code>. Dann musst du aber alle Container-Ports selbst per DNAT freigeben.</p>
+<p>Für Kubernetes mit kube-proxy im nftables-Modus (seit 1.31 stable) gilt: kube-proxy legt eigene Chains an. Überschreibe sie nicht mit <code>flush ruleset</code> – nutze stattdessen gezielte <code>flush table inet filter</code>-Befehle.</p>
+
+<h2>Logging, Monitoring und Debugging</h2>
+<p>nftables kann Pakete mit strukturierten Logs versehen. Für Fail2ban-kompatible Logs nutzt du das <code>nftables</code>-Log-Format:</p>
+<pre><code>chain input {
+    type filter hook input priority 0; policy drop;
+    tcp dport 22 ct state new limit rate 3/minute \
+        log prefix "SSH-BRUTE: " level warn accept
+}
+
+# journalctl -k -f | grep SSH-BRUTE</code></pre>
+<p>Für Performance-Monitoring sind Counters nützlich. Jede Regel hat implizit einen Counter, den du mit <code>nft -a list ruleset</code> siehst. Explizite Counter helfen beim Debugging:</p>
+<pre><code>nft add rule inet filter input tcp dport 443 counter accept
+nft list chain inet filter input
+# ... tcp dport 443 counter packets 128934 bytes 89234512 accept</code></pre>
+<p>Für Grafana-Dashboards exportiert <code>node_exporter</code> seit Version 1.8 nftables-Metriken, wenn du <code>--collector.nftables</code> aktivierst. Damit siehst du Drop-Raten pro Chain live im Dashboard. Ein typischer Gameserver hat 0,1 bis 2 % Drops – deutlich mehr deutet auf einen Scan oder DDoS hin.</p>
+<p>Zum Debuggen einzelner Pakete nutzt du <code>nft monitor trace</code> zusammen mit einer <code>meta nftrace set 1</code>-Regel. Das zeigt dir genau, welche Regel ein Paket akzeptiert oder verwirft.</p>
+
+<h2>Migration von iptables zu nftables</h2>
+<p>Die Migration ist einfacher als viele denken. Das Tool <code>iptables-nft-restore</code> und <code>iptables-translate</code> helfen:</p>
+<pre><code>iptables-translate -A INPUT -p tcp --dport 22 -j ACCEPT
+# nft add rule ip filter INPUT tcp dport 22 counter accept
+
+iptables-save &gt; /tmp/iptables.rules
+iptables-restore-translate -f /tmp/iptables.rules &gt; /tmp/nftables.rules
+nft -f /tmp/nftables.rules</code></pre>
+<p>Prüfe das Ergebnis immer manuell. Komplexe Regeln mit <code>recent</code>, <code>hashlimit</code> oder <code>string</code>-Match werden nicht 1:1 übersetzt. Diese musst du durch native nftables-Äquivalente ersetzen – <code>recent</code> durch dynamische Sets, <code>hashlimit</code> durch <code>limit rate</code>.</p>
+<p>Ein bewährter Ansatz: Baue das nftables-Regelwerk parallel auf, teste es mit <code>nft -c -f ruleset.nft</code> (Dry-Run), und schalte erst dann um. Bei einem Managed-Server mit 200 Kunden kannst du so ohne Downtime migrieren.</p>
+<p>Vergiss nicht die Persistenz: <code>systemctl enable nftables</code> sorgt dafür, dass <code>/etc/nftables.conf</code> beim Boot geladen wird. Auf Debian und Ubuntu ist das der Standardpfad, auf RHEL liest der Service ebenfalls diese Datei.</p>
+
+<h2>Performance-Tuning und typische Fallstricke</h2>
+<p>nftables skaliert linear mit der Regelanzahl, aber Sets skalieren konstant. Faustregel: alles, was mehr als zehn Einträge hat, gehört in ein Set. Ein Regelwerk mit 200 Einzelregeln kostet auf einem 8-Core-Server rund 4 % CPU bei 100.000 Paketen pro Sekunde – mit Sets sind es unter 0,5 %.</p>
+<p>Weitere Optimierungen:</p>
+<ul>
+<li><strong>Flowtable</strong> für Forwarding-Setups: <code>flowtable f { hook ingress priority 0; devices = { eth0, eth1 }; }</code> beschleunigt weitergeleiteten Traffic um Faktor 3 bis 5, weil etablierte Flows am Regelwerk vorbei gehen.</li>
+<li><strong>Early Drop</strong>: Setze <code>ct state invalid drop</code> als erste Regel – spart Conntrack-Lookups.</li>
+<li><strong>Keine Logs im Hot Path</strong>: <code>log</code> vor <code>accept</code> kostet pro Paket rund 2 µs. Logge nur, was du wirklich brauchst.</li>
+<li><strong>Conntrack-Limits</strong>: <code>net.netfilter.nf_conntrack_max=262144</code> verhindert Drops bei vielen Verbindungen.</li>
+</ul>
+<p>Typische Fallstricke: vergessene IPv6-Regeln, Docker-Forward-Konflikte, und <code>flush ruleset</code> in Skripten, das fremde Tables mitlöscht. Nutze stattdessen <code>flush table inet filter</code> oder arbeite mit <code>nft -f</code> und atomaren Transaktionen.</p>
+
+<h2>Praxis-Setup: Gameserver mit DDoS-Schutz</h2>
+<p>Ein typisches Gameserver-Setup auf einem Hetzner AX42 (8 vCPU, 64 GB RAM, 49 Euro/Monat) sieht so aus: SSH nur per Key, Rate-Limit auf Verbindungen, UDP-Set für bekannte Angreifer-IPs, und ein Conntrack-Limit pro IP.</p>
+<pre><code>table inet filter {
+    set udp_flood {
+        type ipv4_addr
+        flags dynamic, timeout
+        timeout 10m
+    }
+
+    chain input {
+        type filter hook input priority 0; policy drop;
+        ct state established,related accept
+        ct state invalid drop
+
+        # UDP-Flood-Schutz
+        udp dport 27015 ct state new \
+            add @udp_flood { ip saddr limit rate over 200/second } drop
+
+        tcp dport { 22, 25565, 27015 } ct state new accept
+    }
+}</code></pre>
+<p>Diese Regel erlaubt 200 UDP-Pakete pro Sekunde pro IP auf den Gameserver-Port. Alles darüber landet für zehn Minuten im Set und wird verworfen. Bei einem Minecraft-Server mit 50 Spielern liegt der Normalwert bei 20 bis 40 Paketen pro Sekunde – der Schwellwert ist also großzügig.</p>
+<p>Kombiniere das mit einem externen DDoS-Filter (OVH Game, Path.net ab 30 Euro/Monat) für volumetrische Angriffe. nftables schützt gegen Layer-4-Floods im Applikationsbereich, nicht gegen 500-Gbit/s-Angriffe.</p>
+
+<h2>FAQ</h2>
+<h3>Ist nftables schneller als iptables?</h3>
+<p>Bei einfachen Regelwerken sind beide vergleichbar. Der Vorteil zeigt sich ab etwa 100 Regeln: nftables nutzt Hash-Lookups für Sets und Maps, iptables arbeitet linear. Bei 5.000 IP-Blocks ist nftables rund 15-mal schneller. Zusätzlich ist die atomare Regel-Anwendung bei nftables ein echter Vorteil für automatisierte Deployments.</p>
+
+<h3>Kann ich nftables und iptables parallel nutzen?</h3>
+<p>Technisch ja, aber es ist eine schlechte Idee. Auf modernen Distributionen ist <code>iptables</code> ohnehin ein Wrapper um nftables (<code>iptables-nft</code>), und beide schreiben in dieselben Kernel-Strukturen. Mischbetrieb führt zu schwer debugbaren Regelkonflikten. Migriere vollständig oder bleibe bei einem Tool.</p>
+
+<h3>Wie mache ich mein nftables-Regelwerk persistent?</h3>
+<p>Schreibe die Regeln in <code>/etc/nftables.conf</code> und aktiviere den Service mit <code>systemctl enable --now nftables</code>. Auf Debian und Ubuntu ist das der Standardpfad. Auf RHEL-basierten Systemen liest der Service ebenfalls diese Datei. Änderungen zur Laufzeit gehen ohne Persistenz beim Reboot verloren.</p>
+
+<h3>Ersetzt nftables Fail2ban?</h3>
+<p>Für einfache Fälle ja. Dynamische Sets mit <code>limit rate</code> blocken Bruteforce-Versuche ohne zusätzlichen Daemon und ohne Log-Parsing. Fail2ban ist nur dann nötig, wenn du komplexe Log-Muster auswerten willst – etwa fehlgeschlagene Logins in Webanwendungen. Für SSH reicht die native nftables-Lösung.</p>
+
+<h3>Was kostet ein Server, auf dem nftables sinnvoll läuft?</h3>
+<p>nftables läuft auf jedem Linux ab Kernel 3.13. Ein 4-Euro-VPS (1 vCPU, 2 GB RAM) reicht für ein Regelwerk mit 10.000 Set-Einträgen locker aus. Für Routing mit Flowtable und hohem Durchsatz empfehlen wir mindestens 2 vCPU und 4 GB RAM – etwa einen Hetzner CX22 für rund 4 Euro oder einen Netcup VPS 1000 G11 für 6 Euro im Monat.</p>

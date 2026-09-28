@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docker Logging &amp; Monitoring 2026 – Loki, Promtail &amp; Grafana | hostazar.com</title>
+  <meta name="description" content="Docker Logging &amp; Monitoring 2026: Loki, Promtail &amp; Grafana installieren, LogQL-Queries, Alerts, Kosten und Vergleich mit ELK – inkl. Compose-Setup.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://hostazar.com/artikel/docker-logging-monitoring-2026.html">
+  <link rel="stylesheet" href="/css/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hostazar.com/artikel/docker-logging-monitoring-2026.html">
+  <meta property="og:title" content="Docker Logging &amp; Monitoring 2026 – Loki, Promtail &amp; Grafana | hostazar.com">
+  <meta property="og:description" content="Docker Logging &amp; Monitoring 2026: Loki, Promtail &amp; Grafana installieren, LogQL-Queries, Alerts, Kosten und Vergleich mit ELK – inkl. Compose-Setup.">
+  <meta property="og:image" content="https://hostazar.com/images/docker-logging-monitoring-2026.webp">
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:site_name" content="Hostazar &mdash; VPS &amp; DevOps Portal">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Docker Logging &amp; Monitoring 2026 – Loki, Promtail &amp; Grafana | hostazar.com">
+  <meta name="twitter:description" content="Docker Logging &amp; Monitoring 2026: Loki, Promtail &amp; Grafana installieren, LogQL-Queries, Alerts, Kosten und Vergleich mit ELK – inkl. Compose-Setup.">
+  <meta name="twitter:image" content="https://hostazar.com/images/docker-logging-monitoring-2026.webp">
+  <script data-hz-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/css/consent-banner.css">
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Docker Logging & Monitoring 2026 – Loki, Promtail & Grafana | hostazar.com",
+  "url": "https://hostazar.com/artikel/docker-logging-monitoring-2026.html",
+  "description": "Docker Logging & Monitoring 2026: Loki, Promtail & Grafana installieren, LogQL-Queries, Alerts, Kosten und Vergleich mit ELK – inkl. Compose-Setup.",
+  "inLanguage": "de",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "hostazar.com",
+    "url": "https://hostazar.com"
+  },
+  "datePublished": "2026-09-28",
+  "dateModified": "2026-09-28",
+  "image": "https://hostazar.com/images/docker-logging-monitoring-2026.webp",
+  "author": {
+    "@type": "Organization",
+    "name": "hostazar.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "hostazar.com"
+  },
+  "wordCount": 2626
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Startseite",
+      "item": "https://hostazar.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Docker Logging & Monitoring 2026 – Loki, Promtail & Grafana",
+      "item": "https://hostazar.com/artikel/docker-logging-monitoring-2026.html"
+    }
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Brauche ich Promtail oder soll ich direkt Grafana Alloy nutzen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Für ein reines Docker-Setup ist Promtail 2026 weiterhin die einfachere Wahl, weil die Konfiguration kompakt in YAML bleibt und die Docker-Service-Discovery direkt eingebaut ist. Grafana Alloy ist der offizielle Nachfolger und lohnt sich, wenn du Logs, Metriken und Traces in einem einzigen Agenten bündeln willst. Alloy nutzt die River-Syntax, die sich deutlich von Promtail-YAML unterscheidet, und kann bestehende Promtail-Konfigurationen per promtail.convert-Befehl importieren. Für neue Setups mit mehr als drei Hosts würde ich direkt auf Alloy setzen, für Einzelhost-Setups bleibt Promtail pragmatischer."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Wie viel Speicher brauche ich wirklich für 30 Tage Logs?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Rechne mit der Rohmenge geteilt durch 8 bis 12. Bei 2 GB Logs pro Tag sind das 60 GB Rohdaten pro Monat und etwa 5 bis 7,5 GB komprimierte Chunks in Loki. Dazu kommt der Label-Index mit rund 1 bis 2 Prozent der Rohmenge. Für 30 Tage bei 2 GB/Tag brauchst du also etwa 8 bis 10 GB Storage. Bei 10 GB Logs pro Tag entsprechend 40 bis 50 GB. Object Storage ist ab etwa 50 GB Logvolumen pro Monat günstiger als Block Storage."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Kann ich Loki auch ohne Docker betreiben?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ja. Loki wird als einzelne Binary ausgeliefert und lässt sich per systemd betreiben. Der Vorteil im Container ist die einfachere Aktualisierung und die isolierte Konfiguration. Wenn du Loki nativ betreibst, achte auf ausreichende nofile-Limits und darauf, dass der Nutzer Schreibrechte auf /loki hat. Für die meisten Setups ist Docker Compose aber der schnellere Weg, weil Loki, Grafana und Prometheus dann gemeinsam im gleichen Netzwerk laufen und du keine Ports nach außen öffnen musst."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Was kostet der komplette Stack im Monat?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Auf einem Hetzner CX32 mit 4 vCPU, 8 GB RAM und 80 GB NVMe liegst du bei rund 7,60 € monatlich für den Server. Ein Domainname kostet etwa 1 € pro Monat, TLS über Let's Encrypt ist kostenlos. Mit Object Storage für ein Jahr Retention kommen rund 5 € pro TB dazu. In Summe sind das 8 bis 15 € monatlich – deutlich weniger als ein vergleichbarer Elasticsearch-Cluster, der bei gleicher Logmenge mindestens 40 € an Serverkosten verursacht."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Wie sichere ich Loki gegen Datenverlust ab?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Zum einen über Object Storage mit aktivierter Versionierung, zum anderen über regelmäßige Snapshots des VPS. Der Loki-Index ist reproduzierbar, die Chunks nicht – verlierst du die Chunks, sind die Logs weg. Aktiviere deshalb entweder S3-Backend mit Versionierung oder erstelle mindestens täglich einen Snapshot des loki-data-Volumes. Für den Compactor gilt: delete_request_store muss auf denselben Storage-Typ zeigen wie die Chunks, sonst schlägt das Löschen abgelaufener Daten fehl und die Retention greift nicht."
+      }
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">hosta<span>zar</span></a>
+    <button class="nav-toggle" aria-label="Men&#252; &#246;ffnen">&#9776;</button>
+    <ul class="nav-links">
+      <li><a href="/">Startseite</a></li>
+      <li class="nav-dropdown">
+        <a href="/gaming/">🎮 Gaming</a>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#4CAF50">&#9670;</span> A-Z</h4>
+            <a href="/artikel/7-days-to-die-server-hosten-2026.html" class="mega-item">
+              <img src="/images/7-days-to-die-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/ark-survival-ascended-server-hosten-2026.html" class="mega-item">
+              <img src="/images/ark-survival-ascended-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/conan-exiles-server-hosten.html" class="mega-item">
+              <img src="/images/conan-exiles-server-hosten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Conan Exiles Server mieten – Setup &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/cs2-server-mieten-guide-2026.html" class="mega-item">
+              <img src="/images/cs2-server-mieten-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</span>
+            </a>
+            <a href="/artikel/dayz-server-mieten-2026.html" class="mega-item">
+              <img src="/images/dayz-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+            </a>
+            <a href="/artikel/enshrouded-server-hosting-2026.html" class="mega-item">
+              <img src="/images/enshrouded-server-hosting-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Enshrouded Server – Hosting-Guide &amp; Setup für Koop 2026</span>
+            </a>
+            <a href="/artikel/farming-simulator-25-server-mieten-2026.html" class="mega-item">
+              <img src="/images/farming-simulator-25-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Farming Simulator 25 Server mieten – Multiplayer-Guide 2026</span>
+            </a>
+            <a href="/artikel/grounded-server-hosting.html" class="mega-item">
+              <img src="/images/grounded-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Grounded Server hosten – Kosten, Setup &amp; Anbieter 2026</span>
+            </a>
+            <a href="/artikel/icarus-server-hosting.html" class="mega-item">
+              <img src="/images/icarus-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Icarus Server hosten – Dedicated Server für Koop 2026</span>
+            </a>
+            <a href="/artikel/minecraft-server-vergleich-2026.html" class="mega-item">
+              <img src="/images/minecraft-server-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Server mieten oder selbst hosten? Der ultimative Vergleich 2026</span>
+            </a>
+            <a href="/artikel/nightingale-server-hosting.html" class="mega-item">
+              <img src="/images/nightingale-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nightingale Server hosten – Realm-Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/palworld-server-hosting-guide-2026.html" class="mega-item">
+              <img src="/images/palworld-server-hosting-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Palworld Server mieten oder selbst hosten? Der komplette Hosting-Guide 2026</span>
+            </a>
+            <a href="/artikel/project-zomboid-server-hosting-2026.html" class="mega-item">
+              <img src="/images/project-zomboid-server-hosting-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Project Zomboid Server – Hosting &amp; Setup für Multiplayer 2026</span>
+            </a>
+            <a href="/artikel/rust-server-mieten-guide-2026.html" class="mega-item">
+              <img src="/images/rust-server-mieten-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Rust Server mieten – Kosten, Setup, Mods &amp; Anbieter 2026</span>
+            </a>
+            <a href="/artikel/satisfactory-server-mieten-oder-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/satisfactory-server-mieten-oder-selbst-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Satisfactory Server mieten oder selbst hosten? Der Guide 2026</span>
+            </a>
+            <a href="/artikel/scum-server-mieten.html" class="mega-item">
+              <img src="/images/scum-server-mieten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">SCUM Server mieten – Anbieter, Kosten &amp; Setup 2026</span>
+            </a>
+            <a href="/artikel/smalland-server-hosting.html" class="mega-item">
+              <img src="/images/smalland-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Smalland Server mieten – Guide für den Koop-Server 2026</span>
+            </a>
+            <a href="/artikel/sons-of-the-forest-server.html" class="mega-item">
+              <img src="/images/sons-of-the-forest-server.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Sons of the Forest Server hosten – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/space-engineers-server.html" class="mega-item">
+              <img src="/images/space-engineers-server.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Space Engineers Server mieten oder selbst hosten 2026</span>
+            </a>
+            <a href="/artikel/terraria-server-hosten-2026.html" class="mega-item">
+              <img src="/images/terraria-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Terraria Server hosten – Komplettanleitung für Multiplayer 2026</span>
+            </a>
+            <a href="/artikel/the-forest-server-hosting.html" class="mega-item">
+              <img src="/images/the-forest-server-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">The Forest Server hosten – Koop-Guide 2026</span>
+            </a>
+            <a href="/artikel/v-rising-server-mieten-2026.html" class="mega-item">
+              <img src="/images/v-rising-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">V Rising Server mieten oder selbst hosten? Guide 2026</span>
+            </a>
+            <a href="/artikel/factorio-server-hosting-2026.html" class="mega-item">
+              <img src="/images/factorio-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Factorio Server mieten oder selbst hosten? Der komplette Dedicated Server Guide 2026</span>
+            </a>
+          </div>
+          <div class="mega-column">
+            <h4><span style="color:#4CAF50">&#9670;</span> Neueste</h4>
+            <a href="/artikel/minecraft-server-mods-plugins-guide-2026.html" class="mega-item">
+              <img src="/images/minecraft-server-mods-plugins-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Server mit Mods und Plugins – Der ultimative Modding-Guide 2026</span>
+            </a>
+            <a href="/artikel/phasmophobia-server-mieten-2026.html" class="mega-item">
+              <img src="/images/phasmophobia-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Phasmophobia Server mieten 2026 – Geisterjagd Multiplayer Setup</span>
+            </a>
+            <a href="/artikel/baldurs-gate-3-server-mieten-2026.html" class="mega-item">
+              <img src="/images/baldurs-gate-3-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Baldurs Gate 3 Server mieten 2026 – D&amp;D Multiplayer &amp; Coop Setup</span>
+            </a>
+            <a href="/artikel/pubg-server-mieten-2026.html" class="mega-item">
+              <img src="/images/pubg-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">PUBG Server mieten 2026 – Preise, Slots &amp; Anbieter im Vergleich</span>
+            </a>
+            <a href="/artikel/lethal-company-server-mieten-2026.html" class="mega-item">
+              <img src="/images/lethal-company-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Lethal Company Server mieten – Multiplayer Setup Guide 2026</span>
+            </a>
+            <a href="/artikel/helldivers-2-server-hosten-2026.html" class="mega-item">
+              <img src="/images/helldivers-2-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Helldivers 2 Server hosten – Kooperative Missions-Pläne 2026</span>
+            </a>
+            <a href="/artikel/deep-rock-galactic-server-mieten-2026.html" class="mega-item">
+              <img src="/images/deep-rock-galactic-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Deep Rock Galactic Server mieten – 4-Spieler Koop Guide 2026</span>
+            </a>
+            <a href="/artikel/phasmophobia-server-hosten-2026.html" class="mega-item">
+              <img src="/images/phasmophobia-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Phasmophobia Server hosten – Geisterjagd Multiplayer 2026</span>
+            </a>
+            <a href="/artikel/escape-from-tarkov-server-hosten-2026.html" class="mega-item">
+              <img src="/images/escape-from-tarkov-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Escape from Tarkov Server hosten 2026 – Dedicated Server Setup &amp; Anleitung</span>
+            </a>
+            <a href="/artikel/beste-gaming-monitore-2026.html" class="mega-item">
+              <img src="/images/beste-gaming-monitore-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Beste Gaming-Monitore 2026 – 144Hz, 240Hz und OLED im Vergleich</span>
+            </a>
+            <a href="/artikel/gaming-pc-selbst-bauen-2026.html" class="mega-item">
+              <img src="/images/gaming-pc-selbst-bauen-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gaming-PC selbst bauen 2026 – Komponenten-Guide für jedes Budget</span>
+            </a>
+            <a href="/artikel/steam-deck-vs-asus-rog-ally-vs-lenovo-legion-go-2026.html" class="mega-item">
+              <img src="/images/steam-deck-vs-asus-rog-ally-vs-lenovo-legion-go-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Steam Deck vs Asus ROG Ally vs Lenovo Legion Go – Handheld-Vergleich 2026</span>
+            </a>
+            <a href="/artikel/ddos-schutz-gameserver-2026.html" class="mega-item">
+              <img src="/images/ddos-schutz-gameserver-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DDoS-Schutz für Gameserver – Anbieter &amp; Konfiguration 2026</span>
+            </a>
+            <a href="/artikel/minecraft-bedrock-vs-java-server-2026.html" class="mega-item">
+              <img src="/images/minecraft-bedrock-vs-java-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Minecraft Bedrock vs. Java Server – Unterschiede &amp; Hosting 2026</span>
+            </a>
+            <a href="/artikel/raft-server-mieten-2026.html" class="mega-item">
+              <img src="/images/raft-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Raft Server mieten – Dedicated Server Guide &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/palworld-server-mods-guide-2026.html" class="mega-item">
+              <img src="/images/palworld-server-mods-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Palworld Mods &amp; Dedicated Server Guide 2026 – BepInEx, server.ini, Admin-Tools</span>
+            </a>
+            <a href="/artikel/pterodactyl-panel-installieren-2026.html" class="mega-item">
+              <img src="/images/pterodactyl-panel-installieren-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Pterodactyl Panel installieren – Gameserver-Management auf VPS 2026</span>
+            </a>
+            <a href="/artikel/dont-starve-together-server-hosten-2026.html" class="mega-item">
+              <img src="/images/dont-starve-together-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Don&#39;t Starve Together Server hosten – Dedicated Server Setup &amp; Kosten 2026</span>
+            </a>
+            <a href="/artikel/fivem-server-mieten-2026.html" class="mega-item">
+              <img src="/images/fivem-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">FiveM (GTA V) Server mieten – Roleplay-Server Hosting Guide 2026</span>
+            </a>
+            <a href="/artikel/gaming-pc-finanzieren.html" class="mega-item">
+              <img src="/images/gaming-pc-finanzieren.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gaming-PC finanzieren – ETF-Entnahme oder Ratenkredit?</span>
+            </a>
+            <a href="/artikel/valheim-server-vps-mieten-2026.html" class="mega-item">
+              <img src="/images/valheim-server-vps-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Valheim Server mieten oder auf VPS hosten: Kosten, Mods, Performance 2026</span>
+            </a>
+            <a href="/artikel/gameserver-mieten-guide.html" class="mega-item">
+              <img src="/images/gameserver-mieten-guide.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gameserver mieten 2025 – Der ultimative Guide</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/gaming/">Alle Gaming-Artikel</a></div>
+        </div></div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/webhosting/">🌐 Webhosting</a>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#2196F3">&#9670;</span> A-Z</h4>
+            <a href="/artikel/lamp-stack-vs-lemp-stack-vergleich-2026.html" class="mega-item">
+              <img src="/images/lamp-stack-vs-lemp-stack-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LAMP Stack vs LEMP Stack – Der große Vergleich für dein Webprojekt 2026</span>
+            </a>
+            <a href="/artikel/nginx-vs-apache-webserver-vergleich-2026.html" class="mega-item">
+              <img src="/images/nginx-vs-apache-webserver-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nginx vs. Apache 2026 – Webserver im Vergleich</span>
+            </a>
+            <a href="/artikel/cloud-hosting-vs-shared-hosting.html" class="mega-item">
+              <img src="/images/cloud-hosting-vs-shared-hosting.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloud Hosting vs. Shared Hosting – Vergleich 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-tunnel-einrichten.html" class="mega-item">
+              <img src="/images/cloudflare-tunnel-einrichten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</span>
+            </a>
+            <a href="/artikel/docker-wordpress-hosten.html" class="mega-item">
+              <img src="/images/docker-wordpress-hosten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WordPress mit Docker hosten – Modernes Setup 2026</span>
+            </a>
+            <a href="/artikel/domain-kaufen-einrichten-2026.html" class="mega-item">
+              <img src="/images/domain-kaufen-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Domain kaufen und einrichten – Schritt-für-Schritt 2026</span>
+            </a>
+            <a href="/artikel/email-server-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/email-server-selbst-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">E-Mail-Server selbst hosten – Vor- und Nachteile 2026</span>
+            </a>
+            <a href="/artikel/hetzner-cloud-vs-dediziert-vergleich-2026.html" class="mega-item">
+              <img src="/images/hetzner-cloud-vs-dediziert-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Hetzner Cloud vs. Dedizierter Server – Vergleich 2026</span>
+            </a>
+            <a href="/artikel/mysql-mariadb-optimierung.html" class="mega-item">
+              <img src="/images/mysql-mariadb-optimierung.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">MySQL &amp; MariaDB optimieren – Performance-Guide 2026</span>
+            </a>
+            <a href="/artikel/netcup-vps-erfahrungen-2026.html" class="mega-item">
+              <img src="/images/netcup-vps-erfahrungen-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Netcup VPS Erfahrungen 2026 – Test, Preise &amp; Bewertung</span>
+            </a>
+            <a href="/artikel/nextcloud-server-einrichten.html" class="mega-item">
+              <img src="/images/nextcloud-server-einrichten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nextcloud Server einrichten – Cloud-Speicher selbst hosten 2026</span>
+            </a>
+            <a href="/artikel/plesk-vs-cpanel-vergleich.html" class="mega-item">
+              <img src="/images/plesk-vs-cpanel-vergleich.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Plesk vs. cPanel – Der große Hosting-Panel-Vergleich 2026</span>
+            </a>
+          </div>
+          <div class="mega-column">
+            <h4><span style="color:#2196F3">&#9670;</span> Neueste</h4>
+            <a href="/artikel/ssl-zertifikat-lets-encrypt-2026.html" class="mega-item">
+              <img src="/images/ssl-zertifikat-lets-encrypt-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">SSL-Zertifikat mit Let&#39;s Encrypt einrichten – Anleitung 2026</span>
+            </a>
+            <a href="/artikel/webhosting-anbieter-vergleich-2026.html" class="mega-item">
+              <img src="/images/webhosting-anbieter-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Die 5 besten Webhosting-Anbieter 2026 im Vergleich</span>
+            </a>
+            <a href="/artikel/webseite-sicherheit-2026.html" class="mega-item">
+              <img src="/images/webseite-sicherheit-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webseite sichern – Security-Checkliste für deine Website 2026</span>
+            </a>
+            <a href="/artikel/website-online-bringen-guide-2026.html" class="mega-item">
+              <img src="/images/website-online-bringen-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webseite online bringen – Der Komplettguide von A bis Z 2026</span>
+            </a>
+            <a href="/artikel/wordpress-hosting-vergleich-2026.html" class="mega-item">
+              <img src="/images/wordpress-hosting-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WordPress Hosting Vergleich 2026 – Die besten Anbieter</span>
+            </a>
+            <a href="/artikel/caddy-web-server-einrichten-2026.html" class="mega-item">
+              <img src="/images/caddy-web-server-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Caddy Web Server einrichten – Moderner Reverse Proxy mit Auto-HTTPS 2026</span>
+            </a>
+            <a href="/artikel/hostinger-review-2026.html" class="mega-item">
+              <img src="/images/hostinger-review-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Hostinger Review 2026 – Webhosting im Test: Preise, Performance &amp; Eignung</span>
+            </a>
+            <a href="/artikel/cloud-vs-dedicated-server-2026.html" class="mega-item">
+              <img src="/images/cloud-vs-dedicated-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloud vs Dedicated Server 2026 – Kosten, Performance &amp; Use Cases</span>
+            </a>
+            <a href="/artikel/webhosting-sicherheit-ddos-schutz-waf-2026.html" class="mega-item">
+              <img src="/images/webhosting-sicherheit-ddos-schutz-waf-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webhosting-Sicherheit: DDoS-Schutz und WAF – Der Guide 2026</span>
+            </a>
+            <a href="/artikel/managed-wordpress-hosting-vergleich-2026.html" class="mega-item">
+              <img src="/images/managed-wordpress-hosting-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Managed WordPress Hosting im Vergleich 2026 – Die besten Anbieter</span>
+            </a>
+            <a href="/artikel/hugo-astro-static-site-vergleich-2026.html" class="mega-item">
+              <img src="/images/hugo-astro-static-site-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Hugo vs. Astro – Static Site Generator Hosting Vergleich 2026</span>
+            </a>
+            <a href="/artikel/webhosting-vserver-vergleich.html" class="mega-item">
+              <img src="/images/webhosting-vserver-vergleich.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Webhosting vs. VServer – Was passt zu dir?</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/webhosting/">Alle Webhosting-Artikel</a></div>
+        </div></div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/devops/">⚙️ DevOps</a>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#FF9800">&#9670;</span> A-Z</h4>
+            <a href="/artikel/docker-container-security-best-practices-2026.html" class="mega-item">
+              <img src="/images/docker-container-security-best-practices-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker Container Security – Best Practices und Absicherung für Docker-Container 2026</span>
+            </a>
+            <a href="/artikel/openvpn-server-vps-einrichten-2026.html" class="mega-item">
+              <img src="/images/openvpn-server-vps-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">OpenVPN Server auf VPS einrichten – Schritt-für-Schritt-Anleitung 2026</span>
+            </a>
+            <a href="/artikel/postgresql-vs-mysql-vergleich-2026.html" class="mega-item">
+              <img src="/images/postgresql-vs-mysql-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">PostgreSQL vs. MySQL 2026 – Datenbank-Hosting im Vergleich</span>
+            </a>
+            <a href="/artikel/raspberry-pi-homelab-server-2026.html" class="mega-item">
+              <img src="/images/raspberry-pi-homelab-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Raspberry Pi Homelab 2026 – Heimserver basteln</span>
+            </a>
+            <a href="/artikel/remote-work-tirol.html" class="mega-item">
+              <img src="/images/remote-work-tirol.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Remote Work in den Alpen: Mein Coworking-Setup in Tirol</span>
+            </a>
+            <a href="/artikel/ansible-automation-guide.html" class="mega-item">
+              <img src="/images/ansible-automation-guide.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ansible Automation – Grundlagen &amp; Praxis-Guide 2026</span>
+            </a>
+            <a href="/artikel/backup-strategien-vps-server-2026.html" class="mega-item">
+              <img src="/images/backup-strategien-vps-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Backup-Strategien für VPS und Server – Der Guide 2026</span>
+            </a>
+            <a href="/artikel/docker-vs-podman-vergleich-2026.html" class="mega-item">
+              <img src="/images/docker-vs-podman-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker vs. Podman – Container-Laufzeiten im Vergleich 2026</span>
+            </a>
+            <a href="/artikel/elk-stack-log-management.html" class="mega-item">
+              <img src="/images/elk-stack-log-management.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">ELK Stack – Log-Management mit Elasticsearch &amp; Kibana 2026</span>
+            </a>
+            <a href="/artikel/github-actions-ci-cd-pipeline-2026.html" class="mega-item">
+              <img src="/images/github-actions-ci-cd-pipeline-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitHub Actions CI/CD Pipeline einrichten – Tutorial 2026</span>
+            </a>
+            <a href="/artikel/gitops-argocd-einrichten.html" class="mega-item">
+              <img src="/images/gitops-argocd-einrichten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitOps mit ArgoCD – Kubernetes Deployment Guide 2026</span>
+            </a>
+            <a href="/artikel/k3s-kubernetes-vps-2026.html" class="mega-item">
+              <img src="/images/k3s-kubernetes-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">K3s Lightweight Kubernetes auf dem VPS – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/linux-server-harden.html" class="mega-item">
+              <img src="/images/linux-server-harden.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Linux Server härten – Security-Baseline 2026</span>
+            </a>
+            <a href="/artikel/n8n-automation-server.html" class="mega-item">
+              <img src="/images/n8n-automation-server.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">n8n Automation Server hosten – Workflow-Automatisierung 2026</span>
+            </a>
+            <a href="/artikel/nginx-reverse-proxy-einrichten-2026.html" class="mega-item">
+              <img src="/images/nginx-reverse-proxy-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Nginx Reverse Proxy konfigurieren – Einsteiger-Guide 2026</span>
+            </a>
+            <a href="/artikel/postgresql-vps-optimierung.html" class="mega-item">
+              <img src="/images/postgresql-vps-optimierung.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">PostgreSQL auf dem VPS optimieren – Tuning-Guide 2026</span>
+            </a>
+            <a href="/artikel/prometheus-grafana-monitoring-2026.html" class="mega-item">
+              <img src="/images/prometheus-grafana-monitoring-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Server Monitoring mit Prometheus &amp; Grafana – Setup 2026</span>
+            </a>
+            <a href="/artikel/terraform-infrastructure-as-code-2026.html" class="mega-item">
+              <img src="/images/terraform-infrastructure-as-code-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Terraform Infrastructure as Code – Einführung &amp; Beispiele 2026</span>
+            </a>
+            <a href="/artikel/traefik-reverse-proxy.html" class="mega-item">
+              <img src="/images/traefik-reverse-proxy.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Traefik Reverse Proxy einrichten – Moderner Docker-Proxy 2026</span>
+            </a>
+            <a href="/artikel/wireguard-vpn-server.html" class="mega-item">
+              <img src="/images/wireguard-vpn-server.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">WireGuard VPN Server einrichten – Schnell &amp; Sicher 2026</span>
+            </a>
+            <a href="/artikel/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.html" class="mega-item">
+              <img src="/images/openrouter-api-vs-eigene-gpu-kostenvergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">OpenRouter API vs. eigene GPU – Kostenvergleich 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-pages-vercel-netlify-vergleich-2026.html" class="mega-item">
+              <img src="/images/cloudflare-pages-vercel-netlify-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare Pages vs Vercel vs Netlify – Static Hosting Vergleich 2026</span>
+            </a>
+            <a href="/artikel/gaestebeitrag-finanz-junkie-server-kosten-investor-guide.html" class="mega-item">
+              <img src="/images/server-kosten-investor-guide.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Server mieten oder kaufen: Die versteckten Kosten der Digitalisierung – Ein Investor-Guide | Gastbeitrag</span>
+            </a>
+            <a href="/artikel/gitlab-ci-cd-pipeline-guide-2026.html" class="mega-item">
+              <img src="/images/gitlab-ci-cd-pipeline-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GitLab CI/CD Pipeline einrichten – Schritt-für-Schritt Guide 2026</span>
+            </a>
+            <a href="/artikel/minio-object-storage-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/minio-object-storage-selbst-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">MinIO Object Storage selbst hosten 2026 – S3-kompatibel auf dem VPS</span>
+            </a>
+            <a href="/artikel/proxmox-heimserver-einrichten-2026.html" class="mega-item">
+              <img src="/images/proxmox-heimserver-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Proxmox Heimserver einrichten 2026 – Virtualisierung zuhause Schritt für Schritt</span>
+            </a>
+            <a href="/artikel/vps-mieten-vergleich-2026.html" class="mega-item">
+              <img src="/images/vps-mieten-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS mieten 2026: Die besten Anbieter, Preise &amp; Tipps für Entwickler</span>
+            </a>
+          </div>
+          <div class="mega-column">
+            <h4><span style="color:#FF9800">&#9670;</span> Neueste</h4>
+            <a href="/artikel/istio-service-mesh-2026.html" class="mega-item">
+              <img src="/images/istio-service-mesh-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Istio Service Mesh 2026 – Setup, Traffic Management &amp; mTLS auf Kubernetes</span>
+            </a>
+            <a href="/artikel/quantisierte-modelle-gguf-awq-gptq-exl2-bitsandbytes-2026.html" class="mega-item">
+              <img src="/images/quantisierte-modelle-gguf-awq-gptq-exl2-bitsandbytes-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Quantisierte Modelle: GGUF, AWQ, GPTQ, EXL2, Bitsandbytes – Was ist besser? 2026</span>
+            </a>
+            <a href="/artikel/text-generation-webui-oobabooga-einrichten-2026.html" class="mega-item">
+              <img src="/images/text-generation-webui-oobabooga-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Text Generation WebUI (oobabooga) einrichten – Setup-Guide 2026</span>
+            </a>
+            <a href="/artikel/dedizierter-server-vs-vps-2026.html" class="mega-item">
+              <img src="/images/dedizierter-server-vs-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Dedizierter Server vs. VPS – Der große Vergleich 2026</span>
+            </a>
+            <a href="/artikel/helm-charts-kubernetes-guide-2026.html" class="mega-item">
+              <img src="/images/helm-charts-kubernetes-guide-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Helm Charts – Kubernetes Package Manager Einführung &amp; Praxis 2026</span>
+            </a>
+            <a href="/artikel/cloudflare-waf-einrichten-2026.html" class="mega-item">
+              <img src="/images/cloudflare-waf-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloudflare WAF einrichten – DDoS-Schutz &amp; Bot-Filter 2026</span>
+            </a>
+            <a href="/artikel/discord-bot-vps-hosten-2026.html" class="mega-item">
+              <img src="/images/discord-bot-vps-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Discord Bot auf VPS hosten – Komplettanleitung 2026</span>
+            </a>
+            <a href="/artikel/jitsi-meet-server-vps-2026.html" class="mega-item">
+              <img src="/images/jitsi-meet-server-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Jitsi Meet Server selbst hosten – Videokonferenzen auf VPS 2026</span>
+            </a>
+            <a href="/artikel/plausible-analytics-vps-2026.html" class="mega-item">
+              <img src="/images/plausible-analytics-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Plausible Analytics – Selbstgehostetes Web-Analytics auf VPS 2026</span>
+            </a>
+            <a href="/artikel/portainer-docker-management-vps-2026.html" class="mega-item">
+              <img src="/images/portainer-docker-management-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Portainer – Docker Management UI auf VPS einrichten 2026</span>
+            </a>
+            <a href="/artikel/ghost-cms-hosting-vps-2026.html" class="mega-item">
+              <img src="/images/ghost-cms-hosting-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ghost CMS Hosting auf VPS 2026 – Blog-Software installieren &amp; betreiben</span>
+            </a>
+            <a href="/artikel/grafana-loki-log-aggregation-vps-2026.html" class="mega-item">
+              <img src="/images/grafana-loki-log-aggregation-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Grafana Loki Log-Aggregation auf VPS 2026 – Installations-Guide</span>
+            </a>
+            <a href="/artikel/lemp-stack-vps-einrichten-2026.html" class="mega-item">
+              <img src="/images/lemp-stack-vps-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LEMP Stack auf VPS einrichten 2026 – Anleitung &amp; Setup</span>
+            </a>
+            <a href="/artikel/redis-cache-vps-einrichten-2026.html" class="mega-item">
+              <img src="/images/uptime-kuma-monitoring-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Redis Cache auf VPS einrichten und optimieren 2026</span>
+            </a>
+            <a href="/artikel/teamspeak-server-mieten-2026.html" class="mega-item">
+              <img src="/images/teamspeak-server-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">TeamSpeak 3 Server mieten 2026 – Sprachserver für Gamer</span>
+            </a>
+            <a href="/artikel/uptime-kuma-monitoring-einrichten-2026.html" class="mega-item">
+              <img src="/images/uptime-kuma-monitoring-einrichten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Uptime Kuma einrichten – Status Pages &amp; Server-Monitoring 2026</span>
+            </a>
+            <a href="/artikel/vaultwarden-passwort-manager-selbst-hosten-2026.html" class="mega-item">
+              <img src="/images/vaultwarden-passwort-manager-selbst-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Vaultwarden Passwort-Manager selbst hosten – Sicherer als die Cloud 2026</span>
+            </a>
+            <a href="/artikel/contabo-vps-erfahrungen-2026.html" class="mega-item">
+              <img src="/images/contabo-vps-erfahrungen-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Contabo VPS Erfahrungen 2026 – Test, Preise &amp; Setup-Guide</span>
+            </a>
+            <a href="/artikel/free-llm-benchmark-2026.html" class="mega-item">
+              <img src="/images/free-llm-benchmark-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Free LLMs 2026 – Der ultimative Benchmark: 20 Modelle, 5 Kategorien, 100 Tests</span>
+            </a>
+            <a href="/artikel/gitea-git-server-vps-2026.html" class="mega-item">
+              <img src="/images/gitea-git-server-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Gitea – Selfhosted Git-Server auf VPS installieren &amp; betreiben 2026</span>
+            </a>
+            <a href="/artikel/jenkins-ci-cd-pipeline-vps-2026.html" class="mega-item">
+              <img src="/images/jenkins-ci-cd-pipeline-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Jenkins CI/CD Pipeline auf dem VPS – Automatisierte Builds &amp; Deployments 2026</span>
+            </a>
+            <a href="/artikel/vps-anbieter-vergleich-2026.html" class="mega-item">
+              <img src="/images/vps-anbieter-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS-Anbieter Vergleich 2026 – Hetzner, Netcup, Contabo, IONOS im Test</span>
+            </a>
+            <a href="/artikel/webseite-geschwindigkeit-optimieren-2026.html" class="mega-item">
+              <img src="/images/webseite-geschwindigkeit-optimieren-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Website-Geschwindigkeit optimieren – PageSpeed-Guide 2026</span>
+            </a>
+            <a href="/artikel/docker-compose-vps-guide.html" class="mega-item">
+              <img src="/images/docker-compose-vps-guide.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben</span>
+            </a>
+            <a href="/artikel/vps-absichern-2026.html" class="mega-item">
+              <img src="/images/vps-absichern-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</span>
+            </a>
+            <a href="/artikel/devops-tools-2024.html" class="mega-item">
+              <img src="/images/devops-tools-2024.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DevOps-Tools 2024 – Die 10 wichtigsten Tools im Überblick</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/devops/">Alle DevOps-Artikel</a></div>
+        </div></div>
+      </li>
+      <li class="nav-dropdown">
+        <a href="/ki-llm/">🤖 KI &amp; LLM</a>
+        <div class="nav-dropdown-menu"><div class="mega-grid">
+          <div class="mega-column">
+            <h4><span style="color:#9C27B0">&#9670;</span> A-Z</h4>
+            <a href="/artikel/llm-lokal-hosten-2026.html" class="mega-item">
+              <img src="/images/llm-lokal-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</span>
+            </a>
+            <a href="/artikel/llama-cpp-cpu-vs-gpu-performance-2026.html" class="mega-item">
+              <img src="/images/llama-cpp-cpu-vs-gpu-performance-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">llama.cpp Performance 2026: CPU vs GPU – Tokens/s, BLAS-Backends &amp; Hardware-Vergleich</span>
+            </a>
+            <a href="/artikel/comfyui-auf-gpu-hosten.html" class="mega-item">
+              <img src="/images/comfyui-auf-gpu-hosten.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">ComfyUI auf GPU hosten – Bild-KI Workflows 2026 mit Flux, SDXL &amp; SD3</span>
+            </a>
+            <a href="/artikel/ki-server-sicherheit-llm-api-absichern-2026.html" class="mega-item">
+              <img src="/images/ki-server-sicherheit-llm-api-absichern-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">KI-Server-Sicherheit: LLM API absichern, Rate-Limiting &amp; Monitoring 2026</span>
+            </a>
+            <a href="/artikel/ollama-llm-server-vps-2026.html" class="mega-item">
+              <img src="/images/ollama-llm-server-vps-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ollama LLM Server auf VPS hosten 2026 – Lokale KI-Modelle selbst betreiben</span>
+            </a>
+            <a href="/artikel/runpod-serverless-vs-dedicated-gpu-2026.html" class="mega-item">
+              <img src="/images/runpod-serverless-vs-dedicated-gpu-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">RunPod Serverless vs Dedicated GPU 2026 – Was lohnt sich?</span>
+            </a>
+            <a href="/artikel/vast-ai-gpu-mieten-2026.html" class="mega-item">
+              <img src="/images/vast-ai-gpu-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Vast.ai GPU mieten 2026 – Erfahrungen, Kosten &amp; Tipps</span>
+            </a>
+            <a href="/artikel/ai-agent-frameworks-2026.html" class="mega-item">
+              <img src="/images/ai-agent-frameworks-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">AI Agent Frameworks 2026 – Langchain, CrewAI, AutoGen &amp; OpenHands im Vergleich</span>
+            </a>
+            <a href="/artikel/mistral-modelle-lokal-hosten-2026.html" class="mega-item">
+              <img src="/images/mistral-modelle-lokal-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Mistral Large &amp; Mixtral 8x22B lokal hosten – MoE-Modelle selbst betreiben 2026</span>
+            </a>
+            <a href="/artikel/cloud-gpu-kosten-vergleich-2026.html" class="mega-item">
+              <img src="/images/cloud-gpu-kosten-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Cloud GPU Kosten 2026 – Alle Anbieter im Preisvergleich (A100, H100, RTX 4090)</span>
+            </a>
+            <a href="/artikel/cuda-rocam-vulkan-lokale-llm-gpu-backend-vergleich-2026.html" class="mega-item">
+              <img src="/images/cuda-rocam-vulkan-lokale-llm-gpu-backend-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">CUDA, ROCm, Vulkan – Was brauchst du für lokale LLMs? GPU-Backend-Vergleich 2026</span>
+            </a>
+            <a href="/artikel/deepseek-r1-v3-lokal-hosten-2026.html" class="mega-item">
+              <img src="/images/deepseek-r1-v3-lokal-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">DeepSeek R1 / V3 lokal hosten 2026 – Hardware, Quantisierung &amp; Setup-Guide</span>
+            </a>
+            <a href="/artikel/docker-llm-inference-container.html" class="mega-item">
+              <img src="/images/docker-llm-inference-container.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Docker-Container für LLM-Inference – Best Practices 2026</span>
+            </a>
+            <a href="/artikel/gpu-fuer-ki-modelle-mieten-2026.html" class="mega-item">
+              <img src="/images/gpu-fuer-ki-modelle-mieten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GPU für KI-Modelle mieten 2026 – A100, H100, RTX 4090 im Vergleich</span>
+            </a>
+          </div>
+          <div class="mega-column">
+            <h4><span style="color:#9C27B0">&#9670;</span> Neueste</h4>
+            <a href="/artikel/gpu-ram-manager-2026.html" class="mega-item">
+              <img src="/images/gpu-ram-manager-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">GPU-RAM-Manager 2026 – Welches LLM passt auf deine GPU? VRAM-Rechner &amp; Entscheidungsmatrix</span>
+            </a>
+            <a href="/artikel/llama-3-3-4-lokal-hosten-2026.html" class="mega-item">
+              <img src="/images/llama-3-3-4-lokal-hosten-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Llama 3.3 &amp; Llama 4 lokal hosten – Setup, Quantisierung &amp; Performance 2026</span>
+            </a>
+            <a href="/artikel/llm-fine-tuning-runpod-vastai-2026.html" class="mega-item">
+              <img src="/images/llm-fine-tuning-runpod-vastai-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LLM Fine-Tuning auf gemieteten GPUs 2026 – LoRA, QLoRA &amp; Full-Tuning auf RunPod &amp; Vast.ai</span>
+            </a>
+            <a href="/artikel/llm-frontends-vergleich-2026.html" class="mega-item">
+              <img src="/images/llm-frontends-vergleich-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LLM-Frontends 2026 lokal hosten: Open WebUI, Jan, LobeChat, AnythingLLM, Big-AGI im Vergleich</span>
+            </a>
+            <a href="/artikel/nvidia-jetson-ki-am-edge-llm-embedded-2026.html" class="mega-item">
+              <img src="/images/nvidia-jetson-ki-am-edge-llm-embedded-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">NVIDIA Jetson für KI am Edge 2026 – LLMs auf embedded Hardware</span>
+            </a>
+            <a href="/artikel/ollama-vs-vllm-vs-lm-studio-2026.html" class="mega-item">
+              <img src="/images/ollama-vs-vllm-vs-lm-studio-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Ollama vs vLLM vs LM Studio – LLM-Server-Software 2026 im Vergleich</span>
+            </a>
+            <a href="/artikel/open-webui-ollama-betreiben-2026.html" class="mega-item">
+              <img src="/images/open-webui-ollama-betreiben-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">Open WebUI mit Ollama betreiben – Der bessere ChatGPT-Klon 2026</span>
+            </a>
+            <a href="/artikel/tabbyapi-aphrodite-sglang-llm-server-2026.html" class="mega-item">
+              <img src="/images/tabbyapi-aphrodite-sglang-llm-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">TabbyAPI, Aphrodite &amp; SGLang – Neue LLM-Server 2026 im Vergleich</span>
+            </a>
+            <a href="/artikel/vllm-auf-eigener-gpu-aufsetzen.html" class="mega-item">
+              <img src="/images/vllm-auf-eigener-gpu-aufsetzen.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">vLLM auf eigener GPU aufsetzen 2026 – Production-Ready LLM Serving mit PagedAttention</span>
+            </a>
+            <a href="/artikel/vllm-multi-model-server-2026.html" class="mega-item">
+              <img src="/images/vllm-multi-model-server-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">KI-Server mit mehreren Modellen gleichzeitig betreiben – vLLM + Open WebUI 2026</span>
+            </a>
+            <a href="/artikel/ki-im-devops-einsatz-2026.html" class="mega-item">
+              <img src="/images/ki-im-devops-einsatz-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">KI im DevOps-Einsatz 2026 – Automatisierung, Monitoring &amp; LLM-Integration</span>
+            </a>
+            <a href="/artikel/llm-sicherheit-prompt-injection-schutz-2026.html" class="mega-item">
+              <img src="/images/llm-sicherheit-prompt-injection-schutz-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">LLM-Sicherheit und Prompt-Injection – Schutzmaßnahmen 2026</span>
+            </a>
+            <a href="/artikel/ki-gestuetzte-code-reviews-praxis-2026.html" class="mega-item">
+              <img src="/images/ki-gestuetzte-code-reviews-praxis-2026.webp" alt="" loading="lazy" width="36" height="36">
+              <span class="mega-title">KI-gestützte Code-Reviews in der Praxis – Tools &amp; Workflows 2026</span>
+            </a>
+          </div>
+          <div class="mega-view-all"><a href="/ki-llm/">Alle KI &amp; LLM-Artikel</a></div>
+        </div></div>
+      </li>
+      <li><a href="/about.html">&#220;ber</a></li>
+    </ul>
+  </div>
+</nav>
+<main class="article-page">
+  <div class="container">
+    <div class="article-meta-top">
+      <span class="card-tag devops">DevOps</span>
+      <span>9 Min Lesezeit</span>
+    </div>
+    <h1>Docker Logging &amp; Monitoring 2026 – Loki, Promtail &amp; Grafana</h1>
+<h2>Warum Docker-Logging 2026 neu gedacht werden muss</h2>
+
+<p>Der Standard-Logging-Treiber von Docker ist seit Jahren <code>json-file</code> – und er hat ein strukturelles Problem: Er schreibt unbegrenzt. Ohne <code>max-size</code> und <code>max-file</code> wächst eine einzelne Container-Logdatei so lange, bis die Partition voll ist. Bei einem typischen Node.js- oder Python-Service mit Request-Logging sind 20 MB pro Tag und Container keine Seltenheit, bei einem geschwätzigen Java-Service mit Log4j sind 200 MB pro Tag realistisch.</p>
+
+<p>Rechnen wir das hoch: 50 Container × 20 MB/Tag ergeben 1 GB pro Tag, also rund 365 GB pro Jahr. Auf einem VPS mit 160 GB NVMe ist die Platte nach fünf Monaten voll – und dann startet der Container nicht mehr, weil Docker die Logdatei nicht mehr schreiben kann. Genau dieses Szenario ist 2026 immer noch einer der häufigsten Gründe für nächtliche Pager-Alarme.</p>
+
+<p>Dazu kommt das zweite Problem: <code>docker logs</code> funktioniert nur lokal und nur pro Container. Sobald du einen Request über vier Microservices verfolgen willst, stehst du vor vier SSH-Sessions und suchst manuell nach einer Correlation-ID. Bei einem Incident mit 15 Minuten Downtime kostet das schnell mehr als ein ganzer Monat Hosting.</p>
+
+<p>Die Lösung ist ein zentraler Log-Stack, der Logs sammelt, indexiert, durchsuchbar macht und Alarme auslöst. 2026 hat sich dafür der Stack aus <strong>Grafana Loki</strong>, <strong>Promtail</strong> (bzw. dem Nachfolger Grafana Alloy) und <strong>Grafana</strong> als De-facto-Standard etabliert – vor allem, weil er deutlich günstiger zu betreiben ist als ELK.</p>
+
+<h2>Loki vs. ELK: Warum der schlanke Stack gewinnt</h2>
+
+<p>Der entscheidende Unterschied liegt im Index. Elasticsearch indexiert jedes Wort jeder Logzeile – das ermöglicht Volltextsuche, kostet aber massiv Speicher und RAM. Loki indexiert ausschließlich die <em>Labels</em> (also Container-Name, Service, Namespace, Host) und speichert den Log-Inhalt als komprimierte Chunks. Die Suche läuft dann per Brute-Force-Scan über die passenden Chunks.</p>
+
+<p>In der Praxis bedeutet das: Ein Elasticsearch-Cluster für 50 GB Logs pro Monat braucht typischerweise 16–32 GB RAM und 500 GB bis 1 TB Storage. Loki mit gleicher Logmenge läuft auf 4–8 GB RAM und 100–150 GB Storage, weil die Chunks mit Snappy bzw. Zstd komprimiert werden und im Schnitt eine Kompressionsrate von 8:1 bis 12:1 erreicht wird.</p>
+
+<table>
+<thead>
+<tr><th>Kriterium</th><th>Grafana Loki</th><th>Elasticsearch / ELK</th></tr>
+</thead>
+<tbody>
+<tr><td>Index-Strategie</td><td>Nur Labels</td><td>Volltext (invertierter Index)</td></tr>
+<tr><td>RAM-Bedarf (50 GB/Monat)</td><td>4–8 GB</td><td>16–32 GB</td></tr>
+<tr><td>Storage-Bedarf</td><td>100–150 GB</td><td>500 GB–1 TB</td></tr>
+<tr><td>Abfragesprache</td><td>LogQL</td><td>KQL / Lucene DSL</td></tr>
+<tr><td>Betriebsaufwand</td><td>Niedrig (Single Binary möglich)</td><td>Hoch (Cluster, Shards, ILM)</td></tr>
+<tr><td>Kosten VPS/Monat</td><td>ab ca. 8 €</td><td>ab ca. 40 €</td></tr>
+</tbody>
+</table>
+
+<p>Der Nachteil: Loki ist bei ungezielten Volltextsuchen über Terabytes langsamer. Für den typischen DevOps-Alltag – „zeig mir alle Errors von Service X in den letzten 30 Minuten“ – ist das irrelevant. Wer wirklich Volltext-Forensik über Jahre braucht, fährt mit ELK oder OpenSearch besser.</p>
+
+<h2>Die Architektur: Promtail, Loki und Grafana im Zusammenspiel</h2>
+
+<p>Der Stack besteht aus drei Komponenten mit klar getrennten Aufgaben. <strong>Promtail</strong> läuft als Agent auf jedem Docker-Host, liest die Logdateien aus <code>/var/lib/docker/containers/</code> und schickt sie mit Labels an Loki. <strong>Loki</strong> nimmt die Streams entgegen, komprimiert sie, speichert sie als Chunks und hält einen kleinen Label-Index. <strong>Grafana</strong> ist die Abfrage- und Visualisierungsschicht.</p>
+
+<p>Wichtige Ports für die Firewall-Konfiguration:</p>
+
+<ul>
+<li><strong>3100</strong> – Loki HTTP-API (nur intern erreichbar machen!)</li>
+<li><strong>9080</strong> – Promtail HTTP (Metriken und Health)</li>
+<li><strong>3000</strong> – Grafana Web-UI</li>
+<li><strong>9090</strong> – Prometheus (optional für Metriken)</li>
+<li><strong>8080</strong> – cAdvisor (optional für Container-Metriken)</li>
+</ul>
+
+<p>Seit 2024 empfiehlt Grafana offiziell <strong>Grafana Alloy</strong> als Nachfolger von Promtail, da Promtail in den Maintenance-Modus übergegangen ist. Die Konfiguration ist bei Alloy in River-Syntax statt YAML geschrieben. Promtail funktioniert 2026 weiterhin einwandfrei und ist für Docker-only-Setups einfacher – wir zeigen deshalb beide Wege, konzentrieren uns aber auf Promtail, weil die Docker-Service-Discovery dort deutlich kompakter ist.</p>
+
+<h2>Docker Compose: Der komplette Stack in einer Datei</h2>
+
+<p>Das folgende Setup läuft auf einem VPS mit 4 GB RAM problemlos. Wichtig ist, dass Loki und Promtail im selben Docker-Netzwerk liegen und die Logs über ein benanntes Volume persistent bleiben.</p>
+
+<pre><code>services:
+  loki:
+    image: grafana/loki:3.4.1
+    container_name: loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/loki-config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki-data:/loki
+    ports:
+      - "127.0.0.1:3100:3100"
+    networks: [monitoring]
+
+  promtail:
+    image: grafana/promtail:3.4.1
+    container_name: promtail
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/promtail-config.yaml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [monitoring]
+
+  grafana:
+    image: grafana/grafana:11.5.0
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "ChAng3M3-Str0ng!"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks: [monitoring]
+
+volumes:
+  loki-data:
+  grafana-data:
+
+networks:
+  monitoring:
+    driver: bridge</code></pre>
+
+<p>Start mit <code>docker compose up -d</code>. Danach erreichst du Grafana unter <code>http://SERVER-IP:3000</code>. Der Docker-Socket wird <strong>read-only</strong> gemountet – das ist Pflicht, denn ein beschreibbarer Socket-Mount ist gleichbedeutend mit Root-Zugriff auf den Host.</p>
+
+<p>Achte darauf, dass Loki nur auf <code>127.0.0.1</code> lauscht. Wenn du Loki öffentlich erreichbar machst, kann jeder mit der Push-API deinen Storage fluten – ein klassischer Denial-of-Wallet-Angriff bei Cloud-Storage-Backends.</p>
+
+<h2>Loki konfigurieren: Retention, Compactor und Storage</h2>
+
+<p>Die wichtigste Einstellung ist die Retention. Ohne sie wächst Loki unbegrenzt. Für die meisten Setups sind 30 Tage ein guter Kompromiss zwischen Debugging-Fähigkeit und Kosten.</p>
+
+<pre><code>auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+  log_level: warn
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+limits_config:
+  retention_period: 720h
+  ingestion_rate_mb: 10
+  ingestion_burst_size_mb: 20
+  max_query_series: 5000
+  reject_old_samples: true
+  reject_old_samples_max_age: 168h
+
+compactor:
+  working_directory: /loki/compactor
+  retention_enabled: true
+  delete_request_store: filesystem
+  compaction_interval: 10m</code></pre>
+
+<p><code>retention_period: 720h</code> entspricht 30 Tagen. Der Compactor löscht abgelaufene Chunks alle 10 Minuten. Ohne aktivierten Compactor wird die Retention-Einstellung schlicht ignoriert – ein häufiger Konfigurationsfehler.</p>
+
+<p>Für produktive Setups mit mehr als 100 GB Logvolumen lohnt sich Object Storage. S3-kompatibel sind Hetzner Object Storage (1 TB ab ca. 5 €/Monat), Backblaze B2 (6 $/TB/Monat) oder Wasabi (6,99 $/TB/Monat). Der Wechsel erfolgt über einen <code>s3</code>-Block in der <code>storage_config</code> mit <code>endpoint</code>, <code>bucketnames</code>, <code>access_key_id</code> und <code>secret_access_key</code>.</p>
+
+<h2>Promtail konfigurieren: Docker Service Discovery</h2>
+
+<p>Promtail kann Container automatisch über den Docker-Socket entdecken. Das ist der eleganteste Weg, weil neue Container ohne Neustart des Agents erfasst werden.</p>
+
+<pre><code>server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: container
+      - source_labels: ['__meta_docker_container_log_stream']
+        target_label: stream
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
+        target_label: service
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_project']
+        target_label: project
+    pipeline_stages:
+      - docker: {}
+      - match:
+          selector: '{service="nginx"}'
+          stages:
+            - regex:
+                expression: '^(?P&lt;ip&gt;\S+) - - \[(?P&lt;ts&gt;[^\]]+)\] "(?P&lt;method&gt;\S+) (?P&lt;path&gt;\S+)'
+            - labels:
+                method:
+                path:</code></pre>
+
+<p>Der <code>docker: {}</code>-Stage ist entscheidend: Er parst das JSON-Format von Docker und extrahiert den eigentlichen Log-Text sowie den Zeitstempel. Ohne ihn landen die Logs mit dem JSON-Wrapper in Loki und sind praktisch unlesbar.</p>
+
+<p>Die <code>labels</code>-Direktive im Regex-Stage erzeugt neue Labels aus den extrahierten Feldern. <strong>Achtung:</strong> Jedes zusätzliche Label mit hoher Kardinalität (z. B. Request-IDs oder User-IDs) sprengt den Loki-Index. Halte Labels bei unter 100.000 Kombinationen.</p>
+
+<h2>LogQL in der Praxis: Die 12 Queries, die du wirklich brauchst</h2>
+
+<p>LogQL kombiniert Label-Filter (schnell, indexiert) mit Line-Filtern (langsam, aber flexibel). Die Grundregel: So viele Filter wie möglich in den Label-Selektor, so wenige wie nötig in die Pipeline.</p>
+
+<pre><code># Alle Logs eines Service
+{service="api"} 
+
+# Nur Fehler
+{service="api"} |= "ERROR"
+
+# Fehler ausschließen
+{service="api"} != "healthcheck"
+
+# Regex-Filter
+{service="nginx"} |~ "5[0-9]{2} "
+
+# JSON parsen und filtern
+{service="api"} | json | level="error" | duration_ms &gt; 1000
+
+# Fehlerrate pro Minute
+sum(count_over_time({service="api"} |= "ERROR" [1m]))
+
+# Top 5 Container nach Logvolumen
+topk(5, sum by (container) (rate({job="docker"}[5m])))
+
+# Langsamste Requests
+{service="api"} | json | unwrap duration_ms | quantile_over_time(0.99, {} [5m])</code></pre>
+
+<p>Der <code>unwrap</code>-Operator ist der wichtigste für Metriken aus Logs: Er wandelt einen numerischen Wert aus einer Logzeile in eine Zeitreihe um. Damit baust du Latenz-Perzentile direkt aus Logs, ohne dass die Anwendung Prometheus-Metriken exportieren muss.</p>
+
+<p>Für die Fehlersuche über Services hinweg nutzt du eine Correlation-ID. Voraussetzung ist, dass alle Services sie loggen:</p>
+
+<pre><code>{job="docker"} |= "req-8f3a9c21"</code></pre>
+
+<p>Diese Query liefert alle Logzeilen aller Container, die diese Request-ID enthalten – sortiert nach Zeit. Aus 15 Minuten manueller Suche werden 3 Sekunden.</p>
+
+<h2>Grafana: Dashboards, Datenquelle und Alerting</h2>
+
+<p>Nach dem Login unter <code>http://SERVER-IP:3000</code> (Standard: admin / das gesetzte Passwort) fügst du unter <em>Connections → Data Sources</em> eine Loki-Quelle mit der URL <code>http://loki:3100</code> hinzu. Da beide im selben Docker-Netzwerk liegen, funktioniert der Container-Name als Hostname.</p>
+
+<p>Für ein solides Basis-Dashboard brauchst du vier Panels:</p>
+
+<ol>
+<li><strong>Log-Volumen pro Service</strong> – <code>sum by (service) (rate({job="docker"}[5m]))</code> als Time Series</li>
+<li><strong>Fehlerrate</strong> – <code>sum(count_over_time({job="docker"} |= "ERROR" [1m]))</code> als Stat</li>
+<li><strong>Live-Logs</strong> – Logs-Panel mit <code>{service="api"}</code></li>
+<li><strong>Top-Fehlerquellen</strong> – <code>topk(5, sum by (container) (count_over_time({job="docker"} |= "ERROR" [1h])))</code></li>
+</ol>
+
+<p>Für Alerting definierst du in Grafana eine Alert Rule auf Basis einer LogQL-Metrik-Query. Ein praxistauglicher Alert: Fehlerrate über 10 Events pro Minute für 5 Minuten.</p>
+
+<pre><code>sum(count_over_time({job="docker"} |= "ERROR" [1m])) &gt; 10</code></pre>
+
+<p>Als Contact Point reicht ein Webhook auf Slack oder Discord, oder Mail über einen SMTP-Relay. Grafana 11 bringt Alertmanager direkt mit – ein separater Prometheus-Alertmanager ist für diesen Stack nicht nötig. Setze die <code>group_wait</code>-Zeit auf 30 s und <code>repeat_interval</code> auf 4 h, sonst wird dein Team in der Nacht zugespammt.</p>
+
+<h2>Metriken dazu: cAdvisor, node-exporter und Prometheus</h2>
+
+<p>Logs allein reichen nicht. Wenn ein Container 100 % CPU zieht, willst du das sehen, bevor die Logs vollaufen. Ergänze den Stack um drei Komponenten:</p>
+
+<ul>
+<li><strong>cAdvisor</strong> – Container-Metriken (CPU, RAM, Netzwerk, I/O) pro Container</li>
+<li><strong>node-exporter</strong> – Host-Metriken (Load, Disk, RAM, Netzwerk)</li>
+<li><strong>Prometheus</strong> – Scraping und Speicherung der Zeitreihen</li>
+</ul>
+
+<pre><code>  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.50.0
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks: [monitoring]
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: node-exporter
+    restart: unless-stopped
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+    ports:
+      - "127.0.0.1:9100:9100"
+    networks: [monitoring]</code></pre>
+
+<p>cAdvisor braucht <code>privileged: true</code> – das ist ein Sicherheitskompromiss. Wer das vermeiden will, nutzt stattdessen den Docker-Daemon-Metriken-Endpunkt oder setzt spezifischere Capabilities. Für ein dediziertes Monitoring-VPS ist privileged vertretbar, auf einem Shared-Host nicht.</p>
+
+<p>Sinnvolle Alerts auf Metrik-Basis: Container-Restart-Loop (<code>rate(container_restart_count[10m]) &gt; 0</code>), RAM-Auslastung über 90 % für 10 Minuten, Disk-Auslastung über 85 %, und Host-Load über der doppelten CPU-Kernzahl.</p>
+
+<h2>Ressourcenbedarf und Kosten: Was der Stack wirklich kostet</h2>
+
+<p>Die realistische Verbrauchsmessung eines Stacks mit 30 Containern und rund 2 GB Logs pro Tag:</p>
+
+<table>
+<thead>
+<tr><th>Komponente</th><th>RAM</th><th>CPU</th><th>Disk (30 Tage)</th></tr>
+</thead>
+<tbody>
+<tr><td>Loki</td><td>300–600 MB</td><td>0,2–0,5 vCPU</td><td>ca. 7 GB (komprimiert)</td></tr>
+<tr><td>Promtail</td><td>40–80 MB</td><td>0,05 vCPU</td><td>–</td></tr>
+<tr><td>Grafana</td><td>150–250 MB</td><td>0,1 vCPU</td><td>1–2 GB</td></tr>
+<tr><td>Prometheus</td><td>400–800 MB</td><td>0,3 vCPU</td><td>5–10 GB</td></tr>
+<tr><td>cAdvisor</td><td>80–150 MB</td><td>0,1 vCPU</td><td>–</td></tr>
+<tr><td><strong>Gesamt</strong></td><td><strong>ca. 1,2–2 GB</strong></td><td><strong>ca. 1 vCPU</strong></td><td><strong>ca. 15–20 GB</strong></td></tr>
+</tbody>
+</table>
+
+<p>Damit reicht ein VPS mit 4 GB RAM und 80 GB NVMe. Passende Angebote (Stand 2026, Preise gerundet):</p>
+
+<table>
+<thead>
+<tr><th>Anbieter</th><th>Modell</th><th>Specs</th><th>Preis/Monat</th></tr>
+</thead>
+<tbody>
+<tr><td>Hetzner</td><td>CX22</td><td>2 vCPU, 4 GB, 40 GB</td><td>ca. 4,35 €</td></tr>
+<tr><td>Hetzner</td><td>CX32</td><td>4 vCPU, 8 GB, 80 GB</td><td>ca. 7,60 €</td></tr>
+<tr><td>Netcup</td><td>VPS 2000 G11</td><td>4 vCPU, 8 GB, 160 GB</td><td>ca. 8,99 €</td></tr>
+<tr><td>Contabo</td><td>VPS S</td><td>4 vCPU, 8 GB, 200 GB</td><td>ca. 5,99 €</td></tr>
+<tr><td>IONOS</td><td>VPS Linux L</td><td>4 vCPU, 8 GB, 160 GB</td><td>ca. 12,00 €</td></tr>
+</tbody>
+</table>
+
+<p>Für die 40-GB-Variante bei Hetzner reicht der Platz für etwa drei Monate Retention. Wer ein Jahr aufbewahren will, nimmt Object Storage dazu: 1 TB bei Hetzner kostet rund 5 €/Monat inklusive Traffic. Damit liegt der komplette Monitoring-Stack bei unter 15 € monatlich – im Vergleich zu einem Elasticsearch-Cluster mit 40–80 € eine klare Ersparnis.</p>
+
+<h2>Sicherheit und Best Practices</h2>
+
+<p>Der Docker-Socket ist der kritischste Punkt im gesamten Stack. Ein beschreibbarer Mount erlaubt das Starten privilegierter Container und damit Root-Zugriff auf den Host. Setze immer <code>:ro</code> und ziehe zusätzlich den Socket-Proxy <code>tecnativa/docker-socket-proxy</code> in Betracht, der nur die benötigten API-Endpunkte freigibt.</p>
+
+<p>Weitere Absicherungen:</p>
+
+<ul>
+<li>Grafana niemals mit Standard-Passwort betreiben; <code>GF_USERS_ALLOW_SIGN_UP=false</code> setzen</li>
+<li>Loki und Prometheus nur auf <code>127.0.0.1</code> binden, Zugriff per SSH-Tunnel oder Reverse-Proxy mit Basic Auth</li>
+<li>TLS über Caddy oder Traefik mit Let's Encrypt für die Grafana-UI</li>
+<li><code>auth_enabled: true</code> in Loki, sobald mehr als ein Mandant Logs schickt</li>
+<li>Log-Rotation zusätzlich im Docker-Daemon aktivieren: <code>{"log-driver":"json-file","log-opts":{"max-size":"10m","max-file":"3"}}</code> in <code>/etc/docker/daemon.json</code></li>
+<li>Regelmäßige Backups der Grafana-SQLite-Datenbank und der Loki-Config</li>
+</ul>
+
+<p>Die doppelte Absicherung über Docker-Log-Rotation ist wichtig: Wenn Loki ausfällt, laufen die Container trotzdem weiter und die Logs bleiben lokal begrenzt. Ohne diese Rotation füllt sich die Platte innerhalb von Stunden.</p>
+
+<p>Für die Aufbewahrung personenbezogener Daten gilt die DSGVO: Logs mit IP-Adressen oder User-IDs sollten nach 7 bis 14 Tagen gelöscht werden, sofern keine berechtigte Aufbewahrungspflicht besteht. Setze dafür pro Stream unterschiedliche Retention-Periods über <code>limits_config</code> und Stream-Matcher.</p>
+
+<h2>Troubleshooting: Die fünf häufigsten Fehler</h2>
+
+<p><strong>1. „entry too far behind“ beim Push.</strong> Loki lehnt Logs ab, die älter als <code>reject_old_samples_max_age</code> sind. Ursache ist meist ein falsch geparster Zeitstempel. Prüfe, ob der <code>docker: {}</code>-Stage aktiv ist.</p>
+
+<p><strong>2. Keine Logs in Grafana, aber Promtail läuft.</strong> Prüfe die Position-Datei unter <code>/tmp/positions.yaml</code>. Wurde sie gelöscht oder ist der Container neu gestartet, liest Promtail alles neu ein – oder überspringt bereits gelesene Dateien. Bei einem Wechsel von <code>json-file</code> auf einen anderen Log-Treiber findet Promtail gar nichts mehr.</p>
+
+<p><strong>3. Loki startet nicht mit „too many open files“.</strong> Erhöhe <code>LimitNOFILE</code> in der systemd-Unit oder setze <code>ulimits</code> im Compose-File auf <code>nofile: 65536</code>.</p>
+
+<p><strong>4. Grafana zeigt „Data source connected, but no labels“.</strong> Meist ein Netzwerkproblem – Grafana erreicht <code>http://loki:3100</code> nicht, weil der Container in einem anderen Docker-Netzwerk hängt. Prüfe mit <code>docker exec grafana wget -qO- http://loki:3100/ready</code>.</p>
+
+<p><strong>5. Hohe Kardinalität.</strong> Wenn Loki plötzlich 8 GB RAM zieht und Queries langsam werden, hast du zu viele Labels. Prüfe mit <code>curl -s http://localhost:3100/loki/api/v1/labels</code> und entferne alles, was pro Request einen neuen Wert annimmt.</p>
+
+<p>Ein nützlicher Health-Check für den Betrieb: <code>curl -s http://localhost:3100/ready</code> sollte <code>ready</code> zurückgeben, und <code>curl -s http://localhost:3100/metrics | grep loki_ingester_streams</code> zeigt die Anzahl aktiver Streams. Über 10.000 Streams auf einem kleinen VPS sind ein Warnsignal.</p>
+
+<h2>FAQ</h2>
+
+<h3>Brauche ich Promtail oder soll ich direkt Grafana Alloy nutzen?</h3>
+<p>Für ein reines Docker-Setup ist Promtail 2026 weiterhin die einfachere Wahl, weil die Konfiguration kompakt in YAML bleibt und die Docker-Service-Discovery direkt eingebaut ist. Grafana Alloy ist der offizielle Nachfolger und lohnt sich, wenn du Logs, Metriken und Traces in einem einzigen Agenten bündeln willst. Alloy nutzt die River-Syntax, die sich deutlich von Promtail-YAML unterscheidet, und kann bestehende Promtail-Konfigurationen per <code>promtail.convert</code>-Befehl importieren. Für neue Setups mit mehr als drei Hosts würde ich direkt auf Alloy setzen, für Einzelhost-Setups bleibt Promtail pragmatischer.</p>
+
+<h3>Wie viel Speicher brauche ich wirklich für 30 Tage Logs?</h3>
+<p>Rechne mit der Rohmenge geteilt durch 8 bis 12. Bei 2 GB Logs pro Tag sind das 60 GB Rohdaten pro Monat und etwa 5 bis 7,5 GB komprimierte Chunks in Loki. Dazu kommt der Label-Index mit rund 1 bis 2 Prozent der Rohmenge. Für 30 Tage bei 2 GB/Tag brauchst du also etwa 8 bis 10 GB Storage. Bei 10 GB Logs pro Tag entsprechend 40 bis 50 GB. Object Storage ist ab etwa 50 GB Logvolumen pro Monat günstiger als Block Storage.</p>
+
+<h3>Kann ich Loki auch ohne Docker betreiben?</h3>
+<p>Ja. Loki wird als einzelne Binary ausgeliefert und lässt sich per systemd betreiben. Der Vorteil im Container ist die einfachere Aktualisierung und die isolierte Konfiguration. Wenn du Loki nativ betreibst, achte auf ausreichende <code>nofile</code>-Limits und darauf, dass der Nutzer Schreibrechte auf <code>/loki</code> hat. Für die meisten Setups ist Docker Compose aber der schnellere Weg, weil Loki, Grafana und Prometheus dann gemeinsam im gleichen Netzwerk laufen und du keine Ports nach außen öffnen musst.</p>
+
+<h3>Was kostet der komplette Stack im Monat?</h3>
+<p>Auf einem Hetzner CX32 mit 4 vCPU, 8 GB RAM und 80 GB NVMe liegst du bei rund 7,60 € monatlich für den Server. Ein Domainname kostet etwa 1 € pro Monat, TLS über Let's Encrypt ist kostenlos. Mit Object Storage für ein Jahr Retention kommen rund 5 € pro TB dazu. In Summe sind das 8 bis 15 € monatlich – deutlich weniger als ein vergleichbarer Elasticsearch-Cluster, der bei gleicher Logmenge mindestens 40 € an Serverkosten verursacht.</p>
+
+<h3>Wie sichere ich Loki gegen Datenverlust ab?</h3>
+<p>Zum einen über Object Storage mit aktivierter Versionierung, zum anderen über regelmäßige Snapshots des VPS. Der Loki-Index ist reproduzierbar, die Chunks nicht – verlierst du die Chunks, sind die Logs weg. Aktiviere deshalb entweder S3-Backend mit Versionierung oder erstelle mindestens täglich einen Snapshot des <code>loki-data</code>-Volumes. Für den Compactor gilt: <code>delete_request_store</code> muss auf denselben Storage-Typ zeigen wie die Chunks, sonst schlägt das Löschen abgelaufener Daten fehl und die Retention greift nicht.</p>
+
+<section class="related-section">
+  <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>
+  <div class="related-grid">
+    <article class="blog-card">
+  <a href="/artikel/linux-firewall-nftables-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/linux-firewall-nftables-2026.webp" alt="Linux Firewall mit nftables 2026 – Modernes Setup" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>28. September 2026</span>
+      <span>8 Min</span>
+    </div>
+    <h3><a href="/artikel/linux-firewall-nftables-2026.html">Linux Firewall mit nftables 2026 – Modernes Setup</a></h3>
+    <p class="card-excerpt">Linux Firewall mit nftables 2026: Modernes Setup mit Sets, Maps, NAT und Docker-Integration – inkl. Migration von iptables, Performance-Werten und Praxis-Befehl</p>
+    <div class="card-footer">
+      <a href="/artikel/linux-firewall-nftables-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/ssh-sicherheit-absichern-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/ssh-sicherheit-absichern-2026.webp" alt="SSH absichern 2026 – Keys, 2FA &amp; Port-Knocking" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>28. September 2026</span>
+      <span>9 Min</span>
+    </div>
+    <h3><a href="/artikel/ssh-sicherheit-absichern-2026.html">SSH absichern 2026 – Keys, 2FA &amp; Port-Knocking</a></h3>
+    <p class="card-excerpt">SSH absichern 2026: SSH-Keys, 2FA, Port-Knocking, Fail2ban und CrowdSec – Schritt-für-Schritt-Anleitung mit konkreten Befehlen und sshd_config-Härtung.</p>
+    <div class="card-footer">
+      <a href="/artikel/ssh-sicherheit-absichern-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/fail2ban-konfiguration-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/fail2ban-konfiguration-2026.webp" alt="Fail2ban richtig konfigurieren 2026 – Schutz vor Brute-Force" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>28. September 2026</span>
+      <span>9 Min</span>
+    </div>
+    <h3><a href="/artikel/fail2ban-konfiguration-2026.html">Fail2ban richtig konfigurieren 2026 – Schutz vor Brute-Force</a></h3>
+    <p class="card-excerpt">Fail2ban richtig konfigurieren 2026: jail.local, nftables-Banactions, bantime &amp; maxretry, Recidive-Jail, IPv6, Docker und Monitoring – inkl. fertiger Configs.</p>
+    <div class="card-footer">
+      <a href="/artikel/fail2ban-konfiguration-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/kubernetes-helm-charts-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/kubernetes-helm-charts-2026.webp" alt="Kubernetes Helm Charts 2026 – Praxis-Guide für Einsteiger" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>26. September 2026</span>
+      <span>8 Min</span>
+    </div>
+    <h3><a href="/artikel/kubernetes-helm-charts-2026.html">Kubernetes Helm Charts 2026 – Praxis-Guide für Einsteiger</a></h3>
+    <p class="card-excerpt">Kubernetes Helm Charts 2026: Praxis-Guide für Einsteiger mit Installation, eigenem Chart, Values-Overrides, GitOps, Secrets und Kosten im Überblick.</p>
+    <div class="card-footer">
+      <a href="/artikel/kubernetes-helm-charts-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/prometheus-alerting-regeln-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/prometheus-alerting-regeln-2026.webp" alt="Prometheus Alerting-Regeln schreiben 2026 – Praxis-Guide" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>26. September 2026</span>
+      <span>9 Min</span>
+    </div>
+    <h3><a href="/artikel/prometheus-alerting-regeln-2026.html">Prometheus Alerting-Regeln schreiben 2026 – Praxis-Guide</a></h3>
+    <p class="card-excerpt">Prometheus Alerting-Regeln schreiben 2026: Praxis-Guide mit PromQL-Beispielen, SLO-Burn-Rate-Alerts, promtool-Tests, Alertmanager-Routing und GitOps-Deployment.</p>
+    <div class="card-footer">
+      <a href="/artikel/prometheus-alerting-regeln-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+<article class="blog-card">
+  <a href="/artikel/grafana-dashboards-vps-2026.html" class="card-img-link">
+    <div class="card-img"><img src="/images/grafana-dashboards-vps-2026.webp" alt="Grafana Dashboards für VPS-Monitoring 2026" loading="lazy" width="400" height="200"></div>
+  </a>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
+      <span>26. September 2026</span>
+      <span>8 Min</span>
+    </div>
+    <h3><a href="/artikel/grafana-dashboards-vps-2026.html">Grafana Dashboards für VPS-Monitoring 2026</a></h3>
+    <p class="card-excerpt">Grafana Dashboards für VPS-Monitoring 2026: Kompletter Praxis-Guide mit Prometheus, Node Exporter, Loki, Docker-Compose, PromQL, Alerting und Kosten.</p>
+    <div class="card-footer">
+      <a href="/artikel/grafana-dashboards-vps-2026.html" class="read-more">Weiterlesen &rarr;</a>
+    </div>
+  </div>
+</article>
+  </div>
+</section>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>hostazar.com</h4>
+        <p style="color:var(--text-muted);font-size:.85rem;max-width:300px">
+          Unabh&#228;ngige Hosting-Reviews, Gameserver-Guides und DevOps-Tutorials. Transparent, recherchiert und praxisnah, finanziert durch Affiliate-Links und Anzeigen.
+        </p>
+      </div>
+      <div class="footer-links-columns"><h5>Gaming</h5>
+        <a href="/artikel/7-days-to-die-server-hosten-2026.html">7 Days to Die Server hosten – Setup &amp; Hosting-Guide 2026</a>
+        <a href="/artikel/ark-survival-ascended-server-hosten-2026.html">ARK Survival Ascended Server hosten – Anleitung &amp; Kosten 2026</a>
+        <a href="/artikel/conan-exiles-server-hosten.html">Conan Exiles Server mieten – Setup &amp; Kosten 2026</a>
+        <a href="/artikel/cs2-server-mieten-guide-2026.html">CS2 (Counter-Strike 2) Server mieten – Der Komplettguide 2026</a>
+        <a href="/artikel/dayz-server-mieten-2026.html">DayZ Server mieten – Anbieter, Kosten &amp; Setup 2026</a>
+        <a href="/gaming/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>Webhosting</h5>
+        <a href="/artikel/lamp-stack-vs-lemp-stack-vergleich-2026.html">LAMP Stack vs LEMP Stack – Der große Vergleich für dein Webprojekt 2026</a>
+        <a href="/artikel/nginx-vs-apache-webserver-vergleich-2026.html">Nginx vs. Apache 2026 – Webserver im Vergleich</a>
+        <a href="/artikel/cloud-hosting-vs-shared-hosting.html">Cloud Hosting vs. Shared Hosting – Vergleich 2026</a>
+        <a href="/artikel/cloudflare-tunnel-einrichten.html">Cloudflare Tunnel einrichten – Kostenloser Reverse Proxy 2026</a>
+        <a href="/artikel/docker-wordpress-hosten.html">WordPress mit Docker hosten – Modernes Setup 2026</a>
+        <a href="/webhosting/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>DevOps</h5>
+        <a href="/artikel/docker-container-security-best-practices-2026.html">Docker Container Security – Best Practices und Absicherung für Docker-Container 2026</a>
+        <a href="/artikel/openvpn-server-vps-einrichten-2026.html">OpenVPN Server auf VPS einrichten – Schritt-für-Schritt-Anleitung 2026</a>
+        <a href="/artikel/postgresql-vs-mysql-vergleich-2026.html">PostgreSQL vs. MySQL 2026 – Datenbank-Hosting im Vergleich</a>
+        <a href="/artikel/raspberry-pi-homelab-server-2026.html">Raspberry Pi Homelab 2026 – Heimserver basteln</a>
+        <a href="/artikel/remote-work-tirol.html">Remote Work in den Alpen: Mein Coworking-Setup in Tirol</a>
+        <a href="/devops/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+      <div class="footer-links-columns"><h5>KI &amp; LLM</h5>
+        <a href="/artikel/llm-lokal-hosten-2026.html">LLM lokal hosten 2026 – Komplettguide von der GPU bis zur API</a>
+        <a href="/artikel/llama-cpp-cpu-vs-gpu-performance-2026.html">llama.cpp Performance 2026: CPU vs GPU – Tokens/s, BLAS-Backends &amp; Hardware-Vergleich</a>
+        <a href="/artikel/comfyui-auf-gpu-hosten.html">ComfyUI auf GPU hosten – Bild-KI Workflows 2026 mit Flux, SDXL &amp; SD3</a>
+        <a href="/artikel/ki-server-sicherheit-llm-api-absichern-2026.html">KI-Server-Sicherheit: LLM API absichern, Rate-Limiting &amp; Monitoring 2026</a>
+        <a href="/artikel/ollama-llm-server-vps-2026.html">Ollama LLM Server auf VPS hosten 2026 – Lokale KI-Modelle selbst betreiben</a>
+        <a href="/ki-llm/" style="color:var(--accent)">Alle &rarr;</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 hostazar.com</span>
+      <span>
+        <a href="/impressum.html">Impressum</a> &middot;
+        <a href="/datenschutz.html">Datenschutz</a> <a href="/datenschutz.html">Datenschutz</a>middot;
+        <a href="#" onclick="window.hzReopenBanner();return false;">Cookie-Einstellungen</a>
+      </span>
+    </div>
+    <div class="affiliate-note">
+      * Affiliate-Links: Wir erhalten ggf. eine Provision beim Kauf. Das kostet dich keinen Cent mehr.
+    </div>
+  </div>
+</footer>
+<script src="/data/script.js" defer></script>
+<script src="/js/consent-manager.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof hostazarApp !== 'undefined') {
+    hostazarApp.init({
+      gridId: 'related-articles',
+      relatedConfig: {
+        containerId: 'related-articles',
+        category: 'devops',
+        excludeSlug: 'docker-logging-monitoring-2026',
+        count: 3
+      },
+      breadcrumbs: [
+        { url: '/devops/', label: 'DevOps' },
+        { label: 'Docker Logging &amp; Monitoring 2026 – Loki, Promtail &amp; Grafana' }
+      ]
+    });
+  }
+});
+</script>
+</body>
+</html>
