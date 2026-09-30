@@ -1,0 +1,223 @@
+<h2>Warum WireGuard 2026 die erste Wahl für VPNs ist</h2>
+<p>WireGuard hat sich in den letzten Jahren vom Nischenprojekt zum De-facto-Standard für moderne VPN-Verbindungen entwickelt. Der Kernel-Code umfasst nur rund 4.000 Zeilen, verglichen mit über 400.000 Zeilen bei OpenVPN inklusive aller Abhängigkeiten. Diese Reduktion bedeutet weniger Angriffsfläche, einfachere Audits und deutlich bessere Performance auf derselben Hardware.</p>
+<p>Unter der Haube setzt WireGuard auf eine feste, moderne Krypto-Suite: Curve25519 für den Schlüsselaustausch, ChaCha20-Poly1305 für die Verschlüsselung und BLAKE2s als Hash-Funktion. Es gibt keine konfigurierbaren Cipher-Suites mehr – das eliminiert eine ganze Klasse von Fehlkonfigurationen, die bei IPsec und OpenVPN regelmäßig zu Sicherheitslücken führen.</p>
+<p>Praktisch relevant ist vor allem der Durchsatz: Auf einem 4-vCPU-VPS erreicht WireGuard problemlos 2–4 Gbit/s, während OpenVPN auf derselben Maschine bei etwa 300–600 Mbit/s drosselt. Für Site-to-Site-Verbindungen zwischen Rechenzentren oder für den Zugriff auf Heimnetzwerke ist das ein entscheidender Faktor.</p>
+<p>Dieser Guide führt dich durch die komplette Einrichtung: von der Server-Auswahl über die Konfiguration auf Debian, Ubuntu und Rocky Linux bis hin zu Multi-Client-Verwaltung, Firewall-Regeln und Performance-Tuning.</p>
+
+<h2>WireGuard vs. OpenVPN vs. IPsec – der Vergleich 2026</h2>
+<p>Die Wahl des VPN-Protokolls hängt stark vom Einsatzzweck ab. WireGuard ist nicht in jeder Situation die beste Lösung – wer zertifikatsbasierte Authentifizierung, LDAP-Integration oder tiefes Paket-Logging benötigt, ist mit OpenVPN weiterhin besser bedient.</p>
+<table>
+<tr><th>Kriterium</th><th>WireGuard</th><th>OpenVPN</th><th>IPsec/IKEv2</th></tr>
+<tr><td>Code-Größe</td><td>~4.000 Zeilen</td><td>~400.000 Zeilen</td><td>~500.000 Zeilen</td></tr>
+<tr><td>Handshake</td><td>1-RTT (Noise)</td><td>2-RTT+ (TLS)</td><td>2-RTT+ (IKE)</td></tr>
+<tr><td>Durchsatz (4 vCPU)</td><td>2–4 Gbit/s</td><td>300–600 Mbit/s</td><td>800–1.500 Mbit/s</td></tr>
+<tr><td>Roaming (IP-Wechsel)</td><td>Nahtlos</td><td>Reconnect nötig</td><td>MOBIKE</td></tr>
+<tr><td>Mobile-Akku</td><td>Sehr gut</td><td>Mittel</td><td>Gut</td></tr>
+<tr><td>Konfiguration</td><td>Statisch, simpel</td><td>Komplex</td><td>Sehr komplex</td></tr>
+</table>
+<p>Der wichtigste Unterschied: WireGuard kennt kein Konzept von „Verbindungen" im klassischen Sinne. Es ist ein zustandsloses UDP-Protokoll, das Peers anhand ihrer Public Keys identifiziert. Wenn ein Client die IP-Adresse wechselt – etwa vom WLAN ins Mobilfunknetz – läuft die Verbindung ohne Reconnect weiter.</p>
+<p>Ein Nachteil: WireGuard hat kein eingebautes Username/Passwort-Verfahren. Wer dynamische Benutzerverwaltung braucht, muss auf Tools wie <strong>wg-easy</strong>, <strong>Netbird</strong> oder <strong>Tailscale</strong> zurückgreifen, die auf WireGuard aufsetzen und eine Management-Ebene ergänzen.</p>
+
+<h2>Server-Auswahl und Voraussetzungen</h2>
+<p>Für einen privaten VPN-Server reicht die kleinste VPS-Klasse. WireGuard ist extrem ressourcenschonend: Ein einzelner Kern verarbeitet problemlos 500 Mbit/s, RAM-Verbrauch liegt im einstelligen Megabyte-Bereich. Ein VPS mit 1 vCPU, 1 GB RAM und 20 GB SSD ist mehr als ausreichend.</p>
+<p>Preislich bewegen sich passende Anbieter 2026 in diesem Rahmen:</p>
+<ul>
+<li><strong>Hetzner CX22</strong> (2 vCPU, 4 GB RAM, 40 GB NVMe): 4,35 €/Monat inkl. IPv4</li>
+<li><strong>Netcup VPS 1000 G11</strong> (4 vCPU, 4 GB RAM, 128 GB SSD): 5,99 €/Monat</li>
+<li><strong>Contabo VPS S</strong> (4 vCPU, 8 GB RAM, 200 GB SSD): 5,99 €/Monat</li>
+<li><strong>DigitalOcean Droplet</strong> (1 vCPU, 1 GB RAM): 6 $/Monat</li>
+<li><strong>Oracle Cloud Free Tier</strong> (4 ARM-Cores, 24 GB RAM): kostenlos</li>
+</ul>
+<p>Wichtig ist die Standortwahl: Der VPN-Server sollte geografisch nah am Nutzer stehen, um Latenz zu minimieren. Für deutsche Nutzer sind Frankfurt, Nürnberg oder Falkenstein ideal. Wer Geo-Restrictions umgehen will, wählt einen Standort im Zielland.</p>
+<p>Beachte die rechtlichen Rahmenbedingungen: In Deutschland gilt der VPN-Anbieter als Access-Provider, unterliegt aber nicht der Vorratsdatenspeicherung für VPN-Traffic. Wer einen Server für andere betreibt, sollte sich dennoch über Störerhaftung und Logging-Pflichten informieren.</p>
+
+<h2>WireGuard installieren – Debian, Ubuntu, Rocky Linux</h2>
+<p>Seit Linux-Kernel 5.6 ist WireGuard im Mainline-Kernel enthalten. Auf aktuellen Distributionen musst du nur die Userspace-Tools installieren. Auf Ubuntu 24.04 und Debian 12 genügt ein einzelner Befehl:</p>
+<pre><code>sudo apt update
+sudo apt install wireguard wireguard-tools qrencode -y</code></pre>
+<p>Auf Rocky Linux 9 oder AlmaLinux aktivierst du zuerst das EPEL-Repository, da WireGuard-Tools dort gepflegt werden:</p>
+<pre><code>sudo dnf install epel-release -y
+sudo dnf install wireguard-tools qrencode -y
+sudo systemctl enable --now wg-quick@wg0</code></pre>
+<p>Prüfe anschließend die Kernel-Unterstützung mit <code>wg --version</code> und <code>modinfo wireguard</code>. Wenn der Kernel das Modul nicht enthält, kompiliert DKMS es beim ersten Start automatisch nach – das dauert auf kleinen VPS etwa 30–60 Sekunden.</p>
+<p>Für die Firewall öffnest du den UDP-Port 51820. Bei UFW:</p>
+<pre><code>sudo ufw allow 51820/udp
+sudo ufw allow OpenSSH</code></pre>
+<p>Bei nftables oder firewalld verwendest du die entsprechenden Kommandos. Wichtig: WireGuard nutzt ausschließlich UDP. Wer TCP-Port 443 freigibt, öffnet damit keinen VPN-Zugang.</p>
+
+<h2>Schlüsselpaare generieren</h2>
+<p>WireGuard kennt keine Zertifikate und keine Certificate Authority. Stattdessen erzeugt jeder Peer ein Curve25519-Schlüsselpaar. Der Private Key bleibt auf dem jeweiligen Gerät, der Public Key wird mit allen Kommunikationspartnern geteilt.</p>
+<pre><code>cd /etc/wireguard
+umask 077
+wg genkey | tee server_private.key | wg pubkey > server_public.key
+wg genkey | tee client1_private.key | wg pubkey > client1_public.key
+wg genkey | tee client2_private.key | wg pubkey > client2_public.key</code></pre>
+<p>Das <code>umask 077</code> ist entscheidend – ohne diese Einstellung werden die Keys mit Standard-Berechtigungen (644) erstellt und sind für andere Systembenutzer lesbar. Prüfe mit <code>ls -l</code>, dass alle Key-Dateien <code>-rw-------</code> zeigen.</p>
+<p>Optional kannst du für zusätzliche Sicherheit einen Pre-Shared Key (PSK) verwenden. Dieser symmetrische Schlüssel wird zusätzlich zum Public-Key-Austausch genutzt und schützt gegen zukünftige Quantencomputer-Angriffe auf den Handshake:</p>
+<pre><code>wg genpsk > preshared.key
+chmod 600 preshared.key</code></pre>
+<p>Der PSK muss auf beiden Seiten identisch sein und wird pro Peer in der Konfiguration als <code>PresharedKey =</code> eingetragen.</p>
+
+<h2>Server-Konfiguration mit wg0.conf</h2>
+<p>Die zentrale Konfigurationsdatei liegt unter <code>/etc/wireguard/wg0.conf</code>. Sie definiert das Interface, die Netzwerk-Adressen und alle bekannten Peers:</p>
+<pre><code>[Interface]
+Address = 10.8.0.1/24
+ListenPort = 51820
+PrivateKey = &lt;SERVER_PRIVATE_KEY&gt;
+PostUp = iptables -A FORWARD -i %i -j ACCEPT
+PostUp = iptables -A FORWARD -o %i -j ACCEPT
+PostUp = iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+PostDown = iptables -D FORWARD -i %i -j ACCEPT
+PostDown = iptables -D FORWARD -o %i -j ACCEPT
+PostDown = iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+
+[Peer]
+# Client 1 - Laptop
+PublicKey = &lt;CLIENT1_PUBLIC_KEY&gt;
+PresharedKey = &lt;PSK&gt;
+AllowedIPs = 10.8.0.2/32
+
+[Peer]
+# Client 2 - Smartphone
+PublicKey = &lt;CLIENT2_PUBLIC_KEY&gt;
+PresharedKey = &lt;PSK&gt;
+AllowedIPs = 10.8.0.3/32</code></pre>
+<p>Das <code>AllowedIPs</code>-Feld ist der wichtigste und am häufigsten missverstandene Parameter. Es definiert nicht, welche IPs der Peer nutzen darf, sondern welche Ziel-IPs über diesen Peer geroutet werden. Beim Server steht hier die VPN-IP des jeweiligen Clients als /32.</p>
+<p>Ersetze <code>eth0</code> durch dein tatsächliches WAN-Interface. Ermittle es mit <code>ip route get 1.1.1.1</code> – die Ausgabe enthält das Interface nach dem Schlüsselwort <code>dev</code>. Auf Hetzner-Cloud-Servern heißt es <code>ens10</code>, auf Netcup <code>eth0</code>.</p>
+<p>Aktiviere IP-Forwarding dauerhaft:</p>
+<pre><code>echo "net.ipv4.ip_forward=1" | sudo tee /etc/sysctl.d/99-wireguard.conf
+echo "net.ipv6.conf.all.forwarding=1" | sudo tee -a /etc/sysctl.d/99-wireguard.conf
+sudo sysctl --system</code></pre>
+<p>Starte das Interface mit <code>sudo systemctl enable --now wg-quick@wg0</code> und prüfe den Status mit <code>sudo wg show</code>. Du solltest das Interface, den Listen-Port und alle Peers sehen.</p>
+
+<h2>Client-Konfiguration und QR-Code-Import</h2>
+<p>Für jeden Client erstellst du eine eigene Konfigurationsdatei. Diese enthält den Private Key des Clients und den Public Key des Servers:</p>
+<pre><code>[Interface]
+PrivateKey = &lt;CLIENT1_PRIVATE_KEY&gt;
+Address = 10.8.0.2/32
+DNS = 10.8.0.1, 1.1.1.1
+MTU = 1420
+
+[Peer]
+PublicKey = &lt;SERVER_PUBLIC_KEY&gt;
+PresharedKey = &lt;PSK&gt;
+Endpoint = vpn.example.com:51820
+AllowedIPs = 0.0.0.0/0, ::/0
+PersistentKeepalive = 25</code></pre>
+<p>Mit <code>AllowedIPs = 0.0.0.0/0, ::/0</code> läuft der gesamte Traffic über den VPN (Full-Tunnel). Für Split-Tunnel trägst du nur die Netze ein, die über den VPN erreichbar sein sollen – etwa <code>10.8.0.0/24, 192.168.1.0/24</code>.</p>
+<p>Das <code>PersistentKeepalive = 25</code> hält NAT-Verbindungen offen, indem alle 25 Sekunden ein leeres Paket gesendet wird. Ohne diese Option bricht die Verbindung hinter restriktiven NATs nach 30–120 Sekunden Inaktivität ab.</p>
+<p>Für mobile Geräte ist der QR-Code-Import der schnellste Weg:</p>
+<pre><code>qrencode -t ansiutf8 &lt; /etc/wireguard/client1.conf</code></pre>
+<p>Die WireGuard-App für Android und iOS scannt den Code direkt und übernimmt alle Parameter. Auf Desktop-Systemen importierst du die .conf-Datei manuell über die GUI oder kopierst sie nach <code>/etc/wireguard/</code> und startest mit <code>wg-quick up wg0</code>.</p>
+
+<h2>Firewall, NAT und IPv6-Konfiguration</h2>
+<p>Die PostUp-Regeln in der Server-Konfiguration übernehmen NAT und Forwarding. Bei Systemen mit nftables statt iptables musst du die Regeln anpassen:</p>
+<pre><code>PostUp = nft add rule ip nat POSTROUTING oifname "eth0" counter masquerade
+PostUp = nft add rule ip filter FORWARD iifname "wg0" counter accept
+PostUp = nft add rule ip filter FORWARD oifname "wg0" counter accept</code></pre>
+<p>Für IPv6 benötigst du ein eigenes Subnetz, etwa <code>fd42:42:42::/64</code>. Wichtig: Viele VPS-Anbieter stellen nur ein einzelnes /64 oder /128 bereit. In diesem Fall nutzt du NAT66 oder verzichtest auf IPv6 im Tunnel und setzt <code>AllowedIPs = 0.0.0.0/0</code> ohne IPv6-Route.</p>
+<p>Härte die Firewall zusätzlich mit einer restriktiven INPUT-Policy. Auf dem VPN-Server sollte nur Port 22 (SSH), 51820/udp (WireGuard) und optional 80/443 offen sein. Alles andere wird gedroppt:</p>
+<pre><code>sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow 22/tcp
+sudo ufw allow 51820/udp
+sudo ufw enable</code></pre>
+<p>Wenn du Docker auf demselben Host betreibst, kollidieren dessen iptables-Regeln häufig mit den WireGuard-PostUp-Regeln. In diesem Fall setzt du <code>"iptables": false</code> in der Docker-Daemon-Konfiguration oder nutzt eine dedizierte Firewall-Kette.</p>
+
+<h2>Performance-Tuning und MTU-Optimierung</h2>
+<p>Die MTU ist der häufigste Grund für Performance-Probleme. WireGuard fügt pro Paket etwa 60 Byte Overhead hinzu (IPv4 20 + UDP 8 + WireGuard 32). Bei einer Standard-Ethernet-MTU von 1500 ergibt sich eine Tunnel-MTU von 1440 – in der Praxis bewährt sich 1420 für IPv4 und 1400 für IPv6 oder PPPoE-Verbindungen.</p>
+<p>Für Mobilfunknetze empfiehlt sich eine konservative MTU von 1280, da viele Carrier fragmentierte Pakete aggressiv droppen. Teste die optimale Größe mit:</p>
+<pre><code>ping -M do -s 1372 10.8.0.1</code></pre>
+<p>Reduziere die Paketgröße so lange, bis keine Fragmentierungsfehler mehr auftreten. Der Wert 1372 entspricht 1420 MTU (1420 − 28 Byte IP/ICMP-Header).</p>
+<p>Weitere Tuning-Maßnahmen:</p>
+<ul>
+<li><strong>Multi-Queue:</strong> Bei Multi-Core-VPS kann <code>wg set wg0 fwmark 0xca6c</code> in Kombination mit <code>ip rule</code> die Last auf mehrere Kerne verteilen.</li>
+<li><strong>UDP-Buffer:</strong> Erhöhe <code>net.core.rmem_max</code> und <code>net.core.wmem_max</code> auf 25 MB für hohe Durchsätze.</li>
+<li><strong>CPU-Governor:</strong> Setze <code>performance</code> statt <code>powersave</code> auf Servern mit hoher Last.</li>
+<li><strong>GRO/GSO:</strong> Lassen aktiviert für besseren Durchsatz bei großen Transfers.</li>
+</ul>
+<p>Mit diesen Maßnahmen erreicht ein 4-vCPU-Hetzner-VPS realistische 3,2 Gbit/s zwischen zwei Standorten in Frankfurt und Nürnberg – gemessen mit <code>iperf3 -u -b 0</code>.</p>
+
+<h2>Multi-Client-Verwaltung und Automatisierung</h2>
+<p>Ab dem fünften Client wird die manuelle Verwaltung mühsam. Ein einfaches Bash-Skript automatisiert das Anlegen neuer Peers inklusive Schlüsselgenerierung, IP-Vergabe und QR-Code:</p>
+<pre><code>#!/bin/bash
+CLIENT=$1
+IP="10.8.0.$((RANDOM % 200 + 10))"
+cd /etc/wireguard
+umask 077
+wg genkey | tee ${CLIENT}_private.key | wg pubkey > ${CLIENT}_public.key
+wg genpsk > ${CLIENT}_psk.key
+cat &gt;&gt; wg0.conf &lt;&lt;EOF
+
+[Peer]
+# ${CLIENT}
+PublicKey = $(cat ${CLIENT}_public.key)
+PresharedKey = $(cat ${CLIENT}_psk.key)
+AllowedIPs = ${IP}/32
+EOF
+wg addconf wg0 &lt;(wg-quick strip wg0)
+echo "Client ${CLIENT} angelegt mit IP ${IP}"</code></pre>
+<p>Für größere Umgebungen lohnt sich <strong>wg-easy</strong>, ein Docker-Container mit Web-UI, der Clients per Klick anlegt, QR-Codes generiert und Traffic-Statistiken anzeigt. Installation in unter zwei Minuten:</p>
+<pre><code>docker run -d --name wg-easy \
+  -e WG_HOST=vpn.example.com \
+  -e PASSWORD_HASH='$2b$12$...' \
+  -v ~/.wg-easy:/etc/wireguard \
+  -p 51820:51820/udp -p 51821:51821/tcp \
+  --cap-add NET_ADMIN --cap-add SYS_MODULE \
+  --sysctl net.ipv4.conf.all.src_valid_mark=1 \
+  ghcr.io/wg-easy/wg-easy</code></pre>
+<p>Alternativen sind <strong>Netbird</strong> (Open-Source-Zero-Trust mit SSO) und <strong>Tailscale</strong> (SaaS, kostenlos bis 100 Geräte, bis 3 User). Beide setzen auf WireGuard auf und ergänzen NAT-Traversal, Access-Control und Audit-Logging.</p>
+
+<h2>Monitoring, Logs und Troubleshooting</h2>
+<p>WireGuard loggt standardmäßig nichts – das ist Absicht, um Metadaten-Leaks zu vermeiden. Für Debugging aktivierst du das dynamische Debug-Interface:</p>
+<pre><code>sudo modprobe wireguard
+echo module wireguard +p | sudo tee /sys/kernel/debug/dynamic_debug/control
+sudo dmesg -w | grep wireguard</code></pre>
+<p>Die wichtigsten Diagnose-Befehle im Alltag:</p>
+<ul>
+<li><code>sudo wg show</code> – zeigt alle Peers, letzten Handshake, Transfer-Volumen</li>
+<li><code>sudo wg show wg0 latest-handshakes</code> – Sekunden seit letztem Handshake pro Peer</li>
+<li><code>sudo wg show wg0 transfer</code> – RX/TX-Bytes pro Peer</li>
+<li><code>sudo journalctl -u wg-quick@wg0 -f</code> – Service-Logs</li>
+</ul>
+<p>Häufige Fehlerbilder: Wenn <code>wg show</code> keinen Handshake anzeigt, prüfe zuerst die Firewall mit <code>tcpdump -i eth0 udp port 51820</code>. Kommt kein Paket an, blockiert die Cloud-Firewall oder ein Security-Group. Kommen Pakete an, aber kein Handshake erfolgt, stimmen die Public Keys nicht überein.</p>
+<p>Für Monitoring eignet sich Prometheus mit dem <code>wireguard_exporter</code>. Grafana-Dashboards zeigen Handshake-Zeiten, Traffic pro Peer und Fehlerraten. Bei Ausfall eines Peers kannst du Alerts auf „letzter Handshake älter als 5 Minuten" setzen.</p>
+
+<h2>Sicherheit und Best Practices</h2>
+<p>WireGuard ist sicher, wenn die Konfiguration stimmt. Die wichtigsten Härtungsmaßnahmen:</p>
+<ol>
+<li><strong>Keys rotieren:</strong> Mindestens jährlich, bei Verdacht auf Kompromittierung sofort. Ein neuer Key bedeutet eine neue Konfigurationsdatei auf beiden Seiten.</li>
+<li><strong>PSK verwenden:</strong> Schützt gegen Harvest-Now-Decrypt-Later-Angriffe durch zukünftige Quantencomputer.</li>
+<li><strong>AllowedIPs restriktiv:</strong> Beim Server immer /32 pro Client, niemals /24 – sonst können Clients sich gegenseitig spoofing betreiben.</li>
+<li><strong>Kein Root:</strong> WireGuard läuft als Kernel-Modul, aber wg-quick benötigt Root für Interface-Management. Nutze sudo-Regeln statt root-Login.</li>
+<li><strong>Fail2ban für SSH:</strong> Der VPN-Server ist oft öffentlich erreichbar – SSH absichern mit Key-Auth und Fail2ban.</li>
+<li><strong>Kill-Switch auf Clients:</strong> Bei Full-Tunnel-Clients verhindert eine Firewall-Regel, dass Traffic bei VPN-Ausfall ungetunnelt rausgeht.</li>
+</ol>
+<p>Ein Kill-Switch auf Linux-Clients lässt sich mit wg-quick und <code>Table = off</code> plus manuellen iptables-Regeln umsetzen. Auf Android und iOS übernimmt die offizielle App das automatisch, wenn „Always-on VPN" aktiviert ist.</p>
+<p>Für Unternehmensumgebungen empfiehlt sich zusätzlich ein SIEM-Logging aller Verbindungen, MFA über vorgelagertes SSO (via Netbird oder Tailscale) und eine klare Trennung zwischen Admin-VPN und User-VPN mit getrennten Subnetzen.</p>
+
+<h2>Kosten, Alternativen und Fazit</h2>
+<p>Die Gesamtkosten für einen selbst gehosteten WireGuard-VPN liegen 2026 bei 4–6 €/Monat für den VPS plus etwa 1 €/Monat für eine Domain. Bei Oracle Cloud Free Tier ist der Server dauerhaft kostenlos – allerdings mit eingeschränkter Bandbreite (10 TB/Monat ausgehend, kostenlos).</p>
+<p>Kommerzielle Alternativen wie Mullvad (5 €/Monat), ProtonVPN (4,99 €/Monat) oder NordVPN (3,59 €/Monat im Jahresabo) bieten mehr Standorte und keine Wartung, aber weniger Kontrolle. Wer eigene Dienste hinter dem VPN betreibt, eigene IP-Adressen braucht oder maximale Transparenz will, ist mit Self-Hosting besser bedient.</p>
+<p>WireGuard ist 2026 für die meisten Anwendungsfälle die technisch überlegene Wahl: schneller, einfacher, sicherer und ressourcenschonender als OpenVPN. Die Einrichtung dauert mit diesem Guide etwa 20–30 Minuten für den ersten Client und 2 Minuten für jeden weiteren.</p>
+<p>Für Multi-User-Umgebungen lohnt sich der Einstieg über wg-easy oder Netbird, um die Verwaltung zu skalieren. Für Site-to-Site-Verbindungen zwischen Rechenzentren ist WireGuard mit Abstand die performanteste und einfachste Lösung.</p>
+
+<h2>FAQ</h2>
+
+<h3>Wie viele Clients kann ein WireGuard-Server verwalten?</h3>
+<p>Technisch sind tausende Peers möglich – der Linux-Kernel handhabt problemlos 10.000+ Peers pro Interface. Praktisch limitiert die Verwaltung: Bei mehr als 50 Clients solltest du auf wg-easy, Netbird oder Tailscale wechseln. Der RAM-Verbrauch liegt pro Peer bei etwa 1–2 KB.</p>
+
+<h3>Warum funktioniert mein WireGuard-Handshake nicht?</h3>
+<p>In 90 % der Fälle liegt es an der Firewall. Prüfe mit <code>tcpdump -i eth0 udp port 51820</code>, ob Pakete ankommen. Häufige Ursachen: Cloud-Security-Group blockiert UDP, falscher ListenPort, Public Key vertauscht oder Endpoint-DNS falsch aufgelöst. Auch eine falsche MTU führt zu scheinbar fehlenden Handshakes.</p>
+
+<h3>WireGuard oder OpenVPN für Mobile-Geräte?</h3>
+<p>WireGuard ist auf Mobilgeräten deutlich überlegen: Der Akkuverbrauch ist 30–50 % niedriger, Reconnects bei Netzwechsel dauern unter einer Sekunde statt 3–5 Sekunden, und die offiziellen Apps sind schlanker. OpenVPN lohnt sich nur, wenn du TCP-Fallback auf Port 443 benötigst – etwa in restriktiven Hotel- oder Firmennetzen.</p>
+
+<h3>Kann ich WireGuard hinter einem Router mit dynamischer IP betreiben?</h3>
+<p>Ja, mit <code>PersistentKeepalive = 25</code> auf der Client-Seite und einem dynamischen DNS-Dienst wie DuckDNS oder Cloudflare DDNS. Der Server muss dann nicht erreichbar sein – der Client baut die Verbindung aktiv auf. Für Site-to-Site zwischen zwei dynamischen Standorten brauchst du einen dritten Peer mit statischer IP als Rendezvous.</p>
+
+<h3>Ist WireGuard in Deutschland rechtlich sicher?</h3>
+<p>Ja. WireGuard ist ein reines Protokoll, keine Rechtsfrage. Wer den Server selbst betreibt, ist Anbieter eigener Telekommunikationsdienste und unterliegt in Deutschland den üblichen Pflichten (Impressum, Datenschutz). Logging ist nicht vorgeschrieben, aber bei gewerblicher Nutzung empfohlen. Für private Nutzung gibt es keine besonderen Auflagen.</p>
+
+<h3>Wie hoch ist der Performance-Verlust durch WireGuard?</h3>
+<p>Auf modernen CPUs liegt der Overhead bei 5–15 % der Rohbandbreite. Ein 1-Gbit/s-Anschluss erreicht mit WireGuard typischerweise 850–950 Mbit/s. Der Flaschenhals ist fast immer die CPU des Servers, nicht das Protokoll. Mit AES-NI-Beschleunigung (bei OpenVPN) oder ChaCha20 (bei WireGuard) sind beide Verfahren hardwarebeschleunigt.</p>

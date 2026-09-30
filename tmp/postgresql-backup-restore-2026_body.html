@@ -1,0 +1,234 @@
+<h2>Warum PostgreSQL-Backups 2026 neu gedacht werden müssen</h2>
+
+<p>PostgreSQL 17 und 18 haben das Backup-Ökosystem spürbar verändert. <strong>Inkrementelle pg_basebackup-Backups</strong> (ab PG 17) senken den Speicherbedarf drastisch, <strong>zstd-Kompression</strong> ist seit PG 16 nativ in <code>pg_dump</code> und <code>pg_basebackup</code> integriert, und <code>pg_verifybackup</code> prüft Backups inzwischen blockgenau gegen Manifest-Dateien. Wer noch mit <code>pg_dump | gzip</code> aus einem 2019er-Cronjob arbeitet, verschenkt Faktor 3 bis 5 bei Laufzeit und Speicher.</p>
+
+<p>Gleichzeitig sind die Anforderungen gestiegen. Ein typischer Webshop mit 400 GB Datenbank und 2000 Schreibtransaktionen pro Sekunde produziert <strong>8 bis 25 GB WAL pro Tag</strong>. Ein reines Nachtbackup bedeutet im Worst Case 24 Stunden Datenverlust – bei Bestellungen, Zahlungen und Buchungen ist das geschäftsschädigend. Die relevante Frage lautet deshalb nicht „Wie oft sichere ich?", sondern „Wie viel Datenverlust kostet mich eine Stunde Stillstand?"</p>
+
+<p>Dazu kommt der Faktor Mensch. In Auswertungen von Post-Mortems aus 2024 und 2025 waren <strong>über 60 % der schweren Datenverluste</strong> auf nicht getestete oder unvollständige Backups zurückzuführen – nicht auf Hardware-Ausfälle. Ein Backup, das nie restored wurde, ist eine Hypothese. Deshalb gehört in jede Strategie ein regelmäßiger Restore-Drill, idealerweise automatisiert in einer Staging-Umgebung.</p>
+
+<h2>RPO, RTO und die Wahl der Backup-Methode</h2>
+
+<p>Bevor du einen einzigen Befehl tippst, definiere zwei Kennzahlen. <strong>RPO (Recovery Point Objective)</strong> beschreibt, wie viel Datenverlust akzeptabel ist – 5 Minuten, 1 Stunde, 24 Stunden. <strong>RTO (Recovery Time Objective)</strong> beschreibt, wie lange die Wiederherstellung dauern darf. Beide Werte bestimmen direkt, welche Methode du brauchst.</p>
+
+<table>
+<thead>
+<tr><th>Methode</th><th>RPO</th><th>RTO (100 GB)</th><th>Speicherbedarf</th><th>Einsatz</th></tr>
+</thead>
+<tbody>
+<tr><td>pg_dump (logisch)</td><td>24 h</td><td>45–90 min</td><td>1× DB-Größe</td><td>Migrationen, kleine DBs</td></tr>
+<tr><td>pg_basebackup + WAL</td><td>1–5 min</td><td>20–40 min</td><td>1× DB + WAL</td><td>Standard-Produktion</td></tr>
+<tr><td>pgBackRest Full+Incr</td><td>1 min</td><td>15–30 min</td><td>0,3× DB + WAL</td><td>Enterprise, große DBs</td></tr>
+<tr><td>Streaming Replica</td><td>~0</td><td>2–5 min</td><td>1× DB</td><td>HA, kein Backup-Ersatz</td></tr>
+</tbody>
+</table>
+
+<p>Wichtig: Eine Streaming-Replica ist <strong>kein Backup</strong>. Ein versehentliches <code>DELETE FROM orders;</code> wird binnen Millisekunden repliziert. Replikation schützt gegen Hardwareausfall, nicht gegen Logikfehler. Du brauchst beides: Replikation für Verfügbarkeit, WAL-Archiv für Rücksetzbarkeit.</p>
+
+<p>Für die meisten Produktionssysteme ab 50 GB ist die Kombination <strong>wöchentliches Full-Backup + tägliche inkrementelle Backups + kontinuierliche WAL-Archivierung</strong> der Goldstandard. Damit erreichst du einen RPO von unter 5 Minuten und einen RTO, der nur von der Restore-Bandbreite abhängt.</p>
+
+<h2>pg_dump in der Praxis: Formate, Kompression, Parallelität</h2>
+
+<p><code>pg_dump</code> bleibt das Werkzeug der Wahl für logische Backups, Versionsmigrationen und einzelne Tabellen. Der entscheidende Punkt: Nutze <strong>niemals das Plain-Format</strong> für Produktionsbackups. Das Custom-Format (<code>-Fc</code>) erlaubt selektiven Restore, paralleles Entpacken und native Kompression.</p>
+
+<pre><code># Custom-Format mit zstd-Level 3 (PG 16+), 8 parallele Worker
+pg_dump -h 10.0.0.5 -U backup_user -d shopdb \
+  -Fd -j 8 --compress=zstd:3 \
+  -f /backup/shopdb_$(date +%F_%H%M)
+
+# Einzelne Tabelle, Custom-Format
+pg_dump -Fc -t public.orders -d shopdb -f orders.dump
+
+# Schema-only für Migrationsvergleiche
+pg_dump -Fc --schema-only -d shopdb -f shopdb_schema.dump</code></pre>
+
+<p>Das Directory-Format (<code>-Fd</code>) mit <code>-j 8</code> ist bei großen Datenbanken der Gamechanger. Eine 500-GB-Datenbank, die sequenziell 3,5 Stunden braucht, ist mit 8 Workern in <strong>35 bis 50 Minuten</strong> gesichert – vorausgesetzt, die CPU und das Ziel-Storage machen mit. Achte darauf, dass <code>-j</code> nicht mehr Worker startet als CPU-Kerne verfügbar sind.</p>
+
+<p>Ein häufiger Fehler ist der fehlende Konsistenz-Snapshot bei parallelen Dumps. Ab PostgreSQL 9.2 nutzt <code>-j</code> automatisch einen exportierten Snapshot, sodass alle Worker denselben Datenstand sehen. Das funktioniert aber nur, wenn alle Verbindungen zur selben Datenbank gehen – bei <code>pg_dumpall</code> mit mehreren Datenbanken ist das nicht der Fall.</p>
+
+<p>Für die Kompression gilt: <strong>zstd:3</strong> ist der beste Kompromiss. Gegenüber gzip -6 sparst du rund 40 % Laufzeit bei etwa 5 % größerer Ausgabe. Bei archivierten Backups auf S3 oder Storage Box lohnt sich zusätzlich <code>zstd:9</code>, wenn die CPU-Last nachts ohnehin niedrig ist.</p>
+
+<h2>pg_dumpall, Rollen und Globals – der oft vergessene Teil</h2>
+
+<p>Der klassische Albtraum: Das Backup wird erfolgreich restored, aber niemand kann sich anmelden, weil Rollen, Passwörter und Tablespaces fehlen. <code>pg_dump</code> sichert nur eine Datenbank und <strong>keine globalen Objekte</strong>. Rollen, Grants auf Cluster-Ebene und Tablespace-Definitionen liegen außerhalb.</p>
+
+<pre><code># Nur Rollen und Globals – schnell, klein, kritisch
+pg_dumpall --roles-only -h 10.0.0.5 -U postgres -f /backup/roles_$(date +%F).sql
+
+# Alle Datenbanken inkl. Globals (bei parallelen Dumps ungeeignet)
+pg_dumpall -h 10.0.0.5 -U postgres --clean --if-exists -f /backup/all.sql</code></pre>
+
+<p>Sichere die Rollen-Datei <strong>täglich</strong>, nicht wöchentlich. Sie ist nur wenige Kilobyte groß und ändert sich oft durch neue Service-Accounts oder CI-Runner. Bewahre sie zusätzlich in einem separaten Bucket mit anderer Zugriffskontrolle auf – wer die Rollendatei hat, kennt alle Benutzernamen und kann Passwort-Hashes analysieren.</p>
+
+<p>Ein bewährtes Muster ist ein dreiteiliges Backup-Set: <code>roles.sql</code> (Globals), <code>shopdb.dump</code> (Datenbank-Inhalt) und <code>wal/</code> (Archiv). Alle drei gehören in dasselbe Wiederherstellungs-Runbook, sonst scheitert der Restore an Schritt 2.</p>
+
+<h2>Restore mit pg_restore – Schritt für Schritt</h2>
+
+<p>Ein Restore ist kein einzelner Befehl, sondern eine Sequenz. Bei einem vollständigen Wiederaufbau gehst du so vor:</p>
+
+<ol>
+<li>Neuen Cluster initialisieren, <code>postgresql.conf</code> mit identischen <code>shared_buffers</code>, <code>max_connections</code> und Collation aufsetzen.</li>
+<li><code>roles.sql</code> einspielen: <code>psql -f roles.sql postgres</code></li>
+<li>Zieldatenbank anlegen: <code>createdb -O shopdb_owner shopdb</code></li>
+<li>Dump parallel einspielen.</li>
+<li>Sequences, Statistiken und Indizes prüfen, <code>ANALYZE</code> laufen lassen.</li>
+</ol>
+
+<pre><code># Paralleler Restore, ohne Owner/Privileges (Rollen sind schon da)
+pg_restore -h 10.0.0.5 -U postgres -d shopdb \
+  -j 8 --no-owner --no-privileges --exit-on-error -v \
+  /backup/shopdb_2026-03-14_0200
+
+# Nur eine Tabelle aus dem Dump extrahieren
+pg_restore -d shopdb -t orders --data-only -j 4 shopdb.dump</code></pre>
+
+<p>Der Parameter <code>--exit-on-error</code> ist im Wiederherstellungsfall Pflicht. Ohne ihn ignoriert <code>pg_restore</code> Fehler und meldet am Ende „finished with warnings" – ein Zustand, der schon viele Teams in falscher Sicherheit gewiegt hat. Bei einem Restore in eine bestehende Datenbank willst du dagegen <code>--clean --if-exists</code> verwenden.</p>
+
+<p>Für Performance: Deaktiviere während des Restores <code>synchronous_commit</code>, erhöhe <code>maintenance_work_mem</code> auf 2 GB und <code>max_wal_size</code> auf 16 GB. Das verkürzt einen 200-GB-Restore typischerweise von 90 auf <strong>35 Minuten</strong>. Danach nicht vergessen, die Werte wieder zurückzusetzen.</p>
+
+<h2>WAL-Archivierung korrekt einrichten</h2>
+
+<p>Die WAL-Archivierung ist das Fundament jeder PITR-Fähigkeit. Ohne sie gibt es keinen Rücksetzpunkt zwischen zwei Backups. Die Grundkonfiguration in <code>postgresql.conf</code>:</p>
+
+<pre><code>wal_level = replica
+archive_mode = on
+archive_command = 'test ! -f /mnt/wal_archive/%f && cp %p /mnt/wal_archive/%f'
+archive_timeout = 60
+wal_compression = zstd</code></pre>
+
+<p><code>archive_timeout = 60</code> erzwingt einen WAL-Segment-Wechsel spätestens nach 60 Sekunden, auch wenn das 16-MB-Segment nicht voll ist. Damit begrenzt du den RPO auf etwa eine Minute. Ohne diesen Wert kann ein Segment bei ruhiger Datenbank Stunden unvollständig bleiben.</p>
+
+<p>Das <code>test ! -f</code> im <code>archive_command</code> ist kein Zierrat: PostgreSQL ruft das Kommando bei Fehlschlag erneut auf. Ohne die Prüfung überschreibt <code>cp</code> bestehende Segmente und du zerstörst dein Archiv stillschweigend. Prüfe den Archivstatus regelmäßig:</p>
+
+<pre><code>SELECT archived_count, failed_count, last_archived_wal, last_failed_wal
+FROM pg_stat_archiver;</code></pre>
+
+<p>Ein <code>failed_count</code> größer 0 bedeutet: Das Archiv hat Lücken. Solche Lücken machen PITR unmöglich – und man merkt es oft erst im Notfall. Setze ein Monitoring auf diese View, mit Alarm bei jedem fehlgeschlagenen Archivierungsversuch.</p>
+
+<h2>Point-in-Time-Recovery (PITR) in der Praxis</h2>
+
+<p>PITR bedeutet: Du spielst ein Basisbackup ein und rechnest anschließend WAL-Segmente bis zu einem exakten Zeitpunkt nach. Das ist der Moment, in dem du sagen kannst: „Setze den Cluster auf 09:42:00 Uhr zurück, drei Minuten vor dem fehlerhaften Deployment."</p>
+
+<pre><code># 1. Basisbackup entpacken
+tar -xzf /backup/base_2026-03-13.tar.gz -C /var/lib/postgresql/17/main
+
+# 2. Recovery-Konfiguration in postgresql.conf
+restore_command = 'cp /mnt/wal_archive/%f %p'
+recovery_target_time = '2026-03-14 09:42:00+01'
+recovery_target_action = 'promote'
+
+# 3. Recovery-Signal setzen (PG 12+)
+touch /var/lib/postgresql/17/main/recovery.signal
+
+# 4. Starten
+pg_ctl -D /var/lib/postgresql/17/main start</code></pre>
+
+<p>Ab PostgreSQL 12 steuert <code>recovery.signal</code> den Recovery-Modus – <code>recovery.conf</code> existiert nicht mehr. Der Parameter <code>recovery_target_action = 'promote'</code> sorgt dafür, dass der Cluster nach Erreichen des Ziels in den Normalbetrieb wechselt und Schreibzugriffe akzeptiert. Alternativen sind <code>'pause'</code> für manuelle Kontrolle oder <code>'shutdown'</code> für forensische Analysen.</p>
+
+<p>Für granulare Rücksetzpunkte kannst du benannte Markierungen verwenden: <code>SELECT pg_create_restore_point('before_migration_2026_03_14');</code> und dann mit <code>recovery_target_name</code> darauf zurücksetzen. Das ist deutlich robuster als Zeitstempel, weil du keine Zeitzonen- und Uhrenprobleme hast.</p>
+
+<p>Ein wichtiger Praxishinweis: Teste PITR <strong>mindestens quartalsweise</strong> auf einem separaten Host. Die häufigsten Fehlerquellen sind fehlende WAL-Segmente an Segmentgrenzen, falsche Berechtigungen im Archivverzeichnis und abweichende PostgreSQL-Minor-Versionen zwischen Backup und Zielcluster.</p>
+
+<h2>pg_basebackup und physische Backups</h2>
+
+<p><code>pg_basebackup</code> kopiert den gesamten Cluster auf Dateiebene. Es ist schneller als <code>pg_dump</code> und liefert die exakte Grundlage für PITR.</p>
+
+<pre><code># Vollständiges Basisbackup mit WAL-Streaming und Recovery-Config
+pg_basebackup -h 10.0.0.5 -U replicator \
+  -D /backup/base_2026-03-14 \
+  -Fp -Xs -P -R --checkpoint=fast \
+  --compress=server-zstd:3
+
+# Ab PG 17: inkrementelles Basisbackup
+pg_basebackup -h 10.0.0.5 -U replicator \
+  -D /backup/base_incr_2026-03-15 \
+  -Fp -Xs -P --incremental=/backup/base_2026-03-14/backup_manifest</code></pre>
+
+<p>Die inkrementellen Basisbackups ab PostgreSQL 17 sind der größte Fortschritt seit Jahren. Statt täglich 500 GB zu kopieren, sicherst du nur die seit dem letzten Backup geänderten Blöcke – typischerweise <strong>5 bis 20 GB pro Tag</strong>. Bei S3-Kosten von 0,023 USD pro GB summiert sich das schnell auf dreistellige Eurobeträge pro Jahr.</p>
+
+<p>Verifiziere jedes Basisbackup mit <code>pg_verifybackup</code>. Das Tool prüft jede Datei gegen das Manifest und erkennt Bit-Rot, abgebrochene Transfers und Manipulation:</p>
+
+<pre><code>pg_verifybackup /backup/base_2026-03-14</code></pre>
+
+<h2>pgBackRest und WAL-G automatisieren</h2>
+
+<p>Für Produktionsumgebungen solltest du <code>pg_dump</code>-Skripte durch ein dediziertes Backup-Tool ersetzen. <strong>pgBackRest</strong> ist 2026 der De-facto-Standard: Es unterstützt parallele Kompression, inkrementelle und differentielle Backups, S3-Repositories, Retention-Policies und Verschlüsselung out of the box.</p>
+
+<pre><code># /etc/pgbackrest/pgbackrest.conf
+[global]
+repo1-path=/var/lib/pgbackrest
+repo1-retention-full=4
+repo1-retention-diff=14
+repo1-cipher-type=aes-256-cbc
+compress-type=zstd
+compress-level=6
+
+[main]
+pg1-path=/var/lib/postgresql/17/main
+
+# Betrieb
+pgbackrest --stanza=main stanza-create
+pgbackrest --stanza=main --type=full backup
+pgbackrest --stanza=main --type=incr backup
+pgbackrest --stanza=main info</code></pre>
+
+<p>Für PITR mit pgBackRest genügt ein Befehl, inklusive automatischem WAL-Abruf:</p>
+
+<pre><code>pgbackrest --stanza=main --delta \
+  --type=time --target="2026-03-14 09:42:00+01" \
+  --target-action=promote restore</code></pre>
+
+<p><strong>WAL-G</strong> ist die leichtere Alternative, wenn du ausschließlich in S3 oder kompatible Objektspeicher sicherst. Es ist in Go geschrieben, hat keine Abhängigkeiten und eignet sich gut für Kubernetes-Umgebungen mit CloudNativePG oder Zalando Postgres Operator.</p>
+
+<h2>Verifikation, Monitoring und Restore-Drills</h2>
+
+<p>Ein Backup ohne Verifikation ist eine Vermutung. Baue drei Prüfstufen ein. Erstens: <strong>Integritätsprüfung</strong> direkt nach dem Backup (<code>pg_verifybackup</code>, <code>pgbackrest check</code>). Zweitens: <strong>Archiv-Monitoring</strong> über <code>pg_stat_archiver</code> mit Alarm bei Lücken. Drittens: <strong>Restore-Drills</strong> in einer isolierten Umgebung.</p>
+
+<p>Für den Restore-Drill hat sich ein wöchentlicher Automatismus bewährt: Ein Cronjob spielt das letzte Full-Backup in einen Container-Cluster ein, führt <code>SELECT count(*) FROM orders;</code> und drei bis fünf fachliche Konsistenzabfragen aus und schickt das Ergebnis an Slack oder E-Mail. Bei Abweichung eskaliert der Job. Die Kosten dafür sind minimal – ein Container mit 8 GB RAM und 100 GB Volume liegt bei Hetzner bei rund <strong>12 € pro Monat</strong>.</p>
+
+<p>Wichtige Kennzahlen für dein Monitoring-Dashboard:</p>
+
+<ul>
+<li><strong>Backup-Alter</strong> in Stunden (Alarm ab 26 h bei täglichem Backup)</li>
+<li><strong>WAL-Lücke</strong> in Sekunden seit letztem archivierten Segment</li>
+<li><strong>Backup-Dauer</strong> im Trend – schleichende Verlangsamung zeigt Storage-Probleme</li>
+<li><strong>Restore-Dauer</strong> beim Drill, gemessen bis zum ersten erfolgreichen Query</li>
+<li><strong>Repository-Größe</strong> gegen Budget und Retention-Policy</li>
+</ul>
+
+<h2>Kosten, Anbieter und Sicherheit im Vergleich</h2>
+
+<p>Backup-Speicher ist 2026 günstig, aber die Unterschiede sind erheblich. Für 1 TB Backup-Daten pro Monat zahlst du je nach Anbieter:</p>
+
+<table>
+<thead><tr><th>Anbieter</th><th>Preis pro TB/Monat</th><th>Egress</th><th>Eignung</th></tr></thead>
+<tbody>
+<tr><td>Hetzner Storage Box BX11</td><td>3,81 €</td><td>unbegrenzt (Fair Use)</td><td>Self-Hosted, EU</td></tr>
+<tr><td>Backblaze B2</td><td>~5,60 €</td><td>gratis bis 3× Speicher</td><td>S3-kompatibel</td></tr>
+<tr><td>Wasabi</td><td>~6,50 €</td><td>gratis</td><td>PITR-Repos</td></tr>
+<tr><td>AWS S3 Standard</td><td>~21 €</td><td>0,09 $/GB</td><td>Enterprise</td></tr>
+<tr><td>AWS S3 Glacier IR</td><td>~3,70 €</td><td>Restore-Gebühren</td><td>Langzeitarchiv</td></tr>
+</tbody>
+</table>
+
+<p>Bei Managed-PostgreSQL-Diensten sind Backups meist inklusive, aber mit engen Grenzen. IONOS Managed PostgreSQL startet bei rund <strong>12 € pro Monat</strong> für kleine Instanzen, AWS RDS db.t4g.medium kostet etwa 0,068 USD pro Stunde plus 0,115 USD pro GB-Monat Speicher – bei 500 GB Backup-Volumen sind das schnell 60 USD extra pro Monat. Neon und Supabase bieten PITR in den Pro-Tarifen ab 25 USD bzw. 25 USD pro Monat, allerdings mit begrenzten Aufbewahrungsfenstern (7 bis 30 Tage).</p>
+
+<p>Sicherheit ist der zweite Kostenblock. Drei Regeln sind nicht verhandelbar. Erstens: <strong>Backups verschlüsseln</strong> – pgBackRest mit <code>repo1-cipher-type=aes-256-cbc</code> oder clientseitige Verschlüsselung via <code>age</code> vor dem Upload. Zweitens: <strong>Credentials trennen</strong> – der Backup-User hat <code>pg_read_all_data</code> und <code>REPLICATION</code>, aber keine Schreibrechte. Drittens: <strong>Offline-Kopie</strong> – mindestens ein Backup-Generation pro Monat auf einem Medium, das nicht am Netz hängt (Band, externe Platte, Immutable Bucket mit Object Lock).</p>
+
+<p>Gegen Ransomware hilft vor allem Object Lock mit Compliance-Modus. Ein Backup, das 30 Tage nicht gelöscht werden kann – auch nicht vom Root-Account – ist der einzige verlässliche Schutz gegen einen Angreifer mit Admin-Zugang. Rechne mit 10 bis 15 % Aufpreis bei den meisten Anbietern, aber es ist die günstigste Versicherung, die du abschließen kannst.</p>
+
+<h2>FAQ</h2>
+
+<h3>Wie oft sollte ich pg_dump in Produktion ausführen?</h3>
+<p>Für Datenbanken unter 20 GB ist ein täglicher <code>pg_dump</code> im Custom-Format mit <code>--compress=zstd:3</code> völlig ausreichend. Ab 50 GB solltest du auf physische Backups mit <code>pg_basebackup</code> oder pgBackRest wechseln und <code>pg_dump</code> nur noch wöchentlich für logische Konsistenzprüfungen und Migrationssicherheit einsetzen. Der Grund ist die Laufzeit: Ein 500-GB-<code>pg_dump</code> blockiert Ressourcen über Stunden, während ein inkrementelles Basisbackup in Minuten durchläuft.</p>
+
+<h3>Was ist der Unterschied zwischen pg_dump und pg_basebackup?</h3>
+<p><code>pg_dump</code> erzeugt ein logisches Backup: SQL- oder Archivdateien mit Daten und Schema, die sich in jede PostgreSQL-Version einspielen lassen. <code>pg_basebackup</code> kopiert den physischen Cluster auf Dateiebene und benötigt exakt dieselbe Major-Version zum Wiederherstellen. Nur physische Backups lassen sich mit WAL-Archivierung zu Point-in-Time-Recovery kombinieren. Für Versionsmigrationen ist <code>pg_dump</code> die richtige Wahl, für RPO unter 5 Minuten das physische Backup.</p>
+
+<h3>Wie teste ich, ob mein PITR-Setup wirklich funktioniert?</h3>
+<p>Baue einen automatisierten Drill: Container starten, letztes Full-Backup entpacken, <code>recovery.signal</code> setzen, WAL-Archiv einbinden, Cluster starten und auf einen Zeitpunkt 30 Minuten vor dem letzten Backup zurücksetzen. Danach drei fachliche Konsistenzabfragen ausführen und die Ergebnisse mit der Produktion vergleichen. Läuft dieser Drill wöchentlich durch, hast du belastbare Sicherheit. Läuft er nicht durch, hast du ein Problem gefunden, bevor es dich findet.</p>
+
+<h3>Wie viel Speicher brauche ich für WAL-Archivierung?</h3>
+<p>Rechne mit 5 bis 25 GB WAL pro Tag, abhängig von Schreiblast und <code>wal_compression</code>. Bei einer Datenbank mit 2000 TPS sind 15 GB pro Tag realistisch. Für ein 30-Tage-Aufbewahrungsfenster brauchst du also rund 450 GB, mit zstd-Kompression etwa 250 GB. Wichtig: WAL-Segmente, die älter sind als dein ältestes Basisbackup, kannst du löschen – sie sind für PITR wertlos. Automatisiere diese Bereinigung über die Retention-Policy deines Backup-Tools.</p>
+
+<h3>Kann ich ein PostgreSQL-Backup auf einen anderen Server mit anderer Version einspielen?</h3>
+<p>Bei <code>pg_dump</code>-Backups ja, solange die Zielversion gleich oder neuer ist. Ein Dump von PostgreSQL 15 lässt sich problemlos in 17 oder 18 einspielen. Umgekehrt funktioniert es nicht. Bei physischen Backups gilt das Gegenteil: Sie sind strikt an die Major-Version gebunden. Ein Cluster-Backup von 16 lässt sich nicht in 17 starten – dafür brauchst du <code>pg_upgrade</code> oder eine logische Migration über <code>pg_dumpall</code>.</p>
