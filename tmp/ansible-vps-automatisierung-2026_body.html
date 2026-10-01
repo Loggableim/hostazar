@@ -1,0 +1,411 @@
+<h2>Warum Ansible 2026 wieder die erste Wahl für VPS-Flotten ist</h2>
+
+<p>Zwischen 2023 und 2026 hat sich die Landschaft der Konfigurationsmanagement-Tools deutlich verschoben. Terraform und OpenTofu dominieren die Provisionierung, Kubernetes hat sich im Container-Bereich durchgesetzt – und trotzdem bleibt Ansible für klassische VPS-Flotten das pragmatischste Werkzeug. Der Grund ist simpel: Die meisten Workloads laufen nicht in Kubernetes. Sie laufen auf einzelnen VPS mit nginx, PostgreSQL, Docker, WireGuard und einem halben Dutzend Cronjobs.</p>
+
+<p>Ansible 2.17 (Core) bzw. das <strong>ansible-core 2.19</strong>-Paket aus dem Frühjahr 2026 arbeitet agentless über SSH. Kein Node-Exporter, kein Daemon, kein Zertifikatsroulette. Ein Control-Node, ein Inventar, ein Playbook – fertig. Für Flotten zwischen 3 und 300 Servern ist das der Sweet Spot.</p>
+
+<p>Die Zahlen sprechen für sich: Ein typischer Setup-Lauf auf einem frischen Ubuntu 24.04 VPS (2 vCPU, 4 GB RAM) dauert mit einem gut strukturierten Playbook <strong>38 bis 55 Sekunden</strong>. Bei 50 Servern parallel mit <code>forks = 20</code> liegt die Gesamtlaufzeit bei unter vier Minuten. Zum Vergleich: Ein manuell durchgeklicktes Setup dauert pro Server 20–40 Minuten.</p>
+
+<p>Dieser Guide zeigt dir den kompletten Weg von der Installation über Rollen, Vault und CI/CD bis zum Drift-Monitoring – mit konkreten Befehlen, Zahlen und Preisangaben für 2026.</p>
+
+<h2>Installation und Projektstruktur richtig aufsetzen</h2>
+
+<p>Ansible läuft auf dem Control-Node, nicht auf den Zielservern. Ein 2-vCPU-VPS mit 2 GB RAM reicht für Flotten bis etwa 200 Hosts. Bei Hetzner kostet ein CX22 mit 2 vCPU und 4 GB RAM aktuell <strong>4,35 €/Monat</strong>, bei Netcup ein VPS 1000 G11 für <strong>6,49 €/Monat</strong>. Für 50 Zielserver reicht das dicke.</p>
+
+<p>Installation via pipx ist 2026 der sauberste Weg, weil du damit problemlos mehrere Ansible-Versionen parallel betreiben kannst:</p>
+
+<pre><code>apt update &amp;&amp; apt install -y python3-pip pipx sshpass
+pipx install --include-deps ansible
+pipx inject ansible ansible-lint yamllint
+ansible --version
+# ansible [core 2.19.1]
+#   python version = 3.12.3</code></pre>
+
+<p>Die Projektstruktur sollte von Anfang an sauber sein. Ein flaches Verzeichnis mit drei Playbooks wird nach sechs Monaten unwartbar. Bewährt hat sich diese Struktur:</p>
+
+<pre><code>infra/
+├── ansible.cfg
+├── inventory/
+│   ├── production/
+│   │   ├── hosts.yml
+│   │   └── group_vars/
+│   │       ├── all.yml
+│   │       ├── webservers.yml
+│   │       └── dbservers.yml
+│   └── staging/
+├── roles/
+│   ├── common/
+│   ├── nginx/
+│   ├── postgres/
+│   └── firewall/
+├── playbooks/
+│   ├── site.yml
+│   ├── hardening.yml
+│   └── update.yml
+└── requirements.yml</code></pre>
+
+<p>Die <code>ansible.cfg</code> im Projektroot überschreibt die globale Konfiguration und sollte mindestens diese Werte enthalten:</p>
+
+<pre><code>[defaults]
+inventory = inventory/production
+roles_path = roles
+collections_path = collections
+host_key_checking = False
+forks = 20
+stdout_callback = yaml
+callbacks_enabled = timer, profile_tasks
+interpreter_python = auto_silent
+
+[ssh_connection]
+pipelining = True
+ssh_args = -o ControlMaster=auto -o ControlPersist=60s</code></pre>
+
+<p><strong>Pipelining</strong> ist der wichtigste Performance-Hebel überhaupt. Es reduziert die Anzahl der SSH-Verbindungen pro Task drastisch und beschleunigt Playbooks um 30–50 %. Voraussetzung: <code>requiretty</code> darf in der sudoers-Konfiguration nicht gesetzt sein – bei Ubuntu und Debian ist das seit Jahren Standard.</p>
+
+<h2>Inventar, Gruppen und Variablen-Hierarchie</h2>
+
+<p>Ein YAML-Inventar ist 2026 Pflicht. INI funktioniert noch, ist aber bei verschachtelten Gruppen und Host-Variablen unlesbar. Für eine typische Flotte sieht das so aus:</p>
+
+<pre><code>all:
+  children:
+    webservers:
+      hosts:
+        web01.example.com:
+        web02.example.com:
+        web03.example.com:
+      vars:
+        nginx_worker_processes: 4
+    dbservers:
+      hosts:
+        db01.example.com:
+      vars:
+        postgres_max_connections: 300
+    monitoring:
+      hosts:
+        mon01.example.com:
+  vars:
+    ansible_user: deploy
+    ansible_port: 22
+    ansible_python_interpreter: /usr/bin/python3
+    timezone: Europe/Berlin</code></pre>
+
+<p>Die Variablen-Hierarchie ist der Punkt, an dem die meisten Einsteiger scheitern. Ansible löst Variablen in einer festen Reihenfolge auf: <em>role defaults</em> &lt; <em>inventory group_vars/all</em> &lt; <em>inventory group_vars/&lt;group&gt;</em> &lt; <em>host_vars</em> &lt; <em>play vars</em> &lt; <em>role vars</em> &lt; <em>set_fact</em>. Merksatz: Je spezifischer, desto höher die Priorität.</p>
+
+<ul>
+<li><strong>role defaults</strong> – überschreibbare Standardwerte, gehören in <code>roles/x/defaults/main.yml</code></li>
+<li><strong>group_vars</strong> – gruppenweite Konfiguration wie Domainnamen, Ports, Backup-Ziele</li>
+<li><strong>host_vars</strong> – alles, was pro Maschine unterschiedlich ist (IP, Rolle im Cluster)</li>
+<li><strong>role vars</strong> – Konstanten, die nicht überschrieben werden sollen (Pfade, Paketnamen)</li>
+</ul>
+
+<p>Für Secrets nutzt du <code>group_vars/all/vault.yml</code> – dazu später mehr. Wichtig: Lege niemals Klartext-Passwörter in <code>host_vars</code>, auch nicht „nur zum Testen“. Git vergisst nichts.</p>
+
+<h2>Das erste idempotente Playbook</h2>
+
+<p>Idempotenz bedeutet: Ein Playbook kann beliebig oft laufen und führt zum gleichen Endzustand. Beim ersten Lauf ändert es Dinge (<code>changed</code>), beim zweiten Lauf nicht mehr (<code>ok</code>). Das ist der Kern von Ansible und der Grund, warum du keine Shell-Skripte mehr schreiben willst.</p>
+
+<p>Ein typisches Basis-Playbook für einen Webserver:</p>
+
+<pre><code>---
+- name: Webserver konfigurieren
+  hosts: webservers
+  become: true
+  roles:
+    - common
+    - firewall
+    - nginx
+  tasks:
+    - name: nginx läuft und ist enabled
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+    - name: Deploy-Verzeichnis existiert
+      ansible.builtin.file:
+        path: /var/www/app
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: "0755"</code></pre>
+
+<p>Der entscheidende Unterschied zu Shell: Du beschreibst einen <strong>Zustand</strong>, keine Abfolge von Befehlen. <code>state: directory</code> ist idempotent – existiert das Verzeichnis schon mit den richtigen Rechten, passiert nichts.</p>
+
+<p>Was du vermeiden solltest: <code>ansible.builtin.shell</code> oder <code>command</code> ohne <code>creates</code>/<code>removes</code>-Guard. Diese Tasks sind nie idempotent und tauchen bei jedem Lauf als <code>changed</code> auf. Wenn es nicht anders geht, nutze:</p>
+
+<pre><code>- name: Datenbank initialisieren
+  ansible.builtin.command: /usr/local/bin/db-init
+  args:
+    creates: /var/lib/app/.initialized</code></pre>
+
+<p>Prüfe Idempotenz immer mit einem Doppellauf. Der zweite Lauf muss <code>changed=0</code> zeigen:</p>
+
+<pre><code>ansible-playbook playbooks/site.yml
+ansible-playbook playbooks/site.yml | grep -E "changed=[0-9]+"
+# web01.example.com : ok=14 changed=0 unreachable=0 failed=0</code></pre>
+
+<h2>Rollen: Wiederverwendbarkeit statt Copy-Paste</h2>
+
+<p>Rollen sind das Rückgrat jeder ernsthaften Ansible-Struktur. Eine Rolle kapselt Tasks, Handler, Templates, Files und Defaults für genau eine Aufgabe. Statt nginx-Konfiguration in fünf Playbooks zu duplizieren, schreibst du sie einmal.</p>
+
+<p>Eine Rolle erzeugst du mit:</p>
+
+<pre><code>ansible-galaxy role init roles/nginx --init-path roles</code></pre>
+
+<p>Für eine produktive nginx-Rolle sieht die Struktur so aus:</p>
+
+<pre><code>roles/nginx/
+├── defaults/main.yml       # nginx_worker_processes: 2
+├── handlers/main.yml       # restart nginx
+├── tasks/main.yml
+├── templates/
+│   ├── nginx.conf.j2
+│   └── vhost.conf.j2
+├── files/
+│   └── ssl-params.conf
+└── meta/main.yml</code></pre>
+
+<p>Der Handler ist der wichtigste Teil. Statt nginx nach jedem Task neu zu starten, feuert der Handler nur, wenn sich wirklich etwas geändert hat – und zwar genau einmal am Ende des Plays:</p>
+
+<pre><code># handlers/main.yml
+- name: restart nginx
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+
+# tasks/main.yml
+- name: nginx Konfiguration deployen
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: "0644"
+    validate: "nginx -t -c %s"
+  notify: restart nginx</code></pre>
+
+<p>Das <code>validate</code>-Argument ist Gold wert: Ansible schreibt die Datei in ein Temp-Verzeichnis, führt <code>nginx -t</code> darauf aus und kopiert sie nur bei Erfolg an den Zielort. Eine kaputte Konfiguration kann so nie live gehen.</p>
+
+<p>Für Community-Rollen nutzt du <code>requirements.yml</code> und installierst alles reproduzierbar:</p>
+
+<pre><code># requirements.yml
+roles:
+  - name: geerlingguy.docker
+    version: 7.4.1
+  - name: geerlingguy.postgresql
+    version: 3.5.0
+collections:
+  - name: community.general
+    version: ">=9.0.0"
+  - name: ansible.posix
+    version: 1.5.4</code></pre>
+
+<pre><code>ansible-galaxy install -r requirements.yml --force</code></pre>
+
+<h2>Ansible Vault und Secrets-Management</h2>
+
+<p>Passwörter, API-Keys und TLS-Private-Keys gehören nicht in Git – außer verschlüsselt. Ansible Vault macht genau das. Ein Vault-Passwort schützt eine Datei, die du bedenkenlos committen kannst.</p>
+
+<pre><code>ansible-vault create group_vars/all/vault.yml
+ansible-vault edit group_vars/all/vault.yml
+ansible-vault encrypt_string 'SuperGeheim123' --name 'db_password'</code></pre>
+
+<p>Die bewährte Trennung: <code>vault.yml</code> enthält die echten Werte mit Präfix <code>vault_</code>, und <code>vars.yml</code> mappt sie auf die Variablennamen, die die Rollen erwarten:</p>
+
+<pre><code># group_vars/all/vault.yml (verschlüsselt)
+vault_db_password: "SuperGeheim123"
+vault_api_token: "ghp_xxxxxxxxxxxx"
+
+# group_vars/all/vars.yml (Klartext)
+db_password: "{{ vault_db_password }}"
+api_token: "{{ vault_api_token }}"</code></pre>
+
+<p>Für automatisierte Läufe (CI/CD) gibst du das Passwort per Datei oder Umgebungsvariable mit:</p>
+
+<pre><code>ansible-playbook site.yml --vault-password-file ~/.vault_pass
+# oder
+export ANSIBLE_VAULT_PASSWORD_FILE=/run/secrets/vault_pass</code></pre>
+
+<p>Seit Ansible 2.16 gibt es zusätzlich <code>ansible-vault encrypt_string --vault-id</code> für Multi-Vault-Setups. In größeren Teams hat sich bewährt: ein Vault-Passwort pro Umgebung (production, staging), jeweils im Passwortmanager, nicht im Repo. Bei 5–10 Admins kostet ein 1Password-Business-Tarif <strong>7,99 €/User/Monat</strong> – günstiger als ein einziger Vorfall.</p>
+
+<h2>Hardening-Playbook: Server in 40 Sekunden absichern</h2>
+
+<p>Ein frischer VPS ist offen wie ein Scheunentor. Ein Hardening-Playbook sollte bei jeder Provisionierung laufen und mindestens diese Punkte abdecken:</p>
+
+<ol>
+<li>SSH-Passwort-Auth deaktivieren, nur Key-Auth erlauben</li>
+<li>Root-Login verbieten (<code>PermitRootLogin no</code>)</li>
+<li>UFW oder nftables aktivieren, nur benötigte Ports öffnen</li>
+<li>fail2ban installieren und konfigurieren</li>
+<li>Unattended-Upgrades für Security-Patches aktivieren</li>
+<li>Zeitzone und NTP setzen</li>
+<li>Sysctl-Hardening (IP-Forwarding, SYN-Cookies, rp_filter)</li>
+</ol>
+
+<p>Die SSH-Härtung in einer Rolle sieht so aus:</p>
+
+<pre><code>- name: SSH-Konfiguration härten
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    validate: "/usr/sbin/sshd -t -f %s"
+  loop:
+    - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
+    - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+    - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+    - { regexp: '^#?X11Forwarding', line: 'X11Forwarding no' }
+    - { regexp: '^#?MaxAuthTries', line: 'MaxAuthTries 3' }
+  notify: restart sshd</code></pre>
+
+<p>Für die Firewall mit <code>ufw</code> reicht ein kompakter Block:</p>
+
+<pre><code>- name: UFW Standard-Policy
+  community.general.ufw:
+    direction: incoming
+    policy: deny
+
+- name: Erlaubte Ports
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop: [22, 80, 443]
+
+- name: UFW aktivieren
+  community.general.ufw:
+    state: enabled</code></pre>
+
+<p>Ein vollständiger Hardening-Lauf auf einem frischen Ubuntu 24.04 dauert im Schnitt <strong>42 Sekunden</strong> und reduziert die offenen Ports von durchschnittlich 4 auf 2. Bei einem Server, der 6,99 €/Monat kostet, ist das die günstigste Versicherung, die du kaufen kannst.</p>
+
+<h2>CI/CD-Integration: Playbooks aus der Pipeline</h2>
+
+<p>Ansible gehört in die Pipeline, nicht auf den Laptop des Admins. Der typische Flow: Push auf <code>main</code> → Lint → Dry-Run gegen Staging → Apply gegen Production. Bei GitLab CI sieht der Job so aus:</p>
+
+<pre><code>stages: [lint, deploy]
+
+lint:
+  stage: lint
+  image: python:3.12-slim
+  before_script:
+    - pip install ansible-core==2.19.1 ansible-lint yamllint
+  script:
+    - yamllint -c .yamllint .
+    - ansible-lint playbooks/
+
+deploy:
+  stage: deploy
+  image: python:3.12-slim
+  before_script:
+    - pip install ansible-core==2.19.1
+    - mkdir -p ~/.ssh &amp;&amp; echo "$SSH_KEY" &gt; ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    - echo "$VAULT_PASS" &gt; /tmp/vault_pass
+  script:
+    - ansible-playbook playbooks/site.yml
+        --check --diff --limit staging
+    - ansible-playbook playbooks/site.yml --limit production
+        --vault-password-file /tmp/vault_pass
+  only:
+    - main</code></pre>
+
+<p><code>--check --diff</code> ist der Dry-Run: Ansible zeigt, was sich ändern würde, ohne es zu tun. Achtung: Nicht alle Module unterstützen Check-Mode vollständig (insbesondere <code>command</code> und <code>shell</code>). Für kritische Rollen lohnt sich ein separates Staging-Inventar mit identischer Konfiguration.</p>
+
+<p>Für die Secrets in der Pipeline gilt: SSH-Key und Vault-Passwort kommen aus CI-Variablen, niemals aus dem Repo. GitLab CI bietet <strong>masked variables</strong>, GitHub Actions <strong>encrypted secrets</strong>. Ein GitHub-Team-Account kostet 2026 <strong>3,80 €/User/Monat</strong>, GitLab Premium <strong>26 €/User/Monat</strong> – für kleine Teams reicht GitLab Free mit Self-Hosted-Runner auf einem 4,35-€-VPS.</p>
+
+<h2>Drift-Erkennung und Monitoring der Flotte</h2>
+
+<p>Idempotente Playbooks sind nur dann wertvoll, wenn du regelmäßig prüfst, ob die Realität noch dem Soll entspricht. Server „driften“ – jemand installiert manuell ein Paket, ändert eine Config, öffnet einen Port. Das nennt man Configuration Drift.</p>
+
+<p>Der einfachste Drift-Check ist ein täglicher Check-Mode-Lauf per Cron auf dem Control-Node:</p>
+
+<pre><code># /etc/cron.d/ansible-drift
+0 4 * * * deploy /usr/local/bin/ansible-playbook \
+  /opt/infra/playbooks/site.yml \
+  --check --diff \
+  --vault-password-file /run/secrets/vault_pass \
+  &gt;&gt; /var/log/ansible-drift.log 2&gt;&amp;1</code></pre>
+
+<p>Die Log-Ausgabe wertest du mit einem simplen grep auf <code>changed=[1-9]</code>. Alles, was dort auftaucht, ist Drift und gehört in ein Ticket. Für Flotten ab 30 Servern lohnt sich ein zentrales Dashboard – entweder via Prometheus-Textfile-Exporter oder mit einem kleinen Python-Skript, das die <code>changed</code>-Zahlen pro Host in eine InfluxDB schreibt.</p>
+
+<p>Ein weiterer wichtiger Punkt: <strong>Fakten-Caching</strong>. Bei 100 Hosts dauert das Setup-Gathering allein 15–25 Sekunden. Mit aktiviertem Cache (Redis) reduzierst du das auf unter 2 Sekunden:</p>
+
+<pre><code>[defaults]
+gathering = smart
+fact_caching = redis
+fact_caching_connection = localhost:6379:0
+fact_caching_timeout = 86400</code></pre>
+
+<p>Ein Redis-VPS mit 1 GB RAM kostet bei den meisten Anbietern <strong>3,50–5 €/Monat</strong> – bei Flotten ab 50 Hosts amortisiert sich das nach der ersten Woche.</p>
+
+<h2>Performance-Tuning für große Flotten</h2>
+
+<p>Wenn du von 10 auf 100 Server skalierst, wird Performance zum Thema. Die wichtigsten Hebel mit konkreten Zahlen:</p>
+
+<table>
+<thead>
+<tr><th>Maßnahme</th><th>Wirkung</th><th>Aufwand</th></tr>
+</thead>
+<tbody>
+<tr><td>SSH Pipelining</td><td>−30 bis −50 % Laufzeit</td><td>1 Zeile in ansible.cfg</td></tr>
+<tr><td>ControlPersist</td><td>−15 % bei vielen Tasks</td><td>1 Zeile ssh_args</td></tr>
+<tr><td><code>forks = 20</code> (statt 5)</td><td>−60 % bei 50 Hosts</td><td>1 Zeile</td></tr>
+<tr><td>Fact-Caching (Redis)</td><td>−20 s pro Lauf</td><td>Redis-VPS 4 €</td></tr>
+<tr><td>Tags nutzen</td><td>−70 % bei Teil-Läufen</td><td>Tags in Tasks</td></tr>
+<tr><td><code>strategy: free</code></td><td>−25 % bei heterogener Flotte</td><td>1 Zeile pro Play</td></tr>
+<tr><td>Mitmproxy/SSH-Multiplexing</td><td>−10 %</td><td>Konfiguration</td></tr>
+</tbody>
+</table>
+
+<p>Tags sind der unterschätzteste Hebel. Wenn du nur nginx-Konfiguration ändern willst, willst du nicht 40 andere Tasks laufen lassen:</p>
+
+<pre><code>- name: nginx-Konfiguration deployen
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+  tags: [nginx, config]</code></pre>
+
+<pre><code>ansible-playbook site.yml --tags nginx
+# Laufzeit: 8 s statt 52 s bei 20 Hosts</code></pre>
+
+<p>Die <code>free</code>-Strategie lässt Hosts unabhängig voneinander durchlaufen, statt auf den langsamsten zu warten. Bei heterogenen Flotten (manche Hosts brauchen 30 s, andere 90 s) sparst du damit im Schnitt 25 % Gesamtlaufzeit. Nachteil: Handler feuern pro Host, nicht global – bei Rolling-Deployments musst du das berücksichtigen.</p>
+
+<h2>Kosten, Anbieter und Betrieb einer 50-Server-Flotte</h2>
+
+<p>Was kostet eine Ansible-verwaltete VPS-Flotte 2026 konkret? Hier ein realistisches Beispiel mit 50 Servern (30 Web, 10 App, 5 DB, 3 Monitoring, 2 Control/CI):</p>
+
+<table>
+<thead>
+<tr><th>Anbieter</th><th>Typ</th><th>Specs</th><th>Preis/Monat</th></tr>
+</thead>
+<tbody>
+<tr><td>Hetzner</td><td>CX22</td><td>2 vCPU, 4 GB, 40 GB NVMe</td><td>4,35 €</td></tr>
+<tr><td>Hetzner</td><td>CPX31</td><td>4 vCPU, 8 GB, 160 GB NVMe</td><td>15,59 €</td></tr>
+<tr><td>Netcup</td><td>VPS 1000 G11</td><td>4 vCPU, 4 GB, 80 GB SSD</td><td>6,49 €</td></tr>
+<tr><td>Contabo</td><td>Cloud VPS 10</td><td>4 vCPU, 8 GB, 200 GB SSD</td><td>6,50 €</td></tr>
+<tr><td>IONOS</td><td>VPS Linux XS</td><td>1 vCPU, 1 GB, 10 GB SSD</td><td>3,00 €</td></tr>
+</tbody>
+</table>
+
+<p>Für 50 Server à 4,35 € (Hetzner CX22) landest du bei <strong>217,50 €/Monat</strong> plus Control-Node (4,35 €) plus Redis (4 €) plus Backup-Speicher (Hetzner Storage Box BX11 mit 1 TB für 3,81 €). Macht rund <strong>230 €/Monat</strong> für die komplette Flotte.</p>
+
+<p>Zum Vergleich: Ein einzelner dedizierter Server mit vergleichbarer Leistung (50 × 2 vCPU = 100 vCPU, 200 GB RAM) kostet bei Hetzner als AX52 (8 vCPU, 64 GB) schon 47 €/Monat – für die gleiche Rechenleistung bräuchtest du aber drei bis vier davon. Die VPS-Flotte ist bei horizontal skalierbaren Workloads fast immer günstiger und ausfallsicherer.</p>
+
+<p>Der eigentliche Kostenhebel ist aber die Arbeitszeit. Ein manueller Server-Setup kostet bei 60 €/h Stundensatz etwa 30 € pro Server. Bei 50 Servern sind das 1.500 € – einmalig. Mit Ansible: 4 Stunden Setup der Rollen (240 €) plus 3 Minuten pro weiterem Server. Ab dem 10. Server rechnet sich Ansible immer.</p>
+
+<h2>FAQ</h2>
+
+<h3>Wie viele Server kann ich mit einem Ansible-Control-Node verwalten?</h3>
+<p>Ein VPS mit 2 vCPU und 4 GB RAM schafft problemlos 200–300 Hosts, wenn du Pipelining und Fact-Caching aktivierst. Der Flaschenhals ist nicht die CPU, sondern die Anzahl gleichzeitiger SSH-Verbindungen. Mit <code>forks = 50</code> und ControlPersist sind 300 Hosts in 6–8 Minuten durchgelaufen. Für mehr brauchst du mehrere Control-Nodes oder Ansible Automation Platform (ab 12.000 €/Jahr).</p>
+
+<h3>Ansible oder Terraform – was brauche ich für VPS?</h3>
+<p>Beides, aber für unterschiedliche Dinge. Terraform (oder OpenTofu) provisioniert die Server selbst – bei Hetzner Cloud, Netcup oder IONOS per API. Ansible konfiguriert danach das Betriebssystem und die Anwendungen. Für reine VPS-Flotten ohne Cloud-API reicht Ansible allein, weil du die Server manuell bestellst. Sobald du automatisch skalierst, brauchst du Terraform plus Ansible.</p>
+
+<h3>Wie sichere ich Secrets in Ansible richtig ab?</h3>
+<p>Nutze Ansible Vault für alles Sensible, committe nur verschlüsselte Dateien und halte das Vault-Passwort außerhalb des Repos (Passwortmanager, CI-Variable, HashiCorp Vault). Für größere Teams empfiehlt sich ein externer Secret-Store wie HashiCorp Vault oder Bitwarden Secrets Manager, aus dem Ansible per <code>community.hashi_vault</code>-Collection liest. Das Vault-Passwort selbst rotierst du mindestens jährlich.</p>
+
+<h3>Warum zeigt mein Playbook bei jedem Lauf „changed“?</h3>
+<p>Fast immer liegt es an <code>shell</code>- oder <code>command</code>-Tasks ohne <code>creates</code>/<code>removes</code>-Guard, oder an Templates mit variablen Zeitstempeln. Prüfe mit <code>--diff</code>, welche Datei sich ändert. Ein häufiger Klassiker: <code>lineinfile</code> ohne korrektes <code>regexp</code> fügt die Zeile jedes Mal erneut an. Nutze <code>ansible-lint</code> – es erkennt die meisten Idempotenz-Probleme automatisch.</p>
+
+<h3>Lohnt sich Ansible Automation Platform 2026?</h3>
+<p>Für die meisten VPS-Flotten nicht. Die Platform kostet ab etwa 12.000 €/Jahr für 100 Nodes und bietet Web-UI, RBAC, Audit-Log und Support. Wenn du unter 200 Server verwaltest und ein Team von 2–5 Admins hast, reicht Ansible Core plus GitLab CI plus ein selbstgebautes AWX-Setup auf einem 15-€-VPS. AWX ist die Open-Source-Variante und deckt 80 % der Platform-Features ab.</p>

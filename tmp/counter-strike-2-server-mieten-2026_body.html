@@ -1,0 +1,206 @@
+<h2>Warum 2026 ein eigener CS2-Server mehr denn je lohnt</h2>
+<p>Counter-Strike 2 hat sich seit dem Release im September 2023 technisch deutlich weiterentwickelt. Valve hat die Sub-Tick-Architektur eingeführt, das Netzwerkprotokoll mehrfach überarbeitet und mit jedem größeren Update die Anforderungen an die Server-Hardware verschärft. Wer 2026 einen CS2-Server mieten möchte, steht vor einer anderen Entscheidung als noch 2023: Sub-Tick ersetzt zwar das klassische Tickrate-Modell teilweise, aber die physische Server-Performance, die Netzwerkanbindung und die Latenz zum Spieler bleiben die entscheidenden Faktoren für ein wettkampftaugliches Spielerlebnis.</p>
+<p>Ein gemieteter Server bietet dir volle Kontrolle über Map-Rotation, Plugins, Anti-Cheat, Warmup-Zeiten und Slot-Anzahl. Öffentliche Valve-Server haben feste Regeln und keine Mod-Unterstützung. Für Clans, Ligen, Community-Server mit Rangsystem oder Trainings-Setups ist ein eigener Server deshalb Pflicht. Die Preise für 128-Tick-fähiges Hosting sind 2026 zwischen <strong>8 € und 90 € pro Monat</strong> angesiedelt — je nach Slot-Zahl, Standort und CPU-Generation.</p>
+<p>Dieser Guide zeigt dir konkret, welche Hardware du brauchst, wie du die Latenz unter 15 ms drückst, welche Anbieter es gibt und wie du den Server in unter 30 Minuten aufsetzt.</p>
+
+<h2>Tickrate, Sub-Tick und was 2026 wirklich zählt</h2>
+<p>Klassisch galt: 128 Tick ist besser als 64 Tick. Mit Counter-Strike 2 hat Valve das Konzept auf den Kopf gestellt. Sub-Tick bedeutet, dass Schüsse, Bewegungen und Sprünge zeitlich exakt zwischen zwei Ticks erfasst werden — der Server rechnet also nicht mehr nur alle 7,8 ms (128 Tick) oder 15,6 ms (64 Tick), sondern verarbeitet Eingaben kontinuierlich.</p>
+<p>In der Praxis heißt das: Die reine Tickrate ist nicht mehr das alleinige Qualitätsmerkmal. Was zählt, ist die <strong>Server-Framerate (FPS)</strong>. Ein CS2-Server, der mit 64 Tick läuft, aber stabil 400+ FPS liefert, spielt sich besser als ein 128-Tick-Server, der auf 90 FPS herumkrebst. Valve empfiehlt offiziell mindestens die doppelte Tickrate als Server-FPS — also 128 FPS bei 64 Tick, 256 FPS bei 128 Tick.</p>
+<p>Für Community-Server, die 2026 wettkampforientiert sind, gilt die Faustregel:</p>
+<ul>
+<li><strong>64 Tick:</strong> Minimum 200 FPS Server-Framerate, ideal 300+</li>
+<li><strong>128 Tick:</strong> Minimum 300 FPS, ideal 500+</li>
+<li><strong>Sub-Tick-Vorteil:</strong> greift erst, wenn die Server-FPS deutlich über der Tickrate liegen</li>
+</ul>
+<p>Wichtig: Ein Server mit 128 Tick verbraucht etwa doppelt so viel CPU wie 64 Tick bei gleicher Slot-Zahl. Bei 16 Spielern und 128 Tick brauchst du einen modernen Kern mit hoher Single-Core-Leistung — Multicore hilft bei CS2 nur begrenzt, da die Game-Loop weitgehend single-threaded läuft.</p>
+
+<h2>Hardware-Anforderungen für CS2-Server 2026</h2>
+<p>Die wichtigste Regel: CS2 ist <strong>Single-Core-hungrig</strong>. Ein AMD Ryzen 9 7950X3D oder Intel Core i9-14900K schlägt jeden 64-Kern-Xeon, weil die Game-Loop nicht parallelisiert wird. Taktfrequenz und IPC sind entscheidend, nicht Kernzahl.</p>
+<table>
+<tr><th>Slots</th><th>Tickrate</th><th>Empfohlene CPU</th><th>RAM</th><th>Preis/Monat</th></tr>
+<tr><td>10</td><td>64</td><td>Ryzen 5 5600X / i5-12400</td><td>4 GB</td><td>8–12 €</td></tr>
+<tr><td>16</td><td>64</td><td>Ryzen 7 5800X / i7-12700</td><td>6 GB</td><td>14–20 €</td></tr>
+<tr><td>16</td><td>128</td><td>Ryzen 7 7700X / i7-13700K</td><td>8 GB</td><td>20–30 €</td></tr>
+<tr><td>24</td><td>128</td><td>Ryzen 9 7900X / i9-13900K</td><td>10 GB</td><td>30–45 €</td></tr>
+<tr><td>32+</td><td>128</td><td>Ryzen 9 7950X / i9-14900K</td><td>12–16 GB</td><td>45–90 €</td></tr>
+</table>
+<p>Bei NVMe-Speicher reichen 20 GB für den reinen Server plus Maps. Rechne mit 40–60 GB, wenn du Custom-Maps, SourceMod-Plugins und Demo-Aufzeichnungen hostest. Traffic ist bei CS2 selten das Problem: Ein 16-Slot-Server bei 128 Tick verbraucht etwa <strong>2–4 TB pro Monat</strong> bei voller Auslastung.</p>
+<p>Achte auf dedizierte vCores, nicht auf geteilte. Ein Anbieter, der „8 vCores" verspricht, aber 40 Container auf einen physischen Kern packt, wird bei 128 Tick sofort in die Knie gehen. Frag beim Support explizit nach der „CPU-Steal-Time" — alles über 2 % ist ein Warnsignal.</p>
+
+<h2>Hosting-Anbieter und Preise im Vergleich</h2>
+<p>Der Markt für CS2-Hosting 2026 ist in drei Kategorien geteilt: Game-Hoster mit Panel (einfach, teurer), Root-Server-Anbieter (günstig, mehr Arbeit) und dedizierte Bare-Metal-Server (teuer, maximale Kontrolle).</p>
+<ul>
+<li><strong>Game-Hoster (Nitrado, Zap-Hosting, Streamline):</strong> 16 Slots 128 Tick ab ca. 18–28 €/Monat. Panel inklusive, Mod-Support, aber geteilte CPU-Ressourcen.</li>
+<li><strong>Root-Server (Hetzner, Netcup, Contabo):</strong> Hetzner AX41 (Ryzen 5 3600, 64 GB RAM) für ca. 40 €/Monat — reicht für 3–4 CS2-Server parallel. Netcup RS 4000 G11 für ca. 15 €/Monat als Einstieg.</li>
+<li><strong>Bare-Metal (OVH, Hetzner Dedicated):</strong> Ab 60 €/Monat, dafür volle Kernel-Kontrolle, CPU-Pinning und 1 Gbit/s ungedrosselt.</li>
+</ul>
+<p>Für einen einzelnen Community-Server mit 16 Slots ist ein Game-Hoster oft die günstigere Wahl, weil du dir Setup und Wartung sparst. Für Multi-Server-Setups (Public + Match + Training) lohnt sich fast immer ein eigener Root-Server ab 15 €/Monat.</p>
+<p>Achte auf den <strong>Standort</strong>: Für deutsche Spieler sind Frankfurt, Nürnberg und Düsseldorf ideal (5–15 ms). Amsterdam und Wien sind akzeptabel (15–25 ms). Vermeide US-Ostküste für europäische Ligen — 90+ ms ruinieren jedes Aim-Duell.</p>
+
+<h2>Latenz-Tuning: Von 40 ms auf unter 15 ms</h2>
+<p>Latenz ist nicht nur die Entfernung zum Rechenzentrum. Netzwerk-Routing, Jitter, Paketverlust und die Server-Framerate beeinflussen die gefühlte Verzögerung. Hier die wichtigsten Hebel:</p>
+<ol>
+<li><strong>Server-Standort:</strong> Wähle ein RZ mit direktem Peering zu deutschen ISPs (DE-CIX Frankfurt). Hetzner, Netcup und OVH haben exzellentes Peering.</li>
+<li><strong>Netzwerk-Interface tunen:</strong> Aktiviere BBR-Congestion-Control und erhöhe die UDP-Buffer.</li>
+<li><strong>Server-FPS stabilisieren:</strong> Setze <code>-tickrate 128</code> und <code>fps_max 400</code> in der Startzeile.</li>
+<li><strong>CPU-Pinning:</strong> Weise dem Server-Prozess exklusive Kerne zu, damit nichts anderes dazwischenfunkt.</li>
+<li><strong>DDoS-Schutz:</strong> Filter greifen oft mit 1–3 ms Latenz-Aufschlag — wähle einen Anbieter mit Inline-Filterung, nicht mit Traffic-Umleitung.</li>
+</ol>
+<p>Konkrete Sysctl-Optimierungen für Linux-Server:</p>
+<pre><code># /etc/sysctl.d/99-cs2.conf
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+net.core.netdev_max_backlog = 5000
+net.ipv4.udp_mem = 65536 131072 262144
+net.ipv4.tcp_congestion_control = bbr
+net.core.default_qdisc = fq
+net.ipv4.tcp_low_latency = 1
+</code></pre>
+<p>Nach einem <code>sysctl --system</code> prüfst du mit <code>ss -u -a</code> und <code>ping -f</code>, ob die Puffer greifen. Ein sauber getunter Server hält bei 16 Spielern den Jitter unter 2 ms.</p>
+
+<h2>CS2-Server aufsetzen: SteamCMD-Anleitung</h2>
+<p>Für einen eigenen Root-Server installierst du CS2 über SteamCMD. Auf Debian 12 oder Ubuntu 24.04 läuft das in unter 15 Minuten.</p>
+<pre><code># Abhängigkeiten
+sudo dpkg --add-architecture i386
+sudo apt update
+sudo apt install -y lib32gcc-s1 lib32stdc++6 screen curl
+
+# SteamCMD installieren
+mkdir -p ~/steamcmd && cd ~/steamcmd
+curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
+
+# CS2 Server installieren (App-ID 730)
+./steamcmd.sh +force_install_dir ~/cs2-server \
+  +login anonymous \
+  +app_update 730 validate \
+  +quit
+</code></pre>
+<p>Danach startest du den Server mit einem Startskript. Für 128 Tick und stabile FPS:</p>
+<pre><code>#!/bin/bash
+cd ~/cs2-server/game/bin/linuxsteamrt64
+./cs2 -dedicated \
+  +game_type 0 +game_mode 1 \
+  +map de_dust2 \
+  +maxplayers 16 \
+  +sv_setsteamaccount DEIN_GSLT_TOKEN \
+  -tickrate 128 \
+  -port 27015 \
+  +fps_max 400 \
+  -norestart
+</code></pre>
+<p>Der <strong>GSLT-Token</strong> (Game Server Login Token) ist Pflicht, wenn du einen öffentlich gelisteten Server willst. Du erstellst ihn auf der Steam-Webseite unter „Game Server Accounts". Ohne Token taucht der Server nicht im Browser auf.</p>
+
+<h2>Server-Konfiguration: server.cfg richtig aufsetzen</h2>
+<p>Die <code>server.cfg</code> liegt unter <code>~/cs2-server/game/csgo/cfg/server.cfg</code>. Hier die wichtigsten Einstellungen für 2026:</p>
+<pre><code>hostname "Mein CS2 Server | 128 Tick | Frankfurt"
+sv_password ""
+rcon_password "SICHERES_PASSWORT"
+sv_lan 0
+sv_region 3
+sv_cheats 0
+mp_autoteambalance 1
+mp_maxrounds 24
+mp_roundtime 1.92
+mp_freezetime 5
+mp_buytime 20
+mp_startmoney 800
+sv_minrate 128000
+sv_maxrate 0
+sv_mincmdrate 64
+sv_maxcmdrate 128
+sv_minupdaterate 64
+sv_maxupdaterate 128
+sv_client_min_interp_ratio 1
+sv_client_max_interp_ratio 2
+</code></pre>
+<p>Die Rate-Einstellungen sind entscheidend: <code>sv_maxrate 0</code> erlaubt unbegrenzte Bandbreite, <code>sv_mincmdrate 64</code> erzwingt mindestens 64 Updates pro Sekunde vom Client. Bei 128-Tick-Servern solltest du <code>sv_minupdaterate 64</code> und <code>sv_maxupdaterate 128</code> setzen, damit auch Spieler mit schwachem Netzwerk mitspielen können.</p>
+<p>Für Wettkampf-Setups empfehlen wir zusätzlich <code>mp_overtime_enable 1</code>, <code>mp_match_can_clinch 0</code> und eine feste Map-Rotation über <code>mp_mapgroup</code>. Speichere die Config als <code>server.cfg</code> und lade sie beim Start mit <code>+exec server.cfg</code>.</p>
+
+<h2>Plugins: CounterStrikeSharp, Metamod und SourceMod</h2>
+<p>SourceMod läuft 2026 auf CS2 nur noch eingeschränkt. Der De-facto-Standard ist <strong>CounterStrikeSharp</strong> (CSS) — ein .NET-basiertes Plugin-Framework, das aktiv weiterentwickelt wird. Metamod:Source ist die Basis für CSS.</p>
+<ol>
+<li>Lade Metamod:Source 2.0 (Dev-Build) von metamod.sourcemm.net herunter.</li>
+<li>Entpacke es nach <code>~/cs2-server/game/csgo/addons/metamod</code>.</li>
+<li>Ergänze in <code>gameinfo.gi</code> unter „SearchPaths" die Zeile <code>Game csgo/addons/metamod</code>.</li>
+<li>Installiere CounterStrikeSharp über <code>curl -sSL https://dotnet.counterstrikesharp.com | bash</code>.</li>
+<li>Plugins kommen nach <code>game/csgo/addons/counterstrikesharp/plugins/</code>.</li>
+</ol>
+<p>Beliebte Plugins 2026: <strong>MatchZy</strong> (Match-Management), <strong>Retakes</strong>, <strong>Practice Mode</strong>, <strong>WeaponPaints</strong>, <strong>CS2-Admin</strong>. Achte darauf, dass jedes Plugin mit deiner CS2-Server-Version kompatibel ist — Valve bricht regelmäßig APIs mit Updates.</p>
+<p>Ein 16-Slot-Server mit 5–6 Plugins verliert etwa 20–40 FPS Server-Framerate. Bei 128 Tick solltest du deshalb immer <code>fps_max 400</code> setzen und die Plugin-Last im Auge behalten.</p>
+
+<h2>Anti-Cheat, DDoS-Schutz und Sicherheit</h2>
+<p>VAC läuft auf allen offiziellen Servern automatisch. Auf Community-Servern kannst du zusätzlich serverseitige Anti-Cheats wie <strong>CounterStrikeSharp-AC</strong> oder <strong>Little-Anti-Cheat</strong> einsetzen. Diese erkennen Wallhacks, Aimbot-Muster und ungewöhnliche Client-Cvars.</p>
+<p>DDoS ist bei CS2-Servern Alltag. Ein ungeschützter Server wird innerhalb von Stunden nach öffentlicher Listung angegriffen. Wichtige Maßnahmen:</p>
+<ul>
+<li><strong>Rcon-Passwort:</strong> mindestens 20 Zeichen, nie im Klartext posten</li>
+<li><strong>Firewall:</strong> nur Port 27015/UDP von außen, RCON über VPN oder IP-Whitelist</li>
+<li><strong>DDoS-Filter:</strong> Inline-Filter beim Hoster (Hetzner, OVH, Path.net) statt Traffic-Umleitung</li>
+<li><strong>Rate-Limits:</strong> <code>sv_maxrate</code> begrenzen, um Amplification zu verhindern</li>
+<li><strong>Backups:</strong> täglich server.cfg und Plugin-Configs sichern</li>
+</ul>
+<p>Ein gut konfigurierter Server übersteht Angriffe bis 200 Gbit/s, wenn der Hoster Inline-Filterung bietet. Bei Umleitungs-Lösungen steigt die Latenz um 5–15 ms — für wettkampforientierte Server ein No-Go.</p>
+
+<h2>Monitoring, Troubleshooting und Performance-Checks</h2>
+<p>Ohne Monitoring fliegst du blind. Die wichtigsten Tools 2026:</p>
+<ul>
+<li><strong>netdata</strong> oder <strong>Prometheus + node_exporter</strong> für CPU, RAM, Netzwerk</li>
+<li><strong>smokeping</strong> für Latenz-Trends über Wochen</li>
+<li><strong>htop</strong> mit CPU-Pinning-Anzeige (<code>taskset -c 0-3 ./cs2 ...</code>)</li>
+<li><strong>CS2-eigene Stats:</strong> <code>stats</code> in der Server-Konsole zeigt FPS, Players, Uptime</li>
+</ul>
+<p>Typische Probleme und Lösungen:</p>
+<table>
+<tr><th>Symptom</th><th>Ursache</th><th>Lösung</th></tr>
+<tr><td>Server-FPS unter 200</td><td>CPU-Überlast oder Plugin-Leak</td><td>CPU-Pinning, Plugins reduzieren</td></tr>
+<tr><td>Hoher Jitter</td><td>Netzwerk-Überlast oder geteilter vCore</td><td>Dedizierte Kerne, BBR aktivieren</td></tr>
+<tr><td>Spieler disconnected</td><td>Rate-Limits zu streng</td><td>sv_minrate senken</td></tr>
+<tr><td>Server nicht in Liste</td><td>GSLT fehlt oder ungültig</td><td>Token neu generieren</td></tr>
+<tr><td>128 Tick instabil</td><td>fps_max zu niedrig</td><td>fps_max auf 400+ setzen</td></tr>
+</table>
+<p>Führe wöchentlich einen <code>sysbench cpu --threads=1 run</code> durch, um die Single-Core-Leistung zu prüfen. Sinkt der Wert um mehr als 20 %, hat der Hoster dich auf einen überbuchten Host verschoben — wechsle den Anbieter.</p>
+
+<h2>Kosten, Skalierung und Multi-Server-Setups</h2>
+<p>Ein einzelner 16-Slot-Server mit 128 Tick kostet 2026 zwischen 18 € und 30 € pro Monat bei einem Game-Hoster. Ein eigener Root-Server für 40 €/Monat trägt drei bis vier CS2-Instanzen parallel, wenn du CPU-Pinning und Containerisierung (Docker oder systemd-nspawn) nutzt.</p>
+<p>Für Communitys mit 50+ Spielern empfehlen wir ein Setup mit:</p>
+<ul>
+<li><strong>1 Public-Server</strong> (24 Slots, 128 Tick, Plugins)</li>
+<li><strong>2 Match-Servern</strong> (10 Slots, 128 Tick, MatchZy)</li>
+<li><strong>1 Training-Server</strong> (16 Slots, Practice-Mode)</li>
+</ul>
+<p>Auf einem Hetzner AX41 (Ryzen 5 3600, 64 GB RAM, 40 €/Monat) laufen alle vier Instanzen gleichzeitig mit stabilen 300+ FPS pro Server. Docker-Container mit <code>--cpuset-cpus</code> isolieren die CPU-Kerne sauber.</p>
+<p>Skalierung nach oben: Bei 128 Slots und mehr brauchst du Bare-Metal mit ≥ 5 GHz Boost-Takt. Intel Core i9-14900KS oder AMD Ryzen 9 9950X sind 2026 die Referenz. Rechne mit 80–150 € pro Monat, dafür laufen 6–8 Server parallel.</p>
+
+<h2>Checkliste: In 30 Minuten zum fertigen CS2-Server</h2>
+<ol>
+<li>Hosting-Anbieter wählen (Standort Frankfurt/Nürnberg für DE)</li>
+<li>GSLT-Token auf steamcommunity.com/dev/managegameservers erstellen</li>
+<li>SteamCMD installieren und CS2 (App-ID 730) herunterladen</li>
+<li>server.cfg mit 128-Tick-Settings anlegen</li>
+<li>Sysctl-Optimierungen für UDP-Buffer und BBR aktivieren</li>
+<li>Startskript mit <code>-tickrate 128</code> und <code>fps_max 400</code></li>
+<li>CounterStrikeSharp + MatchZy installieren</li>
+<li>Firewall und RCON-Passwort konfigurieren</li>
+<li>DDoS-Schutz beim Hoster aktivieren</li>
+<li>Monitoring (netdata) aufsetzen und erste Latenz-Messung durchführen</li>
+</ol>
+<p>Nach dem Start prüfst du mit <code>stats</code> in der Server-Konsole die FPS, verbindest dich selbst und misst die Latenz mit <code>net_graph 1</code>. Bei unter 15 ms und stabilen 300+ FPS ist der Server wettkampftauglich.</p>
+
+<h2>FAQ</h2>
+
+<h3>Brauche ich 2026 wirklich noch 128 Tick für CS2?</h3>
+<p>Nicht zwingend. Valve hat mit Sub-Tick die Abhängigkeit von der Tickrate reduziert. Entscheidend ist die Server-Framerate: 300+ FPS bei 64 Tick spielen sich besser als 128 Tick mit 150 FPS. Für wettkampforientierte Community-Server empfehlen wir trotzdem 128 Tick, weil viele Spieler es erwarten und die Update-Rate höher ist.</p>
+
+<h3>Was kostet ein guter CS2-Server mit 16 Slots und 128 Tick?</h3>
+<p>Bei Game-Hostern wie Nitrado oder Zap-Hosting zahlst du 2026 etwa 20–30 € pro Monat. Ein eigener Hetzner-Root-Server (AX41) für 40 € trägt mehrere Server parallel und ist bei Multi-Server-Setups deutlich günstiger pro Instanz.</p>
+
+<h3>Welche CPU ist für CS2-Server am besten?</h3>
+<p>Single-Core-Leistung ist entscheidend. AMD Ryzen 9 7950X3D, Ryzen 9 9950X und Intel Core i9-14900K sind 2026 die Top-Wahl. Vermeide alte Xeon-Server-CPUs mit niedrigem Takt — sie brechen bei 128 Tick mit 16+ Spielern ein.</p>
+
+<h3>Wie senke ich die Latenz auf unter 15 ms?</h3>
+<p>Wähle einen Server in Frankfurt oder Nürnberg mit direktem DE-CIX-Peering. Aktiviere BBR-Congestion-Control, erhöhe die UDP-Buffer per sysctl, setze <code>fps_max 400</code> und nutze Inline-DDoS-Filter statt Traffic-Umleitung. Damit erreichst du für deutsche Spieler 8–15 ms.</p>
+
+<h3>Läuft SourceMod noch auf CS2?</h3>
+<p>SourceMod läuft 2026 nur eingeschränkt auf CS2. Der De-facto-Standard ist CounterStrikeSharp (.NET-basiert) in Kombination mit Metamod:Source 2.0. Beliebte Plugins wie MatchZy, Retakes und Practice Mode sind alle für CounterStrikeSharp verfügbar.</p>
+
+<h3>Wie viele Server laufen auf einem Root-Server?</h3>
+<p>Auf einem Hetzner AX41 (Ryzen 5 3600, 64 GB RAM) laufen 3–4 CS2-Server mit 128 Tick und stabilen 300+ FPS parallel. Nutze Docker mit <code>--cpuset-cpus</code>, um jedem Server exklusive Kerne zuzuweisen und CPU-Steal zu vermeiden.</p>

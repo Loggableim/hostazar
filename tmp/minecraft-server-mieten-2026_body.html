@@ -1,0 +1,197 @@
+<h2>Warum die Serverwahl 2026 komplizierter ist als noch vor drei Jahren</h2>
+<p>Minecraft ist 2026 kein einzelnes Spiel mehr, sondern ein Ökosystem aus mindestens vier Plattform-Zweigen: Java Edition (PC), Bedrock Edition (Windows, Konsolen, Mobile), die Crossplay-Brücke über GeyserMC und diverse Modloader-Familien, die jeweils eigene Server-Builds benötigen. Wer heute „Minecraft-Server mieten" googelt, landet bei 40 Anbietern mit Tarifen von 2,99 € bis 89,99 € pro Monat – und fast keiner erklärt, was man für sein Geld tatsächlich bekommt.</p>
+<p>Die entscheidende Änderung: Java Edition läuft seit Version 1.20.5 auf <strong>Java 21</strong> mit deutlich aggressiverem Garbage Collector, während Bedrock Dedicated Server weiterhin in C++ läuft und pro CPU-Kern etwa <strong>2,5- bis 3-mal so viele Spieler</strong> verkraftet. Gleichzeitig sind Modpacks wie All The Mods 10 oder Prominence II auf 10 bis 14 GB Heap angewachsen. Ein 4-GB-Tarif, der 2019 für 20 Spieler reichte, bricht heute bei einem mittelschweren Modpack nach 15 Minuten mit einem OutOfMemoryError ab.</p>
+<p>Dieser Guide rechnet nach: Was kostet ein Slot wirklich? Wann lohnt sich ein eigener VPS statt eines Gameserver-Panels? Und welche Software-Kombination passt zu deinem Projekt – Vanilla-Survival mit Freunden, öffentlicher Paper-Server mit 80 Spielern oder ein gemoddetes Community-Projekt mit Crossplay?</p>
+
+<h2>Java vs. Bedrock: Der Entscheidungsbaum</h2>
+<p>Die Wahl der Edition bestimmt später Server-Software, Plugin-Ökosystem und Performance-Budget. Eine falsche Entscheidung heißt meist: Welt neu aufsetzen oder teure Hybrid-Lösung nachrüsten.</p>
+<table>
+<thead><tr><th>Kriterium</th><th>Java Edition</th><th>Bedrock Edition</th></tr></thead>
+<tbody>
+<tr><td>Server-Software</td><td>Paper, Purpur, Fabric, NeoForge, Folia</td><td>BDS (offiziell), Nukkit, PocketMine-MP</td></tr>
+<tr><td>Erweiterungen</td><td>Plugins (serverseitig), Mods (Client+Server)</td><td>Behavior/Resource Packs, Script API</td></tr>
+<tr><td>Redstone</td><td>Quasi-Konnektivität, 0-Tick-Pistons</td><td>Kein Quasi-Connectivity, andere Timings</td></tr>
+<tr><td>Max. Sichtweite</td><td>32 Chunks (Server), 32 Client</td><td>bis 96 Chunks (Render Distance Slider)</td></tr>
+<tr><td>Spieler pro Welt</td><td>theoretisch unbegrenzt, praktisch RAM-limitiert</td><td>bis 100+ auf einem Kern möglich</td></tr>
+<tr><td>RAM pro 10 Spieler</td><td>ca. 3–4 GB (Paper, Vanilla-Gameplay)</td><td>ca. 1,5–2 GB</td></tr>
+<tr><td>Crossplay</td><td>über GeyserMC + Floodgate</td><td>über GeyserMC + Floodgate</td></tr>
+</tbody>
+</table>
+<p><strong>Faustregel:</strong> Wer Mods will (Create, Mekanism, JEI), bleibt bei Java. Wer primär mit Freunden auf Konsole, Handy und PC gleichzeitig spielt und keine Mods braucht, fährt mit Bedrock günstiger und stabiler. Für öffentliche Server mit Plugin-Ökosystem (LuckPerms, WorldGuard, EssentialsX) ist Java die einzige ernsthafte Option.</p>
+<p>Ein häufiger Fehler: Bedrock-Tarife bei Hosting-Anbietern sind oft <em>teurer</em> als Java-Tarife bei gleicher Leistung, weil weniger Konkurrenz herrscht. Vergleiche deshalb immer die RAM-Zahl, nicht das Label „Bedrock".</p>
+
+<h2>Echte Kosten pro Slot: die Rechnung, die kein Anbieter zeigt</h2>
+<p>„Unlimited Slots" ist Marketing. Jeder Server hat ein hartes Limit, das durch RAM, CPU-Single-Core-Leistung und Tick-Rate (20 TPS) bestimmt wird. Die relevante Kennzahl ist <strong>Kosten pro gleichzeitigem Spieler</strong>, nicht Kosten pro registriertem Account.</p>
+<p>Berechnung: <code>Monatspreis ÷ realistische gleichzeitige Spieler = €/Slot/Monat</code>. Bei Paper mit Vanilla-Gameplay und Sichtweite 8 rechnest du mit rund <strong>1 GB RAM pro 4 gleichzeitige Spieler</strong> plus 1 GB Grundlast für die JVM.</p>
+<table>
+<thead><tr><th>Tarif</th><th>Preis/Monat</th><th>Realistische Slots (Paper)</th><th>€ pro Slot</th></tr></thead>
+<tbody>
+<tr><td>4 GB Gameserver-Panel</td><td>6,99 €</td><td>8–10</td><td>0,70–0,87 €</td></tr>
+<tr><td>8 GB Gameserver-Panel</td><td>12,99 €</td><td>20–24</td><td>0,54–0,65 €</td></tr>
+<tr><td>16 GB Gameserver-Panel</td><td>24,99 €</td><td>45–55</td><td>0,45–0,56 €</td></tr>
+<tr><td>32 GB Gameserver-Panel</td><td>44,99 €</td><td>90–110</td><td>0,41–0,50 €</td></tr>
+<tr><td>Dedicated 64 GB (Ryzen 5 3600)</td><td>44,00 €</td><td>150–180</td><td>0,24–0,29 €</td></tr>
+</tbody>
+</table>
+<p>Der Sprung von Panel-Hosting zu einem dedizierten Root-Server halbiert die Slot-Kosten – kostet aber eigene Administration: Updates, Backups, DDoS-Filter und Monitoring liegen bei dir. Bei Modpacks verschiebt sich die Rechnung massiv: Ein ATM10-Pack braucht pro Spieler rund 0,5–0,7 GB Heap, wodurch ein 16-GB-Server auf 18–24 Slots schrumpft und der Slot-Preis auf über 1 € steigt.</p>
+
+<h2>Server-Software 2026: Paper, Purpur, Fabric, NeoForge im Vergleich</h2>
+<p>Die Wahl des Server-Jars entscheidet über Performance und Funktionsumfang. Stand Frühjahr 2026 ist die Lage übersichtlich:</p>
+<ul>
+<li><strong>Vanilla</strong> – offizielles Mojang-Jar. Referenzimplementierung, langsam, keine Plugin-API. Nur für reine Vanilla-Farmen sinnvoll.</li>
+<li><strong>Paper</strong> – De-facto-Standard. 30–50 % bessere TPS als Vanilla bei gleicher Hardware, Bukkit/Spigot-Plugin-API, asynchrones Chunk-Loading. Für 90 % aller Projekte die richtige Wahl.</li>
+<li><strong>Purpur</strong> – Paper-Fork mit zusätzlichen Gameplay-Optionen (verstellbare Mob-KI, Ridable Entities, Custom AFK-Verhalten). Plugins von Paper laufen unverändert.</li>
+<li><strong>Folia</strong> – regionbasiertes Multithreading. Skaliert auf 16+ Kerne, aber die meisten Plugins sind nicht kompatibel. Nur für große Netzwerke mit Eigenentwicklung.</li>
+<li><strong>Fabric</strong> – schlanker Modloader, ideal für Performance-Mods wie Lithium, Sodium (Client), FerriteCore, C2ME. Kein Plugin-Support.</li>
+<li><strong>NeoForge</strong> – der Nachfolger des Forge-Splits ab 1.20.2. Standard für große Modpacks. Braucht deutlich mehr RAM und längere Startzeiten (3–8 Minuten).</li>
+</ul>
+<p>Download eines aktuellen Paper-Builds per API:</p>
+<pre><code># Neuesten Build für 1.21.8 ermitteln
+curl -s https://api.papermc.io/v2/projects/paper/versions/1.21.8 | jq -r '.builds[-1]'
+
+# Jar herunterladen
+wget https://api.papermc.io/v2/projects/paper/versions/1.21.8/builds/142/downloads/paper-1.21.8-142.jar -O server.jar
+
+# Start
+java -Xms8G -Xmx8G -jar server.jar nogui</code></pre>
+<p>Für Modpacks nimmst du statt Paper den passenden Loader plus die Server-Dateien des Modpack-Anbieters (CurseForge-Modpack-ZIP entpacken, <code>startserver.sh</code> verwenden). Mische niemals Paper und Forge – Hybrid-Jars wie Arclight oder Mohist funktionieren, brechen aber bei Tick-Last regelmäßig ein und sind für öffentliche Server nicht empfehlenswert.</p>
+
+<h2>Mods vs. Plugins: Was läuft womit</h2>
+<p>Der Unterschied ist fundamental und wird oft verwechselt. <strong>Plugins</strong> laufen ausschließlich serverseitig auf Paper/Purpur/Spigot. Der Client braucht keine Änderung – Spieler verbinden sich mit einem Vanilla-Launcher. <strong>Mods</strong> ändern das Spiel selbst und müssen auf Server <em>und</em> Client identisch installiert sein.</p>
+<p>Typische Plugin-Stacks für öffentliche Server:</p>
+<ul>
+<li><strong>LuckPerms</strong> – Rechteverwaltung, MySQL-fähig</li>
+<li><strong>WorldGuard + WorldEdit</strong> – Regionen und Greiferschutz</li>
+<li><strong>CoreProtect</strong> – Block-Logging, Rollback nach Griefing</li>
+<li><strong>EssentialsX</strong> – /home, /tpa, /warp</li>
+<li><strong>Spark</strong> – Profiling: <code>/spark profiler start</code> findet Lag-Quellen in Sekunden</li>
+<li><strong>Chunky</strong> – Welt-Pregenerierung: <code>/chunky radius 5000</code> und <code>/chunky start</code></li>
+</ul>
+<p>Bei Mods gilt: Client-Mods wie OptiFine, Sodium oder Shader sind serverseitig irrelevant. Performance-Mods wie <strong>Lithium</strong>, <strong>FerriteCore</strong>, <strong>Krypton</strong> und <strong>ServerCore</strong> gehören dagegen auf den Server und bringen dort 20–40 % TPS-Gewinn. Ein 10-Spieler-Fabric-Server mit Lithium läuft flüssig auf 4 GB, wo NeoForge ohne Optimierungen 8 GB braucht.</p>
+<p>Wer beides will – Mods und Plugins – sollte auf Fabric mit serverseitigen Mods setzen (z. B. <em>Fabric Permissions API</em>, <em>Ledger</em> als CoreProtect-Ersatz) statt auf Hybrid-Jars.</p>
+
+<h2>RAM richtig dimensionieren: Tabellen und Faustregeln</h2>
+<p>RAM ist der limitierende Faktor Nummer eins. Die JVM sollte mit <code>-Xms</code> und <code>-Xmx</code> auf denselben Wert gesetzt werden, damit kein Heap-Resizing stattfindet. Plane immer 1–2 GB über dem tatsächlichen Bedarf, weil Weltgröße, Chunk-Loading und Spieleranzahl schwanken.</p>
+<table>
+<thead><tr><th>Gleichzeitige Spieler</th><th>Vanilla/Paper</th><th>Leichtes Modpack (Fabric)</th><th>Schweres Modpack (ATM10)</th></tr></thead>
+<tbody>
+<tr><td>5</td><td>2 GB</td><td>3 GB</td><td>6 GB</td></tr>
+<tr><td>10</td><td>3 GB</td><td>4–5 GB</td><td>8 GB</td></tr>
+<tr><td>20</td><td>5–6 GB</td><td>8 GB</td><td>12 GB</td></tr>
+<tr><td>50</td><td>10–12 GB</td><td>16 GB</td><td>20–24 GB</td></tr>
+<tr><td>100</td><td>16–20 GB</td><td>24–32 GB</td><td>nicht praktikabel</td></tr>
+</tbody>
+</table>
+<p>Wichtig: Mehr RAM macht den Server nicht schneller. Ist der Heap zu groß (z. B. 32 GB für 10 Spieler), steigen GC-Pausen auf 200–800 ms und die Tick-Rate fällt spürbar. Als Richtwert gilt: <strong>Heap maximal doppelt so groß wie der tatsächliche Bedarf</strong>.</p>
+<p>CPU ist der zweite Flaschenhals. Minecraft nutzt im Hauptthread nur einen Kern – entscheidend ist also die Single-Core-Leistung. Ein Ryzen 9 7950X mit 5,7 GHz Boost schlägt einen alten Xeon mit 24 Kernen deutlich. Bei der Anbieterwahl lohnt der Blick auf die CPU-Modell-Angabe; Tarife ohne CPU-Angabe sind meist auf überbuchten Hosts mit 2,4-GHz-Kernen gehostet.</p>
+
+<h2>JVM-Tuning mit Aikar-Flags und server.properties</h2>
+<p>Die von Aikar (Paper-Maintainer) entwickelten G1GC-Flags sind 2026 weiterhin Standard und in Paper bereits teilweise vorgetunt. Für einen 8-GB-Server sieht der Start so aus:</p>
+<pre><code>java -Xms8G -Xmx8G \
+  -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 \
+  -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch \
+  -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M \
+  -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 \
+  -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 \
+  -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 \
+  -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 \
+  -Dusing.aikars.flags=https://mcflags.emc.gs -Daikars.new.flags=true \
+  -jar server.jar nogui</code></pre>
+<p>Ergänzend die wichtigsten Werte in <code>server.properties</code> für einen 20-Slot-Paper-Server:</p>
+<pre><code>view-distance=6
+simulation-distance=4
+max-players=20
+network-compression-threshold=256
+sync-chunk-writes=false
+entity-broadcast-range-percentage=70
+max-tick-time=-1</code></pre>
+<p><code>view-distance=6</code> statt 10 reduziert die Chunk-Last um rund 60 %. <code>simulation-distance</code> steuert, wie weit Mobs und Redstone ticken – hier zuerst sparen. In <code>config/paper-world-defaults.yml</code> lohnen zusätzlich <code>chunk-loading.autoconfig-send-distance: true</code> und ein reduzierter <code>entity-per-chunk-save-limit</code> für Items und XP-Orbs.</p>
+
+<h2>Preise im Vergleich: Was Hosting 2026 realistisch kostet</h2>
+<p>Der Markt teilt sich in drei Segmente: Gameserver-Panels (einfach, teurer), Root-Server/VPS (günstig, mehr Arbeit) und Managed-Dedicated (teuer, sorgenfrei).</p>
+<table>
+<thead><tr><th>Variante</th><th>Beispiel</th><th>Preis/Monat</th><th>Zielgruppe</th></tr></thead>
+<tbody>
+<tr><td>Gameserver-Panel 4 GB</td><td>Zap-Hosting, Nitrado, G-Portal</td><td>6,99–9,99 €</td><td>Freundesgruppe, Vanilla</td></tr>
+<tr><td>Gameserver-Panel 8 GB</td><td>diverse</td><td>12,99–16,99 €</td><td>kleiner öffentlicher Server</td></tr>
+<tr><td>Gameserver-Panel 16 GB</td><td>diverse</td><td>24,99–32,99 €</td><td>Community mit Plugins</td></tr>
+<tr><td>VPS 8 GB (4 vCPU)</td><td>Hetzner CPX31, Netcup VPS 2000</td><td>13–16 €</td><td>Admins mit Linux-Kenntnissen</td></tr>
+<tr><td>Dedicated 64 GB</td><td>Hetzner AX41-NVMe</td><td>ca. 44 €</td><td>Netzwerke, 100+ Slots</td></tr>
+<tr><td>Managed Dedicated</td><td>spezialisierte Hoster</td><td>79–149 €</td><td>Projekte ohne eigene Technik</td></tr>
+</tbody>
+</table>
+<p>Kostenlose Optionen wie Aternos oder FalixNodes sind für Tests brauchbar, aber mit Warteschlangen, Werbung und harten Idle-Timeouts verbunden – für einen 24/7-Server mit 20 Spielern nicht tragfähig. Rechne bei „kostenlos" mit 5–30 Minuten Wartezeit pro Start und regelmäßigen Disconnects.</p>
+<p>Achte bei der Tarifwahl auf: <strong>NVMe statt HDD</strong> (Weltladezeiten halbieren sich), <strong>DDoS-Schutz inklusive</strong>, <strong>Backup-Slots</strong> und <strong>Standort Frankfurt/Amsterdam</strong> für Spieler im DACH-Raum (Ping 5–25 ms statt 90–140 ms bei US-Hosting).</p>
+
+<h2>Crossplay mit GeyserMC und ViaVersion</h2>
+<p>Crossplay ist 2026 der häufigste Grund, warum Java-Server Bedrock-Spieler aufnehmen. Die Lösung heißt <strong>GeyserMC</strong> (Protokollübersetzung Bedrock→Java) plus <strong>Floodgate</strong> (Authentifizierung ohne Java-Account).</p>
+<pre><code># Geyser in plugins/ ablegen (Paper)
+cd /srv/minecraft/plugins
+wget https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot -O Geyser-Spigot.jar
+wget https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot -O floodgate-spigot.jar
+# Nach Neustart: config.yml anpassen
+# bedrock: port: 19132, clone-remote-port: false</code></pre>
+<p>Wichtig: Bedrock verbindet über <strong>UDP 19132</strong>, Java über TCP 25565. Beide Ports müssen in der Firewall offen sein. Bei Panel-Hostern sind oft nur die Standardports freigeschaltet – vorher prüfen.</p>
+<p>Einschränkungen: Bedrock-Spieler sehen keine Custom-Item-Modelle aus Ressourcenpacks, Redstone-Timings unterscheiden sich, und PvP-Reichweiten sind leicht anders. Für Survival-Community-Server ist das meist akzeptabel; für kompetitive PvP-Server nicht. <strong>ViaVersion</strong> und <strong>ViaBackwards</strong> ergänzen das Setup, damit Spieler mit älteren Clients (1.20.x) auf einen 1.21.8-Server joinen können.</p>
+
+<h2>Self-Hosting: VPS oder Dedicated statt Gameserver-Panel</h2>
+<p>Ab etwa 15 gleichzeitigen Spielern kippt die Rechnung zugunsten eines eigenen Servers. Ein Hetzner AX41-NVMe (Ryzen 5 3600, 6 Kerne/12 Threads, 64 GB RAM, 2× 512 GB NVMe) für rund 44 €/Monat trägt bei Paper mit Sichtweite 6 problemlos 150 gleichzeitige Spieler – das sind <strong>0,29 € pro Slot</strong> gegenüber 0,65 € im Panel.</p>
+<p>Der Aufwand: Linux-Grundlagen, Firewall, Backups, Updates. Für Komfort empfiehlt sich <strong>Pterodactyl</strong> oder <strong>Pelican Panel</strong> als Web-Interface:</p>
+<pre><code># Pterodactyl-Installer (Ubuntu 24.04)
+bash <(curl -s https://pterodactyl-installer.se)
+# Danach Wings starten
+systemctl enable --now wings
+systemctl status wings</code></pre>
+<p>Vorteile: volle Kontrolle über JVM-Flags, mehrere Server-Instanzen auf einer Maschine, eigene Backups, keine Slot-Limits. Nachteile: DDoS-Schutz ist bei Hetzner/OVH vorhanden, aber weniger aggressiv als bei spezialisierten Gameserver-Hostern; ein Angriff kann trotzdem den Node lahmlegen. Bei öffentlichen Servern mit Griefing-Risiko ist ein dedizierter Gameserver-Hoster oft die stressfreiere Wahl.</p>
+<p>Für Netzwerke mit Lobby, Survival und Creative empfiehlt sich ein <strong>Velocity-Proxy</strong> auf einem kleinen VPS (2 GB, ca. 5 €) plus Backend-Server auf dem Dedicated. Velocity ist moderner als BungeeCord, unterstützt moderne Forwarding-Modi und ist deutlich performanter.</p>
+
+<h2>Backup, DDoS und Sicherheit</h2>
+<p>Ein Minecraft-Server ohne Backup ist ein Datenverlust mit Ansage. Mindestens täglich, besser alle 6 Stunden, sollten Welt und Konfiguration gesichert werden. Ein bewährtes Skript:</p>
+<pre><code>#!/bin/bash
+WORLD=/srv/minecraft
+BACKUP=/srv/backups/$(date +%F_%H%M)
+mkdir -p "$BACKUP"
+screen -S mc -p 0 -X stuff "save-all flush\n"
+sleep 8
+tar -czf "$BACKUP/worlds.tar.gz" -C "$WORLD" world world_nether world_the_end
+cp "$WORLD"/server.properties "$WORLD"/whitelist.json "$BACKUP"/
+find /srv/backups -maxdepth 1 -type d -mtime +7 -exec rm -rf {} \;
+echo "Backup fertig: $BACKUP"</code></pre>
+<p>Sicherheits-Basics, die 90 % aller Vorfälle verhindern:</p>
+<ul>
+<li><code>online-mode=true</code> lassen – nur bei Proxy-Setups mit Velocity-Forwarding deaktivieren.</li>
+<li><code>white-list=true</code> und <code>enforce-whitelist=true</code> für private Server.</li>
+<li>Keine OP-Rechte an Spieler vergeben, die keine brauchen. <code>op-permission-level=2</code> statt 4.</li>
+<li>Plugins nur aus offiziellen Quellen (Modrinth, Hangar, SpigotMC) laden – kompilierte Jars aus Discord sind das häufigste Einfallstor für Backdoors.</li>
+<li>RCON-Passwort setzen und Port 25575 niemals öffentlich freigeben.</li>
+<li>Bei Bedrock: <code>server-authoritative-movement=server-auth</code> gegen Movement-Cheats.</li>
+</ul>
+<p>DDoS-Angriffe auf Minecraft-Server sind Alltag. Spezialisierte Hoster filtern Minecraft-spezifische Amplification-Angriffe auf Layer 7, generische Root-Server-Anbieter meist nur Layer 3/4. Wenn dein Server öffentlich gelistet ist, ist ein Hoster mit Minecraft-Filter die 5 € Aufpreis wert.</p>
+
+<h2>Umzug in 30 Minuten: Checkliste</h2>
+<ol>
+<li><strong>Version festlegen.</strong> Prüfe, welche Minecraft-Version dein Modpack oder deine Plugins unterstützen. Wechsle nicht während eines laufenden Events.</li>
+<li><strong>Welt sichern.</strong> Auf dem alten Server <code>save-all flush</code> und <code>stop</code> ausführen, dann <code>world</code>, <code>world_nether</code>, <code>world_the_end</code> sowie <code>playerdata</code> per SFTP herunterladen.</li>
+<li><strong>Neuen Server aufsetzen.</strong> Java 21 installieren (<code>apt install openjdk-21-jre-headless</code>), Jar platzieren, <code>eula=true</code> setzen.</li>
+<li><strong>Konfiguration übernehmen.</strong> <code>server.properties</code>, <code>plugins/</code>, <code>config/</code> und <code>mods/</code> kopieren – aber Plugin-Versionen prüfen, alte Configs brechen manchmal.</li>
+<li><strong>Welt hochladen</strong> und Server einmal starten, um Chunk-Upgrades abzuwarten.</li>
+<li><strong>DNS umstellen.</strong> Bei einem SRV-Record dauert die Propagation 5–60 Minuten. <code>_minecraft._tcp.example.com SRV 0 5 25565 mc.example.com</code></li>
+<li><strong>Testen.</strong> <code>/spark tps</code> nach 30 Minuten Laufzeit prüfen – Zielwert 19,8–20,0 TPS bei Volllast.</li>
+</ol>
+<p>Plane für den Umzug ein Wartungsfenster von 1–2 Stunden ein, auch wenn die reine Arbeit 30 Minuten dauert. Bei Modpacks mit großen Welten (5 GB+) verlängert sich der Upload je nach Leitung auf 30–90 Minuten.</p>
+
+<h2>FAQ</h2>
+<h3>Wie viel RAM brauche ich für einen Minecraft-Server mit 10 Spielern?</h3>
+<p>Für Paper mit Vanilla-Gameplay reichen 3–4 GB Heap. Bei einem leichten Fabric-Modpack plane 5–6 GB, bei einem schweren NeoForge-Pack wie All The Mods 10 mindestens 8 GB. Setze <code>-Xms</code> und <code>-Xmx</code> immer auf denselben Wert und gib dem Betriebssystem 1–2 GB Reserve.</p>
+
+<h3>Kann ich mit Bedrock-Spielern auf einem Java-Server spielen?</h3>
+<p>Ja, mit GeyserMC plus Floodgate. Installiere beide als Plugins in <code>plugins/</code>, öffne UDP-Port 19132 in der Firewall und passe die <code>config.yml</code> von Geyser an. Bedrock-Spieler verbinden sich dann über die IP und den Bedrock-Port. Einschränkungen gibt es bei Custom-Item-Modellen und Redstone-Timings.</p>
+
+<h3>Was ist günstiger: Gameserver mieten oder eigener VPS?</h3>
+<p>Ein Gameserver-Panel kostet bei 8 GB rund 13 €/Monat, ein vergleichbarer VPS etwa 14 €. Ab 16 GB RAM ist der eigene Server klar günstiger: 64 GB Dedicated für 44 € entsprechen 0,29 € pro Slot, während Panel-Hosting bei 0,45–0,65 € liegt. Dafür übernimmst du Administration, Updates und Backups selbst.</p>
+
+<h3>Welche Server-Software ist 2026 die beste?</h3>
+<p>Für 90 % aller Projekte Paper oder der Fork Purpur: beste Performance, volle Plugin-Kompatibilität, einfache Updates. Für Modpacks nutzt du Fabric (leichtgewichtig, mit Lithium und FerriteCore) oder NeoForge (große Modpacks). Folia lohnt nur für Netzwerke mit eigener Plugin-Entwicklung. Hybrid-Jars wie Mohist sind für öffentliche Server nicht zu empfehlen.</p>
+
+<h3>Wie viel kostet ein Minecraft-Server pro Monat realistisch?</h3>
+<p>Für eine Freundesgruppe mit 5–10 Spielern reichen 6,99–12,99 € im Monat. Ein öffentlicher Paper-Server mit 20–50 Slots, Plugins und Backups kostet 13–25 €. Community-Projekte mit 100+ Spielern oder schweren Modpacks liegen bei 44–90 €, entweder als Dedicated oder als Managed-Angebot.</p>
