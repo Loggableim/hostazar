@@ -743,7 +743,7 @@
 
       <p>Doch die Frage ist nicht mehr nur: Welcher Server ist schneller? Die Architekturen beider Systeme haben sich weiterentwickelt, und die Anwendungsfälle sind vielfältiger geworden. Während Apache auf eine modulare, prozessbasierte Architektur setzt, verfolgt Nginx einen asynchronen, event-getriebenen Ansatz. Beide haben spezifische Stärken und Schwächen, die je nach Szenario unterschiedlich stark ins Gewicht fallen.</p>
 
-      <p>Dieser Artikel vergleicht Nginx und Apache 2026 in den Kategorien Performance, Konfiguration, Security und konkrete Use Cases. Du erfährst, welcher Webserver für dein Projekt die richtige Wahl ist und wie du beide Systeme optimal einsetzt. <a href="https://www.amazon.de/s?k=NGINX+APACHE+WEBSERVER+BUCH&tag=nova079-20" target="_blank" rel="nofollow sponsored">Vertiefende Literatur zu beiden Webservern findest du bei Amazon*</a>.</p>
+      <p>Dieser Artikel vergleicht Nginx und Apache 2026 in den Kategorien Performance, Konfiguration, Security und konkrete Use Cases. Du erfährst, welcher Webserver für dein Projekt die richtige Wahl ist und wie du beide Systeme optimal einsetzt. <a href="https://www.amazon.de/s?k=NGINX+APACHE+WEBSERVER+BUCH&tag=nova079-20" target="_blank" rel="sponsored nofollow">Vertiefende Literatur zu beiden Webservern findest du bei Amazon*</a>.</p>
 
       <h2>Performance-Vergleich: Event-Driven vs. Process-Driven</h2>
       <p>Der grundlegendste Unterschied zwischen Nginx und Apache liegt in ihrer Architektur. Nginx folgt einem <strong>Event-Driven-Modell</strong>: Ein einzelner Master-Prozess steuert mehrere Worker-Prozesse, die asynchron Tausende von Verbindungen gleichzeitig bearbeiten. Jeder Worker bedient hunderte oder tausende Connections in einer einzigen Event-Loop, ohne für jede Verbindung einen eigenen Thread oder Prozess zu benötigen. Das führt zu einer extrem geringen Speicher-pro-Connection-Belastung.</p>
@@ -846,7 +846,7 @@ http {
         <li><strong>Security-Header:</strong> Beide setzen <code>X-Frame-Options</code>, <code>HSTS</code>, <code>CSP</code> über Header-Direktiven</li>
       </ul>
 
-      <p><a href="https://www.amazon.de/s?k=DDoS+SCHUTZ+WEBSERVER&tag=nova079-20" target="_blank" rel="nofollow sponsored">Spezialisierte Hardware und Software-Lösungen für den Webserver-Schutz findest du bei Amazon*</a>.</p>
+      <p><a href="https://www.amazon.de/s?k=DDoS+SCHUTZ+WEBSERVER&tag=nova079-20" target="_blank" rel="sponsored nofollow">Spezialisierte Hardware und Software-Lösungen für den Webserver-Schutz findest du bei Amazon*</a>.</p>
 
       <h2>Konfigurationsvergleich: nginx.conf vs. httpd.conf</h2>
       <p>Die Konfiguration ist einer der praxisrelevantesten Unterschiede zwischen beiden Webservern. <strong>Nginx</strong> verwendet eine hierarchische, deklarative Konfiguration in der <code>nginx.conf</code>. Der Aufbau folgt einer klaren Logik: <code>http &rarr; server &rarr; location</code>. Direktiven vererben sich von der übergeordneten auf die untergeordnete Ebene. Das macht die Konfiguration vorhersagbar und gut wartbar – aber auch weniger flexibel als Apache.</p>
@@ -978,7 +978,7 @@ server {
 0 3 */5 * * root certbot renew --quiet --post-hook "systemctl reload nginx"</code></pre>
 
       <h3>HTTP/3 und QUIC</h3>
-      <p>HTTP/3 (basierend auf QUIC über UDP) ist 2026 produktionsreif. Nginx unterstützt HTTP/3 seit Version 1.25 nativ mit dem <code>quic</code>-Listener. Apache hat HTTP/3-Unterstützung über das Modul <code>mod_http3</code> (verfügbar ab Apache 2.5). Für optimale Performance solltest du HTTP/3 aktivieren, da es Latenzzeiten reduziert und bei Paketverlust stabiler ist als TCP-basiertes HTTP/2. <a href="https://www.amazon.de/s?k=HTTP%2F3+WEBSERVER+BUCH&tag=nova079-20" target="_blank" rel="nofollow sponsored">Aktuelle Fachbücher zu HTTP/3 und modernen Webprotokollen bei Amazon*</a>.</p>
+      <p>HTTP/3 (basierend auf QUIC über UDP) ist 2026 produktionsreif. Nginx unterstützt HTTP/3 seit Version 1.25 nativ mit dem <code>quic</code>-Listener. Apache hat HTTP/3-Unterstützung über das Modul <code>mod_http3</code> (verfügbar ab Apache 2.5). Für optimale Performance solltest du HTTP/3 aktivieren, da es Latenzzeiten reduziert und bei Paketverlust stabiler ist als TCP-basiertes HTTP/2. <a href="https://www.amazon.de/s?k=HTTP%2F3+WEBSERVER+BUCH&tag=nova079-20" target="_blank" rel="sponsored nofollow">Aktuelle Fachbücher zu HTTP/3 und modernen Webprotokollen bei Amazon*</a>.</p>
 
       <pre><code># Nginx HTTP/3 Konfiguration
 server {

@@ -3,33 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Docker Container Security – Best Practices und Absicherung für Docker-Container 2026 | hostazar.com</title>
-  <meta name="description" content="Docker Container Security 2026: Best Practices für Container-Härtung, Image-Scanning, Runtime Security, Netzwerk-Isolation and mehr.">
+  <title>Docker-Sicherheit: Rechte, Images und Netze begrenzen</title>
+  <meta name="description" content="Docker sicher betreiben: Begrenze Rechte, Netzfreigaben und Dateizugriffe. Mit Prüfablauf für Images, Secrets, Updates und Wiederherstellung auf dem VPS.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://hostazar.com/artikel/docker-container-security-best-practices-2026.html">
   <link rel="stylesheet" href="/css/style.css">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://hostazar.com/artikel/docker-container-security-best-practices-2026.html">
-  <meta property="og:title" content="Docker Container Security – Best Practices und Absicherung für Docker-Container 2026 | hostazar.com">
-  <meta property="og:description" content="Docker Container Security 2026: Best Practices für Container-Härtung, Image-Scanning, Runtime Security, Netzwerk-Isolation and mehr.">
+  <meta property="og:title" content="Docker-Sicherheit: Rechte, Images und Netze begrenzen">
+  <meta property="og:description" content="Docker sicher betreiben: Begrenze Rechte, Netzfreigaben und Dateizugriffe. Mit Prüfablauf für Images, Secrets, Updates und Wiederherstellung auf dem VPS.">
   <meta property="og:image" content="https://hostazar.com/images/docker-container-security-best-practices-2026.webp">
   <meta property="og:locale" content="de_DE">
   <meta property="og:site_name" content="Hostazar &mdash; VPS &amp; DevOps Portal">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Docker Container Security – Best Practices und Absicherung für Docker-Container 2026 | hostazar.com">
-  <meta name="twitter:description" content="Docker Container Security 2026: Best Practices für Container-Härtung, Image-Scanning, Runtime Security, Netzwerk-Isolation and mehr.">
+  <meta name="twitter:title" content="Docker-Sicherheit: Rechte, Images und Netze begrenzen">
+  <meta name="twitter:description" content="Docker sicher betreiben: Begrenze Rechte, Netzfreigaben und Dateizugriffe. Mit Prüfablauf für Images, Secrets, Updates und Wiederherstellung auf dem VPS.">
   <meta name="twitter:image" content="https://hostazar.com/images/docker-container-security-best-practices-2026.webp">
   <script data-hz-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="stylesheet" href="/css/consent-banner.css">
 
-  <script type="application/ld+json">
-  {
+  <script type="application/ld+json">{
   "@context": "https://schema.org",
   "@type": "Article",
-  "headline": "Docker Container Security – Best Practices und Absicherung für Docker-Container 2026 | hostazar.com",
+  "headline": "Docker-Sicherheit: Rechte, Images und Netze begrenzen",
   "url": "https://hostazar.com/artikel/docker-container-security-best-practices-2026.html",
-  "description": "Docker Container Security 2026: Best Practices für Container-Härtung, Image-Scanning, Runtime Security, Netzwerk-Isolation and mehr.",
+  "description": "Docker sicher betreiben: Begrenze Rechte, Netzfreigaben und Dateizugriffe. Mit Prüfablauf für Images, Secrets, Updates und Wiederherstellung auf dem VPS.",
   "inLanguage": "de",
   "isPartOf": {
     "@type": "WebSite",
@@ -37,7 +36,7 @@
     "url": "https://hostazar.com"
   },
   "datePublished": "2026-06-11",
-  "dateModified": "2026-06-11",
+  "dateModified": "2026-11-04",
   "image": "https://hostazar.com/images/docker-container-security-best-practices-2026.webp",
   "author": {
     "@type": "Organization",
@@ -47,11 +46,9 @@
     "@type": "Organization",
     "name": "hostazar.com"
   },
-  "wordCount": 4089
-}
-  </script>
-  <script type="application/ld+json">
-  {
+  "wordCount": 297
+}</script>
+  <script type="application/ld+json">{
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
@@ -70,12 +67,26 @@
     {
       "@type": "ListItem",
       "position": 3,
-      "name": "Docker Container Security – Best Practices und Absicherung für Docker-Container 2026 | hostazar.com",
+      "name": "Docker-Sicherheit: Rechte, Images und Netze begrenzen",
       "item": "https://hostazar.com/artikel/docker-container-security-best-practices-2026.html"
     }
   ]
-}
-  </script>
+}</script>
+
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Ist Rootless Docker eine vollständige Sicherheitslösung?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nein. Es reduziert bestimmte Risiken, ersetzt aber keine sichere Anwendung, minimale Dateifreigaben oder einen sorgfältigen Umgang mit Zugangsdaten."
+      }
+    }
+  ]
+}</script>
 </head>
 <body>
 <nav class="navbar">
@@ -734,312 +745,26 @@
 </nav>
   <nav class="breadcrumbs"><a href="https://hostazar.com/">hostazar</a><span class="sep"> &rsaquo; </span><a href="https://hostazar.com/devops/">DevOps</a><span class="sep"> &rsaquo; </span><span class="current">Docker Container Security – Best Practices und Absicherung für Docker-Container 2026 | hostazar.com</span></nav>
 <main class="article-page">
-  <div class="container">
-    <div class="article-meta-top">
-      <span class="card-tag devops">DevOps</span>
-      <span>12 Min Lesezeit</span>
-    </div><h1>Docker Container Security – Best Practices und Absicherung für Docker-Container 2026</h1>
-      <p><strong>Docker hat die Art und Weise revolutioniert, wie wir Software entwickeln, ausliefern und betreiben.</strong> Container ermöglichen isolierte Umgebungen, reproduzierbare Deployments und eine nie dagewesene Flexibilität. Doch mit dieser Freiheit kommt Verantwortung: Container teilen sich den Host-Kernel, laufen oft mit weitreichenden Berechtigungen und können bei falscher Konfiguration ein massives Sicherheitsrisiko darstellen.</p>
-
-      <p>Gerade 2026, wo Container in nahezu jeder Produktionsumgebung zum Standard gehören, ist ein fundiertes Verständnis der Docker-Sicherheit unverzichtbar. Von der Container-Runtime über Image-Scanning bis hin zu Netzwerksicherheit und Secrets-Management – dieser Guide zeigt dir alle relevanten Maßnahmen, um deine Docker-Container produktionssicher zu betreiben.</p>
-
-      <p>Wer sein Docker-Wissen vertiefen möchte, findet bei <a href="https://www.amazon.de/s?k=DOCKER+SECURITY+CONTAINER&tag=nova079-20" target="_blank" rel="nofollow sponsored">Amazon eine gute Auswahl an Docker- und Security-Literatur*</a>.</p>
-
-      <h2>Warum Docker-Sicherheit wichtiger ist als je zuvor</h2>
-      <p>Der Mythos, dass Container von Natur aus sicher isoliert seien, hält sich hartnäckig. Tatsächlich nutzen Container – anders als VMs – den gemeinsamen Kernel des Hosts. Ein erfolgreicher Container-Breakout gewährt einem Angreifer daher potenziell direkten Zugriff auf das Host-System. Hinzu kommen unsichere Images aus öffentlichen Registries, offene Docker-Sockets, fehlende Ressourcenlimits und unbedacht gemountete Host-Verzeichnisse.</p>
-
-      <p>Laut aktuellen Sicherheitsreports des CIS (Center for Internet Security) sind über 40 Prozent der produktiven Docker-Installationen unzureichend gehärtet. Typische Angriffsvektoren sind privilegierte Container, veraltete Images mit bekannten CVEs, fehlende Network Isolation und die Verwendung des <code>latest</code>-Tags ohne Versionierung. Wer Docker sicher betreiben will, muss daher jede Ebene des Stacks betrachten:</p>
-
-      <ul>
-        <li>Die Container-Runtime und deren Konfiguration</li>
-        <li>Die verwendeten Images und deren Herkunft</li>
-        <li>Das Netzwerkdesign und die Isolation der Container</li>
-        <li>Den Umgang mit Secrets und sensiblen Umgebungsvariablen</li>
-        <li>Ressourcenlimits und Capability-Einschränkungen</li>
-      </ul>
-
-      <h2>Container-Runtime absichern</h2>
-      <p>Der erste Hebel für mehr Sicherheit ist die Docker-Runtime selbst. Viele Standardeinstellungen sind bewusst permissiv ausgelegt, um die Einstiegshürde niedrig zu halten. Für den Produktionseinsatz musst du diese Einstellungen jedoch nachschärfen.</p>
-
-      <h3>Non-Root User in Containern</h3>
-      <p>Container, die als <code>root</code> laufen, sind das häufigste Sicherheitsproblem. Zwar sind Prozesse innerhalb des Containers durch Linux-Namespaces vom Host-Root getrennt – dennoch erhöht Root im Container die Angriffsfläche massiv. Verwende stattdessen in deinem Dockerfile den <code>USER</code>-Befehl, um einen dedizierten Benutzer anzulegen:</p>
-
-      <pre><code>FROM node:20-alpine
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
-COPY --chown=appuser:appgroup . /app
-WORKDIR /app
-CMD ["node", "server.js"]</code></pre>
-
-      <p>Viele offizielle Images (Nginx, PostgreSQL, Redis) bieten längst vorkonfigurierte Non-Root-Varianten an – nutze sie! Der Docker-User-Namespace-Modus (<code>--userns-remap</code>) kann zusätzlich Root-Rechte im Container auf einen unprivilegierten Host-User abbilden.</p>
-
-      <h3>Read-Only Filesystem</h3>
-      <p>Starte Container standardmäßig mit einem <code>--read-only</code>-Filesystem. Das verhindert, dass ein Angreifer nach einer erfolgreichen Exploitation Schadsoftware persistieren kann. Für Verzeichnisse, in die geschrieben werden muss (z. B. temporäre Uploads, Logs oder Caches), mountest du explizit beschreibbare Volumes:</p>
-
-      <pre><code>docker run --read-only \
-  --tmpfs /tmp:rw,noexec,nosuid,size=64m \
-  --tmpfs /var/run:rw,noexec,nosuid \
-  myapp:latest</code></pre>
-
-      <h3>Seccomp- und AppArmor-Profile</h3>
-      <p>Seccomp (Secure Computing Mode) filtert die Systemaufrufe, die ein Container tätigen darf. Docker liefert ein Standard-Seccomp-Profil mit, das etwa 44 Prozent der möglichen Syscalls blockt. Für eine noch restriktivere Konfiguration erstellst du ein eigenes Profil:</p>
-
-      <pre><code>docker run --security-opt seccomp=custom-profile.json myapp</code></pre>
-
-      <p>AppArmor arbeitet auf Ebene der Dateizugriffe und Programme. Das Docker-Profil <code>docker-default</code> ist bereits aktiv, du kannst es aber mit eigenen Regeln ergänzen. Zusätzlich verringerst du die Angriffsfläche, indem du unnötige Capabilities mit <code>--cap-drop=ALL</code> und <code>--cap-add=NEEDED</code> entfernst.</p>
-
-      <h2>Image-Security: Vertrauen ist gut, Scannen ist besser</h2>
-      <p>Die Sicherheitskette beginnt bereits beim Image. Wenn du ein Image aus Docker Hub oder einer anderen Registry ziehst, importierst du potenziell Code und Abhängigkeiten mit unbekanntem Sicherheitsstatus. Image-Scanning ist daher ein essenzieller Bestandteil jeder Docker-Security-Strategie.</p>
-
-      <h3>Image-Scanning mit Trivy und Grype</h3>
-      <p><strong>Trivy</strong> (von Aqua Security) und <strong>Grype</strong> (von Anchore) sind die beiden führenden Open-Source-Tools zum Scannen von Container-Images auf bekannte Schwachstellen. Beide durchsuchen das Image nach installierten Paketen, Bibliotheken und Betriebssystem-Komponenten und gleichen diese mit CVE-Datenbanken ab:</p>
-
-      <pre><code># Trivy
-trivy image nginx:1.25-alpine
-
-# Grype
-grype nginx:1.25-alpine</code></pre>
-
-      <p>Integriere das Scannen in deine CI/CD-Pipeline – <code>docker build</code> sollte nur durchlaufen, wenn das resultierende Image keine kritischen oder hohen CVEs enthält. So stellst du sicher, dass keine unsicheren Images in deine Registry oder Produktion gelangen.</p>
-
-      <h3>Docker Content Trust</h3>
-      <p>Mit <code>export DOCKER_CONTENT_TRUST=1</code> aktivierst du die Signaturprüfung für Images aus Docker Hub. Nur signierte Images werden dann akzeptiert. Das verhindert Man-in-the-Middle-Angriffe und stellt sicher, dass das Image tatsächlich vom angegebenen Publisher stammt. In Kombination mit einem privaten Registry-Mirror, der nur gescannte und signierte Images vorhält, erreichst du ein hohes Sicherheitsniveau.</p>
-
-      <p>Zur Vertiefung der Image-Security-Thematik lohnt sich ein Blick in die Fachliteratur: <a href="https://www.amazon.de/s?k=DOCKER+IMAGE+SECURITY&tag=nova079-20" target="_blank" rel="nofollow sponsored">Docker Image Security bei Amazon*</a>.</p>
-
-      <h3>Registry-Security: Privates Repository bevorzugen</h3>
-      <p>Öffentliche Images aus Docker Hub sind bequem, aber nicht immer vertrauenswürdig. Verwende nach Möglichkeit eine private Container Registry (z. B. Harbor, GitLab Container Registry oder die AWS ECR) mit integriertem Vulnerability-Scanning. Nur geprüfte und genehmigte Images sollten in deiner Registry landen.</p>
-
-      <h2>Netzwerksicherheit: Container richtig isolieren</h2>
-      <p>Docker-Netzwerke sind standardmäßig liberal: Container im selben Netzwerk können einander uneingeschränkt erreichen. In der Produktion brauchst du klare Grenzen.</p>
-
-      <h3>Netzwerk-Isolation strikt durchsetzen</h3>
-      <p>Lege pro Projekt oder sogar pro Service dedizierte Docker-Netzwerke an. Verbinde nur Container, die tatsächlich kommunizieren müssen. Ein Reverse-Proxy-Container sollte beispielsweise nur im Proxy-Netz hängen, die Datenbank nur im internen Backend-Netz:</p>
-
-      <pre><code>networks:
-  proxy:
-    external: true
-  backend:
-    internal: true</code></pre>
-
-      <p>Der Zusatz <code>internal: true</code> verhindert, dass Container dieses Netzwerks auf das Internet zugreifen können – ideal für Datenbanken und Caches.</p>
-
-      <h3>Nicht den Docker Socket mounten</h3>
-      <p>Eines der größten Sicherheitsrisiken in Docker-Umgebungen ist das Mounten des Docker-Sockets (<code>/var/run/docker.sock</code>) in einen Container. Wer Zugriff auf den Socket hat, hat Root-Zugriff auf die gesamte Docker-Daemon-API – und damit auf alle Container des Hosts. Verwende stattdessen API-basierte Alternativen oder Socket-Proxy-Tools mit eingeschränkten Berechtigungen.</p>
-
-      <h2>Secrets-Management: Passwörter gehören nicht in Umgebungsvariablen</h2>
-      <p>Klassische Umgebungsvariablen sind bequem, aber unsicher: Sie sind über <code>docker inspect</code>, in Logs und in History-Dateien einsehbar. Docker bietet ab Version 20.10 ein natives Secrets-Management für Swarm-Mode. Für Compose-Setups nutzt du <code>docker secret</code> oder externe Tools wie <strong>Hashicorp Vault</strong> oder <strong>Bitwarden Secrets Manager</strong>.</p>
-
-      <pre><code>secrets:
-  db_password:
-    file: ./secrets/db_password.txt
-
-services:
-  app:
-    secrets:
-      - db_password</code></pre>
-
-      <p>Ein wichtiger Grundsatz: Secrets niemals im Git-Repository ablegen. Nutze <code>.gitignore</code>, um sensitive Dateien auszuschließen, und setze restriktive Dateirechte (z. B. <code>chmod 600</code>).</p>
-
-      <h2>Ressourcenlimits: Container zähmen</h2>
-      <p>Container ohne Ressourcenlimits können den gesamten Host lahmlegen – absichtlich durch einen Angreifer oder versehentlich durch einen Speicherleck.</p>
-
-      <p>Setze deshalb für jeden Container CPU- und Speicherlimits:</p>
-
-      <pre><code>docker run --memory="512m" --cpus="1.0" --memory-reservation="256m" myapp
-
-# In docker-compose.yml:
-services:
-  app:
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 512M
-        reservations:
-          cpus: '0.5'
-          memory: 256M</code></pre>
-
-      <p>Mit <code>--memory-reservation</code> gibst du dem Scheduler einen Hinweis, wie viel Speicher der Container idealerweise bekommen sollte. Bei Speicherknappheit greift Docker auf diese Reservierungen zurück. <code>--oom-kill-disable</code> verhindert das Beenden des Containers bei Speichermangel – setze das aber nur mit Bedacht ein.</p>
-
-      <h2>Rootless-Mode: Docker ohne Root-Rechte</h2>
-      <p>Der Rootless-Mode ist einer der größten Sicherheitsfortschritte in der Docker-Welt. Statt als Root-Daemon läuft die gesamte Docker-Engine in einem User-Namespace ohne echte Root-Rechte auf dem Host. Ein Container-Breakout führt dann nicht mehr zur vollen Host-Kontrolle.</p>
-
-      <p>Die Einrichtung ist unkompliziert:</p>
-
-      <pre><code># Voraussetzung: neueuidmap / newgidmap installiert
-dockerd-rootless-setuptool.sh install
-systemctl --user start docker
-
-# Danach läuft alles rootless:
-docker run hello-world</code></pre>
-
-      <p>Der Rootless-Mode ist inzwischen produktionsreif und wird von vielen Projekten standardmäßig empfohlen. Beachte jedoch, dass einige Docker-Features (insbesondere eingeschränkte Netzwerkmöglichkeiten) im Rootless-Mode nicht verfügbar sind. Prüfe daher vor dem Umstieg, ob dein Setup kompatibel ist.</p>
-
-      <p>Weiterführende Hardware und Tools für den Docker-Betrieb findest du auch bei <a href="https://www.amazon.de/s?k=DOCKER+ROOTLESS+CONTAINER&tag=nova079-20" target="_blank" rel="nofollow sponsored">Amazon zum Thema Docker &amp; Container-Security*</a>.</p>
-
-      <h2>Docker Bench Security: Der automatisierte Security-Check</h2>
-      <p>Das CIS (Center for Internet Security) hat einen umfassenden Benchmark für Docker-Härtung veröffentlicht. Docker Bench Security setzt diese Empfehlungen in ein automatisiertes Testskript um:</p>
-
-      <pre><code># Docker Bench Security ausführen
-docker run --rm --net=host \
-  --pid=host --userns=host \
-  --cap-add=audit_control \
-  -e DOCKER_CONTENT_TRUST=$DOCKER_CONTENT_TRUST \
-  -v /var/lib:/var/lib:ro \
-  -v /var/run/docker.sock:/var/run/docker.sock:ro \
-  -v /usr/lib/systemd:/usr/lib/systemd:ro \
-  -v /etc:/etc:ro \
-  docker/docker-bench-security</code></pre>
-
-      <p>Das Tool prüft über 100 Einzelpunkte in den Kategorien Host-Konfiguration, Docker-Daemon-Konfiguration, Container-Images, Container-Runtime, Docker-Sicherheitsoperationen und mehr. Arbeite die Warnungen systematisch ab und dokumentiere Abweichungen.</p>
-
-      <h2>Monitoring &amp; Auditing: Sicherheit ist kein einmaliges Projekt</h2>
-      <p>Einmal gehärtet, heißt nicht dauerhaft sicher. Regelmäßiges Monitoring und Auditing sind essenziell für die langfristige Sicherheit deiner Docker-Umgebung.</p>
-
-      <h3>Container-Logging und -Überwachung</h3>
-      <p>Docker-Logs sollten zentralisiert und auf verdächtige Aktivitäten geprüft werden. Tools wie <strong>Loki + Promtail</strong> oder der <strong>ELK-Stack</strong> eignen sich hervorragend für die Log-Aggregation. Achte darauf, Logs durch Log-Rotation zu begrenzen:</p>
-
-      <pre><code># In docker-compose.yml
-services:
-  app:
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"</code></pre>
-
-      <h3>Docker-Events überwachen</h3>
-      <p>Mit <code>docker events</code> erhältst du einen Live-Stream aller Aktivitäten der Docker-Engine – vom Starten und Stoppen von Containern bis zu Mount-Vorgängen und Netzwerkänderungen. Integriere diese Events in dein Monitoring-System und schlage bei ungewöhnlichen Aktivitäten Alarm.</p>
-
-      <h3>Regelmäßige Audits</h3>
-      <p>Führe mindestens monatlich einen Docker-Bench-Security-Lauf durch und gleiche die Ergebnisse mit deiner Baseline ab. Automatisiere das Scannen aller laufenden Images auf neue CVEs – ein Image, das gestern noch sauber war, kann heute eine kritische Lücke enthalten.</p>
-
-      <h2>Häufige Fehler bei der Docker-Absicherung</h2>
-      <ul>
-        <li><strong>Container laufen als Root:</strong> Der häufigste und gefährlichste Fehler. Immer einen Non-Root-User verwenden.</li>
-        <li><strong>Docker Socket in Container gemountet:</strong> Gib Container-Access to Docker-API, damit auch Host-Zugriff. Niemals tun.</li>
-        <li><strong>Keine Ressourcenlimits:</strong> Ein einziger Container mit Speicherleck kann den gesamten Host lahmlegen.</li>
-        <li><strong>Secrets in Umgebungsvariablen:</strong> Passwörter und API-Keys gehören in dedizierte Secret-Stores.</li>
-        <li><strong>Latest-Tag ohne Versionierung:</strong> <code>latest</code> kann jederzeit brechende Änderungen enthalten.</li>
-        <li><strong>Keine Network-Isolation:</strong> Alle Container im Default-Bridge-Netzwerk haben freie Kommunikation.</li>
-        <li><strong>Fehlende Image-Scans:</strong> Images aus öffentlichen Registries können unentdeckte CVEs enthalten.</li>
-        <li><strong>Privilegierte Container:</strong> <code>--privileged</code> hebelt fast alle Sicherheitsmechanismen aus.</li>
-        <li><strong>Veraltete Docker-Version:</strong> Ältere Versionen enthalten bekannte Sicherheitslücken.</li>
-      </ul>
-
-      <div class="highlight-box">
-        <p><strong>🔒 Praxis-Tipp:</strong> Starte mit der <strong>Docker Bench Security</strong> und arbeite die <code>WARN</code>-Meldungen von oben nach unten ab. Schon die ersten zehn umgesetzten Punkte reduzieren die Angriffsfläche um 80 Prozent. Kombiniere das mit regelmäßigem Trivy-Scanning und aktiviertem Rootless-Mode – das ist der schnellste Weg zu einer produktionsreifen Docker-Sicherheit.</p>
-      
-
-<section class="related-section">
-  <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>
-  <div class="related-grid">
-    <article class="blog-card">
-  <a href="/artikel/openvpn-server-vps-einrichten-2026.html" class="card-img-link">
-    <div class="card-img"><img src="/images/openvpn-server-vps-einrichten-2026.webp" alt="OpenVPN Server auf VPS einrichten – Schritt-für-Schritt-Anleitung 2026" loading="lazy" width="400" height="200"></div>
-  </a>
-  <div class="card-body">
-    <div class="card-meta">
-      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
-      <span>11. June 2026</span>
-      <span>12 Min</span>
-    </div>
-    <h3><a href="/artikel/openvpn-server-vps-einrichten-2026.html">OpenVPN Server auf VPS einrichten – Schritt-für-Schritt-Anleitung 2026</a></h3>
-    <p class="card-excerpt">OpenVPN Server auf VPS einrichten: Vollständige Schritt-für-Schritt-Anleitung mit Installation, Zertifikaten, Firewall und Client-Setup.</p>
-    <div class="card-footer">
-      <a href="/artikel/openvpn-server-vps-einrichten-2026.html" class="read-more">Weiterlesen &rarr;</a>
-    </div>
-  </div>
+<div class="container">
+<article class="article-content">
+<h1>Docker-Sicherheit: Rechte, Images und Netze begrenzen</h1>
+<figure class="article-hero-img"><img src="/images/7-days-to-die-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36"></figure>
+<div class="highlight-box"><p><strong>Kurzantwort:</strong> Container teilen sich wichtige Ressourcen mit dem Host. Begrenze deshalb den Schaden, den eine kompromittierte Anwendung anrichten könnte. Ein Image-Scan ist hilfreich, ersetzt aber weder Rechtebegrenzung noch Updates und Wiederherstellung.</p></div>
+<h2>Privilegien und Dateizugriffe reduzieren</h2>
+<p>Nutze einen geeigneten unprivilegierten Benutzer und vermeide unnötige Capabilities. Gib nur benötigte Verzeichnisse frei. Ein eingebundener Docker-Socket kann weitreichende Kontrolle über den Host ermöglichen und gehört nicht beiläufig in einen Anwendungscontainer.</p>
+<h2>Images und Geheimnisse kontrollieren</h2>
+<p>Beziehe Images aus nachvollziehbaren Quellen und dokumentiere die verwendete Version oder den Digest. Prüfe Schwachstellen regelmäßig erneut. Halte Zugangsdaten aus Images und öffentlichen Compose-Dateien fern. Dateibasierte Secrets müssen auch auf dem Host mit passenden Rechten geschützt sein.</p>
+<h2>Den laufenden Betrieb überprüfen</h2>
+<p>Veröffentliche nur benötigte Ports und teste ihre Erreichbarkeit von außen. Begrenze Ressourcen passend zum Dienst. Prüfe, ob Schreibzugriffe mit einem schreibgeschützten Dateisystem und gezielt freigegebenen Verzeichnissen auskommen. Teste Updates zuerst mit gesicherten Daten und dokumentiere den Rückweg.</p>
+<h2>Eine Berechtigungsprüfung praktisch durchführen</h2>
+<p>Notiere alle Bind-Mounts, veröffentlichten Ports und zusätzlichen Rechte eines Dienstes. Frage für jeden Eintrag, welche Funktion ihn benötigt. Entferne entbehrliche Freigaben zuerst in einer Testumgebung. Prüfe danach Start, normalen Betrieb und Update, damit eine vermeintliche Härtung nicht unbemerkt benötigte Abläufe unterbricht.</p>
+<p>Ein sauberer Image-Scan ist eine Momentaufnahme. Plane erneute Prüfungen und einen Ablauf für kritische Funde. Dokumentiere, wer ein aktualisiertes Image bereitstellt und wie schnell es getestet werden kann. Eine Warnung ohne zuständige Person und ohne geprüfte Aktualisierungsmöglichkeit verbessert den Zustand des laufenden Dienstes noch nicht.</p>
+<h2>Häufige Frage</h2>
+<h3>Ist Rootless Docker eine vollständige Sicherheitslösung?</h3><p>Nein. Es reduziert bestimmte Risiken, ersetzt aber keine sichere Anwendung, minimale Dateifreigaben oder einen sorgfältigen Umgang mit Zugangsdaten.</p>
+<p>Fachquelle: <a href="https://docs.docker.com/engine/security/">Docker: Sicherheitsmodell</a>. Redaktionell überarbeitet am 4. November 2026.</p>
+<h2>Passende Ratgeber</h2><ul><li><a href="/artikel/docker-security-hardening-2026.html">Docker Security Hardening 2026 – Container absichern</a></li><li><a href="/artikel/docker-compose-produktion-2026.html">Docker Compose für Produktion – Best Practices 2026</a></li></ul>
 </article>
-<article class="blog-card">
-  <a href="/artikel/devops-tools-2024.html" class="card-img-link">
-    <div class="card-img"><img src="/images/devops-tools-2024.webp" alt="DevOps-Tools 2024 – Die 10 wichtigsten Tools im Überblick" loading="lazy" width="400" height="200"></div>
-  </a>
-  <div class="card-body">
-    <div class="card-meta">
-      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
-      <span>12. May 2025</span>
-      <span>7 Min</span>
-    </div>
-    <h3><a href="/artikel/devops-tools-2024.html">DevOps-Tools 2024 – Die 10 wichtigsten Tools im Überblick</a></h3>
-    <p class="card-excerpt">Die wichtigsten DevOps-Tools 2024: Docker, Kubernetes, Terraform, Ansible, GitHub Actions und mehr. Mit Hosting-Tipps für deine DevOps-Infrastruktur.</p>
-    <div class="card-footer">
-      <a href="/artikel/devops-tools-2024.html" class="read-more">Weiterlesen &rarr;</a>
-    </div>
-  </div>
-</article>
-<article class="blog-card">
-  <a href="/artikel/docker-compose-vps-guide.html" class="card-img-link">
-    <div class="card-img"><img src="/images/docker-compose-vps-guide.webp" alt="Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben" loading="lazy" width="400" height="200"></div>
-  </a>
-  <div class="card-body">
-    <div class="card-meta">
-      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
-      <span>02. June 2026</span>
-      <span>10 Min</span>
-    </div>
-    <h3><a href="/artikel/docker-compose-vps-guide.html">Docker Compose auf dem VPS: Webserver, Datenbank &amp; Reverse Proxy richtig betreiben</a></h3>
-    <p class="card-excerpt">Praxisnaher Guide für Docker Compose auf dem VPS: Webserver, Datenbank, Reverse Proxy, TLS, Backups, Updates und Sicherheit richtig planen und betreiben.</p>
-    <div class="card-footer">
-      <a href="/artikel/docker-compose-vps-guide.html" class="read-more">Weiterlesen &rarr;</a>
-    </div>
-  </div>
-</article>
-<article class="blog-card">
-  <a href="/artikel/vps-absichern-2026.html" class="card-img-link">
-    <div class="card-img"><img src="/images/vps-absichern-2026.webp" alt="VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates" loading="lazy" width="400" height="200"></div>
-  </a>
-  <div class="card-body">
-    <div class="card-meta">
-      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
-      <span>02. June 2026</span>
-      <span>10 Min</span>
-    </div>
-    <h3><a href="/artikel/vps-absichern-2026.html">VPS absichern 2026: SSH, Firewall, Fail2ban &amp; Updates</a></h3>
-    <p class="card-excerpt">VPS absichern 2026: Einsteiger-Guide für sichere SSH-Logins, UFW-Firewall, Fail2ban, automatische Updates, Backups und Monitoring auf deinem Linux-Server.</p>
-    <div class="card-footer">
-      <a href="/artikel/vps-absichern-2026.html" class="read-more">Weiterlesen &rarr;</a>
-    </div>
-  </div>
-</article>
-<article class="blog-card">
-  <a href="/artikel/webseite-geschwindigkeit-optimieren-2026.html" class="card-img-link">
-    <div class="card-img"><img src="/images/webseite-geschwindigkeit-optimieren-2026.webp" alt="Website-Geschwindigkeit optimieren – PageSpeed-Guide 2026" loading="lazy" width="400" height="200"></div>
-  </a>
-  <div class="card-body">
-    <div class="card-meta">
-      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
-      <span>03. June 2026</span>
-      <span>13 Min</span>
-    </div>
-    <h3><a href="/artikel/webseite-geschwindigkeit-optimieren-2026.html">Website-Geschwindigkeit optimieren – PageSpeed-Guide 2026</a></h3>
-    <p class="card-excerpt">✓ Website-Geschwindigkeit optimieren 2026 ✓ Core Web Vitals ✓ PageSpeed/Lighthouse ✓ Bildoptimierung ✓ Caching ✓ CDN ✓ Lazy Loading ✓ WordPress-Speed ✓ Praktische Tipps.</p>
-    <div class="card-footer">
-      <a href="/artikel/webseite-geschwindigkeit-optimieren-2026.html" class="read-more">Weiterlesen &rarr;</a>
-    </div>
-  </div>
-</article>
-<article class="blog-card">
-  <a href="/artikel/contabo-vps-erfahrungen-2026.html" class="card-img-link">
-    <div class="card-img"><img src="/images/contabo-vps-erfahrungen-2026.webp" alt="Contabo VPS Erfahrungen 2026 – Test, Preise &amp; Setup-Guide" loading="lazy" width="400" height="200"></div>
-  </a>
-  <div class="card-body">
-    <div class="card-meta">
-      <span class="card-tag devops" style="background:#FF980022;color:#FF9800">DevOps</span>
-      <span>04. June 2026</span>
-      <span>11 Min</span>
-    </div>
-    <h3><a href="/artikel/contabo-vps-erfahrungen-2026.html">Contabo VPS Erfahrungen 2026 – Test, Preise &amp; Setup-Guide</a></h3>
-    <p class="card-excerpt">Contabo VPS Erfahrungen 2026: ✓ Leistung, Preise &amp; Test ✓ VPS S, M, L &amp; XL im Vergleich ✓ Setup-Guide ✓ Vor- und Nachteile. Jetzt lesen!</p>
-    <div class="card-footer">
-      <a href="/artikel/contabo-vps-erfahrungen-2026.html" class="read-more">Weiterlesen &rarr;</a>
-    </div>
-  </div>
-</article>
-  </div>
-</section>
-  </div>
+</div>
 </main>
 
 <footer class="footer">

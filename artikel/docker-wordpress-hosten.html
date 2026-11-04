@@ -3,33 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WordPress mit Docker hosten – Modernes Setup 2026 | hostazar.com</title>
-  <meta name="description" content="ordPress mit Docker hosten – Das moderne Setup 2026  Die Art und Weise, wie wir Webanwendungen verwalten, hat sich in den letzten Jahren grundlegend gewande.">
+  <title>WordPress mit Docker: Betrieb, Updates und Backups planen</title>
+  <meta name="description" content="WordPress mit Docker hosten: Trenne Datenbank und Webdienst, sichere Volumes und Datenbank und teste Updates mit einem geprüften Wiederherstellungsplan.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://hostazar.com/artikel/docker-wordpress-hosten.html">
   <link rel="stylesheet" href="/css/style.css">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://hostazar.com/artikel/docker-wordpress-hosten.html">
-  <meta property="og:title" content="WordPress mit Docker hosten – Modernes Setup 2026 | hostazar.com">
-  <meta property="og:description" content="ordPress mit Docker hosten – Das moderne Setup 2026  Die Art und Weise, wie wir Webanwendungen verwalten, hat sich in den letzten Jahren grundlegend gewande.">
+  <meta property="og:title" content="WordPress mit Docker: Betrieb, Updates und Backups planen">
+  <meta property="og:description" content="WordPress mit Docker hosten: Trenne Datenbank und Webdienst, sichere Volumes und Datenbank und teste Updates mit einem geprüften Wiederherstellungsplan.">
   <meta property="og:image" content="https://hostazar.com/images/docker-wordpress-hosten.webp">
   <meta property="og:locale" content="de_DE">
   <meta property="og:site_name" content="Hostazar &mdash; VPS &amp; DevOps Portal">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="WordPress mit Docker hosten – Modernes Setup 2026 | hostazar.com">
-  <meta name="twitter:description" content="ordPress mit Docker hosten – Das moderne Setup 2026  Die Art und Weise, wie wir Webanwendungen verwalten, hat sich in den letzten Jahren grundlegend gewande.">
+  <meta name="twitter:title" content="WordPress mit Docker: Betrieb, Updates und Backups planen">
+  <meta name="twitter:description" content="WordPress mit Docker hosten: Trenne Datenbank und Webdienst, sichere Volumes und Datenbank und teste Updates mit einem geprüften Wiederherstellungsplan.">
   <meta name="twitter:image" content="https://hostazar.com/images/docker-wordpress-hosten.webp">
   <script data-hz-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="stylesheet" href="/css/consent-banner.css">
 
-  <script type="application/ld+json">
-  {
+  <script type="application/ld+json">{
   "@context": "https://schema.org",
   "@type": "Article",
-  "headline": "WordPress mit Docker hosten – Modernes Setup 2026 | hostazar.com",
+  "headline": "WordPress mit Docker: Betrieb, Updates und Backups planen",
   "url": "https://hostazar.com/artikel/docker-wordpress-hosten.html",
-  "description": "ordPress mit Docker hosten – Das moderne Setup 2026  Die Art und Weise, wie wir Webanwendungen verwalten, hat sich in den letzten Jahren grundlegend gewande.",
+  "description": "WordPress mit Docker hosten: Trenne Datenbank und Webdienst, sichere Volumes und Datenbank und teste Updates mit einem geprüften Wiederherstellungsplan.",
   "inLanguage": "de",
   "isPartOf": {
     "@type": "WebSite",
@@ -37,7 +36,7 @@
     "url": "https://hostazar.com"
   },
   "datePublished": "2026-06-11",
-  "dateModified": "2026-06-11",
+  "dateModified": "2026-11-04",
   "image": "https://hostazar.com/images/docker-wordpress-hosten.webp",
   "author": {
     "@type": "Organization",
@@ -47,11 +46,9 @@
     "@type": "Organization",
     "name": "hostazar.com"
   },
-  "wordCount": 2672
-}
-  </script>
-  <script type="application/ld+json">
-  {
+  "wordCount": 311
+}</script>
+  <script type="application/ld+json">{
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
@@ -70,12 +67,26 @@
     {
       "@type": "ListItem",
       "position": 3,
-      "name": "WordPress mit Docker hosten – Modernes Setup 2026 | hostazar.com",
+      "name": "WordPress mit Docker: Betrieb, Updates und Backups planen",
       "item": "https://hostazar.com/artikel/docker-wordpress-hosten.html"
     }
   ]
-}
-  </script>
+}</script>
+
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Reicht ein kopiertes Container-Image als Backup?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nein. Die dauerhaft gespeicherten Inhalte liegen gewöhnlich in Volumes und der Datenbank. Beide müssen zum Wiederherstellungsplan gehören."
+      }
+    }
+  ]
+}</script>
 </head>
 <body>
 <nav class="navbar">
@@ -734,216 +745,26 @@
 </nav>
   <nav class="breadcrumbs"><a href="https://hostazar.com/">hostazar</a><span class="sep"> &rsaquo; </span><a href="https://hostazar.com/webhosting/">Webhosting</a><span class="sep"> &rsaquo; </span><span class="current">WordPress mit Docker hosten – Modernes Setup 2026 | hostazar.com</span></nav>
 <main class="article-page">
-  <div class="container">
-    <div class="article-meta-top">
-      <span class="card-tag webhosting">Webhosting</span>
-      <span>3 Min Lesezeit</span>
-    </div><h1>WordPress mit Docker hosten – Modernes Setup 2026</h1>
-<h2>Warum WordPress in Docker hosten?</h2>
-<p>WordPress ist mit über 40 Prozent Marktanteil das mit Abstand beliebteste Content-Management-System weltweit. Die klassische Installation auf einem LAMP-Server ist seit Jahren erprobt, bringt jedoch einige Nachteile mit sich: starre PHP-Versionen, komplizierte Updates und die Gefahr, dass sich Konfigurationsänderungen auf dem gesamten Server auswirken.</p>
-<p>Docker löst diese Probleme elegant: WordPress läuft in einem isolierten Container mit eigener PHP-Version, klar definierten Abhängigkeiten und reproduzierbarer Konfiguration. Updates lassen sich durch einen einfachen Image-Tausch durchführen, und Konflikte zwischen verschiedenen Websites auf demselben Server gehören der Vergangenheit an.</p>
-<p>Für Agenturen und Freelancer, die viele WordPress-Instanzen betreuen, ist Docker ein Quantensprung. Ein einheitliches Setup, das per Compose-Datei definiert ist, kann beliebig oft reproduziert und auf neuen Servern ausgerollt werden – Staging- und Produktivumgebungen inklusive.</p>
-
-<h2>Architektur eines Docker-WordPress-Setups</h2>
-<p>Ein typisches WordPress-Setup in Docker besteht aus mindestens drei Containern: dem WordPress-Container selbst, einer MySQL- oder MariaDB-Datenbank und einem Reverse-Proxy wie Nginx oder Traefik. Jeder dieser Container hat eine klar definierte Aufgabe und kommuniziert über ein internes Docker-Netzwerk.</p>
-<p>Durch die Aufteilung in separate Container erreichen Sie eine saubere Trennung der Zuständigkeiten. Sie können die Datenbank unabhängig vom Webserver aktualisieren, Backups gezielt einzelner Komponenten erstellen und sogar die Datenbank auf einem externen Managed-Service auslagern, ohne WordPress anzufassen.</p>
-<p>Optionale Komponenten wie ein Redis- oder Memcached-Container für Object-Caching, ein Varnish-Cache oder ein Backup-Container runden das Setup ab. So entsteht eine professionelle Architektur, die mit klassischen Managed-WordPress-Hostern mithalten kann.</p>
-
-<h2>Docker Compose: Die zentrale Konfigurationsdatei</h2>
-<p>Docker Compose ist das Herzstück eines jeden WordPress-Container-Setups. In einer einzigen YAML-Datei definieren Sie alle Services, Netzwerke, Volumes und Umgebungsvariablen. Dies macht die Konfiguration versionierbar, dokumentiert und für andere nachvollziehbar.</p>
-<p>Eine gut strukturierte Compose-Datei enthält typischerweise vier Services: wordpress, db, nginx und optional phpmyadmin für die Datenbankverwaltung. Volumes sorgen dafür, dass Themes, Plugins und Uploads auch nach einem Container-Neustart erhalten bleiben.</p>
-<p>Beim ersten Start initialisiert Docker automatisch die Datenbank und führt die WordPress-Installation durch. Innerhalb weniger Minuten haben Sie eine lauffähige Instanz, die Sie sofort im Browser aufrufen können – ganz ohne manuelles Anlegen der wp-config.php.</p>
-
-<pre><code>version: '3.8'
-
-services:
-  db:
-    image: mariadb:11.4
-    restart: always
-    environment:
-      MARIADB_DATABASE: wordpress
-      MARIADB_USER: wpuser
-      MARIADB_PASSWORD: sicheres_passwort
-      MARIADB_RANDOM_ROOT_PASSWORD: '1'
-    volumes:
-      - db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  wordpress:
-    image: wordpress:6.6-php8.3-apache
-    restart: always
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      WORDPRESS_DB_HOST: db:3306
-      WORDPRESS_DB_USER: wpuser
-      WORDPRESS_DB_PASSWORD: sicheres_passwort
-      WORDPRESS_DB_NAME: wordpress
-    volumes:
-      - wp_data:/var/www/html
-    networks:
-      - wpnet
-
-  nginx:
-    image: nginx:1.27-alpine
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    depends_on:
-      - wordpress
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./certs:/etc/nginx/certs:ro
-    networks:
-      - wpnet
-
-volumes:
-  db_data:
-  wp_data:
-
-networks:
-  wpnet:
-    driver: bridge</code></pre>
-
-<h2>Performance-Tuning für Docker-WordPress</h2>
-<p>Mit den richtigen Einstellungen erreicht eine Docker-WordPress-Installation Geschwindigkeiten, die mit nativen Setups problemlos mithalten. Wichtige Stellschrauben sind das Object-Caching mit Redis, PHP-OPcache und ein gut konfigurierter Nginx-Webserver.</p>
-<p>Redis als Object-Cache reduziert die Datenbanklast erheblich, da häufig abgerufene Query-Ergebnisse im Speicher gehalten werden. Bei stark frequentierten Blogs oder WooCommerce-Shops kann dies den Unterschied zwischen einer langsamen und einer blitzschnellen Seite ausmachen.</p>
-<p>Auch die PHP-Konfiguration spielt eine entscheidende Rolle. Das offizielle WordPress-Image erlaubt das Überschreiben der php.ini über Mounts oder Umgebungsvariablen. Werte wie memory_limit, max_execution_time und die OPcache-Einstellungen sollten je nach Workload angepasst werden.</p>
-
-<table>
-<thead>
-<tr><th>Parameter</th>
-  <a href="/artikel/hugo-astro-static-site-vergleich-2026.html" class="card-img-link">
-    <div class="card-img"><img src="/images/hugo-astro-static-site-vergleich-2026.webp" alt="Hugo vs. Astro – Static Site Generator Hosting Vergleich 2026" loading="lazy" width="400" height="200"></div>
-  </a>
-  <div class="card-body">
-    <div class="card-meta">
-      <span class="card-tag webhosting" style="background:#2196F322;color:#2196F3">Webhosting</span>
-      <span>06. June 2026</span>
-      <span>14 Min</span>
-    </div>
-    <h3><a href="/artikel/hugo-astro-static-site-vergleich-2026.html">Hugo vs. Astro – Static Site Generator Hosting Vergleich 2026</a></h3>
-    <p class="card-excerpt">Hugo vs. Astro: Der große Static-Site-Generator-Vergleich 2026 ✓ Performance, Hosting, Lernkurve, Deployment &amp; Use Cases. Welcher SSG passt zu dir?</p>
-    <div class="card-footer">
-      <a href="/artikel/hugo-astro-static-site-vergleich-2026.html" class="read-more">Weiterlesen &rarr;</a>
-    </div>
-  </div>
-
-
-<section class="related-section">
-  <h4 class="related-heading">&#128214; &#196;hnliche Artikel</h4>
-  <div class="related-grid">
-    <article class="blog-card">
-  <a href="/artikel/hugo-astro-static-site-vergleich-2026.html" class="card-img-link">
-    <div class="card-img"><img src="/images/hugo-astro-static-site-vergleich-2026.webp" alt="Hugo vs. Astro – Static Site Generator Hosting Vergleich 2026" loading="lazy" width="400" height="200"></div>
-  </a>
-  <div class="card-body">
-    <div class="card-meta">
-      <span class="card-tag webhosting" style="background:#2196F322;color:#2196F3">Webhosting</span>
-      <span>06. June 2026</span>
-      <span>14 Min</span>
-    </div>
-    <h3><a href="/artikel/hugo-astro-static-site-vergleich-2026.html">Hugo vs. Astro – Static Site Generator Hosting Vergleich 2026</a></h3>
-    <p class="card-excerpt">Hugo vs. Astro: Der große Static-Site-Generator-Vergleich 2026 ✓ Performance, Hosting, Lernkurve, Deployment &amp; Use Cases. Welcher SSG passt zu dir?</p>
-    <div class="card-footer">
-      <a href="/artikel/hugo-astro-static-site-vergleich-2026.html" class="read-more">Weiterlesen &rarr;</a>
-    </div>
-  </div>
+<div class="container">
+<article class="article-content">
+<h1>WordPress mit Docker: Betrieb, Updates und Backups planen</h1>
+<figure class="article-hero-img"><img src="/images/7-days-to-die-server-hosten-2026.webp" alt="" loading="lazy" width="36" height="36"></figure>
+<div class="highlight-box"><p><strong>Kurzantwort:</strong> Docker erleichtert die reproduzierbare Bereitstellung von WordPress. Die Verantwortung für Updates, Datenbank und Sicherungen bleibt beim Betreiber. Plane dauerhafte Daten und Wiederherstellung, bevor du den Stack öffentlich erreichbar machst.</p></div>
+<h2>Datenbank und Webdienst trennen</h2>
+<p>Verwende getrennte Dienste mit einem internen Netzwerk. Die Datenbank braucht gewöhnlich keine öffentlich veröffentlichte Portfreigabe. Dokumentiere Volumes für Uploads und Datenbankdaten. Ein neu erstellter Container darf diese Daten nicht versehentlich ersetzen.</p>
+<h2>Zugangsdaten und Versionen verwalten</h2>
+<p>Nutze eindeutige Zugangsdaten und halte Konfigurationsdateien aus öffentlichen Repositories fern. Compose-Secrets auf Dateibasis müssen auf dem Host geschützt werden; ihre Deklaration allein verschlüsselt die Datei nicht. Wähle nachvollziehbare Image-Versionen und plane deren Aktualisierung.</p>
+<h2>Backup und Update als zusammenhängenden Ablauf testen</h2>
+<p>Sichere Uploads, Konfiguration und einen konsistenten Datenbankexport. Erstelle daraus eine getrennte Testinstanz. Prüfe Anmeldung, Medien, Permalinks und Formulare nach einem Update. Erst nach erfolgreicher Prüfung folgt die produktive Aktualisierung. Bewahre den vorigen Stand samt Datenbank auf, weil ein Image-Rollback eine Datenbankmigration nicht automatisch zurücknimmt.</p>
+<h2>Den Rückweg vor einer Aktualisierung festlegen</h2>
+<p>Halte Image-Version, Compose-Konfiguration und Sicherungszeitpunkt zusammen fest. Ein Datenbankdump sollte zur Anwendungsversion passen. Sichere auch Inhalte, die nach der ursprünglichen Installation hinzugekommen sind. Prüfe die Sicherung in einer isolierten Umgebung mit eigener Adresse, damit keine echten Benachrichtigungen versendet werden.</p>
+<p>Kontrolliere nach einem Update nicht nur die Startseite. Teste Anmeldung, Medien-Upload, Suche, Formulare und einen typischen redaktionellen Vorgang. Prüfe anschließend die Logs auf wiederkehrende Fehler. Wenn Datenbankänderungen erfolgten, kann die Rücknahme der Anwendung allein unzureichend sein. Entscheide deshalb vorher, wie zwischenzeitlich neu eingegangene Daten bei einer Wiederherstellung behandelt werden.</p>
+<h2>Häufige Frage</h2>
+<h3>Reicht ein kopiertes Container-Image als Backup?</h3><p>Nein. Die dauerhaft gespeicherten Inhalte liegen gewöhnlich in Volumes und der Datenbank. Beide müssen zum Wiederherstellungsplan gehören.</p>
+<p>Fachquelle: <a href="https://docs.docker.com/compose/">Docker: Compose-Dokumentation</a>. Redaktionell überarbeitet am 4. November 2026.</p>
+<h2>Passende Ratgeber</h2><ul><li><a href="/artikel/docker-compose-vps-guide.html">Docker Compose auf dem VPS: Webserver, Datenbank & Reverse Proxy richtig betreiben</a></li><li><a href="/artikel/vps-wordpress-sicherheit-2026.html">WordPress auf VPS absichern – Security-Guide 2026</a></li></ul>
 </article>
-<article class="blog-card">
-  <a href="/artikel/cloud-vs-dedicated-server-2026.html" class="card-img-link">
-    <div class="card-img"><img src="/images/cloud-vs-dedicated-server-2026.webp" alt="Cloud vs Dedicated Server 2026 – Kosten, Performance &amp; Use Cases" loading="lazy" width="400" height="200"></div>
-  </a>
-  <div class="card-body">
-    <div class="card-meta">
-      <span class="card-tag webhosting" style="background:#2196F322;color:#2196F3">Webhosting</span>
-      <span>07. June 2026</span>
-      <span>12 Min</span>
-    </div>
-    <h3><a href="/artikel/cloud-vs-dedicated-server-2026.html">Cloud vs Dedicated Server 2026 – Kosten, Performance &amp; Use Cases</a></h3>
-    <p class="card-excerpt">Cloud vs Dedicated Server 2026: ✓ Kostenvergleich ✓ Performance-Benchmarks ✓ Skalierbarkeit ✓ Use Cases ✓ Anbieter-Tabelle ✓ Wann lohnt sich was? Der ultimative Entscheidungs-Guide.</p>
-    <div class="card-footer">
-      <a href="/artikel/cloud-vs-dedicated-server-2026.html" class="read-more">Weiterlesen &rarr;</a>
-    </div>
-  </div>
-</article>
-<article class="blog-card">
-  <a href="/artikel/webhosting-sicherheit-ddos-schutz-waf-2026.html" class="card-img-link">
-    <div class="card-img"><img src="/images/webhosting-sicherheit-ddos-schutz-waf-2026.webp" alt="Webhosting-Sicherheit: DDoS-Schutz und WAF – Der Guide 2026" loading="lazy" width="400" height="200"></div>
-  </a>
-  <div class="card-body">
-    <div class="card-meta">
-      <span class="card-tag webhosting" style="background:#2196F322;color:#2196F3">Webhosting</span>
-      <span>07. June 2026</span>
-      <span>11 Min</span>
-    </div>
-    <h3><a href="/artikel/webhosting-sicherheit-ddos-schutz-waf-2026.html">Webhosting-Sicherheit: DDoS-Schutz und WAF – Der Guide 2026</a></h3>
-    <p class="card-excerpt">Webhosting-Sicherheit 2026: ✓ DDoS-Schutz für deine Website ✓ WAF-Konfiguration (Cloudflare, ModSecurity, AWS WAF) ✓ Bot-Management ✓ Rate-Limiting ✓ SSL/TLS-Härtung ✓ Notfallplan bei Angriffen.</p>
-    <div class="card-footer">
-      <a href="/artikel/webhosting-sicherheit-ddos-schutz-waf-2026.html" class="read-more">Weiterlesen &rarr;</a>
-    </div>
-  </div>
-</article>
-<article class="blog-card">
-  <a href="/artikel/managed-wordpress-hosting-vergleich-2026.html" class="card-img-link">
-    <div class="card-img"><img src="/images/managed-wordpress-hosting-vergleich-2026.webp" alt="Managed WordPress Hosting im Vergleich 2026 – Die besten Anbieter" loading="lazy" width="400" height="200"></div>
-  </a>
-  <div class="card-body">
-    <div class="card-meta">
-      <span class="card-tag webhosting" style="background:#2196F322;color:#2196F3">Webhosting</span>
-      <span>07. June 2026</span>
-      <span>14 Min</span>
-    </div>
-    <h3><a href="/artikel/managed-wordpress-hosting-vergleich-2026.html">Managed WordPress Hosting im Vergleich 2026 – Die besten Anbieter</a></h3>
-    <p class="card-excerpt">Managed WordPress Hosting 2026: ✓ Kinsta ✓ WP Engine ✓ Raidboxes ✓ Cloudways ✓ Pressidium ✓ Kosten, Performance, Support &amp; Features im direkten Vergleich. Inklusive Entscheidungsmatrix.</p>
-    <div class="card-footer">
-      <a href="/artikel/managed-wordpress-hosting-vergleich-2026.html" class="read-more">Weiterlesen &rarr;</a>
-    </div>
-  </div>
-</article>
-<article class="blog-card">
-  <a href="/artikel/hostinger-review-2026.html" class="card-img-link">
-    <div class="card-img"><img src="/images/hostinger-review-2026.webp" alt="Hostinger Review 2026 – Webhosting im Test: Preise, Performance &amp; Eignung" loading="lazy" width="400" height="200"></div>
-  </a>
-  <div class="card-body">
-    <div class="card-meta">
-      <span class="card-tag webhosting" style="background:#2196F322;color:#2196F3">Webhosting</span>
-      <span>08. June 2026</span>
-      <span>12 Min</span>
-    </div>
-    <h3><a href="/artikel/hostinger-review-2026.html">Hostinger Review 2026 – Webhosting im Test: Preise, Performance &amp; Eignung</a></h3>
-    <p class="card-excerpt">Hostinger Review 2026: Preise, Performance-Test, Tarife im Vergleich. Für wen Hostinger geeignet ist — und für wen nicht.</p>
-    <div class="card-footer">
-      <a href="/artikel/hostinger-review-2026.html" class="read-more">Weiterlesen &rarr;</a>
-    </div>
-  </div>
-</article>
-<article class="blog-card">
-  <a href="/artikel/lamp-stack-vs-lemp-stack-vergleich-2026.html" class="card-img-link">
-    <div class="card-img"><img src="/images/lamp-stack-vs-lemp-stack-vergleich-2026.webp" alt="LAMP Stack vs LEMP Stack – Der große Vergleich für dein Webprojekt 2026" loading="lazy" width="400" height="200"></div>
-  </a>
-  <div class="card-body">
-    <div class="card-meta">
-      <span class="card-tag webhosting" style="background:#2196F322;color:#2196F3">Webhosting</span>
-      <span>11. June 2026</span>
-      <span>10 Min</span>
-    </div>
-    <h3><a href="/artikel/lamp-stack-vs-lemp-stack-vergleich-2026.html">LAMP Stack vs LEMP Stack – Der große Vergleich für dein Webprojekt 2026</a></h3>
-    <p class="card-excerpt">LAMP vs LEMP Stack 2026: Apache vs Nginx, MySQL vs MariaDB, PHP-FPM. Performance, Konfiguration, Sicherheit und Use Cases.</p>
-    <div class="card-footer">
-      <a href="/artikel/lamp-stack-vs-lemp-stack-vergleich-2026.html" class="read-more">Weiterlesen &rarr;</a>
-    </div>
-  </div>
-</article>
-  </div>
-</section>
-  </div>
+</div>
 </main>
 
 <footer class="footer">
