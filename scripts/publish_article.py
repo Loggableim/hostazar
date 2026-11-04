@@ -32,6 +32,8 @@ from io import BytesIO
 
 from PIL import Image
 
+import site_template as st
+
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ARTIKEL_DIR = os.path.join(REPO, 'artikel')
 IMG_DIR = os.path.join(REPO, 'images')
@@ -311,9 +313,8 @@ def render_article_html(spec):
   <meta name="twitter:title" content="{esc(title)} | hostazar.com">
   <meta name="twitter:description" content="{esc(desc)}">
   <meta name="twitter:image" content="{img_url}">
-  <script data-hz-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="stylesheet" href="/css/consent-banner.css">
+{st.ADSENSE_LOADER_SCRIPT}  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+{st.CONSENT_CSS}
 
   <script type="application/ld+json">
 {json.dumps(article_schema, ensure_ascii=False, indent=2)}
@@ -336,9 +337,7 @@ def render_article_html(spec):
 </main>
 
 {footer}
-<script src="/data/script.js" defer></script>
-<script src="/js/consent-manager.js" defer></script>
-<script>
+{st.BODY_SCRIPTS}<script>
 document.addEventListener('DOMContentLoaded', function () {{
   if (typeof hostazarApp !== 'undefined') {{
     hostazarApp.init({{

@@ -20,6 +20,8 @@ Usage:
 """
 import json, os, re, sys, datetime, html as html_mod
 
+import site_template as st
+
 BASE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 SITE_URL = 'https://hostazar.com'
 SITE_NAME = 'hostazar.com'
@@ -190,9 +192,8 @@ def page_shell(title, desc, canonical, body_html,
   <meta name="twitter:title" content="''' + h(title) + '''">
   <meta name="twitter:description" content="''' + h(desc) + '''">
   <meta name="twitter:image" content="''' + og_image + '''">
-  <script data-hz-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="stylesheet" href="/css/consent-banner.css">
+''' + st.ADSENSE_LOADER_SCRIPT + '''  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+''' + st.CONSENT_CSS + '''
 ''' + extra_head + '''
 ''' + jsonld_tags + '''
 </head>
@@ -200,8 +201,7 @@ def page_shell(title, desc, canonical, body_html,
 ''' + nav_html + '''
 ''' + breadcrumb_html + body_html + '''
 ''' + footer_html + '''
-<script src="/data/script.js" defer></script>
-</body>
+''' + st.BODY_SCRIPTS + '''</body>
 </html>'''
 
 

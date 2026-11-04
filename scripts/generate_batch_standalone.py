@@ -1,6 +1,8 @@
 import os, sys, json, re, time, urllib.request, urllib.error
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+import site_template as st
+
 REPO = '/c/HermesPortable/home/scripts/blog-automation/hostazar'
 import os; API_KEY = os.environ.get("OPENROUTER_API_KEY","")
 with open('/c/HermesPortable/home/.env') as f:
@@ -124,7 +126,7 @@ def make_html(t, content):
     "mainEntityOfPage": {{"@type":"WebPage","@id":"{can}"}},
     "wordCount": {wc}, "articleSection": "{cl}", "inLanguage": "de"
   }}</script>
-  <script src="/data/script.js" defer></script>
+{st.ADSENSE_LOADER_SCRIPT}  <link rel="stylesheet" href="/css/consent-banner.css">
 </head>
 <body>
 {NAV}
@@ -139,11 +141,7 @@ def make_html(t, content):
       <h1>{h(title)}</h1>
       <p style="color:var(--text-secondary);font-size:1.1rem">Alles zu Kosten, Setup, Anbietern und der richtigen Wahl f&uuml;r deinen {cl}-Server 2026.</p>
     </div>
-    <div class="adsense-placeholder">
-      <p><strong>&mdash; Anzeige &mdash;</strong></p>
-      <p>Google AdSense Platzhalter</p>
-    </div>
-    <div id="breadcrumbs"></div>
+{st.ad_slot_mid_article()}    <div id="breadcrumbs"></div>
     <div class="article-content">
 {ch}
     </div>
@@ -158,14 +156,10 @@ def make_html(t, content):
       <p><a href="https://www.amazon.de/s?k={as_}&amp;tag=nova079-20" target="_blank" rel="nofollow sponsored">Zu den Produkten auf Amazon &rarr;</a></p>
     </div>
     <div id="related-articles"></div>
-    <div class="adsense-placeholder">
-      <p><strong>&mdash; Anzeige &mdash;</strong></p>
-      <p>Google AdSense Platzhalter (Ende des Artikels)</p>
-    </div>
-  </article>
+{st.ad_slot_end_article()}  </article>
 </main>
 {FOOTER}
-<script>
+{st.BODY_SCRIPTS}<script>
 document.addEventListener('DOMContentLoaded', function () {{
   if (typeof hostazarApp !== 'undefined') {{
     hostazarApp.init({{

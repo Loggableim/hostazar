@@ -3,6 +3,8 @@
 import json, os, re, time, urllib.request, urllib.error
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+import site_template as st
+
 REPO = '/c/HermesPortable/home/scripts/blog-automation/hostazar'
 API_KEY = os.environ.get('OPENROUTER_API_KEY', '')
 if not API_KEY:
@@ -232,7 +234,7 @@ def generate_article_html(topic, content_text):
     "inLanguage": "de"
   }}
   </script>
-  <script src="/data/script.js" defer></script>
+{st.ADSENSE_LOADER_SCRIPT}  <link rel="stylesheet" href="/css/consent-banner.css">
 </head>
 <body>
 
@@ -250,12 +252,7 @@ def generate_article_html(topic, content_text):
       <p style="color:var(--text-secondary);font-size:1.1rem">Alles zu Kosten, Setup, Anbietern und der richtigen Wahl f&uuml;r deinen {cat_label}-Server 2026.</p>
     </div>
 
-    <div class="adsense-placeholder">
-      <p><strong>&mdash; Anzeige &mdash;</strong></p>
-      <p>Google AdSense Platzhalter</p>
-    </div>
-
-    <div id="breadcrumbs"></div>
+{st.ad_slot_mid_article()}    <div id="breadcrumbs"></div>
 
     <div class="article-content">
 {content_html}
@@ -275,17 +272,12 @@ def generate_article_html(topic, content_text):
 
     <div id="related-articles"></div>
 
-    <div class="adsense-placeholder">
-      <p><strong>&mdash; Anzeige &mdash;</strong></p>
-      <p>Google AdSense Platzhalter (Ende des Artikels)</p>
-    </div>
-
-  </article>
+{st.ad_slot_end_article()}  </article>
 </main>
 
 {FOOTER}
 
-<script>
+{st.BODY_SCRIPTS}<script>
 document.addEventListener('DOMContentLoaded', function () {{
   if (typeof hostazarApp !== 'undefined') {{
     hostazarApp.init({{
