@@ -11,7 +11,7 @@ echo "=== Batch Legal Fix: Cookie Consent + AdSense Deferral ==="
 echo "Fixing AdSense scripts (async → data-hz-src)..."
 find artikel devops gaming webhosting ki-llm -name '*.html' -type f | while read f; do
   # Replace the async script tag with data-hz-src version
-  sed -i 's|<script async src="https://pagead2\.googlesyndication\.com/pagead/js/adsbygoogle\.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>|<script data-hz-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>|g' "$f"
+  sed -i 's|<script async src="https://pagead2\.googlesyndication\.com/pagead/js/adsbygoogle\.js?client=ca-pub-9094916118868532" crossorigin="anonymous"></script>|<script data-hz-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9094916118868532" crossorigin="anonymous"></script>|g' "$f"
   
   # Add consent-banner.css if not present
   if ! grep -q 'consent-banner.css' "$f"; then

@@ -311,7 +311,7 @@ def render_article_html(spec):
   <meta name="twitter:title" content="{esc(title)} | hostazar.com">
   <meta name="twitter:description" content="{esc(desc)}">
   <meta name="twitter:image" content="{img_url}">
-  <script data-hz-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>
+  <script data-hz-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9094916118868532" crossorigin="anonymous"></script>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="stylesheet" href="/css/consent-banner.css">
 

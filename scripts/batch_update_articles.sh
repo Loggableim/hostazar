@@ -25,7 +25,7 @@ find artikel devops gaming webhosting ki-llm -name '*.html' -type f | while read
 
   # 2. Replace async AdSense script with data-hz-src version (no async since JS handles it)
   if grep -q '<script async src="https://pagead2.googlesyndication.com' "$f"; then
-    sed -i 's|<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>|<script data-hz-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-909491618868532" crossorigin="anonymous"></script>|' "$f"
+    sed -i 's|<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9094916118868532" crossorigin="anonymous"></script>|<script data-hz-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9094916118868532" crossorigin="anonymous"></script>|' "$f"
     modified=1
   fi
 
