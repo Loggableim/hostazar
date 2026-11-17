@@ -3,6 +3,8 @@
 import os, sys, json, re, time, urllib.request, urllib.error
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+import site_template as st
+
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 API_KEY = os.environ.get('OPENROUTER_API_KEY', '')
@@ -181,7 +183,7 @@ def gen_one(t):
     "author":{{"@type":"Organization","name":"hostazar.com"}},
     "description":"{h(desc)}","wordCount":{wc}
   }}</script>
-  <script src="/data/script.js" defer></script>
+{st.ADSENSE_LOADER_SCRIPT}  <link rel="stylesheet" href="/css/consent-banner.css">
 </head>
 <body>
 {NAV}
@@ -195,8 +197,7 @@ def gen_one(t):
       </div>
       <h1>{h(t["title"])}</h1>
     </div>
-    <div class="adsense-placeholder"><p><strong>&mdash; Anzeige &mdash;</strong></p><p>Google AdSense Platzhalter</p></div>
-    <div id="breadcrumbs"></div>
+{st.ad_slot_mid_article()}    <div id="breadcrumbs"></div>
     <div class="article-content">
 {body}
     </div>
@@ -206,11 +207,10 @@ def gen_one(t):
       <p style="margin-top:8px;font-size:0.75rem">* Affiliate-Link. Als Amazon-Partner verdienen wir an qualifizierten Verk&auml;ufen.</p>
     </div>
     <div id="related-articles"></div>
-    <div class="adsense-placeholder"><p><strong>&mdash; Anzeige &mdash;</strong></p><p>Google AdSense Platzhalter (Ende)</p></div>
-  </article>
+{st.ad_slot_end_article()}  </article>
 </main>
 {FOOTER}
-<script>
+{st.BODY_SCRIPTS}<script>
 document.addEventListener('DOMContentLoaded', function(){{
   if(typeof hostazarApp !== 'undefined'){{
     hostazarApp.init({{
