@@ -63,6 +63,7 @@
   function clearConsent() {
     try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('hostazar_cookie_consent');
     } catch (e) {}
     consent = null;
   }
@@ -329,16 +330,7 @@
   /* ---- Withdrawal Function (public) ---- */
   window.hzWithdrawConsent = function () {
     clearConsent();
-    applyConsent(null);
-    // Show banner again
-    var existingBanner = document.getElementById('hzConsentBanner');
-    if (existingBanner) {
-      existingBanner.parentNode.removeChild(existingBanner);
-    }
-    createBanner();
-    // Remove modal if open
-    closeModal();
-    showToast('Einwilligung zurückgezogen. Bitte Seite neu laden, um Änderungen zu aktivieren.');
+    window.location.reload();
   };
 
   /* ---- Reopen Banner Function (public) ---- */
@@ -360,6 +352,8 @@
 
   /* ---- Init ---- */
   function init() {
+    var withdrawButton = document.getElementById('hzWithdrawConsent');
+    if (withdrawButton) withdrawButton.addEventListener('click', window.hzWithdrawConsent);
     var saved = loadConsent();
     if (saved && saved.preferences) {
       // Consent already given — apply it silently
