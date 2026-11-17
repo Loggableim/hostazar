@@ -73,14 +73,31 @@
     return document.querySelectorAll('script[data-hz-src]');
   }
 
+  function pushAdSlots() {
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (e) {
+      /* ignore if script not ready yet */
+    }
+  }
+
   function loadAdSense() {
     var scripts = getAdSenseScripts();
+    var pending = 0;
     scripts.forEach(function (script) {
       if (script.getAttribute('data-hz-loaded')) return;
+      pending += 1;
+      script.addEventListener('load', function onLoaded() {
+        script.removeEventListener('load', onLoaded);
+        pushAdSlots();
+      });
       script.setAttribute('src', script.getAttribute('data-hz-src'));
       script.removeAttribute('data-hz-src');
       script.setAttribute('data-hz-loaded', '1');
     });
+    if (pending === 0) {
+      pushAdSlots();
+    }
   }
 
   function unloadAdSense() {
